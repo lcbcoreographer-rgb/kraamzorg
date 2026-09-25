@@ -1,22 +1,28 @@
 /**
- * Limite de parcelamento sem juros (PRD 14 v4.2, T-06; 22.1, decisão
- * registrada em `docs/aprovacao/decisoes-pendentes.md` item 5: Plano de
- * Cobrança limitado a 3 parcelas). Padrão até segunda ordem; a origem real
- * do valor é `pacote_versao.parcelas_max_sem_juros`, nunca um número livre.
+ * Limite de parcelamento do link (PRD 14 v4.2, T-06): o checkout nunca
+ * oferece mais parcelas que `pacote_versao.parcelas_max_sem_juros` (3 no
+ * seed, PRD 6.3). O limite vem sempre do banco, por quem chama; nenhum
+ * número fica escrito aqui (CLAUDE.md, "nenhum limite no código").
+ * Validado antes de qualquer chamada de rede.
  */
-export const PARCELAS_MAX_SEM_JUROS_PADRAO = 3;
-
-export function validarParcelasMaxSemJuros(parcelasMax: number): void {
-  if (!Number.isInteger(parcelasMax) || parcelasMax < 1) {
+export function validarParcelas(
+  parcelas: number,
+  parcelasMaxSemJuros: number,
+): void {
+  if (!Number.isInteger(parcelasMaxSemJuros) || parcelasMaxSemJuros < 1) {
     throw new RangeError(
-      `InfinitePay: parcelasMaxSemJuros inválido (${String(parcelasMax)})`,
+      `InfinitePay: limite de parcelas do pacote inválido (${String(parcelasMaxSemJuros)})`,
     );
   }
-  if (parcelasMax > PARCELAS_MAX_SEM_JUROS_PADRAO) {
+  if (!Number.isInteger(parcelas) || parcelas < 1) {
     throw new RangeError(
-      `InfinitePay: parcelamento de ${parcelasMax}x acima do limite de ` +
-        `${PARCELAS_MAX_SEM_JUROS_PADRAO}x sem juros (PRD 14 v4.2, T-06). ` +
-        "Aceite do P32: o link gerado nunca mostra mais de 3 parcelas.",
+      `InfinitePay: número de parcelas inválido (${String(parcelas)})`,
+    );
+  }
+  if (parcelas > parcelasMaxSemJuros) {
+    throw new RangeError(
+      `InfinitePay: link de ${parcelas}x acima do limite de ` +
+        `${parcelasMaxSemJuros}x sem juros do pacote (PRD 14 v4.2, T-06).`,
     );
   }
 }

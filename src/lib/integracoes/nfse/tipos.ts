@@ -39,6 +39,10 @@ export interface EmissaoNfseEntrada {
    * quem chama o adaptador (P43 item 2, "código de serviço do cadastro";
    * CLAUDE.md, "nenhum... valor... no código"). */
   codigoServico: string;
+  /** Discriminação do serviço, lida do mesmo cadastro que o código (P43
+   * item 2: "cuidado domiciliar pós-parto"). Texto nunca fica no código
+   * (CLAUDE.md); a chave em `parametro` é pendência da trilha do banco. */
+  descricaoServico: string;
 }
 
 export interface ResultadoNfse {
@@ -50,17 +54,18 @@ export interface ResultadoNfse {
   pdfUrl?: string;
   xmlUrl?: string;
   erro?: string;
-  /** Quantas tentativas de envio o adaptador fez nesta chamada (novas
-   * tentativas do P43 item 3). */
+  /** Quantas requisições o adaptador fez nesta chamada (novas tentativas do
+   * P43 item 3). */
   tentativas: number;
 }
 
 /**
  * Interface do adaptador para o padrão nacional de NFS-e (P43 item 1).
- * Toda implementação: usa o tomador como quem paga, a descrição fixa de
- * cuidado domiciliar pós-parto, o código de serviço do cadastro (nunca
- * inventado), expõe os cinco estados de `status_nota` e tenta de novo
- * transitoriamente antes de devolver erro.
+ * Toda implementação: usa o tomador como quem paga, o código e a descrição
+ * do serviço vindos do cadastro (nunca escritos no código), expõe os cinco
+ * estados de `status_nota`, tenta de novo só em falha transitória e manda a
+ * mesma chave de idempotência (id da cobrança) em toda tentativa, para uma
+ * nova tentativa nunca emitir nota duplicada.
  */
 export interface AdaptadorNfse {
   emitir(entrada: EmissaoNfseEntrada): Promise<ResultadoNfse>;

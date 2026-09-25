@@ -9,12 +9,18 @@ Adaptador da Autentique (PRD 14, P31): assinatura eletrônica do contrato.
   do POST: sempre reconsulta o documento pela API antes de marcar o contrato
   como assinado, e é idempotente (webhook duplicado não grava duas vezes).
 
-Segredos só em variável de ambiente (`.env.example`): `AUTENTIQUE_API_TOKEN`
-e `AUTENTIQUE_WEBHOOK_SECRET` (o segredo no caminho da rota).
+Segredos e ajustes só em variável de ambiente (`.env.example`):
+`AUTENTIQUE_API_TOKEN`, `AUTENTIQUE_WEBHOOK_SECRET` (o segredo no caminho
+da rota, comparado em tempo constante) e `AUTENTIQUE_SANDBOX` (ligado a
+menos que valha "false").
 
-[conferir] Os nomes exatos dos campos GraphQL (`DocumentInput`,
-`SignerInput`, enum de ação) e o formato do payload do webhook não puderam
-ser reconferidos contra `docs.autentique.com.br` nesta sessão (domínio
-bloqueado na rede do ambiente); o formato usado segue o PRD 14 e o padrão
-GraphQL multipart request spec público da Autentique. Reconfira antes de
-ligar a credencial real de homologação.
+Formato da API conferido em 25/09/2026 por implementações públicas da API v2
+(o domínio docs.autentique.com.br segue bloqueado na rede do ambiente):
+ação `SIGN` para quem assina e `SIGN_AS_A_WITNESS` para a testemunha,
+`name` obrigatório no signatário, entrega por e-mail, WhatsApp
+(`DELIVERY_METHOD_WHATSAPP`) ou link (`DELIVERY_METHOD_LINK`), e o webhook
+no formato `{ event: { type: "document.finished", data: { id } } }`.
+[conferir] reconfirmar com um disparo real no painel de homologação. A
+Autentique também assina o webhook com HMAC (`x-autentique-signature`);
+o PRD 14 adotou o segredo no caminho, e a checagem do HMAC fica como
+pendência opcional.

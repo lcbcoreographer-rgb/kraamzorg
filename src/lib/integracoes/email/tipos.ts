@@ -13,13 +13,13 @@ export interface EnviarEmailEntrada {
   corpoHtml: string;
   anexos?: AnexoEmail[];
   /**
-   * Nomes que o assunto nunca pode conter (nome da gestante, do bebê etc.),
-   * conferidos antes do envio (CLAUDE.md, "nome de paciente nunca em...
-   * assunto de e-mail"). Quando quem chama sabe o nome do paciente do
-   * contexto (por exemplo o envio de evolução do P41), passa a lista aqui;
-   * `enviarEmail` recusa o envio se o assunto contiver algum deles.
+   * Nomes que o assunto e o nome dos anexos nunca podem conter (gestante,
+   * bebê, pagador etc.), conferidos antes do envio (CLAUDE.md, "nome de
+   * paciente nunca em... assunto de e-mail"). Obrigatório: quem envia tem
+   * de dizer de quem é o e-mail; lista vazia só quando o e-mail não é sobre
+   * nenhuma pessoa. CPF, telefone e e-mail no assunto são recusados sempre.
    */
-  nomesProibidosNoAssunto?: string[];
+  nomesProibidosNoAssunto: readonly string[];
 }
 
 export interface ResultadoEnvioEmail {

@@ -1,14 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import { enviarEmail } from "./cliente";
-import { ASSUNTO_EMAIL_EVOLUCAO } from "./textos";
 import { AssuntoComDadoPessoalError } from "./guarda";
 
 function respostaJson(corpo: unknown, ok = true, status = 200) {
   return { ok, status, json: async () => corpo } as Response;
 }
 
+// Assunto de teste; em produção o texto vem de `mensagem_modelo`.
+const ASSUNTO_TESTE = "Evolução de enfermagem";
+
 describe("enviarEmail", () => {
-  it("envia com o assunto fixo de evolução, sem dado pessoal", async () => {
+  it("envia quando o assunto não tem dado pessoal", async () => {
     const fetchImpl = vi
       .fn()
       .mockResolvedValue(respostaJson({ id: "email-1" }));
@@ -18,7 +20,7 @@ describe("enviarEmail", () => {
       {
         de: "contato@kraamzorg.example",
         para: ["obstetra@exemplo.invalid"],
-        assunto: ASSUNTO_EMAIL_EVOLUCAO,
+        assunto: ASSUNTO_TESTE,
         corpoHtml: "<p>Olá, Dr. Exemplo. Segue em anexo...</p>",
         nomesProibidosNoAssunto: ["Maria da Silva", "Bebê Maria"],
       },
@@ -28,7 +30,7 @@ describe("enviarEmail", () => {
     const [endpoint, requisicao] = fetchImpl.mock.calls[0]!;
     expect(endpoint).toBe("https://api.resend.com/emails");
     const corpo = JSON.parse(requisicao.body as string);
-    expect(corpo.subject).toBe("Evolução de enfermagem · Kraamzorg Brasil");
+    expect(corpo.subject).toBe(ASSUNTO_TESTE);
     expect(corpo.subject).not.toMatch(/Maria/i);
     expect(resultado.id).toBe("email-1");
   });
@@ -52,6 +54,49 @@ describe("enviarEmail", () => {
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
+  it("recusa só o primeiro nome no assunto e nunca chama a rede", async () => {
+    const fetchImpl = vi.fn();
+
+    await expect(
+      enviarEmail(
+        { apiKey: "chave", fetchImpl },
+        {
+          de: "contato@kraamzorg.example",
+          para: ["obstetra@exemplo.invalid"],
+          assunto: "Alta de Maria",
+          corpoHtml: "<p>Texto</p>",
+          nomesProibidosNoAssunto: ["Maria da Silva"],
+        },
+      ),
+    ).rejects.toThrow(AssuntoComDadoPessoalError);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("recusa anexo com nome de paciente no nome do arquivo e nunca chama a rede", async () => {
+    const fetchImpl = vi.fn();
+
+    await expect(
+      enviarEmail(
+        { apiKey: "chave", fetchImpl },
+        {
+          de: "contato@kraamzorg.example",
+          para: ["obstetra@exemplo.invalid"],
+          assunto: ASSUNTO_TESTE,
+          corpoHtml: "<p>Texto</p>",
+          nomesProibidosNoAssunto: ["Maria da Silva"],
+          anexos: [
+            {
+              nomeArquivo: "evolucao-maria-da-silva.pdf",
+              conteudo: new Uint8Array([1]),
+              tipoConteudo: "application/pdf",
+            },
+          ],
+        },
+      ),
+    ).rejects.toThrow(AssuntoComDadoPessoalError);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
   it("codifica anexo em base64 com o tipo de conteúdo", async () => {
     const fetchImpl = vi
       .fn()
@@ -62,8 +107,9 @@ describe("enviarEmail", () => {
       {
         de: "contato@kraamzorg.example",
         para: ["pediatra@exemplo.invalid"],
-        assunto: ASSUNTO_EMAIL_EVOLUCAO,
+        assunto: ASSUNTO_TESTE,
         corpoHtml: "<p>Texto</p>",
+        nomesProibidosNoAssunto: ["Maria da Silva"],
         anexos: [
           {
             nomeArquivo: "evolucao.pdf",
@@ -94,6 +140,7 @@ describe("enviarEmail", () => {
           para: ["a@exemplo.invalid"],
           assunto: "Assunto qualquer",
           corpoHtml: "<p>x</p>",
+          nomesProibidosNoAssunto: [],
         },
       ),
     ).rejects.toThrow(/422/);

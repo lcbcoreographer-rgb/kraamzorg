@@ -35,16 +35,20 @@ export interface CriarLinkPagamentoEntrada {
   redirectUrl: string;
   webhookUrl: string;
   cliente: ClienteInfinitePay;
-  /** Vem de `pacote_versao.parcelas_max_sem_juros`; nunca acima de 3
-   * (PRD 14 v4.2, T-06). Validado antes de qualquer chamada de rede. */
+  /** Máximo de parcelas que o link oferece no cartão. */
+  parcelas: number;
+  /** Sempre `pacote_versao.parcelas_max_sem_juros` (PRD 14 v4.2, T-06; 3
+   * no seed). `parcelas` acima dele recusa o link antes de qualquer
+   * chamada de rede. */
   parcelasMaxSemJuros: number;
 }
 
 export interface LinkPagamentoInfinitePay {
   url: string;
-  slug: string;
+  /** Nem sempre volta na criação; o `invoice_slug` chega no webhook. */
+  slug?: string;
   orderNsu: string;
-  parcelasMaxSemJuros: number;
+  parcelas: number;
 }
 
 export interface PaymentCheckEntrada {
@@ -63,7 +67,11 @@ export interface ResultadoPaymentCheck {
 
 export interface ClienteInfinitePayOpcoes {
   handle: string;
-  apiKey: string;
+  /** [conferir] O Checkout público autentica só pelo `handle`
+   * (InfiniteTag). Se a InfinitePay exigir chave para o Plano de Cobrança
+   * (T-06), ela vai no cabeçalho Authorization; sem chave, o cabeçalho não
+   * é enviado. */
+  apiKey?: string;
   /** Injeção de dependência para teste (fetch interceptado). */
   fetchImpl?: typeof fetch;
   endpointBase?: string;

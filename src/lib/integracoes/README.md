@@ -14,7 +14,7 @@ navegador (todos com `import "server-only"`).
 
 - `autentique/`: `createDocument` com upload e sandbox; webhook que
   reconsulta o documento antes de mudar estado.
-- `infinitepay/`: link de cobrança com o limite de 3 parcelas sem juros;
+- `infinitepay/`: link de cobrança limitado a `pacote_versao.parcelas_max_sem_juros`;
   webhook que confirma com `payment_check` antes de qualquer baixa.
 - `nfse/`: interface do adaptador para o padrão nacional e a implementação
   `EmissorNacionalAdaptador` (provedor comercial em [confirmar], T-05).

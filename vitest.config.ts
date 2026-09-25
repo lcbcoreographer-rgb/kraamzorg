@@ -21,8 +21,14 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     css: true,
     // "**/node_modules/**" (não só "node_modules/**") para não varrer
-    // node_modules aninhado, como o de n8n/referencia (n8n/build.test.mjs
-    // roda por node --test, não por Vitest).
-    exclude: ["**/node_modules/**", "tests/e2e/**", "tests/e2e-offline/**"],
+    // node_modules aninhado, como o de n8n/referencia. Os testes do n8n
+    // (n8n/**/*.test.mjs) usam node:test e rodam por `node --test`, não por
+    // Vitest (CLAUDE.md, "Comandos").
+    exclude: [
+      "**/node_modules/**",
+      "tests/e2e/**",
+      "tests/e2e-offline/**",
+      "n8n/**",
+    ],
   },
 });

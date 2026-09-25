@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import type { DocumentoAutentique } from "./tipos";
 
 /**
@@ -24,10 +25,14 @@ export interface DependenciasWebhookAutentique {
   buscarContratoPorDocumento: (
     documentoId: string,
   ) => Promise<ContratoParaWebhookAutentique | null>;
+  /** Grava a assinatura só se o contrato ainda não estiver assinado
+   * (atualização condicional no banco) e devolve se alguma linha mudou.
+   * Dois webhooks simultâneos nunca gravam duas vezes. Falha de banco
+   * lança erro, para a rota responder 500 e a Autentique tentar de novo. */
   marcarContratoAssinado: (
     contratoId: string,
     documento: DocumentoAutentique,
-  ) => Promise<void>;
+  ) => Promise<boolean>;
 }
 
 export interface WebhookAutentiqueEntrada {
@@ -51,44 +56,61 @@ export interface ResultadoWebhookAutentique {
   motivo: MotivoResultadoWebhookAutentique;
 }
 
-/** [conferir] Formato exato do payload do webhook "documento finalizado" da
- * Autentique (configurado no painel, PRD 14); aceita as formas mais comuns
- * (`document.id`, `data.document.id`, `id`) e nunca lê status do corpo. */
+function comoObjeto(valor: unknown): Record<string, unknown> | null {
+  return valor && typeof valor === "object"
+    ? (valor as Record<string, unknown>)
+    : null;
+}
+
+function idDe(valor: unknown): string | null {
+  const objeto = comoObjeto(valor);
+  return objeto && typeof objeto.id === "string" && objeto.id.length > 0
+    ? objeto.id
+    : null;
+}
+
+/**
+ * Acha o id do documento no corpo do webhook. Formato da API v2 (conferido
+ * em capturas públicas de `document.finished`): `{ event: { type, data: {
+ * id, ... } } }`, em que `event.data` é o documento; em eventos de
+ * assinatura, `event.data.document` traz o documento. O `id` da raiz é o do
+ * próprio webhook, nunca o do documento, e por isso não é lido. Nunca lê
+ * status do corpo: o estado vem só da reconsulta.
+ * [conferir] reconfirmar com um disparo real no painel de homologação.
+ */
 export function extrairDocumentoId(corpo: unknown): string | null {
-  if (!corpo || typeof corpo !== "object") return null;
-  const objeto = corpo as Record<string, unknown>;
+  const raiz = comoObjeto(corpo);
+  if (!raiz) return null;
 
-  const doc = objeto.document;
-  if (
-    doc &&
-    typeof doc === "object" &&
-    typeof (doc as { id?: unknown }).id === "string"
-  ) {
-    return (doc as { id: string }).id;
-  }
-
-  const dado = objeto.data;
-  if (dado && typeof dado === "object") {
-    const docAninhado = (dado as Record<string, unknown>).document;
-    if (
-      docAninhado &&
-      typeof docAninhado === "object" &&
-      typeof (docAninhado as { id?: unknown }).id === "string"
-    ) {
-      return (docAninhado as { id: string }).id;
+  const dadoEvento = comoObjeto(comoObjeto(raiz.event)?.data);
+  if (dadoEvento) {
+    const doDocumentoAninhado = idDe(dadoEvento.document);
+    if (doDocumentoAninhado) return doDocumentoAninhado;
+    if (typeof dadoEvento.document === "string" && dadoEvento.document) {
+      return dadoEvento.document;
     }
+    const doEvento = idDe(dadoEvento);
+    if (doEvento) return doEvento;
   }
 
-  if (typeof objeto.id === "string") return objeto.id;
+  return idDe(raiz.document);
+}
 
-  return null;
+/** Comparação em tempo constante (resumo SHA-256 dos dois lados, para
+ * igualar o tamanho), para o segredo do caminho não vazar por tempo de
+ * resposta. */
+export function segredoConfere(recebido: string, esperado: string): boolean {
+  if (!esperado) return false;
+  const a = createHash("sha256").update(recebido, "utf8").digest();
+  const b = createHash("sha256").update(esperado, "utf8").digest();
+  return timingSafeEqual(a, b);
 }
 
 export async function processarWebhookAutentique(
   entrada: WebhookAutentiqueEntrada,
   dependencias: DependenciasWebhookAutentique,
 ): Promise<ResultadoWebhookAutentique> {
-  if (entrada.segredoRecebido !== dependencias.segredoEsperado) {
+  if (!segredoConfere(entrada.segredoRecebido, dependencias.segredoEsperado)) {
     return { status: 404, mudouEstado: false, motivo: "segredo_invalido" };
   }
 
@@ -123,6 +145,12 @@ export async function processarWebhookAutentique(
     return { status: 200, mudouEstado: false, motivo: "ja_assinado" };
   }
 
-  await dependencias.marcarContratoAssinado(contrato.id, documento);
+  const mudou = await dependencias.marcarContratoAssinado(
+    contrato.id,
+    documento,
+  );
+  if (!mudou) {
+    return { status: 200, mudouEstado: false, motivo: "ja_assinado" };
+  }
   return { status: 200, mudouEstado: true, motivo: "assinado" };
 }

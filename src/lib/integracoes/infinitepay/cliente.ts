@@ -1,5 +1,5 @@
 import "server-only";
-import { validarParcelasMaxSemJuros } from "./limites";
+import { validarParcelas } from "./limites";
 import type {
   ClienteInfinitePayOpcoes,
   CriarLinkPagamentoEntrada,
@@ -23,13 +23,17 @@ import type {
 const ENDPOINT_LINKS_PADRAO = "https://api.checkout.infinitepay.io";
 
 interface RespostaLinkBruta {
+  success?: boolean;
   url?: string;
+  link?: string;
   payment_url?: string;
   checkout_url?: string;
   slug?: string;
   invoice_slug?: string;
 }
 
+/** Resposta do `payment_check`: `success` diz só que a consulta funcionou;
+ * quem diz se houve pagamento é `paid`. */
 interface RespostaPaymentCheckBruta {
   success?: boolean;
   paid?: boolean;
@@ -47,12 +51,14 @@ async function requisitar<T>(
   const fetchImpl = opcoes.fetchImpl ?? fetch;
   const base = opcoes.endpointBase ?? ENDPOINT_LINKS_PADRAO;
 
+  const cabecalhos: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (opcoes.apiKey) cabecalhos.Authorization = `Bearer ${opcoes.apiKey}`;
+
   const resposta = await fetchImpl(`${base}${caminho}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${opcoes.apiKey}`,
-    },
+    headers: cabecalhos,
     body: JSON.stringify(corpo),
   });
 
@@ -69,9 +75,9 @@ export async function criarLinkPagamento(
   opcoes: ClienteInfinitePayOpcoes,
   entrada: CriarLinkPagamentoEntrada,
 ): Promise<LinkPagamentoInfinitePay> {
-  // Validado antes de qualquer chamada de rede: um pedido de mais de 3
-  // parcelas nunca chega a gerar link (aceite do P32).
-  validarParcelasMaxSemJuros(entrada.parcelasMaxSemJuros);
+  // Validado antes de qualquer chamada de rede: um pedido acima do limite
+  // do pacote nunca chega a gerar link (aceite do P32).
+  validarParcelas(entrada.parcelas, entrada.parcelasMaxSemJuros);
 
   const bruta = await requisitar<RespostaLinkBruta>(opcoes, "/links", {
     handle: opcoes.handle,
@@ -89,27 +95,30 @@ export async function criarLinkPagamento(
       phone_number: entrada.cliente.telefone,
       document: entrada.cliente.cpf,
     },
-    // [conferir] campo exato do Plano de Cobrança (T-06); trava o
-    // parcelamento sem juros no limite validado acima.
+    // [conferir] T-06: o link simples do Checkout não trava o parcelamento
+    // (PRD 14 v4.2). Este campo só vale se o endpoint escolhido (Plano de
+    // Cobrança) aceitar limite; até a confirmação, o aceite do P32 em
+    // homologação abre o link e confere que ele mostra no máximo o limite.
     installments: {
-      max: entrada.parcelasMaxSemJuros,
-      free_max: entrada.parcelasMaxSemJuros,
+      max: entrada.parcelas,
+      free_max: entrada.parcelas,
     },
   });
 
-  const url = bruta.url ?? bruta.payment_url ?? bruta.checkout_url;
-  const slug = bruta.slug ?? bruta.invoice_slug;
-  if (!url || !slug) {
-    throw new Error(
-      "InfinitePay: resposta de /links sem url ou slug reconhecíveis",
-    );
+  if (bruta.success === false) {
+    throw new Error("InfinitePay: /links recusou o pedido");
+  }
+  const url =
+    bruta.url ?? bruta.checkout_url ?? bruta.payment_url ?? bruta.link;
+  if (!url) {
+    throw new Error("InfinitePay: resposta de /links sem url de pagamento");
   }
 
   return {
     url,
-    slug,
+    slug: bruta.slug ?? bruta.invoice_slug,
     orderNsu: entrada.orderNsu,
-    parcelasMaxSemJuros: entrada.parcelasMaxSemJuros,
+    parcelas: entrada.parcelas,
   };
 }
 
@@ -128,7 +137,10 @@ export async function paymentCheck(
     },
   );
 
-  const pago = bruta.success === true || bruta.paid === true;
+  // Só `paid === true` confirma. `success: true` com `paid: false` é a
+  // resposta de uma consulta que funcionou para um pedido NÃO pago (o caso
+  // de um webhook forjado) e nunca pode virar baixa.
+  const pago = bruta.success !== false && bruta.paid === true;
   return {
     pago,
     valorPagoCentavos: bruta.paid_amount,

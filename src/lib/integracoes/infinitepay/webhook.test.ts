@@ -1,5 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
+import { paymentCheck } from "./cliente";
 import { processarWebhookInfinitePay } from "./webhook";
+
+const COBRANCA_ABERTA = {
+  id: "cobranca-1",
+  status: "aberta",
+  valor_centavos: 140000,
+};
 
 describe("processarWebhookInfinitePay", () => {
   it("corpo forjado (diz pago, payment_check real diz que não) não muda nada", async () => {
@@ -17,9 +24,7 @@ describe("processarWebhookInfinitePay", () => {
         },
       },
       {
-        buscarCobrancaPorOrderNsu: vi
-          .fn()
-          .mockResolvedValue({ id: "cobranca-1", status: "aberta" }),
+        buscarCobrancaPorOrderNsu: vi.fn().mockResolvedValue(COBRANCA_ABERTA),
         confirmarPagamento,
         marcarCobrancaPaga,
       },
@@ -39,14 +44,12 @@ describe("processarWebhookInfinitePay", () => {
   });
 
   it("pagamento confirmado baixa a cobrança uma vez", async () => {
-    const marcarCobrancaPaga = vi.fn().mockResolvedValue(undefined);
+    const marcarCobrancaPaga = vi.fn().mockResolvedValue(true);
 
     const resultado = await processarWebhookInfinitePay(
       { corpo: { order_nsu: "cobranca-1" } },
       {
-        buscarCobrancaPorOrderNsu: vi
-          .fn()
-          .mockResolvedValue({ id: "cobranca-1", status: "aberta" }),
+        buscarCobrancaPorOrderNsu: vi.fn().mockResolvedValue(COBRANCA_ABERTA),
         confirmarPagamento: vi.fn().mockResolvedValue({
           pago: true,
           valorPagoCentavos: 140000,
@@ -78,7 +81,7 @@ describe("processarWebhookInfinitePay", () => {
       {
         buscarCobrancaPorOrderNsu: vi
           .fn()
-          .mockResolvedValue({ id: "cobranca-1", status: "paga" }),
+          .mockResolvedValue({ ...COBRANCA_ABERTA, status: "paga" }),
         confirmarPagamento,
         marcarCobrancaPaga,
       },
@@ -128,5 +131,114 @@ describe("processarWebhookInfinitePay", () => {
       mudouEstado: false,
       motivo: "cobranca_nao_encontrada",
     });
+  });
+
+  it("forjado de ponta a ponta: payment_check real com fetch interceptado diz success true e paid false, nada muda", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true, paid: false }),
+    } as Response);
+    const marcarCobrancaPaga = vi.fn();
+
+    const resultado = await processarWebhookInfinitePay(
+      {
+        corpo: {
+          order_nsu: "cobranca-1",
+          transaction_nsu: "tx-inventado",
+          invoice_slug: "slug-inventado",
+          paid_amount: 140000,
+          capture_method: "pix",
+        },
+      },
+      {
+        buscarCobrancaPorOrderNsu: vi.fn().mockResolvedValue(COBRANCA_ABERTA),
+        confirmarPagamento: (entrada) =>
+          paymentCheck({ handle: "kraamzorg", fetchImpl }, entrada),
+        marcarCobrancaPaga,
+      },
+    );
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(fetchImpl.mock.calls[0]![1].body as string)).toEqual({
+      handle: "kraamzorg",
+      order_nsu: "cobranca-1",
+      transaction_nsu: "tx-inventado",
+      slug: "slug-inventado",
+    });
+    expect(resultado.motivo).toBe("pagamento_nao_confirmado");
+    expect(marcarCobrancaPaga).not.toHaveBeenCalled();
+  });
+
+  it("valor confirmado abaixo do valor da cobrança não baixa", async () => {
+    const marcarCobrancaPaga = vi.fn();
+
+    const resultado = await processarWebhookInfinitePay(
+      { corpo: { order_nsu: "cobranca-1" } },
+      {
+        buscarCobrancaPorOrderNsu: vi.fn().mockResolvedValue(COBRANCA_ABERTA),
+        confirmarPagamento: vi
+          .fn()
+          .mockResolvedValue({ pago: true, valorPagoCentavos: 100 }),
+        marcarCobrancaPaga,
+      },
+    );
+
+    expect(resultado).toEqual({
+      status: 200,
+      mudouEstado: false,
+      motivo: "valor_divergente",
+    });
+    expect(marcarCobrancaPaga).not.toHaveBeenCalled();
+  });
+
+  it("pago sem valor confirmado não baixa com valor zero", async () => {
+    const marcarCobrancaPaga = vi.fn();
+
+    const resultado = await processarWebhookInfinitePay(
+      { corpo: { order_nsu: "cobranca-1" } },
+      {
+        buscarCobrancaPorOrderNsu: vi.fn().mockResolvedValue(COBRANCA_ABERTA),
+        confirmarPagamento: vi.fn().mockResolvedValue({ pago: true }),
+        marcarCobrancaPaga,
+      },
+    );
+
+    expect(resultado.motivo).toBe("valor_divergente");
+    expect(marcarCobrancaPaga).not.toHaveBeenCalled();
+  });
+
+  it("dois webhooks ao mesmo tempo: a baixa condicional não muda nada no segundo", async () => {
+    const resultado = await processarWebhookInfinitePay(
+      { corpo: { order_nsu: "cobranca-1" } },
+      {
+        buscarCobrancaPorOrderNsu: vi.fn().mockResolvedValue(COBRANCA_ABERTA),
+        confirmarPagamento: vi
+          .fn()
+          .mockResolvedValue({ pago: true, valorPagoCentavos: 140000 }),
+        marcarCobrancaPaga: vi.fn().mockResolvedValue(false),
+      },
+    );
+
+    expect(resultado).toEqual({
+      status: 200,
+      mudouEstado: false,
+      motivo: "ja_paga",
+    });
+  });
+
+  it("falha do payment_check propaga o erro (a rota responde 500) sem baixar", async () => {
+    const marcarCobrancaPaga = vi.fn();
+    await expect(
+      processarWebhookInfinitePay(
+        { corpo: { order_nsu: "cobranca-1" } },
+        {
+          buscarCobrancaPorOrderNsu: vi.fn().mockResolvedValue(COBRANCA_ABERTA),
+          confirmarPagamento: vi.fn().mockRejectedValue(new Error("rede")),
+          marcarCobrancaPaga,
+        },
+      ),
+    ).rejects.toThrow();
+    expect(marcarCobrancaPaga).not.toHaveBeenCalled();
   });
 });

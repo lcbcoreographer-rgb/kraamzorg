@@ -1,5 +1,4 @@
 import "server-only";
-import { DESCRICAO_SERVICO_NFSE } from "./descricao";
 import type {
   AdaptadorNfse,
   EmissaoNfseEntrada,
@@ -83,16 +82,20 @@ export class EmissorNacionalAdaptador implements AdaptadorNfse {
   private async requisitar(
     caminho: string,
     corpo: Record<string, unknown>,
+    chaveIdempotencia?: string,
   ): Promise<RespostaEmissaoBruta> {
     const fetchImpl = this.opcoes.fetchImpl ?? fetch;
+    const cabecalhos: Record<string, string> = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${this.opcoes.apiKey}`,
+    };
+    // [conferir] nome do cabeçalho de idempotência no provedor escolhido.
+    if (chaveIdempotencia) cabecalhos["Idempotency-Key"] = chaveIdempotencia;
     let resposta: Response;
     try {
       resposta = await fetchImpl(`${this.opcoes.baseUrl}${caminho}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.opcoes.apiKey}`,
-        },
+        headers: cabecalhos,
         body: JSON.stringify(corpo),
       });
     } catch (erroRede) {
@@ -102,7 +105,19 @@ export class EmissorNacionalAdaptador implements AdaptadorNfse {
     }
 
     if (!resposta.ok) {
-      const mensagem = `NFS-e: resposta HTTP ${resposta.status} em ${caminho}`;
+      // O motivo do provedor (rejeição de validação) volta para a tela do
+      // financeiro, que mostra o erro e permite reenviar (aceite do P43).
+      const motivo = await resposta
+        .json()
+        .then((json: unknown) => {
+          const objeto = json as { erro?: unknown; mensagem?: unknown };
+          const texto = objeto?.erro ?? objeto?.mensagem;
+          return typeof texto === "string" ? texto : null;
+        })
+        .catch(() => null);
+      const mensagem =
+        `NFS-e: resposta HTTP ${resposta.status}` +
+        (motivo ? ` (${motivo})` : "");
       if (resposta.status >= 500) throw new ErroTransitorioNfse(mensagem);
       throw new ErroPermanenteNfse(mensagem);
     }
@@ -116,8 +131,10 @@ export class EmissorNacionalAdaptador implements AdaptadorNfse {
     const tentativasMaximas = this.opcoes.tentativasMaximas ?? 3;
     const esperar = this.opcoes.esperarImpl ?? esperaPadrao;
     let ultimoErro: unknown;
+    let feitas = 0;
 
     for (let tentativa = 1; tentativa <= tentativasMaximas; tentativa++) {
+      feitas = tentativa;
       try {
         const bruta = await executar();
         return {
@@ -140,50 +157,52 @@ export class EmissorNacionalAdaptador implements AdaptadorNfse {
       estado: "erro",
       erro:
         ultimoErro instanceof Error ? ultimoErro.message : "erro desconhecido",
-      tentativas:
-        ultimoErro instanceof ErroPermanenteNfse
-          ? 1
-          : (this.opcoes.tentativasMaximas ?? 3),
+      tentativas: feitas,
     };
   }
 
   async emitir(entrada: EmissaoNfseEntrada): Promise<ResultadoNfse> {
     return this.comNovasTentativas(() =>
-      this.requisitar("/dps", {
-        referencia_externa: entrada.cobrancaId,
-        tomador: {
-          nome: entrada.tomador.nome,
-          cpf_cnpj: entrada.tomador.cpfCnpj,
-          email: entrada.tomador.email,
-          endereco: entrada.tomador.endereco
-            ? {
-                logradouro: entrada.tomador.endereco.logradouro,
-                numero: entrada.tomador.endereco.numero,
-                bairro: entrada.tomador.endereco.bairro,
-                municipio_codigo_ibge:
-                  entrada.tomador.endereco.municipioCodigoIbge,
-                uf: entrada.tomador.endereco.uf,
-                cep: entrada.tomador.endereco.cep,
-              }
-            : undefined,
+      this.requisitar(
+        "/dps",
+        {
+          referencia_externa: entrada.cobrancaId,
+          tomador: {
+            nome: entrada.tomador.nome,
+            cpf_cnpj: entrada.tomador.cpfCnpj,
+            email: entrada.tomador.email,
+            endereco: entrada.tomador.endereco
+              ? {
+                  logradouro: entrada.tomador.endereco.logradouro,
+                  numero: entrada.tomador.endereco.numero,
+                  bairro: entrada.tomador.endereco.bairro,
+                  municipio_codigo_ibge:
+                    entrada.tomador.endereco.municipioCodigoIbge,
+                  uf: entrada.tomador.endereco.uf,
+                  cep: entrada.tomador.endereco.cep,
+                }
+              : undefined,
+          },
+          valor_centavos: entrada.valorCentavos,
+          codigo_servico: entrada.codigoServico,
+          descricao: entrada.descricaoServico,
         },
-        valor_centavos: entrada.valorCentavos,
-        codigo_servico: entrada.codigoServico,
-        // Fixa, sempre a mesma: nenhum parâmetro de entrada a sobrescreve.
-        descricao: DESCRICAO_SERVICO_NFSE,
-      }),
+        entrada.cobrancaId,
+      ),
     );
   }
 
   async consultar(providerRef: string): Promise<ResultadoNfse> {
     return this.comNovasTentativas(() =>
-      this.requisitar(`/dps/${providerRef}/consulta`, {}),
+      this.requisitar(`/dps/${encodeURIComponent(providerRef)}/consulta`, {}),
     );
   }
 
   async cancelar(providerRef: string, motivo: string): Promise<ResultadoNfse> {
     return this.comNovasTentativas(() =>
-      this.requisitar(`/dps/${providerRef}/cancelar`, { motivo }),
+      this.requisitar(`/dps/${encodeURIComponent(providerRef)}/cancelar`, {
+        motivo,
+      }),
     );
   }
 }

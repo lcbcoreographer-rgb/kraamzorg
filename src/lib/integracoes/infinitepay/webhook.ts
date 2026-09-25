@@ -13,6 +13,9 @@ import type { ResultadoPaymentCheck } from "./tipos";
 export interface CobrancaParaWebhookInfinitePay {
   id: string;
   status: string;
+  /** Valor da cobrança no banco, comparado com o `paid_amount` que o
+   * `payment_check` confirma. */
+  valor_centavos: number;
 }
 
 export interface DadosBaixaCobranca {
@@ -33,10 +36,14 @@ export interface DependenciasWebhookInfinitePay {
     transactionNsu?: string;
     invoiceSlug?: string;
   }) => Promise<ResultadoPaymentCheck>;
+  /** Baixa condicional no banco (só se a cobrança ainda não estiver paga);
+   * devolve se alguma linha mudou. Dois webhooks simultâneos nunca baixam
+   * duas vezes. Falha de banco lança erro, para a rota responder 500 e a
+   * InfinitePay reenviar. */
   marcarCobrancaPaga: (
     cobrancaId: string,
     dados: DadosBaixaCobranca,
-  ) => Promise<void>;
+  ) => Promise<boolean>;
 }
 
 export interface WebhookInfinitePayEntrada {
@@ -50,6 +57,7 @@ export type MotivoResultadoWebhookInfinitePay =
   | "sem_order_nsu"
   | "cobranca_nao_encontrada"
   | "pagamento_nao_confirmado"
+  | "valor_divergente"
   | "ja_paga"
   | "paga";
 
@@ -125,14 +133,29 @@ export async function processarWebhookInfinitePay(
     };
   }
 
-  await dependencias.marcarCobrancaPaga(cobranca.id, {
-    valorPagoCentavos: confirmacao.valorPagoCentavos ?? 0,
+  // O valor também vem do payment_check, nunca do corpo. Sem valor
+  // confirmado, ou abaixo do valor da cobrança, não baixa: fica para a
+  // baixa manual do financeiro (P32 item 4), que confere o comprovante.
+  const valorPago = confirmacao.valorPagoCentavos;
+  if (
+    typeof valorPago !== "number" ||
+    !Number.isInteger(valorPago) ||
+    valorPago < cobranca.valor_centavos
+  ) {
+    return { status: 200, mudouEstado: false, motivo: "valor_divergente" };
+  }
+
+  const mudou = await dependencias.marcarCobrancaPaga(cobranca.id, {
+    valorPagoCentavos: valorPago,
     parcelas: confirmacao.parcelas ?? null,
     metodoCaptura: confirmacao.metodoCaptura ?? null,
     transactionNsu: transactionNsu ?? null,
     invoiceSlug: invoiceSlug ?? null,
     reciboUrl: confirmacao.reciboUrl ?? null,
   });
+  if (!mudou) {
+    return { status: 200, mudouEstado: false, motivo: "ja_paga" };
+  }
 
   return { status: 200, mudouEstado: true, motivo: "paga" };
 }

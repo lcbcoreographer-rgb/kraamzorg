@@ -1,5 +1,8 @@
 import "server-only";
-import { garantirAssuntoSemDadoPessoal } from "./guarda";
+import {
+  garantirAssuntoSemDadoPessoal,
+  garantirNomeArquivoSemDadoPessoal,
+} from "./guarda";
 import type {
   ClienteEmailOpcoes,
   EnviarEmailEntrada,
@@ -8,7 +11,10 @@ import type {
 
 /**
  * Adaptador de e-mail transacional com Resend (PRD 14). Nunca chama a API
- * real em teste: `fetchImpl` é interceptado (CLAUDE.md).
+ * real em teste: `fetchImpl` é interceptado (CLAUDE.md). Assunto e textos
+ * vêm de `mensagem_modelo`, nunca deste módulo. E-mail para a família só
+ * sai pelo adaptador de mensageria (`src/lib/messaging`, CLAUDE.md), que é
+ * quem chama esta função depois de `privado.pode_enviar_mensagem()`.
  */
 
 const ENDPOINT_PADRAO = "https://api.resend.com/emails";
@@ -31,6 +37,12 @@ export async function enviarEmail(
     entrada.assunto,
     entrada.nomesProibidosNoAssunto,
   );
+  for (const anexo of entrada.anexos ?? []) {
+    garantirNomeArquivoSemDadoPessoal(
+      anexo.nomeArquivo,
+      entrada.nomesProibidosNoAssunto,
+    );
+  }
 
   const fetchImpl = opcoes.fetchImpl ?? fetch;
   const endpoint = opcoes.endpoint ?? ENDPOINT_PADRAO;

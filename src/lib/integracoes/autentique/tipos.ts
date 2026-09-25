@@ -2,13 +2,15 @@
  * Tipos do adaptador Autentique (PRD 14, P31). API GraphQL v2
  * (`https://api.autentique.com.br/v2/graphql`), token Bearer.
  *
- * [conferir] Os nomes exatos dos campos da mutation `createDocument` e do
- * enum de ação do signatário não puderam ser reconferidos na documentação
- * oficial nesta sessão (docs.autentique.com.br bloqueado na rede do
- * ambiente). O formato abaixo segue a descrição do PRD 14 e o padrão GraphQL
- * multipart request spec que a Autentique documenta publicamente. Reconfira
- * contra `docs.autentique.com.br/api/2/mutations/criando-um-documento` antes
- * de ligar a credencial real.
+ * Conferido na verificação da trilha (25/09/2026), por implementações
+ * públicas que usam a API v2 (docs.autentique.com.br segue bloqueado na
+ * rede do ambiente): `createDocument(sandbox, document, signers, file)`;
+ * `SignerInput` com `name`, `email`, `phone`, `delivery_method`
+ * (`DELIVERY_METHOD_WHATSAPP`, `DELIVERY_METHOD_SMS`, `DELIVERY_METHOD_LINK`)
+ * e `action` (`SIGN`, `SIGN_AS_A_WITNESS`, `APPROVE`, `RECOGNIZE`); a query
+ * `document(id)` devolve `signatures { public_id name email action { name }
+ * link { short_link } signed { created_at } rejected { created_at } }`.
+ * [conferir] reconfirmar no painel de homologação com a credencial real.
  */
 
 /** Papel do signatário no documento: quem assina ou quem testemunha. */
@@ -49,6 +51,9 @@ export interface SignatarioAutentique {
   email?: string;
   papel: PapelSignatarioAutentique;
   assinadoEm: string | null;
+  recusadoEm: string | null;
+  /** Link individual de assinatura, usado quando a entrega é por link. */
+  linkCurto?: string;
 }
 
 export interface DocumentoAutentique {
@@ -56,10 +61,10 @@ export interface DocumentoAutentique {
   nome: string;
   criadoEm: string;
   signatarios: SignatarioAutentique[];
-  /** Verdadeiro só quando todo signatário que precisa assinar (papel
-   * "assinar") tem `assinadoEm` preenchido. Testemunha não bloqueia. */
+  /** Verdadeiro só quando todo signatário do documento (inclusive a
+   * testemunha, quando houver) assinou e ninguém recusou: é o mesmo
+   * critério do evento "documento finalizado" da Autentique (PRD 14). */
   concluido: boolean;
-  linkCurto?: string;
 }
 
 export interface ClienteAutentiqueOpcoes {
@@ -68,7 +73,7 @@ export interface ClienteAutentiqueOpcoes {
   sandbox: boolean;
   /** Injeção de dependência para teste (fetch interceptado, CLAUDE.md). */
   fetchImpl?: typeof fetch;
-  /** [conferir] endpoint de produção; sandbox usa o mesmo endpoint com o
-   * argumento `sandbox: true` na mutation, conforme a documentação pública. */
+  /** Endpoint GraphQL; sandbox usa o mesmo endpoint com o argumento
+   * `sandbox: true` na mutation `createDocument`. */
   endpoint?: string;
 }

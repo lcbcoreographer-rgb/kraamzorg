@@ -14,8 +14,7 @@ import type {
  * interceptam `fetchImpl` (CLAUDE.md, "integração com terceiro testada com
  * respostas simuladas").
  *
- * [conferir] Endpoint e formato exatos reconfirmados contra
- * docs.autentique.com.br antes de ligar a credencial real (ver tipos.ts).
+ * Formato da API conferido na verificação da trilha (ver tipos.ts).
  */
 
 const ENDPOINT_PADRAO = "https://api.autentique.com.br/v2/graphql";
@@ -41,7 +40,9 @@ const MUTATION_CRIAR_DOCUMENTO = `
         name
         email
         action { name }
+        link { short_link }
         signed { created_at }
+        rejected { created_at }
       }
     }
   }
@@ -58,23 +59,45 @@ const QUERY_BUSCAR_DOCUMENTO = `
         name
         email
         action { name }
+        link { short_link }
         signed { created_at }
+        rejected { created_at }
       }
     }
   }
 `;
 
-/** Ação SIGN/APPROVE assina; WITNESS testemunha. [conferir] nomes exatos do
- * enum `SignerAction` da Autentique. */
+/** Valores do enum de ação do signatário na API v2 da Autentique. */
+const ACAO_ASSINAR = "SIGN";
+const ACAO_TESTEMUNHA = "SIGN_AS_A_WITNESS";
+
 function papelDaAcao(nomeAcao: string | undefined): "assinar" | "testemunha" {
-  return nomeAcao === "WITNESS" ? "testemunha" : "assinar";
+  return nomeAcao === ACAO_TESTEMUNHA ? "testemunha" : "assinar";
 }
 
-function paraSignerInput(signatario: SignatarioAutentiqueEntrada) {
+/**
+ * Monta o `SignerInput`. Entrega pela própria Autentique (PRD 14): por
+ * e-mail quando houver e-mail; senão por WhatsApp quando houver telefone;
+ * sem nenhum dos dois, por link (o `short_link` volta na resposta).
+ */
+export function paraSignerInput(signatario: SignatarioAutentiqueEntrada) {
+  const action =
+    signatario.papel === "testemunha" ? ACAO_TESTEMUNHA : ACAO_ASSINAR;
+  if (signatario.email) {
+    return { name: signatario.nome, email: signatario.email, action };
+  }
+  if (signatario.telefone) {
+    return {
+      name: signatario.nome,
+      phone: signatario.telefone,
+      delivery_method: "DELIVERY_METHOD_WHATSAPP",
+      action,
+    };
+  }
   return {
-    email: signatario.email,
-    phone: signatario.telefone,
-    action: signatario.papel === "testemunha" ? "WITNESS" : "SIGN",
+    name: signatario.nome,
+    delivery_method: "DELIVERY_METHOD_LINK",
+    action,
   };
 }
 
@@ -92,7 +115,9 @@ interface DocumentoBruto {
     name: string;
     email: string | null;
     action?: { name: string } | null;
+    link?: { short_link: string | null } | null;
     signed?: { created_at: string } | null;
+    rejected?: { created_at: string } | null;
   }>;
 }
 
@@ -103,10 +128,14 @@ function mapearDocumento(bruto: DocumentoBruto): DocumentoAutentique {
     email: s.email ?? undefined,
     papel: papelDaAcao(s.action?.name),
     assinadoEm: s.signed?.created_at ?? null,
+    recusadoEm: s.rejected?.created_at ?? null,
+    linkCurto: s.link?.short_link ?? undefined,
   }));
-  const concluido = signatarios
-    .filter((s) => s.papel === "assinar")
-    .every((s) => s.assinadoEm !== null);
+  // Finalizado só com todas as assinaturas (partes e testemunha) e nenhuma
+  // recusa. Lista vazia nunca conta como concluída.
+  const concluido =
+    signatarios.length > 0 &&
+    signatarios.every((s) => s.assinadoEm !== null && s.recusadoEm === null);
   return {
     id: bruto.id,
     nome: bruto.name,
@@ -117,7 +146,7 @@ function mapearDocumento(bruto: DocumentoBruto): DocumentoAutentique {
 }
 
 async function chamarGraphQL<T>(
-  opcoes: ClienteAutentiqueOpcoes,
+  opcoes: Omit<ClienteAutentiqueOpcoes, "sandbox">,
   query: string,
   variables: Record<string, unknown>,
   arquivo?: CriarDocumentoAutentiqueEntrada["arquivo"],
@@ -198,8 +227,20 @@ export async function criarDocumento(
   return mapearDocumento(data.createDocument);
 }
 
+/**
+ * Sandbox da Autentique (PRD 14, "Sandbox em homologação"). Lido de
+ * `AUTENTIQUE_SANDBOX`, só do servidor: qualquer valor diferente de "false"
+ * mantém o sandbox ligado, para que um ambiente mal configurado nunca gaste
+ * crédito nem gere documento com validade jurídica por engano.
+ */
+export function sandboxAutentiqueLigado(
+  valor: string | undefined = process.env.AUTENTIQUE_SANDBOX,
+): boolean {
+  return valor !== "false";
+}
+
 export async function buscarDocumento(
-  opcoes: ClienteAutentiqueOpcoes,
+  opcoes: Omit<ClienteAutentiqueOpcoes, "sandbox">,
   documentoId: string,
 ): Promise<DocumentoAutentique> {
   const data = await chamarGraphQL<{ document: DocumentoBruto }>(

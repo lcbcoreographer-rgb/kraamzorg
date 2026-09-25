@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { buscarDocumento, criarDocumento } from "./cliente";
+import {
+  buscarDocumento,
+  criarDocumento,
+  paraSignerInput,
+  sandboxAutentiqueLigado,
+} from "./cliente";
 
 function respostaJson(corpo: unknown, ok = true, status = 200) {
   return {
@@ -37,7 +42,7 @@ describe("criarDocumento", () => {
                 public_id: "sig-testemunha",
                 name: "Parceiro Teste",
                 email: null,
-                action: { name: "WITNESS" },
+                action: { name: "SIGN_AS_A_WITNESS" },
                 signed: null,
               },
             ],
@@ -80,7 +85,16 @@ describe("criarDocumento", () => {
     expect(operations.variables.document.name).toBe("Contrato 123");
     expect(operations.variables.sandbox).toBe(true);
     expect(operations.variables.signers).toHaveLength(3);
-    expect(operations.variables.signers[2].action).toBe("WITNESS");
+    expect(operations.variables.signers[0]).toEqual({
+      name: "Gestante Teste",
+      email: "gestante@exemplo.invalid",
+      action: "SIGN",
+    });
+    expect(operations.variables.signers[2]).toEqual({
+      name: "Parceiro Teste",
+      delivery_method: "DELIVERY_METHOD_LINK",
+      action: "SIGN_AS_A_WITNESS",
+    });
     expect(operations.variables.file).toBeNull();
     expect(JSON.parse(formData.get("map") as string)).toEqual({
       "0": ["variables.file"],
@@ -173,7 +187,7 @@ describe("criarDocumento", () => {
 });
 
 describe("buscarDocumento", () => {
-  it("usa query JSON simples (sem multipart) e mapeia conclusão quando todos os signatários assinaram", async () => {
+  it("usa query JSON simples (sem multipart) e só conclui com todas as assinaturas, testemunha inclusive", async () => {
     const fetchImpl = vi.fn().mockResolvedValue(
       respostaJson({
         data: {
@@ -200,8 +214,9 @@ describe("buscarDocumento", () => {
                 public_id: "sig-testemunha",
                 name: "Parceiro Teste",
                 email: null,
-                action: { name: "WITNESS" },
-                signed: null,
+                action: { name: "SIGN_AS_A_WITNESS" },
+                link: { short_link: "https://assina.ae/exemplo" },
+                signed: { created_at: "2026-09-26T12:10:00Z" },
               },
             ],
           },
@@ -210,7 +225,7 @@ describe("buscarDocumento", () => {
     );
 
     const documento = await buscarDocumento(
-      { token: "token-sandbox", sandbox: true, fetchImpl },
+      { token: "token-sandbox", fetchImpl },
       "doc-1",
     );
 
@@ -220,7 +235,93 @@ describe("buscarDocumento", () => {
     const corpo = JSON.parse(requisicao.body as string);
     expect(corpo.variables).toEqual({ id: "doc-1" });
 
-    // Testemunha sem assinatura não bloqueia a conclusão (só quem assina).
     expect(documento.concluido).toBe(true);
+    expect(documento.signatarios[2]!.papel).toBe("testemunha");
+    expect(documento.signatarios[2]!.linkCurto).toBe(
+      "https://assina.ae/exemplo",
+    );
+  });
+
+  function respostaDocumento(
+    assinaturas: Array<{
+      acao: string;
+      assinado: boolean;
+      recusado?: boolean;
+    }>,
+  ) {
+    return respostaJson({
+      data: {
+        document: {
+          id: "doc-1",
+          name: "Contrato 123",
+          created_at: "2026-09-25T10:00:00Z",
+          signatures: assinaturas.map((a, i) => ({
+            public_id: `sig-${i}`,
+            name: `Pessoa ${i}`,
+            email: null,
+            action: { name: a.acao },
+            signed: a.assinado ? { created_at: "2026-09-26T12:00:00Z" } : null,
+            rejected: a.recusado
+              ? { created_at: "2026-09-26T12:00:00Z" }
+              : null,
+          })),
+        },
+      },
+    });
+  }
+
+  it("não conclui enquanto a testemunha não assinou", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      respostaDocumento([
+        { acao: "SIGN", assinado: true },
+        { acao: "SIGN", assinado: true },
+        { acao: "SIGN_AS_A_WITNESS", assinado: false },
+      ]),
+    );
+    const documento = await buscarDocumento({ token: "t", fetchImpl }, "doc-1");
+    expect(documento.concluido).toBe(false);
+  });
+
+  it("não conclui quando alguém recusou", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      respostaDocumento([
+        { acao: "SIGN", assinado: true },
+        { acao: "SIGN", assinado: true, recusado: true },
+      ]),
+    );
+    const documento = await buscarDocumento({ token: "t", fetchImpl }, "doc-1");
+    expect(documento.concluido).toBe(false);
+  });
+
+  it("documento sem assinatura nenhuma nunca conta como concluído", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(respostaDocumento([]));
+    const documento = await buscarDocumento({ token: "t", fetchImpl }, "doc-1");
+    expect(documento.concluido).toBe(false);
+  });
+});
+
+describe("paraSignerInput", () => {
+  it("entrega por WhatsApp da Autentique quando só há telefone", () => {
+    expect(
+      paraSignerInput({
+        nome: "Gestante",
+        telefone: "+5543999990000",
+        papel: "assinar",
+      }),
+    ).toEqual({
+      name: "Gestante",
+      phone: "+5543999990000",
+      delivery_method: "DELIVERY_METHOD_WHATSAPP",
+      action: "SIGN",
+    });
+  });
+});
+
+describe("sandboxAutentiqueLigado", () => {
+  it("fica ligado sem variável ou com valor desconhecido; só desliga com false", () => {
+    expect(sandboxAutentiqueLigado(undefined)).toBe(true);
+    expect(sandboxAutentiqueLigado("")).toBe(true);
+    expect(sandboxAutentiqueLigado("producao")).toBe(true);
+    expect(sandboxAutentiqueLigado("false")).toBe(false);
   });
 });
