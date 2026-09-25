@@ -69,7 +69,9 @@ export function FaixaJustificarFreio({
           </Botao>
         }
       >
-        {prazo ? `Escreva o motivo até ${prazo}.` : "Justificar depois é normal."}
+        {prazo
+          ? `Escreva o motivo até ${prazo}.`
+          : "Justificar depois é normal."}
       </FaixaAlerta>
     );
   }

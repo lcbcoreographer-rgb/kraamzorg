@@ -23,12 +23,7 @@ import { cn } from "@/lib/utils";
  * problema técnico (crítica do CRM, P0 item 15).
  */
 export type VarianteFaixa =
-  | "imediato"
-  | "erro"
-  | "prioritario"
-  | "sensivel"
-  | "info"
-  | "sucesso";
+  "imediato" | "erro" | "prioritario" | "sensivel" | "info" | "sucesso";
 
 const config: Record<
   VarianteFaixa,

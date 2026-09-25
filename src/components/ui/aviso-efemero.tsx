@@ -73,7 +73,8 @@ export function AvisoEfemero({
     const el = textoRef.current;
     if (!el) return;
     const alturaLinha = parseFloat(getComputedStyle(el).lineHeight || "0");
-    const linhas = alturaLinha > 0 ? Math.round(el.scrollHeight / alturaLinha) : 1;
+    const linhas =
+      alturaLinha > 0 ? Math.round(el.scrollHeight / alturaLinha) : 1;
     definirMuitasLinhas(linhas >= 3);
   }, [aberto, texto]);
 

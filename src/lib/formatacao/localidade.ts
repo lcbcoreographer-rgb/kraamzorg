@@ -9,11 +9,13 @@ export function localidade(
   bairro: string | null,
   cidade: string | null,
 ): string | null {
-  const partes = [bairro, cidade].filter(
-    (parte): parte is string => Boolean(parte && parte.trim()),
+  const partes = [bairro, cidade].filter((parte): parte is string =>
+    Boolean(parte && parte.trim()),
   );
   const unicas = [
     ...new Set(partes.map((parte) => parte.trim().toLowerCase())),
-  ].map((chave) => partes.find((parte) => parte.trim().toLowerCase() === chave)!);
+  ].map((chave) =>
+    partes.find((parte) => parte.trim().toLowerCase() === chave)!,
+  );
   return unicas.length > 0 ? unicas.join(", ") : null;
 }

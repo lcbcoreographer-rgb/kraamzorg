@@ -157,7 +157,7 @@ export function CabecalhoFamilia({
               // item 12).
               <dd
                 className={cn(
-                  "rounded-pilula border border-dashed px-2 py-0.5 text-mini w-fit font-medium",
+                  "rounded-pilula text-mini w-fit border border-dashed px-2 py-0.5 font-medium",
                   freioAtivo
                     ? "border-texto-inverso-2 text-texto-inverso"
                     : "border-marinho-50 text-texto-2",

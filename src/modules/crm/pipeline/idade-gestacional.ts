@@ -63,12 +63,17 @@ export function textoIdadeGestacional(
   // Além de 42 semanas sem nascimento registrado, a semana deixa de dizer
   // algo real (a gestação não continua contando para sempre): o prazo
   // passou, e é isso que a tela mostra.
-  if (ig && ig.semanas <= 42) return formatarIdadeGestacional(ig.semanas, ig.dias);
+  if (ig && ig.semanas <= 42)
+    return formatarIdadeGestacional(ig.semanas, ig.dias);
 
   if (dpp) {
     const diasDpp = paraDiasEpoch(dpp);
     const diasReferencia = paraDiasEpoch(referencia);
-    if (diasDpp !== null && diasReferencia !== null && diasReferencia > diasDpp) {
+    if (
+      diasDpp !== null &&
+      diasReferencia !== null &&
+      diasReferencia > diasDpp
+    ) {
       const diasPassados = diasReferencia - diasDpp;
       return `DPP passou há ${diasPassados} ${diasPassados === 1 ? "dia" : "dias"}`;
     }

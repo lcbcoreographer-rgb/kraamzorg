@@ -116,7 +116,8 @@ export default async function PaginaFamilias({
                       <span>{localidade(familia.bairro, familia.cidade)}</span>
                     ) : null}
                   </span>
-                  {familia.naoContatar || familia.estadoSensivel !== "normal" ? (
+                  {familia.naoContatar ||
+                  familia.estadoSensivel !== "normal" ? (
                     <div className="flex flex-wrap gap-1.5 pt-0.5">
                       {familia.naoContatar ? (
                         <Selo variante="aviso">Não contatar</Selo>

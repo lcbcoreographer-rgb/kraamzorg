@@ -76,28 +76,23 @@ export default async function PaginaFicha({
   const contato =
     ficha.pessoas.find((p) => p.contatoPrincipal) ?? ficha.pessoas[0];
 
-  const [
-    eventos,
-    conversa,
-    freioDesfazerSegundos,
-    contrato,
-    justificativa,
-  ] = await Promise.all([
-    listarLinhaDoTempoTela(id),
-    veConversas
-      ? obterConversaDaFamilia(id).catch(() => null)
-      : Promise.resolve(null),
-    obterFreioDesfazerSegundos(),
-    veDadosContrato && contato
-      ? obterDadosContratoTela(contato.id, false).then(
-          (dados) => ({ dados, indisponivel: false }),
-          () => ({ dados: null, indisponivel: true }),
-        )
-      : Promise.resolve({ dados: null, indisponivel: false }),
-    ficha.estadoSensivel !== "normal"
-      ? temJustificativaPendente(id)
-      : Promise.resolve({ pendente: false, venceEm: null }),
-  ]);
+  const [eventos, conversa, freioDesfazerSegundos, contrato, justificativa] =
+    await Promise.all([
+      listarLinhaDoTempoTela(id),
+      veConversas
+        ? obterConversaDaFamilia(id).catch(() => null)
+        : Promise.resolve(null),
+      obterFreioDesfazerSegundos(),
+      veDadosContrato && contato
+        ? obterDadosContratoTela(contato.id, false).then(
+            (dados) => ({ dados, indisponivel: false }),
+            () => ({ dados: null, indisponivel: true }),
+          )
+        : Promise.resolve({ dados: null, indisponivel: false }),
+      ficha.estadoSensivel !== "normal"
+        ? temJustificativaPendente(id)
+        : Promise.resolve({ pendente: false, venceEm: null }),
+    ]);
 
   const abas: AbaFicha[] = [{ chave: "tempo", rotulo: "Linha do tempo" }];
   if (vePainelComercial) abas.push({ chave: "comercial", rotulo: "Comercial" });

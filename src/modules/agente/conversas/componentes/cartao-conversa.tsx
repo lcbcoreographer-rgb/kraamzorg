@@ -189,7 +189,9 @@ export function CartaoConversa({ conversa }: { conversa: ConversaComPausa }) {
                 : // Perda gestacional e estado sensível nunca em vermelho
                   // (DESIGN.md, seção 8): o selo vai para ameixa, e não
                   // para alerta, nesses casos (crítica do CRM, P0 item 2).
-                  MOTIVOS_SENSIVEIS.includes(conversa.transferenciaAberta.motivo)
+                  MOTIVOS_SENSIVEIS.includes(
+                      conversa.transferenciaAberta.motivo,
+                    )
                   ? "sensivel"
                   : "alerta"
             }
