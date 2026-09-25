@@ -111,6 +111,18 @@ async function processarAssistencialAppendOnly(
     };
   }
 
+  // O registro é assinado como um todo (PRD 6.5: `assinatura` é o hash de
+  // dados, resumo, profissional e hora): sobe inteiro, com `campo` nulo.
+  // Um item por campo criaria um registro com um campo só e transformaria
+  // todos os outros em adendo, o que não é correção nenhuma (D-05).
+  if (item.campo !== null) {
+    return {
+      id: item.id,
+      status: "erro",
+      erro: "registro_atendimento sobe inteiro (campo nulo), nunca por campo",
+    };
+  }
+
   const estado = await repo.buscarEstado(item.entidade, item.entidadeId);
 
   if (!estado) {
@@ -137,11 +149,12 @@ async function processarVersionada(
   repo: RepositorioSincronizacao,
 ): Promise<ResultadoItemSincronizacao> {
   if (item.entidadeId === null) {
-    const { versaoResultante } = await repo.aplicar(item);
+    const { versaoResultante, entidadeId } = await repo.aplicar(item);
     return {
       id: item.id,
       status: "processado",
       versaoResultante: versaoResultante ?? undefined,
+      entidadeIdCriado: entidadeId,
     };
   }
 

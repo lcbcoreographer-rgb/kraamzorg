@@ -39,7 +39,6 @@ export class RepositorioSincronizacaoMemoria implements RepositorioSincronizacao
   private readonly processados = new Map<string, ResultadoItemSincronizacao>();
   private readonly adendos: EntradaAdendo[] = [];
   private readonly auditoria: EntradaAuditoria[] = [];
-  private proximoIdGerado = 1;
 
   private chave(entidade: Entidade, entidadeId: string): string {
     return `${entidade}:${entidadeId}`;
@@ -60,7 +59,7 @@ export class RepositorioSincronizacaoMemoria implements RepositorioSincronizacao
 
   async aplicar(
     item: ItemSincronizacaoEntrada,
-  ): Promise<{ versaoResultante: number | null }> {
+  ): Promise<{ versaoResultante: number | null; entidadeId: string }> {
     const assistencialAppendOnly = item.entidade === "registro_atendimento";
 
     if (item.entidadeId === null) {
@@ -68,14 +67,15 @@ export class RepositorioSincronizacaoMemoria implements RepositorioSincronizacao
       // registro_atendimento o id de entidade sempre vem preenchido com o
       // visita_id (ver repositorio.ts); este ramo só existe para as
       // entidades versionadas criadas offline (ex.: anexo_audio novo).
-      const idGerado = `memoria-${this.proximoIdGerado++}`;
+      // uuid como o do banco: a rota só aceita entidadeId em formato uuid.
+      const idGerado = crypto.randomUUID();
       const versao = assistencialAppendOnly ? null : 1;
       this.estados.set(this.chave(item.entidade, idGerado), {
         entidadeId: idGerado,
         versao,
         dados: item.payload,
       });
-      return { versaoResultante: versao };
+      return { versaoResultante: versao, entidadeId: idGerado };
     }
 
     const chave = this.chave(item.entidade, item.entidadeId);
@@ -88,7 +88,7 @@ export class RepositorioSincronizacaoMemoria implements RepositorioSincronizacao
         versao: null,
         dados: item.payload,
       });
-      return { versaoResultante: null };
+      return { versaoResultante: null, entidadeId: item.entidadeId };
     }
 
     const versaoResultante = (atual?.versao ?? 0) + 1;
@@ -106,7 +106,7 @@ export class RepositorioSincronizacaoMemoria implements RepositorioSincronizacao
       versao: versaoResultante,
       dados,
     });
-    return { versaoResultante };
+    return { versaoResultante, entidadeId: item.entidadeId };
   }
 
   async registrarAdendo(item: ItemSincronizacaoEntrada): Promise<void> {

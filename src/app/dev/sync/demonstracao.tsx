@@ -13,6 +13,7 @@ import { formatarDataHora } from "@/lib/formatacao";
 import { criarBancoOffline, type BancoOffline } from "@/lib/sync/db";
 import {
   salvarCampo,
+  enfileirarRegistroAssistencial,
   processarFila,
   iniciarMotorSincronizacao,
   type ResumoProcessamento,
@@ -129,14 +130,27 @@ export function DemonstracaoSync() {
     const banco = bancoRef.current;
     if (!banco) return;
 
-    await salvarCampo(banco, {
-      usuarioId: USUARIO_DEMO,
-      entidade,
-      entidadeId: entidadeId.trim() === "" ? null : entidadeId.trim(),
-      campo,
-      valor,
-      versaoBase: versaoBase.trim() === "" ? null : Number(versaoBase),
-    });
+    const idInformado = entidadeId.trim() === "" ? null : entidadeId.trim();
+
+    if (entidade === "registro_atendimento") {
+      // Registro assistencial sobe inteiro, nunca por campo (protocolo.ts).
+      // Na demonstração, o registro inteiro é só o campo digitado.
+      if (idInformado === null) return;
+      await enfileirarRegistroAssistencial(banco, {
+        usuarioId: USUARIO_DEMO,
+        visitaId: idInformado,
+        registro: { [campo]: valor },
+      });
+    } else {
+      await salvarCampo(banco, {
+        usuarioId: USUARIO_DEMO,
+        entidade,
+        entidadeId: idInformado,
+        campo,
+        valor,
+        versaoBase: versaoBase.trim() === "" ? null : Number(versaoBase),
+      });
+    }
 
     definirValor("");
     await recarregarItens(banco);
@@ -145,7 +159,9 @@ export function DemonstracaoSync() {
   async function aoSincronizarAgora() {
     const banco = bancoRef.current;
     if (!banco) return;
-    const resultado = await processarFila(banco);
+    const resultado = await processarFila(banco, undefined, undefined, {
+      ignorarEspera: true,
+    });
     definirResumo(resultado);
     await recarregarItens(banco);
   }
@@ -153,7 +169,9 @@ export function DemonstracaoSync() {
   async function aoEncerrarSessao() {
     const banco = bancoRef.current;
     if (!banco) return;
-    await encerrarSessaoOffline(banco, () => processarFila(banco));
+    await encerrarSessaoOffline(banco, () =>
+      processarFila(banco, undefined, undefined, { ignorarEspera: true }),
+    );
     await recarregarItens(banco);
   }
 
@@ -183,7 +201,7 @@ export function DemonstracaoSync() {
         </p>
         <div>
           <Selo variante={online ? "sucesso" : "aviso"}>
-            {online ? "navegator.onLine: online" : "navegator.onLine: offline"}
+            {online ? "navigator.onLine: online" : "navigator.onLine: offline"}
           </Selo>
         </div>
       </header>
@@ -221,7 +239,7 @@ export function DemonstracaoSync() {
           <CampoTexto
             id="campo-entidade-id"
             rotulo="Id da entidade"
-            descricao="Vazio cria um registro novo. Em registro_atendimento é o visita_id."
+            descricao="Vazio cria um registro novo. Em registro_atendimento é o visita_id, obrigatório."
             value={entidadeId}
             onChange={(evento) => definirEntidadeId(evento.target.value)}
           />
@@ -300,6 +318,7 @@ export function DemonstracaoSync() {
                 key={item.id}
                 data-testid={`item-fila-${item.id}`}
                 data-estado={item.estado}
+                data-id-criado={item.entidadeIdCriado}
                 className="border-linha rounded-2 flex flex-col gap-2 border p-4"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -323,6 +342,11 @@ export function DemonstracaoSync() {
                   {JSON.stringify(item.payload)} · criado em{" "}
                   {formatarDataHora(item.criadoNoClienteEm)}
                 </p>
+                {item.entidadeIdCriado ? (
+                  <p className="text-apoio text-texto-2 font-mono">
+                    Id no servidor: {item.entidadeIdCriado}
+                  </p>
+                ) : null}
                 {item.conflito ? (
                   <p className="text-apoio text-alerta">
                     Original preservado no servidor (versão{" "}

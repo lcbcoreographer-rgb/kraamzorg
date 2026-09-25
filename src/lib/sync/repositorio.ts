@@ -44,11 +44,13 @@ export interface RepositorioSincronizacao {
   /**
    * Cria um registro novo (entidadeId nulo no item) ou aplica a atualização
    * de um campo numa entidade versionada, já confirmada como sem conflito
-   * pelo chamador. `versaoResultante` é a versão gravada (1 na criação).
+   * pelo chamador. `versaoResultante` é a versão gravada (1 na criação) e
+   * `entidadeId` é o id do registro gravado (o gerado pelo banco, na
+   * criação).
    */
   aplicar(
     item: ItemSincronizacaoEntrada,
-  ): Promise<{ versaoResultante: number | null }>;
+  ): Promise<{ versaoResultante: number | null; entidadeId: string }>;
 
   /**
    * Registro assistencial (`registro_atendimento`) que já existe e recebeu

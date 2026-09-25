@@ -44,20 +44,22 @@ describe("processarLote: ordem de criação", () => {
     const idCriado = primeiraResposta.resultados[0]!;
     expect(idCriado.status).toBe("processado");
     expect(idCriado.versaoResultante).toBe(1);
+    const visitaId = idCriado.entidadeIdCriado!;
+    expect(visitaId).toMatch(/^[0-9a-f-]{36}$/);
 
-    const estado = await repo.buscarEstado("visita", "memoria-1");
+    const estado = await repo.buscarEstado("visita", visitaId);
     expect(estado?.versao).toBe(1);
 
     const atualizacao1 = item({
       id: "b",
-      entidadeId: "memoria-1",
+      entidadeId: visitaId,
       versaoBase: 1,
       criadoNoClienteEm: "2026-09-24T10:01:00.000Z",
       payload: "primeira edição",
     });
     const atualizacao2 = item({
       id: "c",
-      entidadeId: "memoria-1",
+      entidadeId: visitaId,
       versaoBase: 2, // só existe depois que "b" aplicar
       criadoNoClienteEm: "2026-09-24T10:02:00.000Z",
       payload: "segunda edição",
@@ -76,7 +78,7 @@ describe("processarLote: ordem de criação", () => {
     expect(porId.get("c")?.status).toBe("processado");
     expect(porId.get("c")?.versaoResultante).toBe(3);
 
-    const estadoFinal = await repo.buscarEstado("visita", "memoria-1");
+    const estadoFinal = await repo.buscarEstado("visita", visitaId);
     expect(estadoFinal?.dados).toEqual({ observacoes: "segunda edição" });
   });
 });
@@ -99,7 +101,10 @@ describe("processarLote: idempotência", () => {
     expect(primeira.resultados).toEqual(terceira.resultados);
 
     // E o estado da entidade não avançou de versão a cada reenvio.
-    const estado = await repo.buscarEstado("visita", "memoria-1");
+    const estado = await repo.buscarEstado(
+      "visita",
+      primeira.resultados[0]!.entidadeIdCriado!,
+    );
     expect(estado?.versao).toBe(1);
   });
 
@@ -116,7 +121,10 @@ describe("processarLote: idempotência", () => {
     expect(resposta.resultados).toHaveLength(2);
     expect(resposta.resultados[0]).toEqual(resposta.resultados[1]);
 
-    const estado = await repo.buscarEstado("visita", "memoria-1");
+    const estado = await repo.buscarEstado(
+      "visita",
+      resposta.resultados[0]!.entidadeIdCriado!,
+    );
     expect(estado?.versao).toBe(1);
   });
 });
@@ -130,13 +138,14 @@ describe("processarLote: conflito por versão", () => {
       criadoNoClienteEm: "2026-09-24T10:00:00.000Z",
       payload: { temperatura: "36.5" },
     });
-    await processarLote({ itens: [criacao] }, repo);
+    const criada = await processarLote({ itens: [criacao] }, repo);
+    const visitaId = criada.resultados[0]!.entidadeIdCriado!;
 
     // Outro aparelho aplicou uma mudança entre o momento em que este leu a
     // versão 1 e o momento em que tenta enviar a própria.
     const doOutroAparelho = item({
       id: "b",
-      entidadeId: "memoria-1",
+      entidadeId: visitaId,
       campo: "temperatura",
       versaoBase: 1,
       criadoNoClienteEm: "2026-09-24T10:01:00.000Z",
@@ -144,12 +153,12 @@ describe("processarLote: conflito por versão", () => {
     });
     await processarLote({ itens: [doOutroAparelho] }, repo);
 
-    const estadoAntes = await repo.buscarEstado("visita", "memoria-1");
+    const estadoAntes = await repo.buscarEstado("visita", visitaId);
     expect(estadoAntes?.versao).toBe(2);
 
     const desteAparelho = item({
       id: "c",
-      entidadeId: "memoria-1",
+      entidadeId: visitaId,
       campo: "temperatura",
       versaoBase: 1, // já defasado
       criadoNoClienteEm: "2026-09-24T10:02:00.000Z",
@@ -163,7 +172,7 @@ describe("processarLote: conflito por versão", () => {
     expect(resultado.conflito?.tentativa).toBe("36.8");
 
     // O original (versão 2, de "b") nunca foi alterado pelo conflito.
-    const estadoDepois = await repo.buscarEstado("visita", "memoria-1");
+    const estadoDepois = await repo.buscarEstado("visita", visitaId);
     expect(estadoDepois?.versao).toBe(2);
     expect((estadoDepois?.dados as Record<string, unknown>).temperatura).toBe(
       "37.0",
@@ -266,6 +275,25 @@ describe("processarLote: registro assistencial nunca sobrescrito", () => {
       status: "processado",
       virouAdendo: false,
     });
+    expect(repo.listarAdendos()).toHaveLength(0);
+  });
+
+  it("registro_atendimento por campo é recusado, sem criar registro nenhum", async () => {
+    const repo = new RepositorioSincronizacaoMemoria();
+    const porCampo = item({
+      id: "reg-campo",
+      entidade: "registro_atendimento",
+      entidadeId: "visita-42",
+      campo: "resumoDescritivo",
+      criadoNoClienteEm: "2026-09-24T10:00:00.000Z",
+      payload: "só um campo",
+    });
+
+    const resposta = await processarLote({ itens: [porCampo] }, repo);
+    expect(resposta.resultados[0]?.status).toBe("erro");
+    expect(
+      await repo.buscarEstado("registro_atendimento", "visita-42"),
+    ).toBeNull();
     expect(repo.listarAdendos()).toHaveLength(0);
   });
 });

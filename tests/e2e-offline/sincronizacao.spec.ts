@@ -107,4 +107,51 @@ test.describe("motor offline (rede desligada)", () => {
 
     expect(contagemNoIndexedDb).toBe(1);
   });
+
+  test("edita offline dois campos de um registro que já está no servidor e os dois chegam, sem conflito", async ({
+    page,
+    context,
+  }) => {
+    await page.goto("/dev/sync");
+
+    // Cria a visita sem sinal e sobe, para ter um registro no servidor.
+    await context.setOffline(true);
+    await page.selectOption("#campo-entidade", "visita");
+    await page.fill("#campo-nome-campo", "observacoes");
+    await page.fill("#campo-valor", "Primeira anotação");
+    await page.getByTestId("botao-salvar-campo").click();
+    await context.setOffline(false);
+    await page.getByTestId("botao-sincronizar-agora").click();
+
+    const itens = page.getByTestId(/^item-fila-/);
+    await expect(itens.first()).toHaveAttribute("data-estado", "sincronizado", {
+      timeout: 15_000,
+    });
+    const visitaId = await itens.first().getAttribute("data-id-criado");
+    expect(visitaId).toMatch(/^[0-9a-f-]{36}$/);
+
+    // Sem sinal de novo: dois campos da mesma visita, os dois a partir da
+    // versão 1 que a tela conhece.
+    await context.setOffline(true);
+    await page.fill("#campo-entidade-id", visitaId!);
+    await page.fill("#campo-versao-base", "1");
+    await page.fill("#campo-nome-campo", "pressao");
+    await page.fill("#campo-valor", "110x70");
+    await page.getByTestId("botao-salvar-campo").click();
+    await page.fill("#campo-nome-campo", "temperatura");
+    await page.fill("#campo-valor", "36.4");
+    await page.getByTestId("botao-salvar-campo").click();
+    await expect(itens).toHaveCount(3);
+
+    await context.setOffline(false);
+    await page.getByTestId("botao-sincronizar-agora").click();
+
+    // O servidor aceitou as duas edições em ordem (versão 1 e depois 2):
+    // nenhuma virou conflito com o próprio aparelho.
+    await expect(async () => {
+      for (const item of await itens.all()) {
+        await expect(item).toHaveAttribute("data-estado", "sincronizado");
+      }
+    }).toPass({ timeout: 15_000 });
+  });
 });

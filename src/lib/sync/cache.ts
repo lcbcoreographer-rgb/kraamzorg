@@ -87,11 +87,31 @@ export async function limparCacheDoDia(db: BancoOffline): Promise<void> {
 }
 
 /**
+ * Apaga do aparelho o que já subiu: itens de fila sincronizados ou em
+ * conflito (o servidor guarda o conflito com os dois lados) e os rascunhos
+ * que não apontam mais para um item pendente. Fica só a fila que ainda não
+ * subiu e os rascunhos dela (PRD 15: "limpa o IndexedDB, menos a fila que
+ * ainda não subiu"). Sem isto, o valor clínico digitado continuaria no
+ * aparelho depois do logout.
+ */
+export async function limparDadosJaEnviados(db: BancoOffline): Promise<void> {
+  await db.transaction("rw", db.fila, db.rascunhos, async () => {
+    await db.fila.where("estado").anyOf(["sincronizado", "conflito"]).delete();
+    const idsPendentes = new Set(
+      (await db.fila.toCollection().primaryKeys()).map(String),
+    );
+    await db.rascunhos
+      .filter((rascunho) => !idsPendentes.has(rascunho.itemFilaId))
+      .delete();
+  });
+}
+
+/**
  * Fim de sessão (logout ou sessão revogada, PRD 15): tenta subir o que
  * estiver na fila (melhor esforço, sem bloquear o logout se não houver
- * sinal) e só então apaga o cache do dia. `esvaziarFila` normalmente é
- * `motor.processarFila`; fica injetado aqui para não criar um ciclo entre
- * os dois módulos.
+ * sinal) e só então apaga o cache do dia e o que já subiu. `esvaziarFila`
+ * normalmente é `motor.processarFila`; fica injetado aqui para não criar um
+ * ciclo entre os dois módulos.
  */
 export async function encerrarSessaoOffline(
   db: BancoOffline,
@@ -100,9 +120,10 @@ export async function encerrarSessaoOffline(
   try {
     await esvaziarFila();
   } catch {
-    // Sem sinal ou sessão já revogada no servidor: segue e limpa o cache
-    // mesmo assim. O que não subiu continua na fila (não é apagado aqui) e
-    // sobe na próxima sessão com sinal.
+    // Sem sinal ou sessão já revogada no servidor: segue e limpa mesmo
+    // assim. O que não subiu continua na fila (não é apagado aqui) e sobe
+    // na próxima sessão com sinal.
   }
+  await limparDadosJaEnviados(db);
   await limparCacheDoDia(db);
 }

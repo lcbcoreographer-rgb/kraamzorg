@@ -139,4 +139,39 @@ describe("encerrarSessaoOffline (logout e sessão revogada)", () => {
 
     expect(await db.fila.count()).toBe(1);
   });
+
+  it("apaga do aparelho o que já subiu e os rascunhos dele, mas mantém o pendente", async () => {
+    const sincronizado = await salvarCampo(db, {
+      usuarioId: "u1",
+      entidade: "visita",
+      entidadeId: "v1",
+      campo: "a",
+      valor: "já subiu",
+    });
+    const emConflito = await salvarCampo(db, {
+      usuarioId: "u1",
+      entidade: "visita",
+      entidadeId: "v2",
+      campo: "b",
+      valor: "conflito guardado no servidor",
+    });
+    const pendente = await salvarCampo(db, {
+      usuarioId: "u1",
+      entidade: "visita",
+      entidadeId: "v3",
+      campo: "c",
+      valor: "ainda não subiu",
+    });
+    await db.fila.update(sincronizado.id, { estado: "sincronizado" });
+    await db.fila.update(emConflito.id, { estado: "conflito" });
+
+    await encerrarSessaoOffline(db, async () => {
+      // Sem sinal: nada sobe nesta passada.
+    });
+
+    expect((await db.fila.toArray()).map((i) => i.id)).toEqual([pendente.id]);
+    expect((await db.rascunhos.toArray()).map((r) => r.itemFilaId)).toEqual([
+      pendente.id,
+    ]);
+  });
 });

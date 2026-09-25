@@ -62,6 +62,14 @@ export interface ItemFila {
   tentativas: number;
   /** Epoch ms: o motor só tenta de novo a partir deste instante (espera crescente). */
   proximoEnvioEm: number;
+  /**
+   * Versão que o servidor devolveu ao aplicar este item (entidade
+   * versionada). Serve para encadear o `versaoBase` do próximo campo salvo
+   * na mesma entidade (motor.ts, `versaoBaseEncadeada`).
+   */
+  versaoResultante?: number;
+  /** Id que o servidor deu ao registro que este item criou (entidadeId nulo). */
+  entidadeIdCriado?: string;
   /** Preenchido quando `estado === "conflito"`: original preservado, nunca sobrescrito. */
   conflito?: ConflitoSincronizacao;
   /** Mensagem curta do último erro, para exibir com o botão "tentar novamente". */
@@ -127,6 +135,12 @@ export interface ResultadoItemSincronizacao {
   status: StatusProcessamento;
   /** Nova versão da entidade, quando `status === "processado"` e a entidade é versionada. */
   versaoResultante?: number;
+  /**
+   * Id que o servidor deu ao registro criado por este item (item com
+   * `entidadeId` nulo). O aparelho precisa dele para editar o registro
+   * depois.
+   */
+  entidadeIdCriado?: string;
   conflito?: ConflitoSincronizacao;
   /** Verdadeiro quando um `registro_atendimento` divergente virou `registro_adendo` (D-05). */
   virouAdendo?: boolean;
