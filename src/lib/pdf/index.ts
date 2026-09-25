@@ -1,7 +1,13 @@
-export { gerarEvolucaoPuerperal, gerarEvolucaoNeonatal } from "./gerar";
 export {
-  validarEvolucaoPuerperal,
+  gerarEvolucaoNeonatal,
+  gerarEvolucaoPuerperal,
+  rascunhoEvolucaoNeonatal,
+  rascunhoEvolucaoPuerperal,
+  renderizarEvolucao,
+} from "./gerar";
+export {
   validarEvolucaoNeonatal,
+  validarEvolucaoPuerperal,
 } from "./validacoes";
 export {
   calcularCurvaPeso,
@@ -9,12 +15,15 @@ export {
   classificarEvolucaoPeso,
 } from "./curva-peso";
 export {
-  concordar,
+  chavePorSexo,
   preencherTexto,
   preencherTextoOpcional,
+  preencherTextoPorSexo,
   semTravessaoOuMeiaRisca,
 } from "./textos";
+export { auditarConteudo, textosDoConteudo } from "./conteudo";
 export { nomeArquivoEvolucao, metadadosEvolucao } from "./metadados";
+export type { Bloco, ConteudoEvolucao, SecaoConteudo } from "./conteudo";
 export type {
   ContatoMedico,
   DadosEvolucaoNeonatal,

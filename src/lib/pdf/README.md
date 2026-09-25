@@ -3,45 +3,65 @@ Sem Chromium; nome de paciente nunca entra no nome do arquivo.
 
 ## Evoluções em PDF (P41)
 
-`gerarEvolucaoPuerperal(dados, textos)` e `gerarEvolucaoNeonatal(dados, textos)`
-(`gerar.ts`) recebem os dados agregados do acompanhamento (`tipos.ts`,
-`DadosEvolucaoPuerperal` e `DadosEvolucaoNeonatal`, uma chamada por bebê) e
-os textos aprovados de `mensagem_modelo` com destinatário `medico`, chaves
-`evo_*` (`TextosModelo`, um mapa chave -> texto com `{variavel}`; a lista de
-chaves esperadas está no cabeçalho de `evolucao-puerperal.tsx` e
-`evolucao-neonatal.tsx`). A biblioteca não lê o banco: quem chama monta o
-agregado e passa os textos prontos.
+Três passos, em `gerar.ts`:
 
-Cada função valida antes de renderizar (PRD 9.5, `validacoes.ts`): datas
-dentro do período, conclusão coerente com os achados (aleitamento contra
-complemento, ganho contra perda de peso, icterícia), ferida operatória só
-em cesárea, contato médico presente, conselho e UF da profissional. Erro de
-validação devolve `{ ok: false, erros }` e não gera PDF; conclusão
-incoerente bloqueia exatamente assim (aceite do P41). Sucesso devolve
-`{ ok: true, buffer, nomeArquivo }`.
+1. `validarEvolucaoPuerperal` / `validarEvolucaoNeonatal` (`validacoes.ts`,
+   PRD 9.5): datas no formato e dentro do período (pesagem da alta e do
+   pediatra entre o nascimento e o fim; documento emitido no último dia ou
+   depois; dias D de laser, ILIB, lesão e dor entre D1 e Dn), conclusão
+   coerente com os achados (aleitamento contra o registrado e contra
+   complemento em ml, ganho contra perda de peso pela curva, icterícia
+   presente, ausente ou em regressão contra a tendência), ferida operatória
+   só em cesárea e nunca com a frase de "sem sinais" sobre achado com
+   sinais, dor coerente com a remissão, contato médico com e-mail, conselho,
+   UF, número e especialidade da profissional.
+2. `montarConteudoPuerperal` / `montarConteudoNeonatal`
+   (`conteudo-puerperal.ts`, `conteudo-neonatal.ts`): monta o
+   `ConteudoEvolucao` (`conteudo.ts`), seções com parágrafos, campos e
+   listas. É o formato do rascunho (`relatorio_medico.conteudo`) que a
+   onda B guarda e deixa a enfermeira editar. Os textos vêm de
+   `mensagem_modelo` (`TextosModelo`, chaves `evo_*`, lista no cabeçalho de
+   cada arquivo); nenhum trecho clínico fica no código.
+3. `renderizarEvolucao(id, conteudo)` (`documento.tsx`): recusa conteúdo
+   com travessão, meia-risca ou `{variavel}` sem preencher e imprime o PDF
+   A4 com logo, rodapé com aviso LGPD art. 11 e paginação em toda página,
+   metadados controlados em pt-BR e nome de arquivo `{id}.pdf`.
 
-`curva-peso.ts` calcula a curva de peso (PRD 22.3 K-11): perda percentual,
-menor peso, ganho absoluto e ganho médio diário com uma casa decimal, a
-partir do menor peso registrado (não necessariamente o peso da alta); o dia
-do nascimento conta como dia 0.
+`rascunhoEvolucao*` junta 1 e 2; `gerarEvolucao*` junta os três. Erro de
+validação, texto que falta em `mensagem_modelo` ou texto proibido devolvem
+`{ ok: false, erros }` sem PDF (aceite do P41: conclusão incoerente
+bloqueia).
 
-`textos.ts` preenche os textos-padrão (`preencherTexto`) e resolve a
-concordância de gênero (`concordar`), usada nos trechos que descrevem o
-bebê (identificação, genitália, conclusão) — o mesmo ponto onde os
-documentos reais analisados (`docs/analise-evolucoes.md`) erravam o gênero.
+Concordância de gênero (`textos.ts`, `preencherTextoPorSexo`): todo trecho
+que descreve o bebê é procurado primeiro em `{chave}_masculino` ou
+`{chave}_feminino` e só depois na chave neutra. As duas formas moram no
+seed, escritas pela Edilaine; o código só escolhe pelo `bebe.sexo`.
 
-`metadados.ts` cuida do nome do arquivo (`{id}.pdf`, nunca o nome da
-paciente) e dos metadados controlados do PDF (autor "Kraamzorg Brasil",
-idioma pt-BR); os tipos de entrada não têm campo de nome de paciente em
-lugar nenhum que alimente essas duas funções.
+`curva-peso.ts` (PRD 22.3 K-11): perda percentual, menor peso, ganho
+absoluto e ganho médio diário com uma casa decimal, a partir do menor peso
+registrado; o dia do nascimento é o dia 0. `classificarEvolucaoPeso` usa a
+mesma base: bebê que voltou a ganhar desde o menor peso é "progressivo",
+mesmo abaixo do peso de nascimento.
 
-`fontes.ts` e `tokens.ts` só repetem Jost/Inter/IBM Plex Mono e os nove
-tokens de cor de `src/app/globals.css` (`CLAUDE.md`, "Tokens só em
-`globals.css`"): o PDF não lê CSS, então os valores são copiados aqui, com
-teste (`tokens.test.ts`) conferindo a mesma fórmula de mistura.
+`formatar.ts`: datas em dd/mm/aaaa (por `src/lib/formatacao`), números com
+vírgula decimal e ponto de milhar, zona de Kramer em romano.
 
-Sem tela própria: o rascunho e a aprovação da evolução e o envio por
-e-mail ficam para a onda B (PROMPTS.md, P41).
+`fontes.ts` e `tokens.ts` repetem Jost/Inter/IBM Plex Mono e os tokens de
+cor de `src/app/globals.css`: o PDF não lê CSS. `tokens.test.ts` lê o
+próprio `globals.css` e falha se um primitivo ou derivado mudar lá.
+
+Armadilha conhecida do @react-pdf/renderer 4.9 (`componentes.tsx`): nenhum
+`lineHeight` na página. Herdado pelo texto dinâmico da paginação, ele joga o
+rodapé inteiro para fora da folha. E todo número em `lineHeight` é
+multiplicado pelo `fontSize` do próprio estilo (18 pt quando falta), por isso
+o corpo usa "14pt".
+
+Testes que leem o PDF gerado (`__fixtures__/ler-pdf.ts`) decodificam o texto
+e a posição de cada trecho, sem dependência nova: provam que o rodapé está
+dentro de toda página e que a menina sai "filha" e "nascida" no próprio PDF.
+
+Sem tela própria: o rascunho, a edição, a aprovação e o envio por e-mail
+ficam para a onda B (PROMPTS.md, P41).
 
 ### Nota de ambiente de teste
 
@@ -53,4 +73,4 @@ teste que efetivamente renderiza um PDF (`gerar.test.ts`) começa com o
 comentário `// @vitest-environment node`, que troca o ambiente só daquele
 arquivo para Node puro, igual ao runtime real (rota de servidor do
 Next.js). Os módulos puros (`curva-peso`, `validacoes`, `textos`,
-`metadados`, `tokens`) não têm essa exigência.
+`metadados`, `tokens`, `conteudo`) não têm essa exigência.

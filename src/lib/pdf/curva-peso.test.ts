@@ -64,12 +64,39 @@ describe("calcularCurvaPeso", () => {
     expect(classificarEvolucaoPeso(curva)).toBe("perda");
   });
 
-  it("peso final igual ao de nascimento classifica como estável", () => {
+  it("bebê que voltou a ganhar mas ainda está abaixo do nascimento é ganho progressivo (base do K-11 é o menor peso)", () => {
+    const curva = calcularCurvaPeso(3400, "2026-09-04", [
+      { data: "2026-09-04", pesoG: 3250, origem: "alta_hospitalar" },
+      { data: "2026-09-06", pesoG: 3150, origem: "domicilio" },
+      { data: "2026-09-11", pesoG: 3380, origem: "domicilio" },
+    ]);
+    expect(curva.recuperouPesoNascimento).toBe(false);
+    expect(curva.menorPesoG).toBe(3150);
+    expect(curva.diaVidaMenorPeso).toBe(2);
+    expect(curva.ganhoAbsolutoG).toBe(230);
+    expect(curva.diasEntreMenorEFinal).toBe(5);
+    expect(curva.ganhoMedioDiarioGDia).toBe(46);
+    // (3400 - 3150) / 3400 * 100 = 7,35... -> 7,4
+    expect(curva.perdaPercentual).toBe(7.4);
+    expect(classificarEvolucaoPeso(curva)).toBe("progressivo");
+  });
+
+  it("última pesagem repetindo o menor peso classifica como estável", () => {
     const curva = calcularCurvaPeso(3200, "2026-09-01", [
       { data: "2026-09-04", pesoG: 3000, origem: "alta_hospitalar" },
-      { data: "2026-09-10", pesoG: 3200, origem: "domicilio" },
+      { data: "2026-09-08", pesoG: 3000, origem: "domicilio" },
     ]);
+    expect(curva.ganhoAbsolutoG).toBe(0);
     expect(classificarEvolucaoPeso(curva)).toBe("estavel");
+  });
+
+  it("ganho médio arredonda para uma casa, sem truncar", () => {
+    // 100 g em 3 dias = 33,33... -> 33,3; 50 g em 3 dias = 16,66... -> 16,7
+    const curva = calcularCurvaPeso(3000, "2026-09-01", [
+      { data: "2026-09-03", pesoG: 2900, origem: "domicilio" },
+      { data: "2026-09-06", pesoG: 2950, origem: "domicilio" },
+    ]);
+    expect(curva.ganhoMedioDiarioGDia).toBe(16.7);
   });
 
   it("rejeita peso de nascimento não finito ou não positivo", () => {

@@ -30,15 +30,30 @@ function logoDocumento(): Buffer {
   return logoEmBuffer;
 }
 
+/**
+ * Entrelinha de 1,4 escrita em pontos ("14pt"): o @react-pdf/renderer
+ * multiplica todo número pelo fontSize do próprio estilo e, sem fontSize
+ * ali, pelo padrão de 18 pt (entrelinha de 25 pt no corpo de 10).
+ */
+const TAMANHO_CORPO = 10;
+const ENTRELINHA = `${TAMANHO_CORPO * 1.4}pt`;
+const TAMANHO_RODAPE = 7.5;
+
 export const estilos = StyleSheet.create({
   pagina: {
     paddingTop: 96,
     paddingBottom: 64,
     paddingHorizontal: 42,
     fontFamily: FAMILIA_CORPO,
-    fontSize: 10,
+    fontSize: TAMANHO_CORPO,
     color: CORES.marinho,
-    lineHeight: 1.4,
+    // Sem lineHeight aqui de propósito: herdado pelo texto dinâmico da
+    // paginação ("Página X de Y"), qualquer lineHeight faz o
+    // @react-pdf/renderer 4.9 desenhar o rodapé inteiro fora da folha (y
+    // perto de 5.900 pt numa página de 842), e o aviso de confidencialidade
+    // some junto. Reproduzido na verificação do P41 e coberto pelo teste
+    // "toda página tem cabeçalho, aviso de confidencialidade..." de
+    // gerar.test.ts. O entrelinha vai em cada estilo de texto do corpo.
   },
   cabecalho: {
     position: "absolute",
@@ -53,7 +68,7 @@ export const estilos = StyleSheet.create({
     paddingBottom: 12,
   },
   logo: {
-    width: 84,
+    height: 44,
   },
   cabecalhoTextos: {
     alignItems: "flex-end",
@@ -84,13 +99,14 @@ export const estilos = StyleSheet.create({
     alignItems: "flex-start",
   },
   rodapeAviso: {
-    fontSize: 7.5,
+    fontSize: TAMANHO_RODAPE,
+    lineHeight: 1.4, // fontSize no mesmo estilo: 1,4 x 7,5 pt
     color: MARINHO_62,
     maxWidth: 380,
   },
   rodapePagina: {
     fontFamily: FAMILIA_DADO,
-    fontSize: 7.5,
+    fontSize: TAMANHO_RODAPE,
     color: MARINHO_62,
   },
   tituloDocumento: {
@@ -112,14 +128,15 @@ export const estilos = StyleSheet.create({
     marginBottom: 3,
   },
   campo: {
-    flexDirection: "row",
     marginBottom: 2,
+    lineHeight: ENTRELINHA,
   },
   campoRotulo: {
     fontWeight: 600,
   },
   paragrafo: {
     marginBottom: 4,
+    lineHeight: ENTRELINHA,
   },
   dado: {
     fontFamily: FAMILIA_DADO,
@@ -128,11 +145,13 @@ export const estilos = StyleSheet.create({
     flexDirection: "row",
     marginBottom: 2,
     paddingLeft: 2,
+    lineHeight: ENTRELINHA,
   },
   listaMarcador: {
     width: 14,
   },
   assinatura: {
+    lineHeight: ENTRELINHA,
     marginTop: 18,
     borderTopWidth: 1,
     borderTopColor: MARINHO_14,
@@ -194,10 +213,10 @@ export function Secao({
 /** "Rótulo: valor", como os documentos reais (docs/analise-evolucoes.md, seção 1): rótulo em negrito, sem dois-pontos duplicado. */
 export function Campo({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
-    <View style={estilos.campo}>
+    <Text style={estilos.campo}>
       <Text style={estilos.campoRotulo}>{rotulo}: </Text>
-      <Text>{valor}</Text>
-    </View>
+      {valor}
+    </Text>
   );
 }
 
@@ -220,24 +239,22 @@ export function ListaOrdenada({ itens }: { itens: string[] }) {
 
 export function BlocoAssinatura({
   nome,
-  funcao,
+  especialidade,
   conselho,
   conselhoUf,
   conselhoNumero,
 }: {
   nome: string;
-  funcao: string;
+  especialidade: string;
   conselho: string;
   conselhoUf: string;
   conselhoNumero: string;
 }) {
   return (
-    <View style={estilos.assinatura}>
-      <Text>
-        Responsável: {nome}. {conselho}/{conselhoUf} {conselhoNumero}.
-      </Text>
+    <View style={estilos.assinatura} wrap={false}>
+      <Text>{`Responsável: ${nome}. ${conselho}/${conselhoUf} ${conselhoNumero}.`}</Text>
       <Text style={{ color: MARINHO_62, fontSize: 9, marginTop: 2 }}>
-        {funcao}
+        {especialidade}
       </Text>
     </View>
   );

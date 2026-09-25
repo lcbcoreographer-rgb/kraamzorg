@@ -28,7 +28,9 @@ export interface ContatoMedico {
 
 export interface DadosProfissional {
   nome: string;
-  funcao: string; // 'enfermeira_obstetrica' | 'enfermeira_neonatal' | ...
+  funcao: string; // 'enfermeira_obstetrica' | 'enfermeira_neonatal' | ... (valor de `profissional.funcao`, nunca impresso cru)
+  /** Especialidade como sai na assinatura (PRD 9.5, "assinados com nome, especialidade e registro de conselho"), rótulo de exibição que quem chama resolve a partir do cadastro. */
+  especialidade: string;
   conselho: string; // 'COREN'
   conselhoUf: string; // duas letras
   conselhoNumero: string;
@@ -56,10 +58,12 @@ export type TipoAleitamento = "exclusivo" | "misto" | "complemento";
 export type EvolucaoGanhoPeso = "progressivo" | "estavel" | "perda";
 export type EstadoIctericia = "ausente" | "regressao" | "presente";
 export type RemissaoDor = "total" | "parcial" | "nenhuma";
+export type ZonaKramer = 1 | 2 | 3 | 4 | 5;
 
 export interface LesaoMama {
   grau: string; // 'I' | 'II' | 'III', como o cadastro registrar
-  lado: "esquerda" | "direita" | "bilateral";
+  /** Mesmas opções do campo 2.7 do checklist (PRD 9.2: direita, esquerda, ambas), sem o "não", que é a ausência de `lesao`. */
+  lado: "esquerda" | "direita" | "ambas";
   local: "mama" | "mamilo";
   diaSurgimento?: number;
   grauFinal?: string;
@@ -95,13 +99,13 @@ export interface DadosEvolucaoPuerperal {
     dataNascimentoBebe: DataIso;
     dataAlta: DataIso;
   };
-  diaPuerperioFinal: number;
   sinaisVitais: {
     paSistolica: Faixa;
     paDiastolica: Faixa;
     fc: Faixa;
     temperatura: Faixa;
-    spo2: Faixa;
+    /** [clínico] O checklist não coleta SpO2 (PRD 9.5 e 22.3 K-01): só aparece quando informado. */
+    spo2?: Faixa;
   };
   /** Todos os sinais vitais dentro da faixa de referência o período inteiro: liga a frase padrão de estabilidade. */
   estabilidadeHemodinamica: boolean;
@@ -133,7 +137,8 @@ export interface DadosEvolucaoPuerperal {
   };
   eliminacoes: {
     quantidade: string;
-    aspecto: string;
+    /** [clínico] Aspecto dos lóquios não tem campo no checklist (PRD 9.5 e K-01): só aparece quando informado. */
+    aspecto?: string;
   };
   intervencoes: {
     laser?: IntervencaoLaser;
@@ -142,8 +147,10 @@ export interface DadosEvolucaoPuerperal {
   orientacoesAlta: {
     itensPersonalizados: string[];
   };
+  /** PRD 9.5: "Retorno obstétrico com motivos marcáveis, medicações, saúde mental, nutrição". */
   encaminhamentos?: {
     retornoObstetrico?: RetornoObstetrico;
+    medicacoes?: boolean;
     saudeMental?: boolean;
     nutricao?: boolean;
   };
@@ -175,7 +182,6 @@ export interface DadosEvolucaoNeonatal {
   };
   filiacao: string[]; // nomes dos pais/responsáveis, como consta no cadastro
   periodo: PeriodoAcompanhamento;
-  diaVidaFinal: number;
   pesagens: Pesagem[];
   estadoGeral: {
     reatividade: string;
@@ -183,8 +189,12 @@ export interface DadosEvolucaoNeonatal {
     temperatura: Faixa;
     fontanela: string;
   };
+  /** Campo 3 do checklist (ausente, zona I a V); PRD 9.5 pede zona máxima, final e tendência. */
   ictericia?: {
-    zonaKramer: 1 | 2 | 3 | 4 | 5;
+    /** Zona de Kramer no último registro do período. */
+    zonaKramer: ZonaKramer;
+    zonaMaxima?: ZonaKramer;
+    /** Não tem campo no checklist: só aparece quando informada, nunca é presumida. */
     intensidade?: string;
     tendencia?: "estavel" | "regressao" | "progressao";
   };
@@ -194,7 +204,8 @@ export interface DadosEvolucaoNeonatal {
   };
   cardiovascular: {
     fc: Faixa;
-    spo2: Faixa;
+    /** [clínico] SpO2 do RN não tem campo no checklist (PRD 9.5 e K-01): só aparece quando informada. */
+    spo2?: Faixa;
   };
   abdomeCoto: {
     estadoCoto: string;

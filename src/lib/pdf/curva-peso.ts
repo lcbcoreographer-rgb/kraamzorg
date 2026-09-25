@@ -145,11 +145,28 @@ export function calcularCurvaPeso(
   };
 }
 
-/** Classificação estrutural da curva (peso final contra peso de nascimento), usada pela validação de coerência da conclusão. Não é a "interpretação" clínica: só o sinal da conta. */
+/**
+ * Classificação estrutural da curva no fim do período, usada só pela
+ * validação de coerência da conclusão ("ganho contra perda de peso", PRD
+ * 9.5). Segue a mesma base do K-11: o ganho conta a partir do menor peso,
+ * não do peso de nascimento, porque a perda fisiológica dos primeiros dias
+ * é esperada e um bebê que já voltou a ganhar ainda pode estar abaixo do
+ * peso de nascimento no último dia do acompanhamento.
+ *
+ * - "progressivo": a última pesagem está acima do menor peso.
+ * - "perda": a última pesagem é o menor peso e caiu em relação à anterior
+ *   (o bebê ainda não voltou a ganhar).
+ * - "estavel": a última pesagem é o menor peso e repete a anterior, ou não
+ *   há pesagem além do nascimento.
+ *
+ * Não é a interpretação clínica (adequado, insuficiente): isso é texto da
+ * enfermeira [clínico: confirmar com a Edilaine, K-11].
+ */
 export function classificarEvolucaoPeso(
   curva: CurvaPeso,
 ): "progressivo" | "estavel" | "perda" {
-  if (curva.pesoFinalG > curva.pesoNascimentoG) return "progressivo";
-  if (curva.pesoFinalG < curva.pesoNascimentoG) return "perda";
+  if (curva.ganhoAbsolutoG > 0) return "progressivo";
+  const anterior = curva.pontos[curva.pontos.length - 2];
+  if (anterior && curva.pesoFinalG < anterior.pesoG) return "perda";
   return "estavel";
 }

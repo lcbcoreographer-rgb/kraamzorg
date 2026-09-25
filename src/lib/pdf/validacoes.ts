@@ -1,92 +1,184 @@
 /**
- * Validações da evolução antes da aprovação (PRD 9.5, "Fluxo"; PRD 22.3
- * item K-11 para o cálculo que sustenta a coerência do peso). As duas
- * funções de topo (`validarEvolucaoPuerperal`, `validarEvolucaoNeonatal`)
- * devolvem a lista de erros; lista vazia é aprovação liberada. Nenhuma
- * função aqui decide layout ou texto de tela: cada mensagem é o resumo do
- * problema, em português, sem travessão, para a enfermeira corrigir o dado
- * de origem.
+ * Validações da evolução antes da aprovação (PRD 9.5, "Fluxo": datas
+ * dentro do período, conclusão coerente com os achados, gênero, contato
+ * médico presente; PROMPTS.md P41 item 2: ferida operatória só em cesárea,
+ * conselho e UF do cadastro da profissional). As duas funções de topo
+ * devolvem a lista de erros; lista vazia é aprovação liberada. Cada
+ * mensagem diz o que está errado e o que corrigir, em português, sem
+ * travessão (CLAUDE.md, "Texto de interface").
+ *
+ * O gênero não tem regra aqui porque não tem como errar por construção:
+ * `bebe.sexo` é obrigatório e todo trecho que descreve o bebê é escolhido
+ * pelo sexo (`conteudo-neonatal.ts`).
  */
-import { classificarEvolucaoPeso, calcularCurvaPeso } from "./curva-peso";
+import {
+  calcularCurvaPeso,
+  calcularDiaDeVida,
+  classificarEvolucaoPeso,
+} from "./curva-peso";
 import type {
   ContatoMedico,
   DadosEvolucaoNeonatal,
   DadosEvolucaoPuerperal,
   DadosProfissional,
   DataIso,
+  Faixa,
   PeriodoAcompanhamento,
 } from "./tipos";
 
-function dataMenorOuIgual(a: DataIso, b: DataIso): boolean {
-  return a <= b;
+const FORMATO_DATA = /^\d{4}-\d{2}-\d{2}$/;
+
+/** "aaaa-mm-dd" que existe no calendário (recusa "2026-02-30"). */
+export function dataValida(data: DataIso): boolean {
+  if (!FORMATO_DATA.test(data)) return false;
+  const tempo = Date.parse(`${data}T00:00:00Z`);
+  return (
+    !Number.isNaN(tempo) && new Date(tempo).toISOString().slice(0, 10) === data
+  );
 }
 
-/** Confere se cada data informada cai dentro de `[periodo.inicio, periodo.fim]`, inclusive. */
-export function validarDatasNoPeriodo(
-  periodo: PeriodoAcompanhamento,
-  pontos: { rotulo: string; data: DataIso }[],
+/** Confere o formato de todas as datas antes de qualquer conta: data inválida devolve erro em vez de derrubar a geração. */
+export function validarFormatoDatas(
+  pontos: { rotulo: string; data: DataIso | undefined }[],
 ): string[] {
-  const erros: string[] = [];
-
-  if (!dataMenorOuIgual(periodo.inicio, periodo.fim)) {
-    erros.push(
-      `O período do acompanhamento está invertido: início ${periodo.inicio} é depois do fim ${periodo.fim}.`,
+  return pontos
+    .filter((ponto) => ponto.data !== undefined && !dataValida(ponto.data))
+    .map(
+      (ponto) =>
+        `${ponto.rotulo} ("${ponto.data}") não é uma data válida no formato aaaa-mm-dd.`,
     );
-  }
-
-  for (const ponto of pontos) {
-    if (
-      !dataMenorOuIgual(periodo.inicio, ponto.data) ||
-      !dataMenorOuIgual(ponto.data, periodo.fim)
-    ) {
-      erros.push(
-        `${ponto.rotulo} (${ponto.data}) está fora do período do acompanhamento (${periodo.inicio} a ${periodo.fim}).`,
-      );
-    }
-  }
-
-  return erros;
 }
 
-export function validarConselhoProfissional(
-  profissional: DadosProfissional,
-): string[] {
-  const erros: string[] = [];
-  if (!profissional.conselho.trim()) {
-    erros.push(
-      "Falta o conselho de classe da profissional responsável (por exemplo COREN).",
-    );
-  }
-  if (!/^[A-Za-z]{2}$/.test(profissional.conselhoUf.trim())) {
-    erros.push(
-      `A UF do conselho da profissional responsável é inválida ("${profissional.conselhoUf}").`,
-    );
-  }
-  if (!profissional.conselhoNumero.trim()) {
-    erros.push("Falta o número do conselho da profissional responsável.");
-  }
-  return erros;
-}
-
-export function validarContatoMedico(
-  rotulo: string,
-  contato: ContatoMedico | undefined,
-): string[] {
-  if (!contato) {
-    return [`Falta o contato do ${rotulo} para enviar a evolução.`];
-  }
-  if (!contato.nome.trim()) {
-    return [`O contato do ${rotulo} está sem nome.`];
-  }
-  if (!contato.email && !contato.telefoneE164) {
+export function validarPeriodo(periodo: PeriodoAcompanhamento): string[] {
+  if (periodo.inicio > periodo.fim) {
     return [
-      `O contato do ${rotulo} (${contato.nome}) não tem e-mail nem telefone.`,
+      `O período do acompanhamento está invertido: o início (${periodo.inicio}) é depois do fim (${periodo.fim}).`,
     ];
   }
   return [];
 }
 
-/** Alinha o rótulo de aleitamento com o que o próprio conjunto de dados registrou (mãe ou bebê, mesma regra nos dois documentos). */
+/** Confere se cada data informada cai dentro de `[inicio, fim]`, inclusive. `descricao` nomeia o intervalo na mensagem. */
+export function validarDatasNoPeriodo(
+  periodo: PeriodoAcompanhamento,
+  pontos: { rotulo: string; data: DataIso }[],
+  descricao = "do período do acompanhamento",
+): string[] {
+  return pontos
+    .filter((ponto) => ponto.data < periodo.inicio || ponto.data > periodo.fim)
+    .map(
+      (ponto) =>
+        `${ponto.rotulo} (${ponto.data}) está fora ${descricao} (${periodo.inicio} a ${periodo.fim}).`,
+    );
+}
+
+/**
+ * A evolução é emitida ao fim do acompanhamento, no mesmo dia ou no dia
+ * útil seguinte (PRD 9.5, "Prazo"): a data do documento não pode ser
+ * anterior ao último dia do período (erro visto nas evoluções reais,
+ * docs/analise-evolucoes.md: "Data do documento anterior ao início do
+ * período").
+ */
+export function validarDataEmissao(
+  periodo: PeriodoAcompanhamento,
+  dataEmissao: DataIso,
+): string[] {
+  if (dataEmissao < periodo.fim) {
+    return [
+      `A data do documento (${dataEmissao}) é anterior ao fim do acompanhamento (${periodo.fim}). A evolução é emitida depois do último dia.`,
+    ];
+  }
+  return [];
+}
+
+/** Quantos dias (D1 a Dn) o período tem, contando o primeiro e o último. */
+export function diasDoPeriodo(periodo: PeriodoAcompanhamento): number {
+  return calcularDiaDeVida(periodo.inicio, periodo.fim) + 1;
+}
+
+/** Dias de acompanhamento (D) citados no documento precisam existir no período (laser, ILIB, lesão, dor). */
+export function validarDiasD(
+  periodo: PeriodoAcompanhamento,
+  pontos: { rotulo: string; dia: number | undefined }[],
+): string[] {
+  const total = diasDoPeriodo(periodo);
+  return pontos
+    .filter(
+      (ponto) =>
+        ponto.dia !== undefined &&
+        (!Number.isInteger(ponto.dia) || ponto.dia < 1 || ponto.dia > total),
+    )
+    .map(
+      (ponto) =>
+        `${ponto.rotulo} cita o dia D${ponto.dia}, mas o acompanhamento vai de D1 a D${total}.`,
+    );
+}
+
+/** Faixa com mínimo acima do máximo é erro de agregação, não achado clínico. */
+export function validarFaixas(
+  faixas: { rotulo: string; faixa: Faixa | undefined }[],
+): string[] {
+  return faixas
+    .filter(
+      (item) => item.faixa !== undefined && item.faixa.min > item.faixa.max,
+    )
+    .map(
+      (item) =>
+        `${item.rotulo}: o mínimo (${item.faixa!.min}) está acima do máximo (${item.faixa!.max}).`,
+    );
+}
+
+/** Conselho e UF vêm do cadastro da profissional (`profissional.conselho`, `conselho_uf`, `conselho_numero`, PRD 6.5). */
+export function validarConselhoProfissional(
+  profissional: DadosProfissional,
+): string[] {
+  const erros: string[] = [];
+  if (!profissional.nome.trim()) {
+    erros.push("Falta o nome da profissional responsável.");
+  }
+  if (!profissional.especialidade.trim()) {
+    erros.push("Falta a especialidade da profissional responsável.");
+  }
+  if (!profissional.conselho.trim()) {
+    erros.push(
+      "Falta o conselho de classe da profissional responsável (por exemplo, COREN). Complete o cadastro da profissional.",
+    );
+  }
+  if (!/^[A-Z]{2}$/.test(profissional.conselhoUf.trim())) {
+    erros.push(
+      `A UF do conselho da profissional responsável é inválida ("${profissional.conselhoUf}"). Complete o cadastro com a sigla do estado, por exemplo SP.`,
+    );
+  }
+  if (!profissional.conselhoNumero.trim()) {
+    erros.push(
+      "Falta o número do conselho da profissional responsável. Complete o cadastro da profissional.",
+    );
+  }
+  return erros;
+}
+
+/** O envio é por e-mail ao obstetra e ao pediatra (PRD 9.5, "Fluxo"): sem e-mail, a evolução não tem para onde ir. */
+export function validarContatoMedico(
+  rotulo: string,
+  contato: ContatoMedico | undefined,
+): string[] {
+  if (!contato) {
+    return [
+      `Falta o contato do ${rotulo}. Cadastre o médico na ficha da família antes de aprovar.`,
+    ];
+  }
+  if (!contato.nome.trim()) {
+    return [`O contato do ${rotulo} está sem nome.`];
+  }
+  if (!contato.email?.trim()) {
+    return [
+      `O contato do ${rotulo} (${contato.nome}) não tem e-mail, e a evolução é enviada por e-mail.`,
+    ];
+  }
+  return [];
+}
+
+/** Aleitamento da conclusão contra o registrado no período ("aleitamento exclusivo contra complemento", PRD 9.5). */
 export function validarAleitamentoCoerente(
   rotuloOrigem: string,
   observado: string,
@@ -100,6 +192,23 @@ export function validarAleitamentoCoerente(
   return [];
 }
 
+/** Complemento registrado em ml não combina com aleitamento exclusivo. */
+export function validarComplementoCoerente(
+  alimentacao: DadosEvolucaoNeonatal["alimentacao"],
+): string[] {
+  if (
+    alimentacao.tipo === "exclusivo" &&
+    alimentacao.complementoMl !== undefined &&
+    alimentacao.complementoMl > 0
+  ) {
+    return [
+      `A alimentação está como aleitamento exclusivo, mas há complemento registrado (${alimentacao.complementoMl} ml).`,
+    ];
+  }
+  return [];
+}
+
+/** Ganho contra perda de peso (PRD 9.5), pela curva calculada com a base do K-11 (`classificarEvolucaoPeso`). */
 export function validarGanhoPesoCoerente(
   pesoNascimentoG: number,
   dataNascimento: DataIso,
@@ -110,12 +219,13 @@ export function validarGanhoPesoCoerente(
   const esperado = classificarEvolucaoPeso(curva);
   if (esperado !== ganhoConcluido) {
     return [
-      `A conclusão descreve ganho de peso "${ganhoConcluido}", mas o peso final (${curva.pesoFinalG} g) contra o de nascimento (${curva.pesoNascimentoG} g) indica "${esperado}".`,
+      `A conclusão descreve o peso como "${ganhoConcluido}", mas a curva indica "${esperado}" (menor peso ${curva.menorPesoG} g, última pesagem ${curva.pesoFinalG} g).`,
     ];
   }
   return [];
 }
 
+/** Icterícia da conclusão contra o registro: presença e, quando a conclusão fala em regressão, a tendência registrada. */
 export function validarIctericiaCoerente(
   ictericia: DadosEvolucaoNeonatal["ictericia"],
   concluida: DadosEvolucaoNeonatal["conclusao"]["ictericia"],
@@ -130,38 +240,134 @@ export function validarIctericiaCoerente(
       `Há icterícia registrada nos achados (zona ${ictericia.zonaKramer} de Kramer), mas a conclusão diz "sem icterícia".`,
     ];
   }
+  if (
+    ictericia &&
+    concluida === "regressao" &&
+    ictericia.tendencia !== "regressao"
+  ) {
+    return [
+      `A conclusão diz icterícia em regressão, mas a tendência registrada é "${ictericia.tendencia ?? "não informada"}".`,
+    ];
+  }
+  if (
+    ictericia?.zonaMaxima !== undefined &&
+    ictericia.zonaMaxima < ictericia.zonaKramer
+  ) {
+    return [
+      `A zona máxima de Kramer (${ictericia.zonaMaxima}) é menor que a zona final (${ictericia.zonaKramer}).`,
+    ];
+  }
   return [];
 }
 
 /**
- * Ferida operatória só existe em cesárea (PRD 9.5; achado de
- * `docs/analise-evolucoes.md`, "Item ferida operatória retirado da lista
- * de alertas num parto cesáreo"). A lista de orientações de alta em si não
- * entra aqui: o item de ferida operatória vem embutido no texto-padrão que
- * o código escolhe por `tipoParto` (`evo_pue_orientacoes_base_cesarea` x
- * `_vaginal`, `evolucao-puerperal.tsx`), não é dado que a enfermeira possa
- * esquecer de marcar.
+ * Ferida operatória só existe em cesárea (PRD 9.5; docs/analise-evolucoes.md,
+ * "item ferida operatória retirado da lista de alertas num parto cesáreo").
+ * O item da lista de alertas vem embutido no texto-padrão escolhido pelo
+ * tipo de parto (`conteudo-puerperal.ts`); aqui se confere a seção
+ * descritiva, que não pode faltar na cesárea nem aparecer no parto vaginal,
+ * e nem sair com a frase "sem sinais flogísticos" sobre um achado com
+ * sinais.
  */
 export function validarFeridaOperatoria(
   tipoParto: DadosEvolucaoPuerperal["historico"]["tipoParto"],
   feridaOperatoria: DadosEvolucaoPuerperal["feridaOperatoria"],
 ): string[] {
-  if (tipoParto === "cesarea") {
+  if (tipoParto === "vaginal") {
     return feridaOperatoria
-      ? []
-      : ["Parto cesárea sem a seção de ferida operatória preenchida."];
+      ? [
+          "Parto vaginal não tem ferida operatória, mas a seção está preenchida.",
+        ]
+      : [];
   }
-  return feridaOperatoria
-    ? ["Parto vaginal não tem ferida operatória, mas a seção está preenchida."]
-    : [];
+  if (!feridaOperatoria) {
+    return ["Parto cesárea sem a seção de ferida operatória preenchida."];
+  }
+  if (
+    !feridaOperatoria.semSinaisFlogisticos &&
+    !feridaOperatoria.textoLivre?.trim()
+  ) {
+    return [
+      "A ferida operatória está marcada com sinais flogísticos, mas o achado não foi descrito. Descreva o achado para não sair a frase-padrão de ferida sem sinais.",
+    ];
+  }
+  return [];
+}
+
+/** Escala de 0 a 10 (PRD 9.2, campo 2.6) e remissão coerente com a escala final. */
+export function validarDor(dor: DadosEvolucaoPuerperal["dor"]): string[] {
+  const erros: string[] = [];
+  const escalas = [dor.escalaInicial, dor.escalaMaxima, dor.escalaFinal];
+  if (
+    escalas.some((valor) => !Number.isInteger(valor) || valor < 0 || valor > 10)
+  ) {
+    erros.push("A escala de dor vai de 0 a 10, em números inteiros.");
+  }
+  if (
+    dor.escalaMaxima < dor.escalaInicial ||
+    dor.escalaMaxima < dor.escalaFinal
+  ) {
+    erros.push(
+      "A dor máxima do período é menor que a dor inicial ou a final. Confira o agregado da escala.",
+    );
+  }
+  if (
+    dor.remissao === "total" &&
+    (dor.escalaFinal !== 0 || dor.diaZerou === undefined)
+  ) {
+    erros.push(
+      "A dor está como remissão total, mas a escala final não é 0 ou falta o dia em que zerou.",
+    );
+  }
+  if (
+    dor.remissao !== "total" &&
+    dor.escalaFinal === 0 &&
+    dor.escalaInicial > 0
+  ) {
+    erros.push(
+      "A escala final de dor é 0, mas a remissão não está como total.",
+    );
+  }
+  return erros;
 }
 
 export function validarEvolucaoPuerperal(
   dados: DadosEvolucaoPuerperal,
 ): string[] {
+  const errosFormato = validarFormatoDatas([
+    { rotulo: "Início do período", data: dados.periodo.inicio },
+    { rotulo: "Fim do período", data: dados.periodo.fim },
+    { rotulo: "Data de nascimento", data: dados.historico.dataNascimentoBebe },
+    { rotulo: "Data de alta", data: dados.historico.dataAlta },
+    { rotulo: "Data do documento", data: dados.dataEmissao },
+    {
+      rotulo: "Data do retorno obstétrico",
+      data: dados.encaminhamentos?.retornoObstetrico?.data,
+    },
+  ]);
+  if (errosFormato.length > 0) return errosFormato;
+
   const erros: string[] = [
-    ...validarDatasNoPeriodo(dados.periodo, [
-      { rotulo: "Data de emissão", data: dados.dataEmissao },
+    ...validarPeriodo(dados.periodo),
+    ...validarDataEmissao(dados.periodo, dados.dataEmissao),
+    ...validarDiasD(dados.periodo, [
+      ...(dados.intervencoes.laser?.dias ?? []).map((dia) => ({
+        rotulo: "A laserterapia",
+        dia,
+      })),
+      ...(dados.intervencoes.ilib?.dias ?? []).map((dia) => ({
+        rotulo: "A terapia ILIB",
+        dia,
+      })),
+      { rotulo: "A lesão mamária", dia: dados.mamas.lesao?.diaSurgimento },
+      { rotulo: "A remissão da dor", dia: dados.dor.diaZerou },
+    ]),
+    ...validarFaixas([
+      { rotulo: "PA sistólica", faixa: dados.sinaisVitais.paSistolica },
+      { rotulo: "PA diastólica", faixa: dados.sinaisVitais.paDiastolica },
+      { rotulo: "FC", faixa: dados.sinaisVitais.fc },
+      { rotulo: "Temperatura", faixa: dados.sinaisVitais.temperatura },
+      { rotulo: "SpO2", faixa: dados.sinaisVitais.spo2 },
     ]),
     ...validarConselhoProfissional(dados.profissional),
     ...validarContatoMedico("obstetra", dados.contatoObstetra),
@@ -169,6 +375,7 @@ export function validarEvolucaoPuerperal(
       dados.historico.tipoParto,
       dados.feridaOperatoria,
     ),
+    ...validarDor(dados.dor),
     ...validarAleitamentoCoerente(
       "o registro do período",
       dados.alimentacaoObservada,
@@ -176,19 +383,20 @@ export function validarEvolucaoPuerperal(
     ),
   ];
 
-  if (
-    !dataMenorOuIgual(
-      dados.historico.dataNascimentoBebe,
-      dados.historico.dataAlta,
-    )
-  ) {
+  const { dataNascimentoBebe, dataAlta } = dados.historico;
+  if (dataNascimentoBebe > dataAlta) {
     erros.push(
-      `A data de nascimento (${dados.historico.dataNascimentoBebe}) é depois da data de alta (${dados.historico.dataAlta}).`,
+      `A data de nascimento (${dataNascimentoBebe}) é depois da data de alta (${dataAlta}).`,
     );
   }
-  if (!dataMenorOuIgual(dados.historico.dataAlta, dados.periodo.fim)) {
+  if (dataAlta > dados.periodo.fim) {
     erros.push(
-      `A data de alta (${dados.historico.dataAlta}) é depois do fim do período do acompanhamento (${dados.periodo.fim}).`,
+      `A data de alta (${dataAlta}) é depois do fim do período do acompanhamento (${dados.periodo.fim}).`,
+    );
+  }
+  if (dataNascimentoBebe > dados.periodo.inicio) {
+    erros.push(
+      `O nascimento (${dataNascimentoBebe}) é depois do início do período do acompanhamento (${dados.periodo.inicio}).`,
     );
   }
 
@@ -198,25 +406,71 @@ export function validarEvolucaoPuerperal(
 export function validarEvolucaoNeonatal(
   dados: DadosEvolucaoNeonatal,
 ): string[] {
-  const datasPesagens = dados.pesagens.map((pesagem, indice) => ({
-    rotulo: `Pesagem ${indice + 1}`,
-    data: pesagem.data,
-  }));
-  const datasParaValidar = [
-    { rotulo: "Data de emissão", data: dados.dataEmissao },
-    ...datasPesagens,
-  ];
-  if (dados.abdomeCoto.dataQueda) {
-    datasParaValidar.push({
-      rotulo: "Data da queda do coto",
-      data: dados.abdomeCoto.dataQueda,
-    });
+  const errosFormato = validarFormatoDatas([
+    { rotulo: "Início do período", data: dados.periodo.inicio },
+    { rotulo: "Fim do período", data: dados.periodo.fim },
+    { rotulo: "Data de nascimento", data: dados.bebe.dataNascimento },
+    { rotulo: "Data do documento", data: dados.dataEmissao },
+    { rotulo: "Data da queda do coto", data: dados.abdomeCoto.dataQueda },
+    ...dados.pesagens.map((pesagem, indice) => ({
+      rotulo: `Pesagem ${indice + 1}`,
+      data: pesagem.data,
+    })),
+  ]);
+  if (errosFormato.length > 0) return errosFormato;
+
+  const pesosInvalidos = [
+    dados.bebe.pesoNascimentoG,
+    ...dados.pesagens.map((pesagem) => pesagem.pesoG),
+  ].some((peso) => !Number.isFinite(peso) || peso <= 0);
+  if (pesosInvalidos) {
+    return ["Há peso vazio, zero ou negativo na curva de peso."];
   }
 
+  // Pesagem feita em casa pela enfermeira é do período; a da alta e a do
+  // pediatra podem ser de antes do primeiro dia, mas nunca antes do
+  // nascimento nem depois do fim. A queda do coto pode ter sido relatada
+  // pela família de antes do início.
+  const nascimento = dados.bebe.dataNascimento;
+  const periodoDesdeNascimento = { inicio: nascimento, fim: dados.periodo.fim };
   const erros: string[] = [
-    ...validarDatasNoPeriodo(dados.periodo, datasParaValidar),
+    ...validarPeriodo(dados.periodo),
+    ...validarDatasNoPeriodo(
+      dados.periodo,
+      dados.pesagens
+        .map((pesagem, indice) => ({ pesagem, indice }))
+        .filter(({ pesagem }) => pesagem.origem === "domicilio")
+        .map(({ pesagem, indice }) => ({
+          rotulo: `Pesagem ${indice + 1} (domicílio)`,
+          data: pesagem.data,
+        })),
+    ),
+    ...validarDatasNoPeriodo(
+      periodoDesdeNascimento,
+      [
+        ...dados.pesagens
+          .map((pesagem, indice) => ({ pesagem, indice }))
+          .filter(({ pesagem }) => pesagem.origem !== "domicilio")
+          .map(({ pesagem, indice }) => ({
+            rotulo: `Pesagem ${indice + 1}`,
+            data: pesagem.data,
+          })),
+        ...(dados.abdomeCoto.dataQueda
+          ? [{ rotulo: "A queda do coto", data: dados.abdomeCoto.dataQueda }]
+          : []),
+      ],
+      "do intervalo entre o nascimento e o fim do acompanhamento",
+    ),
+    ...validarDataEmissao(dados.periodo, dados.dataEmissao),
+    ...validarFaixas([
+      { rotulo: "Temperatura", faixa: dados.estadoGeral.temperatura },
+      { rotulo: "FR", faixa: dados.respiratorio.fr },
+      { rotulo: "FC", faixa: dados.cardiovascular.fc },
+      { rotulo: "SpO2", faixa: dados.cardiovascular.spo2 },
+    ]),
     ...validarConselhoProfissional(dados.profissional),
     ...validarContatoMedico("pediatra", dados.contatoPediatra),
+    ...validarComplementoCoerente(dados.alimentacao),
     ...validarAleitamentoCoerente(
       "a alimentação do bebê",
       dados.alimentacao.tipo,
@@ -224,17 +478,20 @@ export function validarEvolucaoNeonatal(
     ),
     ...validarGanhoPesoCoerente(
       dados.bebe.pesoNascimentoG,
-      dados.bebe.dataNascimento,
+      nascimento,
       dados.pesagens,
       dados.conclusao.ganhoPeso,
     ),
     ...validarIctericiaCoerente(dados.ictericia, dados.conclusao.ictericia),
   ];
 
-  if (!dataMenorOuIgual(dados.bebe.dataNascimento, dados.periodo.inicio)) {
+  if (nascimento > dados.periodo.inicio) {
     erros.push(
-      `O nascimento (${dados.bebe.dataNascimento}) é depois do início do período do acompanhamento (${dados.periodo.inicio}).`,
+      `O nascimento (${nascimento}) é depois do início do período do acompanhamento (${dados.periodo.inicio}).`,
     );
+  }
+  if (dados.filiacao.every((nome) => !nome.trim())) {
+    erros.push("Falta a filiação do bebê.");
   }
 
   return erros;
