@@ -47,8 +47,10 @@ button.sinc:active { transform: scale(0.97); }
 .visita__topo { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--e-1) var(--e-3); align-items: start; }
 .visita__hora { font-family: var(--fonte-dado); font-variant-numeric: tabular-nums; font-weight: 500; font-size: var(--tam-3); }
 .visita__nome { font-family: var(--fonte-titulo); font-weight: 500; font-size: var(--tam-1); line-height: var(--entre-titulo); letter-spacing: -0.015em; }
-.visita__endereco { display: flex; gap: var(--e-2); align-items: flex-start; color: var(--texto-2); font-size: var(--tam-apoio); }
-.visita__endereco .icone { margin-top: 1px; }
+/* Correção: o endereço vira link de mapa com alvo de 44 px, em vez de texto simples sem toque. */
+.visita__endereco { display: flex; gap: var(--e-2); align-items: center; min-height: var(--toque); color: var(--texto-2); font-size: var(--tam-apoio); text-decoration: none; }
+.visita__endereco:hover { text-decoration: underline; }
+.visita__endereco .icone { flex: none; }
 .visita__marcas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-2); }
 .marca-hora { display: flex; flex-direction: column; gap: 2px; padding: var(--e-2) var(--e-3); border-radius: var(--raio-2); border: 1.5px dashed var(--marinho-50); }
 .marca-hora__rotulo { font-size: var(--tam-mini); color: var(--texto-2); }
@@ -63,26 +65,38 @@ button.sinc:active { transform: scale(0.97); }
 .linha-lista:hover { text-decoration: none; background: var(--marinho-08); }
 .linha-lista__corpo { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
 
-/* ---------- Checklist: cabeçalho compacto da família (areia, vira ameixa com o freio) ---------- */
+/* ---------- Checklist: cabeçalho compacto da família (areia, vira ameixa com o freio) ----------
+   Correção: uma linha só (voltar, família com o dia, sincronização só com ícone, Freio) mais a
+   trilha por baixo, que virou o próprio toque para abrir a lista de etapas. Meta: 96 px ou menos. */
 .cl-cab {
   position: sticky; top: 0; z-index: var(--z-barra);
   display: flex; flex-direction: column; gap: var(--e-2);
-  margin: 0 calc(-1 * var(--margem-tela)); padding: var(--e-2) var(--margem-tela) var(--e-3);
+  margin: 0 calc(-1 * var(--margem-tela)); padding: var(--e-2) var(--margem-tela) var(--e-2);
   background: var(--superficie-2); color: var(--texto);
 }
-@media (min-width: 1024px) { .cl-cab { margin: 0 calc(-1 * var(--e-8)); padding: var(--e-3) var(--e-8) var(--e-4); } }
+@media (min-width: 1024px) { .cl-cab { margin: 0 calc(-1 * var(--e-8)); padding: var(--e-3) var(--e-8) var(--e-3); } }
 .cl-cab__topo { display: flex; align-items: center; gap: var(--e-2); }
-.cl-cab__familia { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.cl-cab__familia .mini { color: var(--marinho-72); }
-.cl-cab__linha { display: flex; align-items: center; gap: var(--e-2); }
-.cl-cab__etapas { margin-left: auto; }
+.cl-cab__familia { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: var(--e-2); }
+.cl-cab__nome { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.cl-cab__familia .dado { flex: none; }
 .cl-cab__freio { font-size: var(--tam-apoio); }
+.cl-cab__trilha {
+  position: relative; display: flex; align-items: center; width: 100%; min-height: 24px;
+  border: 0; padding: var(--e-1) 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+/* Alvo de 44 px sem engordar a linha visível: mesma técnica de button.sinc::after, acima. */
+.cl-cab__trilha::after { content: ""; position: absolute; inset: -6px 0 -14px; }
+.cl-cab__trilha .blocos__trilha { flex: 1; pointer-events: none; }
 .cl-cab[data-freio="ativo"] { background: var(--sensivel); color: var(--texto-inverso); }
-.cl-cab[data-freio="ativo"] .cl-cab__familia .mini,
+.cl-cab[data-freio="ativo"] .cl-cab__familia,
 .cl-cab[data-freio="ativo"] .cl-cab__voltar { color: var(--texto-inverso); }
 .cl-cab[data-freio="ativo"] .blocos__trilha > span { border-color: var(--creme-62); }
 .cl-cab[data-freio="ativo"] .blocos__trilha > span[data-estado="feito"] { background: var(--creme); border-color: var(--creme); }
 .blocos__trilha > span[data-estado="pendente"] { border: 1px solid var(--aviso-borda); background: repeating-linear-gradient(135deg, var(--aviso-lavado) 0 3px, var(--superficie) 3px 6px); }
+/* Indicador de sincronização só com ícone no cabeçalho compacto: o texto vai para o aria-label,
+   que renderSinc() já monta a partir do conteúdo do <span>. Alvo de 44 px. */
+.sinc--icone { width: var(--toque); height: var(--toque); padding: 0; justify-content: center; border-radius: var(--raio-pilula); flex: none; }
+.sinc--icone span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* Conteúdo de uma etapa */
 .cl-etapa { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-5); }
@@ -93,10 +107,24 @@ button.sinc:active { transform: scale(0.97); }
 .cl-grupo__titulo { display: flex; align-items: baseline; gap: var(--e-2); font-family: var(--fonte-titulo); font-weight: 500; font-size: var(--tam-2); letter-spacing: -0.01em; }
 .cl-grupo__titulo .mini { font-family: var(--fonte-ui); letter-spacing: 0; }
 .cl-grupo__titulo .dado { font-size: var(--tam-mini); }
-.faixa--compacta { padding: var(--e-3); gap: var(--e-2); }
-.faixa--compacta .faixa__titulo { font-size: var(--tam-corpo); }
-.faixa--compacta .faixa__meta { margin-top: 2px; }
-.faixa--compacta .faixa__acoes { margin-top: var(--e-2); flex-wrap: nowrap; }
+/* Faixa mínima presa (correção): uma linha só, de no máximo 64 px, para o alerta que não está na
+   etapa atual. Sem "Da etapa N..." e sem "Ligar": a ligação continua na faixa cheia e na folha. */
+.faixa-mini {
+  display: flex; align-items: center; gap: var(--e-2); width: 100%;
+  min-height: 44px; padding: var(--e-2) var(--e-3);
+  border-radius: var(--raio-2); border: 1px solid var(--linha); background: var(--superficie);
+  box-shadow: var(--sombra-1); font-family: var(--fonte-ui); text-align: left; -webkit-tap-highlight-color: transparent;
+}
+.faixa-mini > .icone { flex: none; }
+.faixa-mini--imediato { background: var(--alerta-lavado); border-color: var(--alerta-borda); }
+.faixa-mini--imediato > .icone { color: var(--alerta); }
+.faixa-mini--prioritario { background: var(--aviso-lavado); border-color: var(--aviso-borda); }
+.faixa-mini--prioritario > .icone { color: var(--aviso-texto); }
+.faixa-mini .dado { flex: none; font-weight: 600; }
+.faixa-mini__titulo { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--tam-apoio); font-weight: 500; color: var(--texto); text-align: left; }
+.faixa-mini .botao { flex: none; pointer-events: none; }
+.faixa-mini--resumo .faixa-mini__titulo { font-weight: 600; }
+.faixa-mini--resumo > .icone:last-child { flex: none; color: var(--texto-2); }
 .cl-grupo .pergunta:last-child { border-bottom: 0; }
 .cl-grupo > .pergunta:first-of-type { border-top: var(--borda-fina); }
 .cl-pilha-campos { display: grid; gap: var(--e-5); }
@@ -111,7 +139,13 @@ button.sinc:active { transform: scale(0.97); }
 .pergunta--tres { grid-template-columns: minmax(0, 1fr); }
 .pergunta--tres .sim-nao { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .pergunta--tres .sim-nao label { min-width: 0; padding: 0 var(--e-2); }
-.pergunta__detalhe { display: flex; flex-direction: column; gap: var(--e-4); padding: var(--e-2) 0 var(--e-1); }
+/* Correção: recuo com divisória fina à esquerda, para separar visualmente a pergunta que abriu
+   deste detalhe da pergunta nova que vem em seguida. */
+.pergunta__detalhe {
+  display: flex; flex-direction: column; gap: var(--e-4);
+  margin-top: var(--e-1); padding: var(--e-3) 0 var(--e-1) var(--e-4);
+  border-left: var(--borda-fina);
+}
 .escala--curta .escala__opcoes { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 .escala .botao--terciario { align-self: flex-start; }
 .cl-pa { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--e-2); }
@@ -146,6 +180,29 @@ button.sinc:active { transform: scale(0.97); }
 .cl-barra__nav > .botao--primario { flex: 1; }
 .cl-barra__sinal { align-self: center; }
 .cl-barra__razao { text-align: center; color: var(--aviso-texto); font-weight: 500; }
+.cl-barra__saida { align-self: stretch; }
+
+/* Seletor "Registrar outro sinal de alerta" (correção): linhas de largura total, com o código em
+   mono numa coluna fixa e o selo de severidade, em vez de chips de largura variável. */
+.sel-grupo { display: flex; flex-direction: column; gap: var(--e-2); }
+.sel-lista { display: flex; flex-direction: column; gap: var(--e-2); }
+.sel-lista__input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.sel-lista__item {
+  display: flex; align-items: center; gap: var(--e-3); width: 100%; min-height: 52px; padding: var(--e-2) var(--e-3);
+  border: 1.5px solid var(--borda-campo); border-radius: var(--raio-2); background: var(--superficie); cursor: pointer;
+}
+.sel-lista__cod { flex: none; white-space: nowrap; }
+.sel-lista__texto { flex: 1; min-width: 0; font-size: var(--tam-corpo); }
+.sel-lista__sev { flex: none; }
+.sel-lista__input:checked + .sel-lista__item { background: var(--marinho-08); border-color: var(--acao); }
+.sel-lista__input:focus-visible + .sel-lista__item { outline: 2px solid var(--foco); outline-offset: 2px; box-shadow: 0 0 0 5px var(--foco-halo); }
+/* folha__acoes presa no rodapé da folha (correção): fica visível mesmo com a lista longa rolando. */
+.folha__acoes--presa {
+  position: sticky; bottom: calc(-1 * (var(--e-6) + env(safe-area-inset-bottom)));
+  margin: var(--e-2) calc(-1 * var(--margem-tela)) calc(-1 * (var(--e-6) + env(safe-area-inset-bottom)));
+  padding: var(--e-3) var(--margem-tela) calc(var(--e-3) + env(safe-area-inset-bottom));
+  background: var(--superficie); border-top: var(--borda-fina);
+}
 
 /* Lista de etapas (folha) */
 .lista-etapas { display: flex; flex-direction: column; }
@@ -182,7 +239,11 @@ button.sinc:active { transform: scale(0.97); }
 .latch__item { display: flex; flex-direction: column; gap: var(--e-2); }
 .latch__item .marcas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .latch__item .marcas label { justify-content: center; }
-.latch__total { display: flex; align-items: baseline; gap: var(--e-3); padding: var(--e-3) var(--e-4); border-radius: var(--raio-2); background: var(--marinho-08); }
+/* Correção: descrição curta de 0, 1 e 2 por item, como na folha NTS. */
+.latch__legenda { display: flex; flex-direction: column; gap: 2px; font-size: var(--tam-mini); color: var(--texto-2); }
+.latch__legenda li { display: flex; gap: var(--e-2); }
+.latch__legenda .dado { flex: none; color: var(--texto-2); }
+.latch__total { display: flex; align-items: center; flex-wrap: wrap; gap: var(--e-3); padding: var(--e-3) var(--e-4); border-radius: var(--raio-2); background: var(--marinho-08); }
 .nts { display: flex; flex-direction: column; }
 .nts li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: var(--e-3); padding: var(--e-2) 0; border-bottom: var(--borda-fina); }
 

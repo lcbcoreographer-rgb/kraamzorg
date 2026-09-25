@@ -27,18 +27,14 @@
     <header class="cl-cab" data-familia-cab data-familia="Família Teste Aurora">
       <div class="cl-cab__topo">
         <a class="botao botao--terciario botao--icone cl-cab__voltar" href="enfermeira-hoje.html" aria-label="Voltar para Hoje"><svg class="icone icone--24"><use href="#i-arrow-left"/></svg></a>
-        <div class="cl-cab__familia">
-          <p class="t-3">Família Teste Aurora</p>
-          <p class="mini"><span class="dado">D4</span> de 6, quinta 24/09</p>
-        </div>
+        <p class="t-3 cl-cab__familia"><span class="cl-cab__nome">Família Teste Aurora</span> <span class="dado">D4</span></p>
+        <button class="sinc sinc--icone" type="button" data-sinc data-abre-fila></button>
         <button class="botao-freio" type="button" data-freio-botao><svg class="icone"><use href="#i-hand"/></svg>Freio</button>
       </div>
       <p class="cl-cab__freio" data-freio-texto hidden></p>
-      <div class="cl-cab__linha">
-        <button class="sinc" type="button" data-sinc data-abre-fila></button>
-        <button class="botao botao--compacto cl-cab__etapas" type="button" data-abre-etapas><span data-etapa-rotulo>Etapa 2 de 8</span><svg class="icone"><use href="#i-chevron-down"/></svg></button>
-      </div>
-      <div class="blocos__trilha" style="--n: 8" aria-hidden="true" data-trilha></div>
+      <button class="cl-cab__trilha" type="button" data-abre-etapas aria-label="Etapa 2 de 8. Ver todas as etapas">
+        <span class="blocos__trilha" style="--n: 8" aria-hidden="true" data-trilha></span>
+      </button>
     </header>
 
     <section class="faixa faixa--info cl-aviso-sinal" role="status" data-sem-sinal hidden>
@@ -65,7 +61,7 @@
               <input type="radio" id="st-h-n" name="st-h"><label for="st-h-n"><svg class="icone"><use href="#i-check"/></svg>Não</label>
             </div>
           </fieldset>
-          <p class="apoio">Sem resposta padrão e sem “tudo normal”. A etapa fica com pendência na lista de etapas.</p>
+          <!-- Sem resposta padrão e sem "tudo normal". A etapa fica com pendência na lista de etapas. -->
         </div>
 
         <div class="estado">
@@ -115,7 +111,7 @@
             <li data-ok="nao"><svg class="icone"><use href="#i-clock-alert"/></svg><span class="cl-lista-ok__corpo">Confirmar o texto trazido do D3 em medicações em uso</span><button class="botao botao--compacto" type="button">Ir para a etapa 2</button></li>
             <li data-ok="sim"><svg class="icone"><use href="#i-circle-check"/></svg><span class="cl-lista-ok__corpo">Sinais vitais da puérpera</span></li>
           </ul>
-          <p class="apoio">Sem “Vale para hoje”, o campo não conta como respondido e o registro não pode ser assinado.</p>
+          <!-- Sem "Vale para hoje", o campo não conta como respondido e o registro não pode ser assinado. -->
         </div>
 
       </div>
@@ -125,6 +121,7 @@
   <div class="barra-acao cl-barra">
     <button class="botao botao--terciario botao--compacto cl-barra__sinal" type="button" data-abre-seletor><svg class="icone"><use href="#i-triangle-alert"/></svg>Registrar outro sinal de alerta</button>
     <p class="apoio cl-barra__razao" data-razao hidden></p>
+    <button class="botao botao--terciario botao--bloco cl-barra__saida" type="button" data-registrar-saida hidden><svg class="icone"><use href="#i-map-pin"/></svg>Saí da casa, registrar saída</button>
     <div class="cl-barra__nav">
       <button class="botao" type="button" data-voltar><svg class="icone"><use href="#i-arrow-left"/></svg>Voltar</button>
       <button class="botao botao--primario" type="button" data-proxima>Próxima etapa<svg class="icone"><use href="#i-arrow-right"/></svg></button>

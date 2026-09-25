@@ -40,6 +40,18 @@
         </div>
       </section>
 
+      <!-- Correção: um só indicador para a ficha pendente do D3 (antes repetia o selo do cartão da
+           visita e esta faixa). Subiu para logo abaixo do título, com o prazo no próprio título, e
+           usa faixa--info: não é um alerta clínico. -->
+      <section class="faixa faixa--info" aria-labelledby="pend-t">
+        <svg class="icone"><use href="#i-clock-alert"/></svg>
+        <div>
+          <p class="faixa__titulo" id="pend-t">Ficha pendente: D3 da Família Teste Aurora, assine até 18:00</p>
+          <p class="faixa__texto">Faltam o resumo descritivo e a assinatura.</p>
+          <div class="faixa__acoes"><a class="botao botao--compacto" href="enfermeira-assinatura.html?dia=3">Abrir o D3</a></div>
+        </div>
+      </section>
+
       <section class="enf-secao" aria-labelledby="visitas-t">
         <h2 class="sr" id="visitas-t">Visitas de hoje</h2>
 
@@ -51,13 +63,13 @@
           <div class="pilha pilha--2">
             <h3 class="visita__nome" id="v1-nome">Família Teste Aurora</h3>
             <p class="apoio">Lívia Teste e a bebê Nina Teste. Essencial 6 dias.</p>
-            <p class="visita__endereco"><svg class="icone icone--16"><use href="#i-map-pin"/></svg>Rua Fictícia das Acácias, 120, Moema, São Paulo</p>
+            <a class="visita__endereco" href="geo:0,0?q=Rua%20Fict%C3%ADcia%20das%20Ac%C3%A1cias%2C%20120%2C%20Moema%2C%20S%C3%A3o%20Paulo"><svg class="icone icone--16"><use href="#i-map-pin"/></svg>Rua Fictícia das Acácias, 120, Moema, São Paulo</a>
           </div>
           <ol class="regua" style="--dias: 6" aria-label="Acompanhamento de 6 dias. D1 e D2 feitos, ficha do D3 pendente, hoje é o D4.">
             <li class="regua__dia" data-estado="feito"><span class="regua__n">D1</span><span class="regua__data">21/09</span></li>
             <li class="regua__dia" data-estado="feito"><span class="regua__n">D2</span><span class="regua__data">22/09</span></li>
-            <li class="regua__dia" data-estado="pendente"><span class="regua__n">D3</span><span class="regua__data">ficha</span></li>
-            <li class="regua__dia" data-estado="hoje" aria-current="date"><span class="regua__n">D4</span><span class="regua__data">hoje</span></li>
+            <li class="regua__dia" data-estado="pendente"><span class="regua__n">D3</span><span class="regua__data regua__data--palavra">ficha</span></li>
+            <li class="regua__dia" data-estado="hoje" aria-current="date"><span class="regua__n">D4</span><span class="regua__data regua__data--palavra">hoje</span></li>
             <li class="regua__dia"><span class="regua__n">D5</span><span class="regua__data">25/09</span></li>
             <li class="regua__dia"><span class="regua__n">D6</span><span class="regua__data">26/09</span></li>
           </ol>
@@ -65,11 +77,8 @@
             <p class="marca-hora" data-chegada><span class="marca-hora__rotulo">Chegada</span><span class="marca-hora__valor">ainda não</span></p>
             <p class="marca-hora"><span class="marca-hora__rotulo">Saída</span><span class="marca-hora__valor">ainda não</span></p>
           </div>
-          <div class="visita__pendencias">
-            <span class="selo selo--aviso"><svg class="icone"><use href="#i-clock-alert"/></svg>Ficha do D3 ainda não assinada</span>
-          </div>
           <div class="visita__acoes">
-            <button class="botao botao--primario botao--bloco" type="button" data-checkin="enfermeira-checklist-perguntas.html?novo=1#etapa-1"><svg class="icone"><use href="#i-map-pin"/></svg>Cheguei, iniciar visita</button>
+            <button class="botao botao--primario botao--bloco" type="button" data-checkin="enfermeira-checklist-perguntas.html?novo=1#etapa-1" data-familia="Família Teste Aurora"><svg class="icone"><use href="#i-map-pin"/></svg>Cheguei, iniciar visita</button>
             <a class="botao botao--terciario botao--compacto" href="enfermeira-familia.html" style="align-self: flex-start">Ver o acompanhamento da família</a>
           </div>
         </article>
@@ -82,7 +91,7 @@
           <div class="pilha pilha--2">
             <h3 class="visita__nome" id="v2-nome">Família Teste Cedro</h3>
             <p class="apoio">Paula Teste e os gêmeos Bento e Lia. Gemelar Continuado 12 dias.</p>
-            <p class="visita__endereco"><svg class="icone icone--16"><use href="#i-map-pin"/></svg>Rua Fictícia dos Manacás, 58, Vila Mariana, São Paulo</p>
+            <a class="visita__endereco" href="geo:0,0?q=Rua%20Fict%C3%ADcia%20dos%20Manac%C3%A1s%2C%2058%2C%20Vila%20Mariana%2C%20S%C3%A3o%20Paulo"><svg class="icone icone--16"><use href="#i-map-pin"/></svg>Rua Fictícia dos Manacás, 58, Vila Mariana, São Paulo</a>
           </div>
           <ol class="regua regua--12" style="--dias: 12" aria-label="Acompanhamento de 12 dias. D1 a D6 feitos, D5 com alerta fechado, hoje é o D7.">
             <li class="regua__dia" data-estado="feito"><span class="regua__n">D1</span></li>
@@ -99,26 +108,19 @@
             <li class="regua__dia"><span class="regua__n">D12</span></li>
           </ol>
           <div class="visita__marcas">
-            <p class="marca-hora"><span class="marca-hora__rotulo">Chegada</span><span class="marca-hora__valor">ainda não</span></p>
+            <p class="marca-hora" data-chegada><span class="marca-hora__rotulo">Chegada</span><span class="marca-hora__valor">ainda não</span></p>
             <p class="marca-hora"><span class="marca-hora__rotulo">Saída</span><span class="marca-hora__valor">ainda não</span></p>
           </div>
           <p class="apoio">No D5, icterícia em zona III em Lia (RN-10). Alerta fechado pela coordenação em 22/09.</p>
           <div class="visita__acoes">
-            <a class="botao botao--bloco" href="enfermeira-checklist-bebe.html"><svg class="icone"><use href="#i-map-pin"/></svg>Cheguei, iniciar visita</a>
+            <!-- Correção: mesmo data-checkin da Aurora, para gravar a chegada e abrir a etapa 1 em vez de pular direto para o checklist. Antes das 14:00 o botão é secundário. -->
+            <button class="botao botao--bloco" type="button" data-checkin="enfermeira-checklist-bebe.html?novo=1#etapa-1" data-familia="Família Teste Cedro"><svg class="icone"><use href="#i-map-pin"/></svg>Cheguei, iniciar visita das 14:00</button>
           </div>
         </article>
       </section>
 
-      <section class="faixa faixa--prioritario" aria-labelledby="pend-t">
-        <svg class="icone"><use href="#i-clock-alert"/></svg>
-        <div>
-          <p class="faixa__titulo" id="pend-t">Ficha pendente: D3 da Família Teste Aurora</p>
-          <p class="faixa__texto">Assine até hoje, 18:00. Faltam o resumo descritivo e a assinatura.</p>
-          <div class="faixa__acoes"><a class="botao botao--compacto" href="enfermeira-assinatura.html?dia=3">Abrir o D3</a></div>
-        </div>
-      </section>
-
-      <p class="corpo"><span class="forte">Amanhã, sexta 25/09:</span> Família Teste Aurora às 08:00 (<span class="dado">D5</span>) e Família Teste Cedro às 14:00 (<span class="dado">D8</span>). <a href="enfermeira-perfil.html">Ver minha semana</a></p>
+      <p class="corpo"><span class="forte">Amanhã, sexta 25/09:</span> Família Teste Aurora às 08:00 (<span class="dado">D5</span>) e Família Teste Cedro às 14:00 (<span class="dado">D8</span>).</p>
+      <a class="botao botao--terciario botao--compacto" href="enfermeira-perfil.html" style="align-self: flex-start"><svg class="icone"><use href="#i-calendar-days"/></svg>Ver minha semana</a>
     </div>
 
     <!-- ---------- Estados ---------- -->
@@ -219,6 +221,21 @@
           </div>
         </div>
 
+        <div class="estado">
+          <p class="estado__titulo">Saída registrada, falta assinar</p>
+          <div class="cartao visita">
+            <div class="visita__topo">
+              <p><span class="visita__hora">08:00</span> <span class="apoio">manhã</span></p>
+              <span class="selo selo--aviso"><svg class="icone"><use href="#i-clock-alert"/></svg>Falta assinar</span>
+            </div>
+            <p class="t-3">Família Teste Aurora</p>
+            <div class="visita__marcas">
+              <p class="marca-hora" data-feito><span class="marca-hora__rotulo">Chegada</span><span class="marca-hora__valor">08:03</span></p>
+              <p class="marca-hora" data-feito><span class="marca-hora__rotulo">Saída</span><span class="marca-hora__valor">11:32</span></p>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
   </main>
@@ -234,17 +251,19 @@
 <script src="assets/enfermeira.js"></script>
 <script>
   (function () {
-    // Chegada: grava a hora (fato do check-in) e abre a etapa 1 em branco.
-    var b = document.querySelector('[data-checkin]');
-    b.addEventListener('click', function () {
-      var hora = KZ.agora(), marca = document.querySelector('[data-chegada]');
-      marca.dataset.feito = '';
-      marca.querySelector('.marca-hora__valor').textContent = hora;
-      b.setAttribute('aria-busy', 'true');
-      b.innerHTML = KZ.ic('refresh-cw') + 'Abrindo a etapa 1';
-      KZ.salvar('Chegada na Família Teste Aurora às ' + hora);
-      KZ.aviso('Chegada registrada às ' + hora + '. Abrindo o checklist do D4.', { icone: 'map-pin' });
-      setTimeout(function () { location.href = b.dataset.checkin; }, 1400);
+    // Chegada: grava a hora (fato do check-in) e abre a etapa 1 em branco. Duas visitas hoje, cada
+    // uma com seu próprio botão e seu próprio marcador de chegada dentro do cartão.
+    document.querySelectorAll('[data-checkin]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var hora = KZ.agora(), artigo = b.closest('.visita'), marca = artigo && artigo.querySelector('[data-chegada]');
+        var familia = b.dataset.familia || 'esta família';
+        if (marca) { marca.dataset.feito = ''; marca.querySelector('.marca-hora__valor').textContent = hora; }
+        b.setAttribute('aria-busy', 'true');
+        b.innerHTML = KZ.ic('refresh-cw') + 'Abrindo a etapa 1';
+        KZ.salvar('Chegada na ' + familia + ' às ' + hora);
+        KZ.aviso('Chegada registrada às ' + hora + '. Abrindo o checklist.', { icone: 'map-pin' });
+        setTimeout(function () { location.href = b.dataset.checkin; }, 1400);
+      });
     });
     // Oferta: aceitar ou recusar com motivo.
     var of = document.querySelector('[data-oferta]');

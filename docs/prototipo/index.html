@@ -7,14 +7,16 @@
   <link rel="stylesheet" href="assets/tokens.css">
   <link rel="stylesheet" href="assets/base.css">
   <style>
+    body {
+      background-color: var(--fundo);
+    }
+
     .indice {
-      min-height: 100dvh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: var(--e-4) var(--margem-tela) var(--e-12);
-      gap: var(--e-8);
+      min-height: 100dvh;
+      padding: var(--e-8) var(--margem-tela);
+      gap: var(--e-12);
     }
 
     .indice__cabecalho {
@@ -23,11 +25,13 @@
       flex-direction: column;
       align-items: center;
       gap: var(--e-4);
+      padding-bottom: var(--e-4);
+      border-bottom: var(--borda-fina);
     }
 
     .indice__logo {
       width: 100%;
-      max-width: 200px;
+      max-width: 160px;
       height: auto;
     }
 
@@ -53,15 +57,36 @@
       flex-direction: column;
       gap: var(--e-3);
       width: 100%;
-      max-width: 320px;
+    }
+
+    .indice__navegacao-grupo {
+      display: flex;
+      flex-direction: column;
+      gap: var(--e-2);
+    }
+
+    .indice__nav-titulo {
+      font-family: var(--fonte-ui);
+      font-weight: 600;
+      font-size: var(--tam-apoio);
+      color: var(--texto-3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 0;
+    }
+
+    .indice__nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--e-2);
     }
 
     .indice__link {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       min-height: var(--toque);
-      padding: var(--e-3) var(--e-4);
+      padding: var(--e-2) var(--e-4);
       background: var(--marinho);
       color: var(--acao-texto);
       text-decoration: none;
@@ -82,10 +107,15 @@
       outline-offset: 2px;
     }
 
+    .indice__link--destaque {
+      background: var(--marinho);
+      color: var(--acao-texto);
+    }
+
     .indice__link--secundario {
       background: transparent;
       color: var(--marinho);
-      border-color: var(--marinho);
+      border-color: var(--borda-campo);
     }
 
     .indice__link--secundario:hover {
@@ -94,29 +124,37 @@
       color: var(--marinho);
     }
 
-    .indice__galeria {
+    .indice__secoes {
+      display: flex;
+      flex-direction: column;
+      gap: var(--e-10);
       width: 100%;
       max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    .indice__secao {
       display: flex;
       flex-direction: column;
       gap: var(--e-6);
-      margin-top: var(--e-8);
     }
 
-    .indice__galeria-titulo {
+    .indice__secao-titulo {
       font-family: var(--fonte-titulo);
       font-weight: 500;
-      font-size: var(--tam-2);
+      font-size: var(--tam-1);
       line-height: 1.2;
       letter-spacing: -0.01em;
       color: var(--marinho);
-      text-align: center;
+      margin: 0;
+      padding-bottom: var(--e-4);
+      border-bottom: var(--borda-fina);
     }
 
     .indice__grade-capturas {
       display: grid;
       gap: var(--e-4);
-      grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
     }
 
     .indice__captura-item {
@@ -132,6 +170,7 @@
 
     .indice__captura-item:hover {
       box-shadow: var(--sombra-1);
+      border-color: var(--dourado);
     }
 
     .indice__captura-imagem {
@@ -149,107 +188,274 @@
       font-weight: 500;
     }
 
+    .indice__captura-item-ativo {
+      background: var(--superficie-2);
+      border-color: var(--dourado);
+    }
+
     @media (min-width: 1024px) {
       .indice {
-        padding: var(--e-8);
+        padding: var(--e-12);
       }
 
       .indice__titulo {
         font-size: var(--tam-display-g);
       }
 
-      .indice__navegacao {
-        flex-direction: row;
-        max-width: 600px;
-        gap: var(--e-4);
-      }
-
-      .indice__link {
-        flex: 1;
-      }
-
       .indice__grade-capturas {
-        grid-template-columns: repeat(auto-fill, minmax(min(100%, 350px), 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
       }
     }
   </style>
 </head>
 <body>
   <div class="indice">
-    <div class="indice__cabecalho">
+    <header class="indice__cabecalho">
       <img src="assets/logo-provisorio.png" alt="Kraamzorg OS" class="indice__logo">
-      <h1 class="indice__titulo">Protótipo</h1>
-      <p class="indice__descricao">Navegação interativa com dados fictícios e claramente identificados.</p>
-    </div>
+      <h1 class="indice__titulo">Protótipo navegável</h1>
+      <p class="indice__descricao">Demonstração interativa com dados fictícios e claramente identificados conforme LGPD.</p>
+    </header>
 
     <nav class="indice__navegacao">
-      <a href="enfermeira.html" class="indice__link">Enfermeira em campo</a>
-      <a href="comercial.html" class="indice__link--secundario indice__link">Comercial</a>
-      <a href="coordenacao.html" class="indice__link">Coordenação clínica</a>
-      <a href="_kit.html" class="indice__link--secundario indice__link">Kit de componentes</a>
-    </nav>
-
-    <section class="indice__galeria">
-      <h2 class="indice__galeria-titulo">Capturas de tela</h2>
-      <div class="indice__grade-capturas">
-        <div class="indice__captura-item">
-          <img src="capturas/coordenacao-inicio-390.png" alt="Tela de início para coordenação no celular" class="indice__captura-imagem">
-          <p class="indice__captura-legenda">Início · Celular</p>
-        </div>
-        <div class="indice__captura-item">
-          <img src="capturas/coordenacao-inicio-1280.png" alt="Tela de início para coordenação no computador" class="indice__captura-imagem">
-          <p class="indice__captura-legenda">Início · Computador</p>
-        </div>
-        <div class="indice__captura-item">
-          <img src="capturas/coordenacao-equipe-390.png" alt="Gestão da equipe no celular" class="indice__captura-imagem">
-          <p class="indice__captura-legenda">Equipe · Celular</p>
-        </div>
-        <div class="indice__captura-item">
-          <img src="capturas/coordenacao-equipe-1280.png" alt="Gestão da equipe no computador" class="indice__captura-imagem">
-          <p class="indice__captura-legenda">Equipe · Computador</p>
-        </div>
-        <div class="indice__captura-item">
-          <img src="capturas/coordenacao-radar-390.png" alt="Radar de famílias no celular" class="indice__captura-imagem">
-          <p class="indice__captura-legenda">Radar · Celular</p>
-        </div>
-        <div class="indice__captura-item">
-          <img src="capturas/coordenacao-radar-1280.png" alt="Radar de famílias no computador" class="indice__captura-imagem">
-          <p class="indice__captura-legenda">Radar · Computador</p>
-        </div>
-        <div class="indice__captura-item">
-          <img src="capturas/coordenacao-freio-390.png" alt="Freio global no celular" class="indice__captura-imagem">
-          <p class="indice__captura-legenda">Freio global · Celular</p>
-        </div>
-        <div class="indice__captura-item">
-          <img src="capturas/coordenacao-freio-1280.png" alt="Freio global no computador" class="indice__captura-imagem">
-          <p class="indice__captura-legenda">Freio global · Computador</p>
-        </div>
-        <div class="indice__captura-item">
-          <img src="capturas/coordenacao-designar-390.png" alt="Designação de enfermeira no celular" class="indice__captura-imagem">
-          <p class="indice__captura-legenda">Designação · Celular</p>
-        </div>
-        <div class="indice__captura-item">
-          <img src="capturas/coordenacao-designar-1280.png" alt="Designação de enfermeira no computador" class="indice__captura-imagem">
-          <p class="indice__captura-legenda">Designação · Computador</p>
-        </div>
-        <div class="indice__captura-item">
-          <img src="capturas/coordenacao-entrevista-390.png" alt="Entrevista com família no celular" class="indice__captura-imagem">
-          <p class="indice__captura-legenda">Entrevista · Celular</p>
-        </div>
-        <div class="indice__captura-item">
-          <img src="capturas/coordenacao-entrevista-1280.png" alt="Entrevista com família no computador" class="indice__captura-imagem">
-          <p class="indice__captura-legenda">Entrevista · Computador</p>
-        </div>
-        <div class="indice__captura-item">
-          <img src="capturas/coordenacao-alerta-390.png" alt="Alerta clínico no celular" class="indice__captura-imagem">
-          <p class="indice__captura-legenda">Alerta · Celular</p>
-        </div>
-        <div class="indice__captura-item">
-          <img src="capturas/coordenacao-alerta-1280.png" alt="Alerta clínico no computador" class="indice__captura-imagem">
-          <p class="indice__captura-legenda">Alerta · Computador</p>
+      <div class="indice__navegacao-grupo">
+        <h2 class="indice__nav-titulo">Papéis</h2>
+        <div class="indice__nav-links">
+          <a href="enfermeira.html" class="indice__link indice__link--destaque">Enfermeira em campo</a>
+          <a href="comercial.html" class="indice__link indice__link--destaque">Comercial</a>
+          <a href="coordenacao.html" class="indice__link indice__link--destaque">Coordenação clínica</a>
         </div>
       </div>
-    </section>
+
+      <div class="indice__navegacao-grupo">
+        <h2 class="indice__nav-titulo">Referência</h2>
+        <div class="indice__nav-links">
+          <a href="_kit.html" class="indice__link indice__link--secundario">Kit de componentes</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="indice__secoes">
+      <!-- ENFERMEIRA -->
+      <section class="indice__secao">
+        <h2 class="indice__secao-titulo">Enfermeira em campo</h2>
+        <div class="indice__grade-capturas">
+          <div class="indice__captura-item indice__captura-item-ativo">
+            <img src="capturas/enfermeira-390.png" alt="Tela principal da enfermeira no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Tela principal · Celular</p>
+          </div>
+          <div class="indice__captura-item indice__captura-item-ativo">
+            <img src="capturas/enfermeira-1280.png" alt="Tela principal da enfermeira no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Tela principal · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-hoje-390.png" alt="Hoje - Visita do dia no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Hoje · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-hoje-1280.png" alt="Hoje - Visita do dia no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Hoje · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-familias-390.png" alt="Famílias cadastradas no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Famílias · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-familias-1280.png" alt="Famílias cadastradas no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Famílias · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-familia-390.png" alt="Ficha da família no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Ficha da família · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-familia-1280.png" alt="Ficha da família no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Ficha da família · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-perfil-390.png" alt="Perfil da enfermeira no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Perfil · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-perfil-1280.png" alt="Perfil da enfermeira no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Perfil · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-alertas-390.png" alt="Alertas clínicos no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Alertas · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-alertas-1280.png" alt="Alertas clínicos no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Alertas · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-assinatura-390.png" alt="Assinatura digital no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Assinatura · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-assinatura-1280.png" alt="Assinatura digital no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Assinatura · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-checklist-vitais-390.png" alt="Checklist de vitais no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Checklist vitais · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-checklist-vitais-1280.png" alt="Checklist de vitais no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Checklist vitais · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-checklist-perguntas-390.png" alt="Checklist de perguntas no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Checklist perguntas · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-checklist-perguntas-1280.png" alt="Checklist de perguntas no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Checklist perguntas · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-checklist-bebe-390.png" alt="Checklist do bebê no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Checklist bebê · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/enfermeira-checklist-bebe-1280.png" alt="Checklist do bebê no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Checklist bebê · Computador</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- COMERCIAL -->
+      <section class="indice__secao">
+        <h2 class="indice__secao-titulo">Comercial</h2>
+        <div class="indice__grade-capturas">
+          <div class="indice__captura-item indice__captura-item-ativo">
+            <img src="capturas/comercial-390.png" alt="Tela principal do comercial no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Tela principal · Celular</p>
+          </div>
+          <div class="indice__captura-item indice__captura-item-ativo">
+            <img src="capturas/comercial-1280.png" alt="Tela principal do comercial no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Tela principal · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/comercial-inicio-390.png" alt="Dashboard do comercial no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Dashboard · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/comercial-inicio-1280.png" alt="Dashboard do comercial no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Dashboard · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/comercial-pipeline-390.png" alt="Pipeline de vendas no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Pipeline · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/comercial-pipeline-1280.png" alt="Pipeline de vendas no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Pipeline · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/comercial-ficha-390.png" alt="Ficha de contato no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Ficha · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/comercial-ficha-1280.png" alt="Ficha de contato no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Ficha · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/comercial-conversas-390.png" alt="Lista de conversas no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Conversas · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/comercial-conversas-1280.png" alt="Lista de conversas no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Conversas · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/comercial-conversa-390.png" alt="Conversa aberta no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Conversa · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/comercial-conversa-1280.png" alt="Conversa aberta no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Conversa · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/comercial-agente-regras-390.png" alt="Regras do agente no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Agente regras · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/comercial-agente-regras-1280.png" alt="Regras do agente no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Agente regras · Computador</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- COORDENAÇÃO -->
+      <section class="indice__secao">
+        <h2 class="indice__secao-titulo">Coordenação clínica</h2>
+        <div class="indice__grade-capturas">
+          <div class="indice__captura-item indice__captura-item-ativo">
+            <img src="capturas/coordenacao-390.png" alt="Tela principal da coordenação no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Tela principal · Celular</p>
+          </div>
+          <div class="indice__captura-item indice__captura-item-ativo">
+            <img src="capturas/coordenacao-1280.png" alt="Tela principal da coordenação no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Tela principal · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/coordenacao-inicio-390.png" alt="Dashboard da coordenação no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Dashboard · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/coordenacao-inicio-1280.png" alt="Dashboard da coordenação no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Dashboard · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/coordenacao-equipe-390.png" alt="Gestão da equipe no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Equipe · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/coordenacao-equipe-1280.png" alt="Gestão da equipe no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Equipe · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/coordenacao-radar-390.png" alt="Radar de famílias no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Radar · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/coordenacao-radar-1280.png" alt="Radar de famílias no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Radar · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/coordenacao-freio-390.png" alt="Freio global no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Freio global · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/coordenacao-freio-1280.png" alt="Freio global no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Freio global · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/coordenacao-designar-390.png" alt="Designação de enfermeira no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Designar · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/coordenacao-designar-1280.png" alt="Designação de enfermeira no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Designar · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/coordenacao-entrevista-390.png" alt="Entrevista com família no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Entrevista · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/coordenacao-entrevista-1280.png" alt="Entrevista com família no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Entrevista · Computador</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/coordenacao-alerta-390.png" alt="Alerta clínico no celular" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Alerta · Celular</p>
+          </div>
+          <div class="indice__captura-item">
+            <img src="capturas/coordenacao-alerta-1280.png" alt="Alerta clínico no computador" class="indice__captura-imagem">
+            <p class="indice__captura-legenda">Alerta · Computador</p>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 </body>
 </html>

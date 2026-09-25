@@ -326,6 +326,11 @@ textarea.campo__entrada { padding: var(--e-3) var(--e-4); min-height: 120px; res
 .selo--marinho { background: var(--marinho); color: var(--texto-inverso); }
 .selo--destaque { background: var(--dourado); color: var(--marinho); }
 .selo--contorno { background: transparent; border: 1.5px dashed var(--marinho-50); color: var(--texto-2); }
+/* Selo com hachura: "provável, ainda não é fato" (reservada), mesmo padrão de
+   .semana__turno[data-estado="reservada"] e .regua__dia[data-estado="pendente"]. O contorno
+   tracejado (.selo--contorno) já significa Backup na legenda da semana da equipe; não usar os dois
+   para a mesma ideia. Aditivo: nenhum grupo existente usa esta classe hoje. */
+.selo--hachura { background: repeating-linear-gradient(135deg, var(--marinho-50) 0 2px, var(--branco) 2px 5px); border: 1px solid var(--marinho-50); color: var(--texto); }
 
 /* ---------- Faixa (alerta clínico, aviso, estado sensível) ---------- */
 .faixa {
@@ -380,6 +385,9 @@ textarea.campo__entrada { padding: var(--e-3) var(--e-4); min-height: 120px; res
 }
 .regua__n { font-weight: 500; font-size: var(--tam-apoio); line-height: 1.2; }
 .regua__data { font-size: 11px; line-height: 1.2; opacity: 0.9; }
+/* Correção: "ficha", "hoje" e "sobe" são palavras, não datas ou códigos; o mono fica só para data.
+   Aditivo, mesma classe .regua__data como base. */
+.regua__data--palavra { font-family: var(--fonte-ui); font-weight: 500; }
 .regua__dia[data-estado="feito"] { background: var(--marinho); border: 1.5px solid var(--marinho); color: var(--texto-inverso); }
 .regua__dia[data-estado="hoje"] { background: var(--superficie); border: 2px solid var(--dourado); color: var(--texto); box-shadow: 0 0 0 3px var(--dourado-lavado); }
 .regua__dia[data-estado="hoje"] .regua__n { font-weight: 600; }

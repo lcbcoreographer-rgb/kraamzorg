@@ -27,7 +27,7 @@
       <p class="apoio">Talita Moreno</p>
       <button class="sinc empurra" type="button" data-sinc data-abre-fila></button>
       <h1 class="t-display">Famílias</h1>
-      <p class="apoio">Três famílias atribuídas a você: duas em acompanhamento e uma reservada.</p>
+      <p class="apoio">Três famílias atribuídas a você: duas em acompanhamento e uma com oferta pendente.</p>
     </header>
 
     <div class="pilha pilha--6">
@@ -74,21 +74,21 @@
         </a>
       </section>
 
+      <!-- Correção: um só estado para a Família Teste Horizonte no grupo enfermeira, oferta
+           pendente, como no fluxo C. A forma "reservada" (depois de aceitar) foi para a seção
+           de estados, com hachura em vez de selo--contorno (que na legenda da semana quer dizer Backup). -->
       <section class="enf-secao" aria-labelledby="res-t">
-        <h2 class="t-2" id="res-t">Reservada, aguardando o nascimento</h2>
-        <div class="cartao cartao--plano pilha">
+        <h2 class="t-2" id="res-t">Oferta pendente</h2>
+        <a class="cartao cartao--tocavel pilha" href="enfermeira-hoje.html">
           <div class="cartao__topo">
             <div class="pilha pilha--2">
               <span class="t-3">Família Teste Horizonte</span>
-              <span class="apoio">Moema. Manhã. Essencial 6 dias.</span>
+              <span class="apoio">Moema. Manhã, DPP <span class="dado">12/11/2026</span> (estimativa). Essencial 6 dias.</span>
             </div>
-            <span class="selo selo--contorno cartao__acao">Reservada</span>
+            <span class="selo selo--destaque cartao__acao">Oferta pendente</span>
           </div>
-          <ol class="regua regua--fina" style="--dias: 6" aria-label="Ainda não começou">
-            <li class="regua__dia"></li><li class="regua__dia"></li><li class="regua__dia"></li><li class="regua__dia"></li><li class="regua__dia"></li><li class="regua__dia"></li>
-          </ol>
-          <p class="apoio">Ainda não começou. DPP <span class="dado">12/11/2026</span> (estimativa); janela de 22/10 a 26/11. O D1 só existe depois da alta.</p>
-        </div>
+          <p class="apoio">Responda até <span class="dado">26/09/2026</span>, 18:00. A janela vai de 22/10 a 26/11.</p>
+        </a>
       </section>
     </div>
 
@@ -106,7 +106,22 @@
               </div>
               <span class="selo selo--sensivel cartao__acao"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio ativo</span>
             </div>
-            <p class="apoio">Mensagens automáticas pausadas. O registro clínico continua liberado; ao abrir, o cabeçalho da família fica ameixa.</p>
+            <p class="apoio">Mensagens automáticas pausadas. O registro clínico continua liberado.</p>
+            <!-- Ao abrir a família, o cabeçalho fica ameixa (ver o estado "Freio ativo" em enfermeira-familia.html). -->
+          </div>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Depois de aceitar a oferta: reservada</p>
+          <div class="cartao cartao--plano pilha">
+            <div class="cartao__topo">
+              <div class="pilha pilha--2">
+                <span class="t-3">Família Teste Horizonte</span>
+                <span class="apoio">Moema. Manhã. Essencial 6 dias.</span>
+              </div>
+              <span class="selo selo--hachura cartao__acao">Reservada</span>
+            </div>
+            <p class="apoio">Aceita às 08:10. Ainda não começou: o D1 só existe depois da alta. DPP <span class="dado">12/11/2026</span> (estimativa).</p>
           </div>
         </div>
 

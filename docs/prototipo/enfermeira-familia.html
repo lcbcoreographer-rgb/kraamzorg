@@ -51,8 +51,8 @@
       <ol class="regua" style="--dias: 6" aria-label="D1 e D2 feitos, ficha do D3 pendente, D4 assinado com alerta aberto, D5 e D6 por vir">
         <li class="regua__dia" data-estado="feito"><span class="regua__n">D1</span><span class="regua__data">21/09</span></li>
         <li class="regua__dia" data-estado="feito"><span class="regua__n">D2</span><span class="regua__data">22/09</span></li>
-        <li class="regua__dia" data-estado="pendente"><span class="regua__n">D3</span><span class="regua__data">ficha</span></li>
-        <li class="regua__dia" data-estado="alerta" aria-current="date"><span class="regua__n">D4</span><span class="regua__data">hoje</span></li>
+        <li class="regua__dia" data-estado="pendente"><span class="regua__n">D3</span><span class="regua__data regua__data--palavra">ficha</span></li>
+        <li class="regua__dia" data-estado="alerta" aria-current="date"><span class="regua__n">D4</span><span class="regua__data regua__data--palavra">hoje</span></li>
         <li class="regua__dia"><span class="regua__n">D5</span><span class="regua__data">25/09</span></li>
         <li class="regua__dia"><span class="regua__n">D6</span><span class="regua__data">26/09</span></li>
       </ol>
@@ -122,12 +122,12 @@
         <h2 class="t-2" id="med-t">Médicos</h2>
         <div class="cartao cartao--plano pilha">
           <div class="linha-flex">
-            <div class="linha-lista__corpo"><span class="t-3">Dr. Sérgio Fictício</span><span class="apoio">Obstetra</span><a class="dado" href="tel:+5511900000030">+55 11 90000-0030</a></div>
+            <div class="linha-lista__corpo"><span class="t-3">Dr. Sérgio Fictício</span><span class="apoio">Obstetra</span><span class="dado">+55 11 90000-0030</span></div>
             <a class="botao botao--compacto" href="tel:+5511900000030"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar</a>
           </div>
           <hr class="regra">
           <div class="linha-flex">
-            <div class="linha-lista__corpo"><span class="t-3">Dra. Vera Fictícia</span><span class="apoio">Pediatra</span><a class="dado" href="tel:+5511900000031">+55 11 90000-0031</a></div>
+            <div class="linha-lista__corpo"><span class="t-3">Dra. Vera Fictícia</span><span class="apoio">Pediatra</span><span class="dado">+55 11 90000-0031</span></div>
             <a class="botao botao--compacto" href="tel:+5511900000031"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar</a>
           </div>
         </div>
@@ -156,28 +156,6 @@
           <li>Cesárea: observar a incisão e a dor a cada visita.</li>
         </ul>
       </section>
-    </div>
-
-    <!-- Folha: adendo em dia assinado -->
-    <div class="folha" id="folha-adendo" role="dialog" aria-modal="true" aria-labelledby="folha-adendo-t" hidden>
-      <div class="folha__topo"><h2 class="t-2" id="folha-adendo-t" tabindex="-1">Adendo ao <span data-adendo-dia>D2</span></h2><button class="botao botao--icone botao--terciario" type="button" data-fecha-folha aria-label="Fechar"><svg class="icone"><use href="#i-x"/></svg></button></div>
-      <div class="folha__corpo">
-        <p class="apoio">O registro assinado não muda. O adendo fica junto dele, com seu nome, a hora e o motivo.</p>
-        <fieldset class="cl-opcoes">
-          <legend class="campo__rotulo">Motivo</legend>
-          <div class="marcas">
-            <input type="radio" name="ad-mot" id="ad-m1" value="corrigir"><label for="ad-m1">Corrigir um valor</label>
-            <input type="radio" name="ad-mot" id="ad-m2" value="completar"><label for="ad-m2">Completar informação</label>
-            <input type="radio" name="ad-mot" id="ad-m3" value="outro"><label for="ad-m3">Outro</label>
-          </div>
-        </fieldset>
-        <div class="campo" data-ad-campo>
-          <label class="campo__rotulo" for="ad-txt">O que precisa constar</label>
-          <div class="campo__caixa"><textarea class="campo__entrada" id="ad-txt" rows="4" placeholder="Escreva o valor certo e onde ele entra"></textarea></div>
-          <p class="campo__ajuda" hidden></p>
-        </div>
-        <div class="folha__acoes"><button class="botao" type="button" data-fecha-folha>Cancelar</button><button class="botao botao--primario" type="button" data-salvar-adendo>Salvar adendo</button></div>
-      </div>
     </div>
 
     <!-- ---------- Estados ---------- -->
@@ -235,6 +213,29 @@
     <a class="abas-inf__item" href="enfermeira-alertas.html"><svg class="icone"><use href="#i-siren"/></svg>Alertas<span class="abas-inf__contador">1<span class="sr"> alerta aberto</span></span></a>
     <a class="abas-inf__item" href="enfermeira-perfil.html"><svg class="icone"><use href="#i-user-round"/></svg>Perfil</a>
   </nav>
+</div>
+
+<!-- Folha: adendo em dia assinado. Fica fora de .app (correção): assim marcar .app como inert ao
+     abrir a folha não torna a própria folha inerte também, e o Tab fica preso dentro dela. -->
+<div class="folha" id="folha-adendo" role="dialog" aria-modal="true" aria-labelledby="folha-adendo-t" hidden>
+  <div class="folha__topo"><h2 class="t-2" id="folha-adendo-t" tabindex="-1">Adendo ao <span data-adendo-dia>D2</span></h2><button class="botao botao--icone botao--terciario" type="button" data-fecha-folha aria-label="Fechar"><svg class="icone"><use href="#i-x"/></svg></button></div>
+  <div class="folha__corpo">
+    <p class="apoio">O registro assinado não muda. O adendo fica junto dele, com seu nome, a hora e o motivo.</p>
+    <fieldset class="cl-opcoes">
+      <legend class="campo__rotulo">Motivo</legend>
+      <div class="marcas">
+        <input type="radio" name="ad-mot" id="ad-m1" value="corrigir"><label for="ad-m1">Corrigir um valor</label>
+        <input type="radio" name="ad-mot" id="ad-m2" value="completar"><label for="ad-m2">Completar informação</label>
+        <input type="radio" name="ad-mot" id="ad-m3" value="outro"><label for="ad-m3">Outro</label>
+      </div>
+    </fieldset>
+    <div class="campo" data-ad-campo>
+      <label class="campo__rotulo" for="ad-txt">O que precisa constar</label>
+      <div class="campo__caixa"><textarea class="campo__entrada" id="ad-txt" rows="4" placeholder="Escreva o valor certo e onde ele entra"></textarea></div>
+      <p class="campo__ajuda" hidden></p>
+    </div>
+    <div class="folha__acoes"><button class="botao" type="button" data-fecha-folha>Cancelar</button><button class="botao botao--primario" type="button" data-salvar-adendo>Salvar adendo</button></div>
+  </div>
 </div>
 <script src="assets/enfermeira.js"></script>
 <script>

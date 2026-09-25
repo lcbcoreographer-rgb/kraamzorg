@@ -27,18 +27,14 @@
     <header class="cl-cab" data-familia-cab data-familia="Família Teste Cedro">
       <div class="cl-cab__topo">
         <a class="botao botao--terciario botao--icone cl-cab__voltar" href="enfermeira-hoje.html" aria-label="Voltar para Hoje"><svg class="icone icone--24"><use href="#i-arrow-left"/></svg></a>
-        <div class="cl-cab__familia">
-          <p class="t-3">Família Teste Cedro</p>
-          <p class="mini"><span class="dado">D7</span> de 12, gêmeos</p>
-        </div>
+        <p class="t-3 cl-cab__familia"><span class="cl-cab__nome">Família Teste Cedro</span> <span class="dado">D7</span></p>
+        <button class="sinc sinc--icone" type="button" data-sinc data-abre-fila></button>
         <button class="botao-freio" type="button" data-freio-botao><svg class="icone"><use href="#i-hand"/></svg>Freio</button>
       </div>
       <p class="cl-cab__freio" data-freio-texto hidden></p>
-      <div class="cl-cab__linha">
-        <button class="sinc" type="button" data-sinc data-abre-fila></button>
-        <button class="botao botao--compacto cl-cab__etapas" type="button" data-abre-etapas><span data-etapa-rotulo>Etapa 5 de 8</span><svg class="icone"><use href="#i-chevron-down"/></svg></button>
-      </div>
-      <div class="blocos__trilha" style="--n: 8" aria-hidden="true" data-trilha></div>
+      <button class="cl-cab__trilha" type="button" data-abre-etapas aria-label="Etapa 5 de 8. Ver todas as etapas">
+        <span class="blocos__trilha" style="--n: 8" aria-hidden="true" data-trilha></span>
+      </button>
     </header>
 
     <section class="faixa faixa--info cl-aviso-sinal" role="status" data-sem-sinal hidden>
@@ -85,7 +81,7 @@
             <button class="abas__item" type="button" role="tab" aria-selected="false" tabindex="-1">Bento <span class="selo selo--sucesso"><svg class="icone"><use href="#i-circle-check"/></svg>Completa</span></button>
             <button class="abas__item" type="button" role="tab" aria-selected="true">Lia <span class="selo selo--aviso">Faltam 4</span></button>
           </div>
-          <p class="apoio">O estado de cada bebê fica na própria aba. Assinar pede sinais vitais e peso dos dois.</p>
+          <!-- O estado de cada bebê fica na própria aba. Assinar pede sinais vitais e peso dos dois. -->
         </div>
 
         <div class="estado">
@@ -105,6 +101,7 @@
   <div class="barra-acao cl-barra">
     <button class="botao botao--terciario botao--compacto cl-barra__sinal" type="button" data-abre-seletor><svg class="icone"><use href="#i-triangle-alert"/></svg>Registrar outro sinal de alerta</button>
     <p class="apoio cl-barra__razao" data-razao hidden></p>
+    <button class="botao botao--terciario botao--bloco cl-barra__saida" type="button" data-registrar-saida hidden><svg class="icone"><use href="#i-map-pin"/></svg>Saí da casa, registrar saída</button>
     <div class="cl-barra__nav">
       <button class="botao" type="button" data-voltar><svg class="icone"><use href="#i-arrow-left"/></svg>Voltar</button>
       <button class="botao botao--primario" type="button" data-proxima>Próxima etapa<svg class="icone"><use href="#i-arrow-right"/></svg></button>
@@ -117,6 +114,11 @@
 <script>
   (function () {
     var d = KZ.DADOS.cedro, e = d.porEtapa;
+    // Vindo do "Cheguei, iniciar visita das 14:00" (?novo=1): o checklist do dia começa em branco.
+    if (new URLSearchParams(location.search).has('novo')) {
+      KZ.checklist(KZ.juntar(d, { etapa: 1, checkin: { data: '24/09/2026', hora: '14:02' } }));
+      return;
+    }
     KZ.checklist(KZ.juntar(d, {
       etapa: 5,
       respostas: KZ.juntar(e[1], e[2], e[3], e[4], e.bento, e.lia),

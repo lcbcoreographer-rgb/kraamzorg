@@ -27,18 +27,14 @@
     <header class="cl-cab" data-familia-cab data-familia="Família Teste Aurora">
       <div class="cl-cab__topo">
         <a class="botao botao--terciario botao--icone cl-cab__voltar" href="enfermeira-hoje.html" aria-label="Voltar para Hoje"><svg class="icone icone--24"><use href="#i-arrow-left"/></svg></a>
-        <div class="cl-cab__familia">
-          <p class="t-3">Família Teste Aurora</p>
-          <p class="mini"><span class="dado">D4</span> de 6, quinta 24/09</p>
-        </div>
+        <p class="t-3 cl-cab__familia"><span class="cl-cab__nome">Família Teste Aurora</span> <span class="dado">D4</span></p>
+        <button class="sinc sinc--icone" type="button" data-sinc data-abre-fila></button>
         <button class="botao-freio" type="button" data-freio-botao><svg class="icone"><use href="#i-hand"/></svg>Freio</button>
       </div>
       <p class="cl-cab__freio" data-freio-texto hidden></p>
-      <div class="cl-cab__linha">
-        <button class="sinc" type="button" data-sinc data-abre-fila></button>
-        <button class="botao botao--compacto cl-cab__etapas" type="button" data-abre-etapas><span data-etapa-rotulo>Etapa 3 de 8</span><svg class="icone"><use href="#i-chevron-down"/></svg></button>
-      </div>
-      <div class="blocos__trilha" style="--n: 8" aria-hidden="true" data-trilha></div>
+      <button class="cl-cab__trilha" type="button" data-abre-etapas aria-label="Etapa 3 de 8. Ver todas as etapas">
+        <span class="blocos__trilha" style="--n: 8" aria-hidden="true" data-trilha></span>
+      </button>
     </header>
 
     <section class="faixa faixa--info cl-aviso-sinal" role="status" data-sem-sinal hidden>
@@ -58,18 +54,39 @@
 
         <div class="estado">
           <p class="estado__titulo">Etapa vazia: nada vem preenchido</p>
+          <!-- Correção: sem placeholder num campo clínico numérico, para não parecer dado já preenchido. A referência "No D3 foi..." basta. -->
           <div class="cartao cartao--plano pilha">
             <div class="campo">
               <label class="campo__rotulo" for="st-temp">Temperatura</label>
-              <div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="st-temp" inputmode="decimal" placeholder="36,5"><span class="campo__unidade">°C</span></div>
+              <div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="st-temp" inputmode="decimal"><span class="campo__unidade">°C</span></div>
               <p class="cl-ref"><svg class="icone"><use href="#i-clock"/></svg><span>No D3 foi 36,9 °C.</span></p>
             </div>
             <div class="campo">
               <label class="campo__rotulo" for="st-fc0">Frequência cardíaca</label>
-              <div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="st-fc0" inputmode="numeric" placeholder="80"><span class="campo__unidade">bpm</span></div>
+              <div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="st-fc0" inputmode="numeric"><span class="campo__unidade">bpm</span></div>
               <p class="cl-ref"><svg class="icone"><use href="#i-clock"/></svg><span>No D3 foi 84 bpm.</span></p>
             </div>
           </div>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Resposta que dispara PU-08: febre baixa persistente</p>
+          <div class="campo">
+            <label class="campo__rotulo" for="st-temp-pu08">Temperatura</label>
+            <div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="st-temp-pu08" inputmode="decimal" value="37,7"><span class="campo__unidade">°C</span></div>
+            <p class="cl-ref"><svg class="icone"><use href="#i-clock"/></svg><span>No D3 foi 37,6 °C.</span></p>
+          </div>
+          <section class="faixa faixa--prioritario" aria-label="Alerta PU-08">
+            <svg class="icone"><use href="#i-triangle-alert"/></svg>
+            <div>
+              <p class="faixa__titulo"><span class="faixa__codigo">PU-08</span>Febre baixa persistente, 37,7 °C hoje e 37,6 °C no D3</p>
+              <p class="faixa__texto">Comunique a supervisão médica ainda hoje e siga a orientação.</p>
+              <div class="faixa__acoes">
+                <a class="botao" href="tel:+5511900000001"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para a supervisão</a>
+                <button class="botao" type="button"><svg class="icone"><use href="#i-clipboard-pen"/></svg>Registrar acionamento</button>
+              </div>
+            </div>
+          </section>
         </div>
 
         <div class="estado">
@@ -118,18 +135,28 @@
         </div>
 
         <div class="estado">
-          <p class="estado__titulo">Faixa presa no topo, em outra etapa</p>
-          <section class="faixa faixa--imediato" aria-label="Alerta PU-01 preso no topo">
-            <svg class="icone"><use href="#i-siren"/></svg>
-            <div>
-              <p class="faixa__titulo"><span class="faixa__codigo">PU-01</span>Febre de 38,2 °C na puérpera</p>
-              <p class="faixa__texto">Registre o acionamento antes de assinar. Etapa 3.</p>
-              <div class="faixa__acoes">
-                <a class="botao botao--alerta" href="tel:+5511900000001"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para a supervisão</a>
-                <button class="botao" type="button"><svg class="icone"><use href="#i-clipboard-pen"/></svg>Registrar acionamento</button>
-              </div>
-            </div>
-          </section>
+          <p class="estado__titulo">Faixa presa no topo, em outra etapa: um alerta</p>
+          <!-- Correção: uma linha só, no máximo 64 px, sem "Da etapa N..." nem botão Ligar (a ligação continua na faixa cheia da etapa 3 e na folha de acionamento). -->
+          <button class="faixa-mini faixa-mini--imediato" type="button" aria-label="PU-01, Febre de 38,2 °C na puérpera. Registrar acionamento">
+            <svg class="icone"><use href="#i-siren"/></svg><span class="dado">PU-01</span><span class="faixa-mini__titulo">Febre de 38,2 °C na puérpera</span>
+            <span class="botao botao--compacto" aria-hidden="true">Registrar</span>
+          </button>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Faixa presa no topo: dois ou mais alertas</p>
+          <button class="faixa-mini faixa-mini--resumo faixa-mini--imediato" type="button" aria-label="2 alertas sem registro. Ver a lista">
+            <svg class="icone"><use href="#i-siren"/></svg><span class="faixa-mini__titulo">2 alertas sem registro</span><svg class="icone"><use href="#i-chevron-right"/></svg>
+          </button>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Ocorrência de saúde mental: faixa presa sem expor o achado</p>
+          <button class="faixa-mini faixa-mini--imediato" type="button" aria-label="SM, Ocorrência privada. Registre o acionamento. Registrar acionamento">
+            <svg class="icone"><use href="#i-siren"/></svg><span class="dado">SM</span><span class="faixa-mini__titulo">Ocorrência privada. Registre o acionamento.</span>
+            <span class="botao botao--compacto" aria-hidden="true">Registrar</span>
+          </button>
+          <!-- O código e o título completos (ex.: "SM-01 Ideação suicida ou autoagressiva") ficam só dentro da etapa 7 e na folha de acionamento. A família pode estar no quarto e ler a tela. -->
         </div>
 
         <div class="estado">
@@ -170,6 +197,7 @@
   <div class="barra-acao cl-barra">
     <button class="botao botao--terciario botao--compacto cl-barra__sinal" type="button" data-abre-seletor><svg class="icone"><use href="#i-triangle-alert"/></svg>Registrar outro sinal de alerta</button>
     <p class="apoio cl-barra__razao" data-razao hidden></p>
+    <button class="botao botao--terciario botao--bloco cl-barra__saida" type="button" data-registrar-saida hidden><svg class="icone"><use href="#i-map-pin"/></svg>Saí da casa, registrar saída</button>
     <div class="cl-barra__nav">
       <button class="botao" type="button" data-voltar><svg class="icone"><use href="#i-arrow-left"/></svg>Voltar</button>
       <button class="botao botao--primario" type="button" data-proxima>Próxima etapa<svg class="icone"><use href="#i-arrow-right"/></svg></button>

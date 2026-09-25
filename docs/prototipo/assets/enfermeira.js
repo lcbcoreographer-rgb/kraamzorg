@@ -368,7 +368,8 @@
             sn('am-interr', 'Interrupção adequada da sucção')] } }] },
         { titulo: 'Técnica', cod: '2.8', campos: [
           { tipo: 'escala', id: 'am-latch', rotulo: 'LATCH, de 0 a 10', max: 10, extremos: ['0 a 7 · apoio necessário', '8 a 10 · eficaz'], folha: ['folha-latch', 'Ver tabela LATCH'],
-            dica: function (v) { return v <= 5 ? 'LATCH ' + v + ': apoio necessário. Fica marcado para a coordenação.' : v <= 7 ? 'LATCH ' + v + ': apoio necessário (DOC 4).' : 'LATCH ' + v + ': amamentação eficaz (DOC 4).'; } },
+            // Correção: mesma classificação do PRD 9.2 (ótimo, regular, ruim) usada na folha LATCH.
+            dica: function (v) { var c = v >= 8 ? 'ótimo' : v >= 5 ? 'regular' : 'ruim'; return 'LATCH ' + v + ' de 10, ' + c + (v < 8 ? '. Fica marcado para a coordenação.' : '.'); } },
           { tipo: 'opcoes', id: 'am-lingua', rotulo: 'Teste da linguinha', opcoes: ['Normal', 'Alterado', 'Não fez'] }] },
         { titulo: 'Laserterapia', cod: '2.9', campos: [
           { tipo: 'multi', id: 'am-fbm', rotulo: 'FBM aplicada', opcoes: ['Analgesia', 'Reparação', 'ILIB', 'Não aplicada'], exclusiva: 'Não aplicada' }] },
@@ -447,6 +448,7 @@
     var A = {};              // alertas do DOC 3 por chave
     var SPEC = {};           // id do campo -> { c, bebe, etapa }
     var atual = 1, assinado = false, montando = true, ponteiro = false, bebeAtual = cfg.bebes[0] && cfg.bebes[0].id;
+    var saida = cfg.saida || null; // fato editável: gravado pelo botão "Saí da casa" no fim da etapa 7
 
     /* Render de campos */
     function idDe(c, b) { return b ? c.id.replace('X', b.id) : c.id; }
@@ -888,7 +890,7 @@
           '<div class="campo__caixa"><textarea class="campo__entrada" id="cl-resumo" rows="5" placeholder="Como foi a visita, o que chamou atenção e o que fica para amanhã"></textarea></div>' +
           '<div class="cl-trazer"><button class="botao botao--compacto" type="button" data-audio="cl-resumo">' + ic('mic') + 'Gravar áudio</button></div>' +
           '<p class="campo__ajuda" data-audio-msg="cl-resumo" hidden></p></div></section>' +
-          (cfg.saida ? '<p class="apoio">Chegada às <span class="dado">' + cfg.checkin.hora + '</span>, saída às <span class="dado">' + cfg.saida + '</span>.</p>' : '') + '</div>';
+          (saida ? '<p class="apoio">Chegada às <span class="dado">' + cfg.checkin.hora + '</span>, saída às <span class="dado">' + saida + '</span>.</p>' : '') + '</div>';
         if (R.resumo) $('#cl-resumo', alvo).value = R.resumo;
       }
       $('[data-lista-final]', alvo).innerHTML = htmlLista;
@@ -899,11 +901,15 @@
     }
 
     /* Barra inferior */
-    var bVoltar = $('[data-voltar]'), bProx = $('[data-proxima]'), razao = $('[data-razao]');
+    var bVoltar = $('[data-voltar]'), bProx = $('[data-proxima]'), razao = $('[data-razao]'), bSaida = $('[data-registrar-saida]');
     function atualizarBarra() {
       if (!bProx) return;
       bVoltar.disabled = atual === 1;
       razao.hidden = true;
+      if (bSaida) {
+        bSaida.hidden = atual !== 7 || assinado;
+        bSaida.innerHTML = ic('map-pin') + (saida ? 'Saída às ' + saida + '. Toque para corrigir' : 'Saí da casa, registrar saída');
+      }
       if (assinado && atual === 8) {
         bProx.disabled = false; bProx.removeAttribute('aria-disabled');
         bProx.innerHTML = ic('house') + 'Voltar para Hoje'; bProx.dataset.modo = 'hoje'; return;
@@ -913,12 +919,10 @@
       else {
         var falta = pendenciasObrigatorias().filter(function (i) { return !i.ok; });
         bProx.innerHTML = ic('pen-line') + 'Assinar registro do ' + DIA; bProx.dataset.modo = 'assinar';
-        if (falta.length) {
-          bProx.setAttribute('aria-disabled', 'true');
-          razao.hidden = false; razao.id = 'cl-razao';
-          bProx.setAttribute('aria-describedby', 'cl-razao');
-          razao.textContent = 'Para assinar falta: ' + falta.map(function (i) { return i.t.charAt(0).toLowerCase() + i.t.slice(1); }).join('; ') + '.';
-        } else { bProx.removeAttribute('aria-disabled'); }
+        // Correção: a razão não soma uma terceira linha à barra na etapa 8; as pendências já estão
+        // na lista "Para concluir", acima, e o botão só aponta para ela via aria-describedby.
+        if (falta.length) { bProx.setAttribute('aria-disabled', 'true'); bProx.setAttribute('aria-describedby', 'cl-concluir-t'); }
+        else { bProx.removeAttribute('aria-disabled'); bProx.removeAttribute('aria-describedby'); }
       }
     }
 
@@ -929,8 +933,10 @@
       atual = n;
       $$('.cl-etapa', raiz).forEach(function (s) { s.hidden = +s.dataset.etapa !== n; });
       var e = ETAPAS[n - 1];
-      var rot = $('[data-etapa-rotulo]');
-      if (rot) { rot.textContent = 'Etapa ' + n + ' de 8'; rot.parentElement.setAttribute('aria-label', 'Etapa ' + n + ' de 8, ' + e.curto + '. Ver todas as etapas'); }
+      // Correção: "Etapa N de 8" não é mais um botão à parte; o toque para abrir a lista de
+      // etapas é a própria trilha, identificada por este rótulo.
+      var trilhaBtn = $('[data-abre-etapas]');
+      if (trilhaBtn) trilhaBtn.setAttribute('aria-label', 'Etapa ' + n + ' de 8, ' + e.curto + '. Ver todas as etapas');
       if (!opts.inicio && history.replaceState) history.replaceState(null, '', location.pathname + location.search + '#etapa-' + n);
       desenharAlertas();
       if (!opts.inicio) {
@@ -1102,7 +1108,7 @@
       a.registrado = true; a.registro = { hora: $('#ac-hora', fAcion).value || KZ.agora(), orientacao: ori.value, conduta: con.value };
       ori.value = ''; con.value = '';
       KZ.fecharFolha(fAcion);
-      KZ.salvar('Acionamento do ' + a.cod + ' registrado às ' + a.registro.hora, { alerta: true });
+      KZ.salvar(ehSM(a) ? ('Ocorrência privada, acionamento registrado às ' + a.registro.hora) : ('Acionamento do ' + a.cod + ' registrado às ' + a.registro.hora), { alerta: true });
       desenharAlertas();
       KZ.aviso('Acionamento registrado. A coordenação acompanha e fecha o alerta.', { icone: 'clipboard-pen' });
     }
@@ -1119,6 +1125,12 @@
       A[chave].etapa = -1;
       desenharAlertas();
       window.scrollTo({ top: 0 });
+    }
+    function registrarSaida() {
+      saida = KZ.agora();
+      KZ.salvar(DIA + ': saída da casa registrada às ' + saida);
+      atualizarBarra();
+      KZ.aviso('Saída registrada às ' + saida + '.', { icone: 'map-pin' });
     }
     function assinar(bt) {
       bt.setAttribute('aria-busy', 'true'); bt.innerHTML = ic('refresh-cw') + 'Assinando';

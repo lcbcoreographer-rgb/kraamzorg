@@ -27,14 +27,15 @@
       <p class="apoio">Perfil</p>
       <button class="sinc empurra" type="button" data-sinc data-abre-fila></button>
       <h1 class="t-display">Talita Moreno</h1>
-      <p class="apoio">Enfermeira obstétrica, São Paulo. <span class="dado">COREN-SP 000.001</span> (fictício).</p>
+      <!-- Número de registro fictício, como toda família e profissional no protótipo. -->
+      <p class="apoio">Enfermeira obstétrica, São Paulo. <span class="dado">COREN-SP 000.001</span>.</p>
     </header>
 
     <div class="pilha pilha--8">
       <section class="enf-secao" aria-labelledby="agora-t">
         <h2 class="sr" id="agora-t">Estado de hoje</h2>
         <p class="linha-flex"><span class="selo selo--marinho">Em visita</span><span class="corpo">Na Família Teste Aurora desde 08:03.</span></p>
-        <p class="apoio">O estado vem das suas visitas e designações. Ninguém precisa marcar à mão.</p>
+        <!-- O estado vem das visitas e designações da enfermeira; ninguém precisa marcar à mão. -->
       </section>
 
       <section class="enf-secao" aria-labelledby="semana-t">
@@ -82,13 +83,16 @@
         <p class="corpo">Manhã com a Família Teste Aurora até sábado 26/09 (<span class="dado">D6</span>). Tarde com a Família Teste Cedro até terça 29/09 (<span class="dado">D12</span>). Domingo de manhã está livre.</p>
       </section>
 
+      <!-- Correção: mesmo estado da Família Teste Horizonte em Famílias e no Hoje, oferta
+           pendente. Antes esta seção mostrava "Reservada" e, na linha seguinte, dizia não haver
+           oferta esperando resposta: os dois textos se contradiziam. -->
       <section class="enf-secao" aria-labelledby="reservas-t">
         <h2 class="t-2" id="reservas-t">Reservas e ofertas</h2>
-        <div class="cartao cartao--plano pilha pilha--2">
-          <p class="linha-flex"><span class="t-3">Família Teste Horizonte</span><span class="selo selo--contorno">Reservada</span></p>
+        <a class="cartao cartao--plano cartao--tocavel pilha pilha--2" href="enfermeira-hoje.html">
+          <p class="linha-flex"><span class="t-3">Família Teste Horizonte</span><span class="selo selo--destaque">Oferta pendente</span></p>
           <p class="apoio">Moema, manhã. DPP <span class="dado">12/11/2026</span> (estimativa); janela de 22/10 a 26/11.</p>
-        </div>
-        <p class="apoio">Nenhuma oferta esperando sua resposta. Quando chegar, ela aparece no topo do Hoje.</p>
+          <p class="apoio">Responda até <span class="dado">26/09/2026</span>, 18:00.</p>
+        </a>
       </section>
 
       <section class="enf-secao" aria-labelledby="docs-t">
@@ -105,21 +109,6 @@
         <p class="corpo">Guarda só as famílias de hoje, por 24 horas. Ao sair, tudo é apagado depois que a fila subir.</p>
         <button class="botao" type="button" data-sair style="align-self: flex-start"><svg class="icone"><use href="#i-log-out"/></svg>Sair deste aparelho</button>
       </section>
-    </div>
-
-    <div class="folha" id="folha-sair" role="dialog" aria-modal="true" aria-labelledby="folha-sair-t" hidden>
-      <div class="folha__topo"><h2 class="t-2" id="folha-sair-t" tabindex="-1">Sair deste aparelho?</h2><button class="botao botao--icone botao--terciario" type="button" data-fecha-folha aria-label="Fechar"><svg class="icone"><use href="#i-x"/></svg></button></div>
-      <div class="folha__corpo">
-        <p class="corpo">As famílias de hoje saem do aparelho. Para voltar, entre de novo com e-mail, senha e código.</p>
-        <div class="folha__acoes"><button class="botao" type="button" data-fecha-folha>Ficar</button><a class="botao botao--primario" href="index.html"><svg class="icone"><use href="#i-log-out"/></svg>Sair agora</a></div>
-      </div>
-    </div>
-    <div class="folha" id="folha-sair-fila" role="dialog" aria-modal="true" aria-labelledby="folha-sair-fila-t" hidden>
-      <div class="folha__topo"><h2 class="t-2" id="folha-sair-fila-t" tabindex="-1">Ainda há respostas no aparelho</h2><button class="botao botao--icone botao--terciario" type="button" data-fecha-folha aria-label="Fechar"><svg class="icone"><use href="#i-x"/></svg></button></div>
-      <div class="folha__corpo">
-        <p class="corpo" data-sair-texto>Ainda há 2 respostas no aparelho. Conecte-se para enviar antes de sair.</p>
-        <div class="folha__acoes"><button class="botao" type="button" data-fecha-folha>Ficar</button><button class="botao botao--primario" type="button" data-abre-fila><svg class="icone"><use href="#i-cloud-upload"/></svg>Ver a fila</button></div>
-      </div>
     </div>
 
     <!-- ---------- Estados ---------- -->
@@ -156,6 +145,23 @@
     <a class="abas-inf__item" href="enfermeira-alertas.html"><svg class="icone"><use href="#i-siren"/></svg>Alertas<span class="abas-inf__contador">1<span class="sr"> alerta aberto</span></span></a>
     <a class="abas-inf__item" href="enfermeira-perfil.html" aria-current="page"><svg class="icone"><use href="#i-user-round"/></svg>Perfil</a>
   </nav>
+</div>
+
+<!-- Folhas de saída, fora de .app (correção): assim marcar .app como inert ao abrir uma delas não
+     torna a própria folha inerte também, e o Tab fica preso dentro dela. -->
+<div class="folha" id="folha-sair" role="dialog" aria-modal="true" aria-labelledby="folha-sair-t" hidden>
+  <div class="folha__topo"><h2 class="t-2" id="folha-sair-t" tabindex="-1">Sair deste aparelho?</h2><button class="botao botao--icone botao--terciario" type="button" data-fecha-folha aria-label="Fechar"><svg class="icone"><use href="#i-x"/></svg></button></div>
+  <div class="folha__corpo">
+    <p class="corpo">As famílias de hoje saem do aparelho. Para voltar, entre de novo com e-mail, senha e código.</p>
+    <div class="folha__acoes"><button class="botao" type="button" data-fecha-folha>Ficar</button><a class="botao botao--primario" href="index.html"><svg class="icone"><use href="#i-log-out"/></svg>Sair agora</a></div>
+  </div>
+</div>
+<div class="folha" id="folha-sair-fila" role="dialog" aria-modal="true" aria-labelledby="folha-sair-fila-t" hidden>
+  <div class="folha__topo"><h2 class="t-2" id="folha-sair-fila-t" tabindex="-1">Ainda há respostas no aparelho</h2><button class="botao botao--icone botao--terciario" type="button" data-fecha-folha aria-label="Fechar"><svg class="icone"><use href="#i-x"/></svg></button></div>
+  <div class="folha__corpo">
+    <p class="corpo" data-sair-texto>Ainda há 2 respostas no aparelho. Conecte-se para enviar antes de sair.</p>
+    <div class="folha__acoes"><button class="botao" type="button" data-fecha-folha>Ficar</button><button class="botao botao--primario" type="button" data-abre-fila><svg class="icone"><use href="#i-cloud-upload"/></svg>Ver a fila</button></div>
+  </div>
 </div>
 <script src="assets/enfermeira.js"></script>
 <script>
