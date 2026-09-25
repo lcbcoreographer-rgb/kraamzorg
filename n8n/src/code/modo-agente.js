@@ -23,6 +23,11 @@ import { MODOS_DO_AGENTE, enviarTextoPorModo } from './modos.js';
 import { comMarca, resultadoDoBanco, conteudoOpenAi, descreverErro, textoLimpo } from './resultado-no.js';
 
 export const TIPOS_NAO_LEAD_NO_INICIO = ['candidata', 'fornecedor', 'consultorio', 'parceiro_medico'];
+// `registrar_mensagem.classificacao` devolve o enum de `conversa.classificacao`,
+// que inclui `nao_classificado` (ADR 0003, divergência 1): a conversa ainda
+// não classificada não é `null`, é esta string. O nó 22 "Não Lead no Início?"
+// precisa tratar as duas como "ainda não classificada".
+export const CLASSIFICACAO_NAO_CLASSIFICADA = 'nao_classificado';
 const MODOS_DO_CLASSIFICADOR = ['vendas', 'cliente', 'pausado', 'nao_lead', 'humano_nominal', 'humano_comercial'];
 
 // Nó "Ler Pode Responder", depois do nó 15, e a regra do nó 16.
@@ -129,7 +134,7 @@ export function aplicarClassificacaoMensagem(estado, respostaOpenAi) {
     },
   });
   const rota = rotaDoModo(estado);
-  const semClassificacao = !estado.classificacao_conversa;
+  const semClassificacao = !estado.classificacao_conversa || estado.classificacao_conversa === CLASSIFICACAO_NAO_CLASSIFICADA;
   return comMarca({
     ...estado,
     alerta: leitura.alerta,

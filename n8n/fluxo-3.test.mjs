@@ -53,7 +53,7 @@ import { lerSaidaAgente, consolidarEnvio } from './src/code/saida-agente.js';
 import { lerReescrita, validarRespostaDoAgente } from './src/code/resposta-agente.js';
 import { separarFollowups, fecharFollowup } from './src/code/followup.js';
 import { validarFollowup, hashDoTexto, semelhanca } from './src/code/validar-followup.js';
-import { prepararEntradaAgente, VARIAVEIS_PROMPT_ISADORA } from './src/code/contexto-agente.js';
+import { prepararEntradaAgente, VARIAVEIS_PROMPT_ISADORA, resolverUrlPdf } from './src/code/contexto-agente.js';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 
@@ -502,6 +502,12 @@ describe('fluxo 3 · modo e alerta (funções puras)', () => {
     assert.equal(aplicarClassificacaoMensagem({ ...estado, classificacao_conversa: 'lead' }, resposta).nao_lead_no_inicio, false);
   });
 
+  test('não lead no início também dispara com classificacao_conversa "nao_classificado" (ADR 0003, divergência 1: registrar_mensagem.classificacao devolve o enum, não null)', () => {
+    const resposta = { choices: [{ message: { content: JSON.stringify({ tipo_contato: 'candidata', saude: 'nenhum', perda: false }) } }] };
+    const estado = { ...pode({ ok: true, modo: 'vendas', agente_modo: 'producao' }), termo: { alerta: false } };
+    assert.equal(aplicarClassificacaoMensagem({ ...estado, classificacao_conversa: 'nao_classificado' }, resposta).nao_lead_no_inicio, true);
+  });
+
   test('histórico do classificador: até 12 mensagens antes do pedido atual', () => {
     const mensagens = Array.from({ length: 20 }, (_, i) => ({ de: i % 2 ? 'familia' : 'isadora', texto: `m${i}` }));
     const texto = historicoParaClassificador([...mensagens, { de: 'familia', texto: 'nova' }], 12);
@@ -800,6 +806,24 @@ describe('fluxo 3 · saída do agente e reescrita (funções puras)', () => {
     assert.equal(entrada.prompt['valor.continuado'], 'R$ 8.100');
     assert.deepEqual(Object.keys(entrada.prompt), VARIAVEIS_PROMPT_ISADORA);
   });
+
+  test('resolverUrlPdf (ADR 0003, divergência 4): URL absoluta passa direto; caminho cru só vira URL com urlPublicaMarketing; sem base, some (nunca manda link quebrado)', () => {
+    assert.equal(resolverUrlPdf('https://exemplo.invalid/a.pdf', ''), 'https://exemplo.invalid/a.pdf');
+    assert.equal(resolverUrlPdf('https://exemplo.invalid/a.pdf', 'https://outra.invalid/marketing'), 'https://exemplo.invalid/a.pdf');
+    assert.equal(resolverUrlPdf('apresentacao/kraamzorg.pdf', 'https://exemplo.invalid/marketing/'), 'https://exemplo.invalid/marketing/apresentacao/kraamzorg.pdf');
+    assert.equal(resolverUrlPdf('apresentacao/kraamzorg.pdf', 'https://exemplo.invalid/marketing'), 'https://exemplo.invalid/marketing/apresentacao/kraamzorg.pdf');
+    assert.equal(resolverUrlPdf('apresentacao/kraamzorg.pdf', ''), '');
+    assert.equal(resolverUrlPdf('', 'https://exemplo.invalid/marketing'), '');
+  });
+
+  test('ficha_para_agente com pdf.url só como caminho (seed real, sem "url" em pdf_apresentacao): a entrada do agente monta a URL a partir do config, nunca manda o caminho cru', () => {
+    const fichaComCaminho = { ...FICHA, pdf: { ...FICHA.pdf, url: 'apresentacao/kraamzorg-2026-leve.pdf' } };
+    const estado = { texto_agrupado: 'oi', modo: 'vendas' };
+    const semConfig = prepararEntradaAgente(estado, { resultado: fichaComCaminho }, {});
+    assert.equal(semConfig.pdf.url, '', 'sem urlPublicaMarketing, o caminho cru não vira envio (faltou_apresentacao cuida do resto)');
+    const comConfig = prepararEntradaAgente(estado, { resultado: fichaComCaminho }, { urlPublicaMarketing: 'https://exemplo.invalid/marketing' });
+    assert.equal(comConfig.pdf.url, 'https://exemplo.invalid/marketing/apresentacao/kraamzorg-2026-leve.pdf');
+  });
 });
 
 describe('fluxo 3 · follow-up (funções puras)', () => {
@@ -939,7 +963,7 @@ describe('fluxo 3 · cenários do P25 (JSON gerado no simulador)', () => {
     assert.ok(!execucao.rodou(NOS.validarResposta));
   });
 
-  test('"Tente se deitar e beber água. [SILENCIO]" depois de acionar_equipe_saude: nada sai', async () => {
+  test('"Tente se deitar e beber água. [SILENCIO]" depois de acionar_equipe_saude: nada sai, e a memória descarta a fala que a família nunca leu (ADR 0003, divergência 2)', async () => {
     const ambiente = criarAmbiente({
       agente: (parametros, item, ctx) => {
         ctx.marcarExecutado(FERRAMENTAS.acionarEquipeSaude);
@@ -949,13 +973,15 @@ describe('fluxo 3 · cenários do P25 (JSON gerado no simulador)', () => {
     await rodar(ambiente, corpo({ texto: 'estou meio tonta' }));
     assert.equal(ambiente.estado.envios.length, 0);
     assert.equal(ambiente.chamadas('pode_enviar').length, 0);
+    assert.deepEqual(ambiente.chamadas('sincronizar_memoria').map((c) => c.argumentos), [[CONVERSA, 'descartado', null]]);
   });
 
-  test('[SILENCIO] no meio do texto: nada sai', async () => {
+  test('[SILENCIO] no meio do texto: nada sai, e a memória descarta a fala que a família nunca leu (ADR 0003, divergência 2)', async () => {
     const ambiente = criarAmbiente({ agente: () => ({ output: 'Combinado. [SILENCIO] Até mais.' }) });
     const execucao = await rodar(ambiente, corpo({ texto: 'ok, obrigada' }));
     assert.equal(ambiente.estado.envios.length, 0);
     assert.ok(!execucao.rodou(NOS.validarResposta));
+    assert.deepEqual(ambiente.chamadas('sincronizar_memoria').map((c) => c.argumentos), [[CONVERSA, 'descartado', null]]);
   });
 
   test('modelo de conversa fora do ar: fluxo 2 com outro, prioridade alta e resumo do config; nada à família', async () => {
@@ -1517,6 +1543,31 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
       const lista = fluxo3.nodes.find((n) => n.name === nome).parameters.options.queryReplacement;
       assert.ok(lista.startsWith(`={{ [ ${EXPR_CONVERSA}`), nome);
     }
+  });
+
+  test('descrição de atualizar_ficha lista as chaves que agente.atualizar_lead aceita e diz que chave desconhecida é ignorada (ADR 0003, divergência 3)', async () => {
+    const { fluxo3 } = await fluxos();
+    const descricao = fluxo3.nodes.find((n) => n.name === FERRAMENTAS.atualizarFicha).parameters.toolDescription;
+    // Mesma lista de `v_aceitas` em supabase/migrations/0013_agente_parte1.sql (agente.atualizar_lead).
+    const chaves = [
+      'nome', 'para_quem', 'dpp', 'semanas', 'cidade', 'bairro', 'uf',
+      'primeira_gestacao', 'primeiro_bebe', 'gemelar', 'gemeos', 'rede_apoio',
+      'principal_preocupacao', 'parceiro_participa', 'plano_interesse', 'plano',
+      'pagamento_preferido', 'pagamento', 'origem', 'historico_sensivel',
+      'quer_contratar', 'sem_interesse',
+    ];
+    for (const chave of chaves) assert.ok(descricao.includes(chave), `descrição de atualizar_ficha sem a chave "${chave}"`);
+    assert.match(descricao, /ignorad[ao]/i);
+  });
+
+  test('nada sai para a família (saúde/silêncio, faltou apresentação): sincronizar_memoria(descartado) é o destino das duas saídas falsas que hoje ficam sem conexão (ADR 0003, divergência 2)', async () => {
+    const { fluxo3 } = await fluxos();
+    const no = fluxo3.nodes.find((n) => n.name === NOS.memoriaDescartada);
+    assert.ok(no, 'nó "Memória: Fala Descartada" não existe no fluxo 3');
+    assert.match(no.parameters.query, /^select agente\.sincronizar_memoria\(\$1, \$2, \$3\)/);
+    assert.equal(no.parameters.options.queryReplacement, `={{ [ ${EXPR_CONVERSA}, 'descartado', null ] }}`);
+    assert.deepEqual(fluxo3.connections[NOS.modeloFalhou].main[1], [{ node: NOS.memoriaDescartada, type: 'main', index: 0 }]);
+    assert.deepEqual(fluxo3.connections[NOS.faltouApresentacao].main[1], [{ node: NOS.memoriaDescartada, type: 'main', index: 0 }]);
   });
 
   test('memória Postgres com session_id = conversa_id e janela de 30; PGVector como ferramenta com topK 5', async () => {

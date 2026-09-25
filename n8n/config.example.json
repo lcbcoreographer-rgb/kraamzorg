@@ -111,6 +111,11 @@
     "intervaloEntreBlocosSegundos": 1
   },
 
+  "_comentario_storage": "ADR 0003, divergência 4 (docs/adr/0003-fronteira-agente.md): agente.ficha_para_agente devolve pdf.url com a URL de parametro.pdf_apresentacao.url quando existe, senão o path cru do bucket (é o caso do seed). urlPublicaMarketing é a URL pública (sem barra final) do bucket de marketing, usada só para montar a URL quando o banco só tem o path; o nó Enviar Apresentação nunca manda um path cru para a UAZAPI. Vazio (ou path sem esta chave) faz o PDF contar como indisponível: nada sai e o fluxo abre a transferência (faltou_apresentacao), nunca um link quebrado.",
+  "storage": {
+    "urlPublicaMarketing": "https://exemplo-nao-real.kraamzorg.invalid/marketing"
+  },
+
   "grupoFallbackJid": "000000000000-0000000000@g.us",
   "_comentario_grupoFallbackTexto": "PRD 19.1 e 23.3: único texto à equipe fora de mensagem_modelo, usado só quando registrar_handoff falha em saúde ou perda (exceção do ADR 0003). {telefone} e {texto_familia} são trocados pelo fluxo 2.",
   "grupoFallbackTexto": "[NÃO REGISTRADO NO SISTEMA] Possível alerta de saúde · {telefone} · \"{texto_familia}\"",

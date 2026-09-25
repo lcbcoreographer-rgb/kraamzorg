@@ -31,6 +31,28 @@ export type Database = {
         };
         Returns: Json;
       };
+      base_conhecimento_aprovar: {
+        Args: { id: string };
+        Returns: Json;
+      };
+      base_conhecimento_listar: {
+        Args: never;
+        Returns: Json;
+      };
+      base_conhecimento_salvar: {
+        Args: {
+          fonte?: string;
+          id: string;
+          texto: string;
+          tipo: string;
+          titulo: string;
+        };
+        Returns: Json;
+      };
+      buscar_duplicatas_pipeline: {
+        Args: never;
+        Returns: Json;
+      };
       dados_contrato: {
         Args: { completo?: boolean; pessoa_id: string };
         Returns: Json;
@@ -110,11 +132,51 @@ export type Database = {
           qualificados: number;
         }[];
       };
+      mesclar_familias: {
+        Args: {
+          familia_fica_id: string;
+          familia_perde_id: string;
+          oportunidade_fica_id?: string;
+        };
+        Returns: Json;
+      };
+      metricas_agente: {
+        Args: { ate: string; desde: string };
+        Returns: Json;
+      };
       parametros_da_tela: {
         Args: { chaves?: string[] };
         Returns: { atualizado_em: string; chave: string; valor: Json }[];
       };
+      pausar_conversa: {
+        Args: { conversa_id: string; motivo?: string };
+        Returns: Json;
+      };
+      pode_enviar_mensagem: {
+        Args: {
+          canal?: Database["public"]["Enums"]["modo_mensageria"];
+          categoria: Database["public"]["Enums"]["categoria_automacao"];
+          familia_id: string;
+        };
+        Returns: Json;
+      };
+      reenviar_notificacao_handoff: {
+        Args: { handoff_id: string };
+        Returns: Json;
+      };
+      registrar_envio_tarefa: {
+        Args: { tarefa_id: string; texto: string };
+        Returns: Json;
+      };
+      resolver_transferencia: {
+        Args: { desfecho: string; handoff_id: string };
+        Returns: Json;
+      };
       retomar_agente: {
+        Args: { conversa_id: string };
+        Returns: Json;
+      };
+      retomar_pausa_conversa: {
         Args: { conversa_id: string };
         Returns: Json;
       };
@@ -173,6 +235,14 @@ export type Database = {
           papel_minimo: Database["public"]["Enums"]["papel_usuario"];
           pode: boolean;
         }[];
+      };
+      ultima_ingestao_base: {
+        Args: never;
+        Returns: Json;
+      };
+      vincular_nova_gestacao: {
+        Args: { familia_anterior_id: string; familia_id: string };
+        Returns: Json;
       };
     };
     Enums: {

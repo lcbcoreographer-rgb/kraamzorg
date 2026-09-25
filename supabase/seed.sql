@@ -249,8 +249,12 @@ insert into parametro (chave, valor, descricao) values
   ('validador_listas',
    '{"palavras_evitadas":["mãezinha","mamãe","papai","amiga","princesa","empoderamento","transformação","milagre","vibe","energia","cura","método infalível","garantimos","última vaga","imperdível"],'
    '"promessas":["garantimos","resultado garantido","com certeza vai","prometo que"],'
-   '"escassez":["última vaga","corre que acaba","só hoje","imperdível","não perca essa chance"]}',
-   'PRD 6.8, 11.6, 11.11 item 5: listas lidas pelo validador do fluxo 3, nunca escritas no código (fluxo 3 ainda não existe, fica pronto para o P22 a P25).'),
+   '"escassez":["última vaga","corre que acaba","só hoje","imperdível","não perca essa chance"],'
+   '"pedido_dado":["cpf","rg","documento","documentos","endereço","cep","data de nascimento","e-mail","email"],'
+   '"pedido_verbos":["manda","mande","mandar","me manda","passa","passe","passar","me passa","envia","envie","enviar","informa","informe","informar","preciso do","preciso da","qual é o seu","qual o seu","qual é a sua","qual a sua"],'
+   '"negar_assistente":["sou humana","sou um humano","sou uma pessoa de verdade","não sou um bot","não sou um robô","não sou robô","não sou uma assistente virtual","não sou assistente virtual","não sou uma ia","não sou inteligência artificial"],'
+   '"palavras_condicao":["desconto","pix","à vista","cupom","parcela","parcelas","parcelamento","parcelado"]}',
+   'PRD 6.8, 11.6, 11.11 item 5: listas lidas pelo validador do fluxo 3 (n8n/src/code/validar-resposta.js, LISTAS_VALIDADOR e pedido_verbos), nunca escritas no código. pedido_dado: CPF, RG, endereço, CEP, data de nascimento, e-mail e documento (11.11 item 5), só quando a oração é pedido (verbo de pedido_verbos ou pergunta) e sem negação logo antes; negar_assistente: frases que negam ser assistente virtual (11.6); palavras_condicao: percentual perto delas reprova (desconto, Pix, à vista, cupom, parcela) [confirmar: Leonardo, listas completas].'),
   ('score_pesos',
    '{"fit_operacional":{"peso":40,"componentes":{"cidade_atendida":1,"regiao_com_profissional":1,"dpp_com_capacidade":1}},'
    '"fit_comercial":{"peso":35,"componentes":{"interesse":1,"engajamento":1,"sessao_agendada":1,"parceiro_envolvido":1}},'

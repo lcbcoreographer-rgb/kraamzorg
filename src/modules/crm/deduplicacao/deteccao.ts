@@ -18,12 +18,12 @@ import type {
  * nome com DPP a até 14 dias; mesmo telefone com DPP muito distante sugere
  * vínculo de nova gestação (regra 12), não mesclagem.
  *
- * O banco já tem `privado.buscar_duplicatas` (migration 0010, revogada de
- * `authenticated` de propósito): falta o wrapper `api.*` que a tela chama,
- * que é de outra trilha (0012 a 0014, em andamento). Por isso o caminho do
- * Supabase usa `rpcPendente`: enquanto a função não existir, devolve
- * `indisponivelNoBanco` em vez de "nenhuma duplicata" (são coisas
- * diferentes). O caminho de demonstração calcula a mesma regra em memória,
+ * No Supabase, `api.buscar_duplicatas_pipeline()` (migration 0017) devolve
+ * todos os pares de uma vez, pela regra de `privado.buscar_duplicatas`
+ * (0010) e com os cortes de `parametro.deduplicacao`. Se a função não
+ * existir no banco (`funcao_pendente`), a tela mostra `indisponivelNoBanco`
+ * em vez de "nenhuma duplicata" (são coisas diferentes). O caminho de
+ * demonstração calcula a mesma regra em memória,
  * com os mesmos cortes do parâmetro `deduplicacao` do seed (P08):
  * `limiar_nome` 0,6 e `dpp_dias` 14. Comercial e coordenação não leem
  * `parametro` (PRD 13), então os cortes ficam aqui, não em
@@ -48,8 +48,9 @@ export async function listarDuplicatas(): Promise<ResultadoDeteccao> {
 
 async function listarDuplicatasSupabase(): Promise<ResultadoDeteccao> {
   const cliente = await criarClienteServidor();
+  let resposta: unknown;
   try {
-    await rpcPendente(cliente, "buscar_duplicatas_pipeline", {});
+    resposta = await rpcPendente(cliente, "buscar_duplicatas_pipeline", {});
   } catch (erro) {
     if (erro instanceof ErroRepositorio && erro.codigo === "funcao_pendente") {
       return {
@@ -61,13 +62,24 @@ async function listarDuplicatasSupabase(): Promise<ResultadoDeteccao> {
     }
     throw erro;
   }
-  // A função ainda não existe (ver comentário acima); quando chegar, troca
-  // o retorno acima por uma consulta tipada de verdade.
+  return lerResultadoBanco(resposta);
+}
+
+/** O jsonb de `api.buscar_duplicatas_pipeline` já vem no formato da tela
+ * (chaves de `ResultadoDeteccao`); aqui só garante listas quando falta
+ * alguma chave, para a tela nunca quebrar. */
+function lerResultadoBanco(resposta: unknown): ResultadoDeteccao {
+  const registro =
+    resposta && typeof resposta === "object" && !Array.isArray(resposta)
+      ? (resposta as Record<string, unknown>)
+      : {};
+  const lista = <T>(valor: unknown): T[] =>
+    Array.isArray(valor) ? (valor as T[]) : [];
   return {
-    certas: [],
-    provaveis: [],
-    novasGestacoes: [],
-    indisponivelNoBanco: true,
+    certas: lista<ParDuplicataCerta>(registro.certas),
+    provaveis: lista<ParDuplicataProvavel>(registro.provaveis),
+    novasGestacoes: lista<ParDuplicataCerta>(registro.novasGestacoes),
+    indisponivelNoBanco: registro.indisponivelNoBanco === true,
   };
 }
 

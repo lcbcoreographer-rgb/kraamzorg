@@ -113,7 +113,7 @@ As funções seguem o PRD; estes pontos precisam de ajuste no n8n:
 2. `sincronizar_memoria` com o papel `descartado` (Apêndice A [v4.2], nós 27, 29 e 35) não é chamado em nenhum caminho do fluxo 3: quando nada sai para a família (saúde, perda, `[SILENCIO]`, violação que persiste), a fala do modelo continua na memória.
 3. A descrição da ferramenta `atualizar_ficha` não diz as chaves que o banco aceita (seção 4); o modelo inventa nomes e o que não bate volta em `campos_ignorados`. Pôr as chaves na descrição ou no `$fromAI`.
 4. `parametro.pdf_apresentacao` tem `path` (caminho no bucket), não a URL pública; `ficha_para_agente.pdf.url` devolve `url` se existir e senão o `path`. O envio do nó 34 precisa da URL: acrescentar `url` ao parâmetro por ambiente ou montar a URL no fluxo a partir do config.
-5. `parametro.validador_listas` do seed traz só `palavras_evitadas`, `promessas` e `escassez`; o validador também lê `pedido_dado`, `pedido_verbos`, `negar_assistente` e `palavras_condicao` (PRD 11.11 item 5). Dado a completar, sem mudança de função.
+5. `parametro.validador_listas` do seed traz só `palavras_evitadas`, `promessas` e `escassez`; o validador também lê `pedido_dado`, `pedido_verbos`, `negar_assistente` e `palavras_condicao` (PRD 11.11 item 5). Dado a completar, sem mudança de função. Resolvido no seed junto da 0017: as quatro listas entraram [confirmar: Leonardo, listas completas].
 
 ## Pendências
 
@@ -122,5 +122,5 @@ As funções seguem o PRD; estes pontos precisam de ajuste no n8n:
 | Lista exata de motivos que põem a conversa em `humano_comercial` | PRD ao pé da letra (seção 5, item 7) | Leonardo |
 | Textos novos de `mensagem_modelo` (seção 6) | Rascunho no seed; os do grupo saem mesmo assim, marcados | Leonardo |
 | Destino e SLA de mídia e áudio de cliente | `se_cliente`, `se_atendimento` e `se_nao_cliente` na matriz | Edilaine |
-| `api.pausar_conversa`, `api.retomar_pausa_conversa`, `api.resolver_transferencia` (desfecho), wrappers da base de conhecimento e `api.metricas_agente`, pedidos pelo P27 | Fora do escopo do P21 e P22 | Próxima sessão de banco |
+| `api.pausar_conversa`, `api.retomar_pausa_conversa`, `api.resolver_transferencia` (desfecho), wrappers da base de conhecimento e `api.metricas_agente`, pedidos pelo P27 | Feitas na 0017 (ADR 0002, seção 5), com `api.ultima_ingestao_base` | Próxima sessão de banco |
 | Código de origem do link na primeira mensagem (P47) | Não lido ainda | P47 |

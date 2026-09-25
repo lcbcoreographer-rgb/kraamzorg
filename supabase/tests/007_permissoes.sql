@@ -947,7 +947,13 @@ select set_eq(
             ('api.log_auditoria'),
             ('api.acionar_freio'), ('api.desfazer_freio'), ('api.justificar_freio'), ('api.reverter_freio'),
             ('api.retomar_agente'), ('api.eliminar_titular'),
-            ('api.revogar_sessoes'), ('api.transicoes_permitidas'), ('api.parametros_da_tela') $$,
+            ('api.revogar_sessoes'), ('api.transicoes_permitidas'), ('api.parametros_da_tela'),
+            ('api.buscar_duplicatas_pipeline'), ('api.mesclar_familias'), ('api.vincular_nova_gestacao'),
+            ('api.pode_enviar_mensagem'), ('api.registrar_envio_tarefa'),
+            ('api.pausar_conversa'), ('api.retomar_pausa_conversa'), ('api.resolver_transferencia'),
+            ('api.reenviar_notificacao_handoff'), ('api.base_conhecimento_listar'),
+            ('api.base_conhecimento_salvar'), ('api.base_conhecimento_aprovar'), ('api.metricas_agente'),
+            ('api.ultima_ingestao_base') $$,
   'authenticated executa exatamente a lista do ADR 0002 seção 6');
 
 select is_empty(

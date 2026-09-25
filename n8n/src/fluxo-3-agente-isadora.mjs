@@ -182,6 +182,7 @@ export const NOS = {
   registrarPdf: 'Registrar PDF Enviado',
   textoSaiu: 'Texto Saiu?',
   memoriaIa: 'Memória: Fala da IA',
+  memoriaDescartada: 'Memória: Fala Descartada',
   // Entrada B
   aCada30Min: 'A Cada 30 Min',
   buscarFollowups: 'Buscar Follow-ups Devidos',
@@ -267,7 +268,7 @@ const DESCRICOES = {
   verificar_disponibilidade:
     'Confere se há disponibilidade para a DPP na cidade. Devolve disponivel ou confirmar_com_equipe. Precisa da DPP.',
   atualizar_ficha:
-    'Registra na ficha cada dado novo que a família contou (nome, para quem, semanas ou DPP, cidade, bairro, primeiro bebê, gêmeos, rede de apoio, principal preocupação como tema curto, plano de interesse, pagamento preferido, origem) e as marcas quer_contratar, sem_interesse e historico_sensivel (sem detalhe). Nunca registra perda.',
+    'Registra na ficha cada dado novo que a família contou. Chaves aceitas em "dados": nome, para_quem, dpp (dd/mm/aaaa), semanas (ex.: "29" ou "29s3d"), cidade, bairro, uf, primeira_gestacao (ou primeiro_bebe), gemelar (ou gemeos), rede_apoio, principal_preocupacao (só o tema, curto), parceiro_participa, plano_interesse (ou plano), pagamento_preferido (ou pagamento), origem, historico_sensivel (só verdadeiro ou falso), quer_contratar e sem_interesse. Qualquer outra chave é ignorada, sem erro. Nunca registra perda.',
   registrar_retorno: 'Registra que a família pediu para ser chamada depois, com a data combinada ou as semanas-alvo.',
   marcar_nao_contatar: 'Registra o pedido explícito da família para não receber mais mensagens.',
   transferir_para_equipe:
@@ -724,7 +725,7 @@ export function montarFluxo(config) {
   code(
     NOS.prepararEntradaAgente,
     'contexto-agente.js',
-    `return { json: prepararEntradaAgente($(${JSON.stringify(NOS.estadoParaAgente)}).item.json, $json, { linhaMidia: ${JSON.stringify(textos.linhaMidia)}, nomesMidia: ${JSON.stringify(textos.nomesMidia ?? {})} }) };`,
+    `return { json: prepararEntradaAgente($(${JSON.stringify(NOS.estadoParaAgente)}).item.json, $json, { linhaMidia: ${JSON.stringify(textos.linhaMidia)}, nomesMidia: ${JSON.stringify(textos.nomesMidia ?? {})}, urlPublicaMarketing: ${JSON.stringify(config.storage?.urlPublicaMarketing ?? '')} }) };`,
     [7460, 1100],
   );
   se(NOS.fichaOk, '$json.ficha_ok === true', [7680, 1100]);
@@ -1057,6 +1058,18 @@ export function montarFluxo(config) {
     [13840, 800],
   );
 
+  // Papel "descartado" (ADR 0003, divergência 2): quando nada sai para a
+  // família (saúde ou perda por acionar_equipe_saude, [SILENCIO], ou
+  // validação que não se recupera nem com o fallback), a fala do modelo
+  // apaga a última fala "ai" da memória em vez de ficar lá para sempre sem
+  // a família ter lido.
+  postgres(
+    NOS.memoriaDescartada,
+    'select agente.sincronizar_memoria($1, $2, $3) as resultado',
+    [EXPR_CONVERSA, "'descartado'", 'null'],
+    [11200, 1500],
+  );
+
   // -------------------------------------------------------------------------
   // Entrada B, nós 36 a 41: follow-up agendado.
   // -------------------------------------------------------------------------
@@ -1222,6 +1235,7 @@ export function montarFluxo(config) {
   ligar(NOS.iaDecidiuResponder, NOS.validarResposta, 0);
   ligar(NOS.iaDecidiuResponder, NOS.modeloFalhou, 1);
   ligar(NOS.modeloFalhou, NOS.prepararIaForaDoAr, 0);
+  ligar(NOS.modeloFalhou, NOS.memoriaDescartada, 1);
   ligar(NOS.prepararIaForaDoAr, NOS.avisarIaForaDoAr);
   ligar(NOS.avisarIaForaDoAr, NOS.lerAvisoIaForaDoAr);
   ligar(NOS.lerAvisoIaForaDoAr, NOS.iaSemRegistro);
@@ -1250,6 +1264,7 @@ export function montarFluxo(config) {
   ligar(NOS.temEnvio, NOS.reconsultar, 0);
   ligar(NOS.temEnvio, NOS.faltouApresentacao, 1);
   ligar(NOS.faltouApresentacao, NOS.prepararIaForaDoAr, 0);
+  ligar(NOS.faltouApresentacao, NOS.memoriaDescartada, 1);
   ligar(NOS.reconsultar, NOS.lerReconsulta);
   ligar(NOS.lerReconsulta, NOS.podeEnviar);
   ligar(NOS.podeEnviar, NOS.separarBlocos, 0);

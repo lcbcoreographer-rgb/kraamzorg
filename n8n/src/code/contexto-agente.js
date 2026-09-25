@@ -91,7 +91,26 @@ export function contextoDoValidador(validador) {
   };
 }
 
-export function prepararEntradaAgente(estado, respostaFicha, { linhaMidia, nomesMidia } = {}) {
+// `ficha_para_agente.pdf.url` devolve a URL de `parametro.pdf_apresentacao.url`
+// quando existe, senão o `path` cru do bucket (ADR 0003, divergência 4): o
+// banco não sabe montar URL pública, só o build conhece o domínio do bucket
+// de marketing por ambiente. Uma string que já começa com http(s) é usada
+// como está; senão é tratada como caminho e prefixada por
+// `urlPublicaMarketing` (config, `storage.urlPublicaMarketing`). Sem essa
+// configuração, um caminho cru não vira envio: fica vazio, e
+// `faltou_apresentacao` abre a transferência em vez de mandar um link quebrado.
+const URL_ABSOLUTA = /^https?:\/\//i;
+
+export function resolverUrlPdf(url, urlPublicaMarketing) {
+  const valor = textoLimpo(url);
+  if (!valor) return '';
+  if (URL_ABSOLUTA.test(valor)) return valor;
+  const base = textoLimpo(urlPublicaMarketing).replace(/\/+$/, '');
+  if (!base) return '';
+  return `${base}/${valor.replace(/^\/+/, '')}`;
+}
+
+export function prepararEntradaAgente(estado, respostaFicha, { linhaMidia, nomesMidia, urlPublicaMarketing } = {}) {
   const ficha = resultadoDoBanco(respostaFicha);
   const fichaOk = ficha?.ok === true && typeof ficha.ficha === 'string' && ficha.ficha.trim().length > 0;
   const comLegenda = estado.midia === true && textoLimpo(estado.texto_agrupado).length > 0;
@@ -107,7 +126,7 @@ export function prepararEntradaAgente(estado, respostaFicha, { linhaMidia, nomes
     prompt: fichaOk ? camposDoPrompt(ficha, estado.modo) : {},
     validador: fichaOk ? contextoDoValidador(ficha.validador) : { planos: [], listas: null },
     pdf: {
-      url: textoLimpo(pdf.url),
+      url: resolverUrlPdf(pdf.url, urlPublicaMarketing),
       nome_arquivo: textoLimpo(pdf.nome_arquivo),
       reenvio_janela_horas: Number(pdf.reenvio_janela_horas) || 0,
       enviado_em: textoLimpo(pdf.enviado_em) || null,
