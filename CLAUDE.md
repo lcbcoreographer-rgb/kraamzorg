@@ -39,16 +39,17 @@ Banco e dados
 - Função `security definer` sempre com `set search_path = ''` e nomes qualificados (`public.familia`, `extensions.unaccent`).
 - O PostgREST expõe só `public` e `api`. O app chama por RPC apenas funções de `api`, que checam papel e AAL e chamam as internas de `privado` e `assistencial`. O `execute` padrão para `public` é revogado em todo schema; cada papel recebe só o que usa.
 - Função que grava log (as `assistencial.ler_*`) é `volatile`. `privado.tem_papel` e `privado.familias_atribuidas` são `security definer`, senão as políticas entram em recursão.
-- O gatilho de auditoria grava colunas alteradas com as sensíveis (CPF, endereço, fichas clínicas, transcrições, conteúdo de mensagem) trocadas por "[oculto]" e hash. O log prova a mudança sem copiar o prontuário.
+- O gatilho de auditoria grava colunas alteradas com as pessoais e sensíveis (CPF, endereço, fichas clínicas, transcrições, conteúdo de mensagem, resumo de handoff, motivo de estado sensível, entre outras da lista do ADR 0002) trocadas por "[oculto]" e um **HMAC-SHA256 com chave no Supabase Vault** (nunca hash puro, que se reverte). O log prova a mudança sem copiar o prontuário. **[v4.2]**
 - Nenhum preço, prazo, texto, limite ou lista de termos no código. Vai para `parametro`, `pacote_versao`, `mensagem_modelo`, `termo_alerta`, `regua_faixa`, `regra_alerta` ou `condicao_comercial`.
 
 Mensagens e automações
-- Toda mensagem do app para família sai pelo adaptador de mensageria (`src/lib/messaging`) e passa por `privado.pode_enviar_mensagem()`. Nenhum módulo do app chama WhatsApp, UAZAPI ou e-mail direto. A única exceção é o n8n, que envia pela UAZAPI e chama `agente.pode_enviar()` imediatamente antes de cada envio.
+- Toda mensagem do app para família sai pelo adaptador de mensageria (`src/lib/messaging`) e passa por `privado.pode_enviar_mensagem()`. Nenhum módulo do app chama WhatsApp, UAZAPI ou e-mail direto. A única exceção é o n8n, que envia pela UAZAPI e chama `agente.pode_enviar()` imediatamente antes de cada resposta ou follow-up à família. **[v4.2]** Essa checagem nunca entra no texto de alerta de saúde ou perda (`agente.mensagem_alerta`, que sai pelo sistema, não pelo modelo) nem nos avisos internos ao grupo ou ao plantão: são caminhos à parte, sem pausa nem janela de horário.
 - Toda automação passa por `privado.pode_executar()` e reconsulta o freio no instante do envio.
 - O agente só sobe o freio. Nunca baixa.
 
 Segurança e LGPD
 - Dado real nunca sai de produção. Desenvolvimento e homologação usam só o seed sintético. Nenhum arquivo do Drive do cliente entra no repositório.
+- **[v4.2]** As vinte conversas reais de WhatsApp do treinamento do agente (onboarding, capítulo 10.1) nunca entram no repositório, nem como arquivo nem como trecho colado em documento, prompt ou seed: ficam só no Drive ou no cofre da Kraamzorg, para leitura humana. Só os exemplos fictícios do treinamento de 24/09 (nomes trocados) entram no repositório, na base de conhecimento do agente (P26).
 - Nome de paciente nunca em nome de arquivo, caminho de storage, URL, query string, assunto de e-mail, metadado de PDF ou log.
 - `service_role` só no servidor (rotas de API e jobs), nunca no navegador e nunca no n8n.
 - Segredos só em variáveis de ambiente e no cofre da Kraamzorg. Nada de segredo em código, teste, fixture ou migration. `n8n/config.*.json` (menos o example) e `n8n/dist/` ficam fora do git. Papel de banco é criado sem senha; a senha é definida à mão a partir do cofre.
@@ -60,10 +61,11 @@ Clínico
 
 Agente e n8n
 - O n8n acessa o banco só pelo papel `n8n_agente`: funções do schema `agente` e as duas tabelas de `agente_n8n` que os nós LangChain usam (D-14). Nunca lê dado assistencial.
-- O filtro de saúde roda antes de qualquer decisão de modo, em todos os modos menos `desligado`. Nenhuma mudança no fluxo 3 pode colocar a checagem de pausa ou de mídia antes dele.
-- O `jid` de toda chamada vem do webhook, nunca de um parâmetro que o modelo preenche.
+- O filtro de saúde roda antes de qualquer decisão de modo, em todos os modos menos `desligado`. Nenhuma mudança no fluxo 3 pode colocar a checagem de pausa ou de mídia antes dele. **[v4.2]** Isso vale também no modo `humano_comercial`: o filtro de saúde continua rodando ali, com `enviar_texto` verdadeiro.
+- **[v4.2]** A chave de toda chamada ao banco é o `conversa_id`, lido do nó "Registrar Msg Família" (ou "Registrar Msg Humana"), nunca de um parâmetro que o modelo preenche. O `jid` vem do webhook e só serve para enviar.
 - Os JSON dos fluxos são gerados por `n8n/build.mjs`. Nunca edite JSON à mão nem monte fluxo pela interface.
 - Textos da Isadora e dos classificadores moram em `n8n/prompts/`. Mudança de texto passa por aprovação do Leonardo (e da Edilaine no que for clínico).
+- **[v4.2]** `humano_comercial`: modo do agente para lead comercial já qualificado e transferido ao comercial (`reuniao`, `contratar`, `condicao_comercial`, ou qualquer transferência ao comercial com a oportunidade em `qualificado` ou adiante; PRD 11.4 e 11.7; o Leonardo confirma a lista exata). Nesse modo a Isadora não volta a responder com conteúdo comercial: nem pela pausa vencer, nem pelo botão "resolver" da fila de transferências. Só o botão específico "Devolver à Isadora" (via `privado.retomar_agente`) reabre a conversa. Decisão do Leonardo em 24/09 (notas-reuniao-24-09.md).
 
 ## Texto de interface
 
@@ -74,6 +76,8 @@ Agente e n8n
 - Formatação brasileira: R$ 4.200, 24/09/2026, 38s2d.
 
 ## Design
+
+**[v4.2]** Direção visual e de experiência em `docs/design/DESIGN.md` (tokens, iconografia, componentes, microcopy) e `docs/design/fluxos.md` (fluxos A a E, tela a tela). Protótipo de referência em `docs/prototipo/`. O PRD trava paleta, fontes e regras de acessibilidade; o DESIGN.md e o fluxos.md dizem a direção, a hierarquia e o padrão de componente. Sessão de tela que tenha um grupo correspondente no protótipo lê os dois antes de codar (PROMPTS.md lista qual grupo em cada sessão).
 
 Tokens só em `src/app/globals.css` (`@theme` do Tailwind v4). Nenhuma tela inventa cor, fonte, raio ou sombra.
 
@@ -106,6 +110,12 @@ pnpm lint && pnpm typecheck
 node n8n/build.mjs --env hml      # gera n8n/dist/*.json para homologação
 node --test n8n/build.test.mjs    # testes estruturais e das funções dos nós
 gitleaks detect --no-banner
+
+# [v4.2] sem Docker nesta máquina, alternativa a supabase start/db reset/test db
+# (a prova final continua sendo as três linhas acima, com Docker de verdade)
+supabase/sem-docker/scripts/iniciar.sh   # sobe o Postgres local
+supabase/sem-docker/scripts/resetar.sh   # recria o banco: camada + migrations + seed
+supabase/sem-docker/scripts/testar.sh    # reseta e roda pg_prove em supabase/tests
 ```
 
 ## Estrutura
@@ -135,3 +145,13 @@ tests/  docs/  public/brand/
 - Falta credencial ou conta que só a Kraamzorg pode criar.
 - Um teste de invariante falha e a correção exigiria afrouxar a regra.
 - Você está prestes a aplicar migration, apagar dado, mexer em RLS de tabela assistencial ou publicar algo em produção.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -2,7 +2,7 @@
 
 Sequência de sessões do Claude Code, do repositório vazio ao aceite final. Cada prompt é uma sessão (às vezes duas) com um objetivo só. A ordem respeita as dependências do PRD: banco antes de tela, freio antes de automação, fronteira do agente antes dos fluxos n8n.
 
-Versão 1 · 24/09/2026 · acompanha o PRD v4.1
+Versão 2 · 25/09/2026 · acompanha o PRD v4.2
 
 ## Como usar
 
@@ -20,36 +20,39 @@ Regras de uso:
 
 Os três arquivos JSON do n8n saem dos prompts P24 (fluxo 2), P25 (fluxo 3) e P26 (fluxo 1), gerados por script a partir do repositório. Os fluxos da Enjoy em `n8n/referencia/` servem só como referência de formato de nó; a lógica é a do capítulo 19 do PRD.
 
-## Calendário
+## Calendário [v4.2]
 
-O cronograma do contrato coloca o aceite das Fases 0 e 1 em 02/10. São 34 sessões até lá (P00 a P33), e entre 24/09 e 02/10 cabem umas 14, com duas pessoas trabalhando em paralelo e uma sessão por dia cada. Além disso, três itens de terceiros travam o aceite da Fase 1 do jeito que o PRD define (16.2: família fictícia do primeiro contato no WhatsApp até o pagamento confirmado): a conta do WhatsApp está restrita desde 24/09 (T-01), a credencial da InfinitePay ainda está em avaliação (T-06) e a Autentique precisa de conta em nome da Kraamzorg. A cláusula 3.4 do contrato prevê o ajuste quando item de terceiro atrasa.
+O cronograma do contrato coloca o aceite das Fases 0 e 1 em 02/10. Três itens de terceiros travam esse aceite do jeito que o PRD define (16.2: família fictícia do primeiro contato no WhatsApp até o pagamento confirmado): a conta do WhatsApp está restrita desde 24/09 (T-01), a credencial da InfinitePay ainda está em avaliação (T-06) e a Autentique precisa de conta em nome da Kraamzorg.
 
-A proposta abaixo mantém a entrega final em 19/11, move o aceite das Fases 0 e 1 para 21/10 e o da Fase 2 para 04/11. A Fase 3 tinha quatro semanas e cabe em duas com duas trilhas, porque os módulos dela dependem pouco uns dos outros.
+**[v4.2] Recalculado em 25/09/2026, depois da revisão da entrega v4.1.** O calendário abaixo parte do estado real do projeto nesta data, não de 24/09: P00 está concluído e verificado (`docs/sessoes/P00.md`) e parte do P10 foi antecipada (`docs/sessoes/P10-parcial.md`). P02 a P09 (banco) e P10 a P12 (interface) não cabem mais na mesma semana: P10 a P12 dependem do P07 (papéis e RLS), e a trilha de banco (P01 a P09) é uma cadeia única de nove sessões, com quatro paradas para revisão humana do SQL (depois de P01, P02, P03 e P04), que não se paralelizam entre si. Com duas pessoas (ou duas sessões do Claude Code em branches separados), uma segue a cadeia de banco enquanto a outra fica sem trabalho de trilha até o P07 liberar a interface; as datas abaixo já contam esse tempo parado. A rodada de correções desta revisão (PRD, PROMPTS e CLAUDE, 25 e 26/09) também entra na conta: a trilha de banco só recomeça depois dela, em 28/09.
+
+O aceite das Fases 0 e 1 (P33) fica **condicionado a T-01 e T-06**: se os dois estiverem resolvidos até o início da semana do P33, o roteiro roda com o WhatsApp e a InfinitePay reais; se não estiverem, o roteiro de aceite roda do mesmo jeito, mas num número de homologação da UAZAPI e com `payment_check` simulado, e o item fica registrado como pendente de refazer com credencial real assim que ela chegar. As datas de Fase 2, congelamento e aceite final abaixo são a mesma proposta original deslocada pelo tempo que a trilha de banco levou a mais; **[confirmar: Leonardo, por escrito]**, porque as novas datas só valem depois da confirmação dele (PRD 22.1, T-10). A semana indicada no cabeçalho de cada sessão ("Fase 1 · S7", por exemplo) é a da proposta de 24/09; quando divergir, vale esta tabela. Como a produção da Isadora depende do adaptador `cloud_api` (PRD 4.1 e T-01), o P18b roda antes do P33, para o aceite poder usar o número real se T-01 estiver resolvido.
 
 | Semana | Datas | Cronograma do contrato | Prompts na proposta |
 | :-- | :-- | :-- | :-- |
-| S3 | 24 e 25/09 | Fases 0 e 1 | P-1, P00, P01 |
-| S4 | 28/09 a 02/10 | Aceite das Fases 0 e 1 em 02/10 | P02 a P09 (banco) e P10 a P12 (interface) |
-| S5 | 05 a 09/10 | Fase 2 | P13 a P20 (CRM) e P21 a P23 (agente) |
-| S6 | 13 a 16/10 (curta) | Aceite da Fase 2 em 15/10 | P29 a P32 (venda) e P24 a P26 (fluxos n8n) |
-| S7 | 19 a 23/10 | Fase 3 | P27, P28 e P33 (aceite das Fases 0 e 1 em 21/10), P34 a P36 |
-| S8 | 26 a 30/10 | Fase 3 | P37 a P41 |
-| S9 | 03 a 06/11 (curta) | Fase 3 | P42 a P44 (aceite da Fase 2 em 04/11), P45 e P46 |
-| S10 | 09 a 13/11 | Congelamento em 13/11 | P47 a P52 |
-| S11 | 16 a 19/11 | Aceite final em 19/11 | P53 e P54 |
-
-Com uma pessoa só, a data final também escorrega. Vale decidir isso com o Leonardo agora, com o bloqueio do WhatsApp registrado por escrito.
+| S3 | 24 e 25/09 (concluída) | Fases 0 e 1 | P-1 (em andamento), P00 (concluído e verificado), P10 (parcial, antecipado) |
+| S4 | 28/09 a 02/10 | Aceite das Fases 0 e 1 em 02/10 (não cumprido, ver acima) | P01 a P04 (banco, uma parada de revisão do SQL depois de cada um) |
+| S5 | 05 a 09/10 | Fase 2 | P05 a P09 (fim do banco, uma pessoa) e, a partir do P07 (por volta do meio da semana), o restante do P10, P11 e P12 (interface, a outra pessoa) |
+| S6 | 13 a 16/10 (curta, 12/10 é feriado) | Fase 2 | P13 a P20 (CRM), as duas pessoas |
+| S7 | 19 a 23/10 | Fase 2 | P21 a P23 (agente, com parada de revisão do SQL depois do P21) e P29 a P32 (venda), em paralelo; **[v4.2]** P18b (adaptador `cloud_api`), antes do P33 |
+| S8 | 26 a 30/10 | Aceite das Fases 0 e 1 | P24 a P28 (fluxos n8n e homologação da Isadora) e P33 (aceite das Fases 0 e 1, candidato a 30/10, condicionado a T-01 e T-06 conforme acima) |
+| S9 | 02 a 06/11 | Fase 3 | P34 a P36 |
+| S10 | 09 a 13/11 | Fase 3 | P37 a P41 |
+| S11 | 16 a 20/11 | Fase 3 | P42 a P44 (aceite da Fase 2), P45 e P46 |
+| S12 | 23 a 27/11 | Congelamento | P47 a P52 |
+| S13 | 30/11 a 04/12 | Aceite final | P53 e P54 |
 
 Trilhas em paralelo (duas pessoas, ou duas sessões do Claude Code em branches separados):
-- Depois do P07, a trilha de interface (P10 a P12) corre junto com o fim do banco (P08 e P09).
+- A trilha de banco (P01 a P09) é sequencial; não dá para paralelizar dentro dela. A trilha de interface (P10 a P12) só começa depois do P07 e corre junto com o fim do banco (P08 e P09).
+- No P13 a P20 (CRM), as duas pessoas dividem as oito sessões, respeitando a ordem de dependência de cada uma (Ler, no cabeçalho de cada prompt).
 - Depois do P20, a trilha do agente (P21 a P28) corre junto com a trilha de venda (P29 a P32).
-- Migrations de trilhas diferentes nunca vão para o banco ao mesmo tempo. Quem for aplicar faz rebase, roda `supabase db reset` local e só então pede revisão.
+- Migrations de trilhas diferentes nunca vão para o banco ao mesmo tempo. Quem for aplicar faz rebase, roda `supabase db reset` (ou `supabase/sem-docker/scripts/resetar.sh` sem Docker) local e só então pede revisão.
 
 Caminho crítico e bloqueios externos:
 
-| Bloqueio | Trava | Situação em 24/09 | Plano B |
+| Bloqueio | Trava | Situação em 25/09 | Plano B |
 | :-- | :-- | :-- | :-- |
-| Conta do WhatsApp restrita (T-01) | Isadora em produção | Restrita desde 24/09 | Construir e homologar com número de teste. Avaliar API oficial num número novo só para o agente. |
+| Conta do WhatsApp restrita (T-01) | Isadora em produção | Restrita desde 24/09 | Construir e homologar com número de teste; produção só com o adaptador `cloud_api` (P18b) pronto, conforme mitigação registrada no PRD 22.1 e 4.1. |
 | Credencial InfinitePay (T-06) | Baixa automática (P32) | Em avaliação | Adaptador pronto com `payment_check` simulado nos testes; baixa manual com comprovante até liberar. |
 | Autentique em nome da Kraamzorg | Contrato (P31) | Não solicitado | Sandbox da Autentique em homologação. |
 | Certificado A1 e provedor de NFS-e (T-05) | NFS-e (P43) | A Kraamzorg nunca emitiu A1; SP muda para o Emissor Nacional em 01/11 | Emissão manual pela contadora até homologar. |
@@ -79,13 +82,14 @@ Material:
 12. PDF leve da apresentação (até 3 MB), com o Gemelar Essencial em R$ 5.400 (T-04).
 13. Logos oficiais em SVG e PNG, da pasta de identidade visual.
 14. Confirmação da licença web das fontes Codec Pro e TT Drugs (T-07). Até lá, Jost e Inter.
-15. Referência do n8n: exportar da instância um fluxo de amostra com um nó de cada tipo usado no capítulo 19 (Webhook, Code, If, Switch, Set, HTTP Request, Postgres, Postgres Tool, Redis, Wait, Split Out, Split in Batches, Schedule Trigger, Manual Trigger, Execute Workflow Trigger com entradas, Execute Workflow, Tool Workflow, AI Agent, OpenAI Chat Model, Embeddings OpenAI, PGVector nos modos inserir e recuperar como ferramenta, Default Data Loader, Postgres Chat Memory, Chat Memory Manager, Sticky Note). Salvar como `n8n/referencia/amostra-nos.json` junto com os três JSON da Enjoy, depois de conferir que nenhum deles tem token, URL de projeto ou ID de credencial real.
+15. **[v4.2]** Referência do n8n: `n8n/referencia/` já existe, reconstruída a partir do código fonte publicado dos pacotes de nó (não de um export real, porque a instância de homologação ainda não existe), com `versoes-nos.json` cobrindo os tipos de nó do capítulo 19 e validação local contra uma instância descartável (`n8n/referencia/README.md`). O que ainda falta: (a) os três JSON de fluxo da Enjoy, que a Drop guarda internamente e ainda não subiram para `n8n/referencia/`, depois de conferir que nenhum tem token, URL de projeto ou ID de credencial real; (b) quando a instância de homologação existir (item 9 e 10 acima), gerar um export real e comparar com `versoes-nos.json`, atualizando qualquer divergência; (c) conferir o formato do JSON que `agente.sincronizar_memoria` grava (PRD Apêndice A) contra uma linha real gravada pelo nó Postgres Chat Memory, assim que o P21 e o P25 estiverem prontos (ver P25, aceite).
 
 16. Perguntas da pesquisa de satisfação atual (Google Forms, item 9 do briefing) transcritas em `docs/referencia-pesquisa.md`, para o P42.
 
 Decisões que destravam sessões:
 17. Leonardo aprova `docs/aprovacao/ajustes-prompt-isadora.md` antes do P28.
-18. Edilaine aprova os itens clínicos do mesmo documento (G, H, I, J e L) antes de a Isadora ir para produção. Os textos de internação e de sofrimento emocional ficam desligados por parâmetro até lá. O Apêndice B do PRD precisa da aprovação dela antes do P40.
+18. Edilaine aprova os itens clínicos do mesmo documento (G, H, I, J e L, **[v4.2]** mais as partes marcadas do item 13 e o item 18) antes de a Isadora ir para produção. Os textos de internação e de sofrimento emocional ficam desligados por parâmetro até lá. O Apêndice B do PRD precisa da aprovação dela antes do P40.
+18a. **[v4.2]** Leonardo e Edilaine aprovam por escrito a matriz de permissões do PRD 22.4 (O-05) e o ADR 0002 antes das políticas do P07: o onboarding 14.1 marcou acesso total ao registro assistencial para o comercial e para a diretoria, e o PRD adotou o padrão mais restritivo (sem acesso para o comercial); essa divergência precisa de confirmação escrita antes de virar política de RLS.
 19. Registrar por escrito os bloqueios de terceiros da tabela acima (cláusula 3.4).
 
 ---
@@ -93,6 +97,8 @@ Decisões que destravam sessões:
 # Fase 0 · Fundação
 
 ## P00 · Repositório, esqueleto e CI
+
+**[v4.2] Concluído e verificado.** Relatório em `docs/sessoes/P00.md`. Fica registrado aqui só como referência da sequência; nenhuma sessão nova precisa executar este prompt.
 
 Fase 0 · S3 · depende de P-1 (itens 1 a 4)
 Ler: PRD 1, 4 e 5; CLAUDE.md
@@ -126,10 +132,11 @@ Fazer:
 4. pgTAP: `supabase/tests/000_harness.sql` com funções auxiliares para simular o JWT de cada papel e o nível de autenticação (`aal1` e `aal2`) e um teste de sanidade das extensões e schemas.
 5. `src/lib/db/`: cliente de servidor (cookies e RLS) e cliente de serviço (`service_role`) protegido com `import 'server-only'`, mais o script `pnpm db:types`.
 6. Ligar o job de `supabase test db` na CI.
+7. **[v4.2]** Se a máquina da sessão não tiver Docker, usar `supabase/sem-docker` (`scripts/iniciar.sh`, `scripts/resetar.sh`, `scripts/testar.sh`, README na pasta) para escrever e rodar as migrations e os testes pgTAP enquanto trabalha. Isso vale para esta sessão e para todas as sessões de banco (P02 a P09). Não substitui `supabase db reset` e `supabase test db`: a prova final continua sendo essas duas em um ambiente com Docker de verdade, antes do `db push`.
 
 Fora de escopo: tabelas.
 
-Aceite: `supabase db reset` sobe limpo; `supabase test db` verde local e na CI. Parar para revisão do SQL.
+Aceite: `supabase db reset` sobe limpo; `supabase test db` verde local e na CI (ou, sem Docker, `supabase/sem-docker/scripts/resetar.sh` e `scripts/testar.sh` verdes, com a ressalva do item 7 registrada no relatório da sessão). Parar para revisão do SQL.
 
 ## P02 · Migration 1: enums, configuração, usuários, família e pessoas
 
@@ -149,7 +156,7 @@ Fazer:
 
 Fora de escopo: políticas de acesso, dados.
 
-Aceite: pgTAP confere RLS ligada em toda tabela e colunas padrão em todas menos as exceções do PRD 5.2, e testa `ig()` com três casos, um deles com a DPP no passado. Parar para revisão do SQL.
+Aceite: pgTAP confere RLS ligada em toda tabela e colunas padrão em todas menos as exceções do PRD 5.2, e testa `ig()` com três casos, um deles com a DPP no passado (ou `supabase/sem-docker` sem Docker, ver P01 item 7). Parar para revisão do SQL.
 
 ## P03 · Migration 2: comercial, conversa, handoff, tarefas e linha do tempo
 
@@ -158,10 +165,10 @@ Ler: PRD 6.3 e 6.4
 
 Fazer:
 1. Tabelas do 6.3 e 6.4 como no PRD, com a exclusão de vigência sobreposta em `pacote_versao` e o índice único parcial de `oportunidade`.
-2. `evento_familia` append-only: `update` e `delete` revogados e recusados por gatilho.
+2. **[v4.2]** `evento_familia` sem `update`, `delete` e `truncate` para todos os papéis: gatilho de recusa de linha (`update`, `delete`) e gatilho `before truncate for each statement` que lança erro.
 3. Índices, comentários e RLS ligada, como no P02.
 
-Aceite: pgTAP recusa duas versões vigentes do mesmo pacote na mesma data, duas oportunidades abertas para a mesma família e qualquer update em `evento_familia`. Parar para revisão do SQL.
+Aceite: pgTAP recusa duas versões vigentes do mesmo pacote na mesma data, duas oportunidades abertas para a mesma família, qualquer `update` em `evento_familia` e **[v4.2]** `truncate` em `evento_familia` (inclusive `truncate familia cascade`, rodando como o papel `postgres`). Parar para revisão do SQL. Sem Docker, ver P01 item 7.
 
 ## P04 · Migration 3: operação, assistencial, alertas, automações, auditoria, sincronização e agente
 
@@ -175,7 +182,7 @@ Fazer:
 4. View `familia_elegivel_marketing` do 6.9. A `ocupacao_projetada` fica para o P19.
 5. Índices, comentários e RLS ligada.
 
-Aceite: `supabase db reset` limpo; pgTAP confirma que todas as tabelas do PRD existem com RLS ligada. Parar para revisão do SQL.
+Aceite: `supabase db reset` limpo; pgTAP confirma que todas as tabelas do PRD existem com RLS ligada (ou `supabase/sem-docker`, ver P01 item 7). Parar para revisão do SQL.
 
 ## P05 · Auditoria imutável, leitura auditada e máscara de documentos
 
@@ -183,13 +190,13 @@ Fase 0 · S4 · depende de P04
 Ler: PRD 5.2, 6.10 (regras 4 e 6), 13 (regras de implementação) e 21.2
 
 Fazer:
-1. `log_auditoria` sem `update`, `delete` e `truncate` para todos os papéis, com gatilho de recusa como segunda barreira.
-2. Gatilho genérico `privado.auditar()` em todas as tabelas de negócio: grava as colunas alteradas, `auth.uid()` e a origem lida de `app.origem`, com as colunas sensíveis (lista por tabela: CPF, endereços, fichas clínicas, `dados` do registro, transcrições, conteúdo de mensagem, resumo da sessão) trocadas por "[oculto]" e um hash (PRD 13). Ficam de fora `log_auditoria`, `fila_sincronizacao`, `mensagem`, `evento_familia` e o schema `agente_n8n`. Leitura do log só pela diretoria, por função.
-3. `registro_atendimento` e `registro_adendo` sem `update` e `delete`, com gatilho de recusa.
+1. **[v4.2]** `log_auditoria` sem `update`, `delete` e `truncate` para todos os papéis, com gatilho de recusa de linha (`update`, `delete`) e gatilho `before truncate for each statement` como segunda barreira. Única exceção: a anonimização da coluna `ip` pela automação `retencao_diaria` (P20, PRD 22.4 O-06), liberada só dentro da função de retenção.
+2. **[v4.2]** Gatilho genérico `privado.auditar()` em todas as tabelas de negócio: grava as colunas alteradas, `auth.uid()` e a origem lida de `app.origem`, com as colunas pessoais ou sensíveis trocadas por "[oculto]" e um **HMAC-SHA256 com chave guardada no Supabase Vault** (nunca um hash puro). A lista mínima por tabela mora no ADR 0002 e inclui, além de CPF, endereços e fichas clínicas: `pessoa` (nome, telefone_e164, email, idade, ocupacao, consentimentos), `pessoa_dados_contrato` (todas), `familia` (nome_exibicao, endereco_atendimento, bairro, datas, estado_sensivel_motivo, nao_contatar_motivo, historico_sensivel, cidade_informada), `bebe`, `medico`, `oportunidade` (qualificacao, desconto_motivo), `handoff` (resumo, solicitacao, dados), `alerta_clinico`, `ocorrencia`, `consulta_prenatal`, `relatorio_medico`, `pos_venda`, `sessao_venda_gravacao` (transcricao, resumo), `anexo_audio` (transcricao) e `conversa` (nome_whatsapp, nome_contato_salvo, telefone_e164). Ficam de fora `log_auditoria`, `fila_sincronizacao`, `mensagem`, `evento_familia` e o schema `agente_n8n`. Leitura do log só pela diretoria, por função.
+3. **[v4.2]** `registro_atendimento` e `registro_adendo` sem `update`, `delete` e `truncate` para todos os papéis: gatilho de recusa de linha (`update`, `delete`) e gatilho `before truncate for each statement` que lança erro.
 4. Padrão de leitura auditada no schema `assistencial`: uma função de exemplo (`assistencial.ler_acompanhamento(familia_id)`) que grava `leitura` em `log_auditoria` antes de devolver, com teste. As outras nascem com cada módulo.
-5. `privado.mascarar_documentos(texto)`: CPF com ou sem pontuação cujos dígitos verificadores batem vira "[CPF ocultado]"; número de 13 a 19 dígitos que passe no algoritmo de Luhn e não tenha formato de telefone (+55, DDD e 9 dígitos) vira "[cartão ocultado]". Essa é a definição de referência que o n8n copia (PRD 19.5).
+5. **[v4.2]** `privado.mascarar_documentos(texto)`: CPF com ou sem pontuação cujos dígitos verificadores batem vira "[CPF ocultado]"; número de 13 a 19 dígitos que passe no algoritmo de Luhn e não tenha formato de telefone (+55, DDD e 9 dígitos) vira "[cartão ocultado]", **juntando antes do teste de Luhn os grupos de dígitos separados por espaço, ponto, hífen ou barra (grupos de 4, ou 4-6-5 no Amex)**; na mesma mensagem que tiver um cartão ocultado, validade no formato MM/AA ou MM/AAAA e 3 ou 4 dígitos logo depois de "cvv", "cvc" ou "código de segurança" viram "[dado de cartão ocultado]". Essa é a definição de referência que o n8n copia (PRD 19.5).
 
-Aceite: pgTAP mostra update e delete recusados em log e registro para `authenticated` e `service_role`; leitura pela função gera linha no log; o log de uma mudança de CPF mostra "[oculto]"; máscara testada com 12 casos (CPF formatado, CPF corrido válido, 11 dígitos com verificador errado, celular com DDD, telefone E.164, cartão válido, 16 dígitos que não passam no Luhn).
+Aceite: pgTAP mostra `update`, `delete` e **[v4.2]** `truncate` recusados em log e registro para `authenticated` e `service_role`; leitura pela função gera linha no log; **[v4.2]** o log de uma mudança de `pessoa.nome`, `handoff.resumo` e `familia.estado_sensivel_motivo` não contém o texto original, e o HMAC do CPF não bate com `sha256(cpf)`; máscara testada com **16 casos** (os 12 originais: CPF formatado, CPF corrido válido, 11 dígitos com verificador errado, celular com DDD, telefone E.164, cartão válido, 16 dígitos que não passam no Luhn, mais "4111 1111 1111 1111", "4111-1111-1111-1111", "378282 246310005" e um cartão seguido de "validade 08/29 cvv 123").
 
 ## P06 · Máquinas de estado (invariante 1)
 
@@ -203,7 +210,7 @@ Fazer:
 4. Gatilho que recusa update direto em `oportunidade.estagio_p1`, `oportunidade.estagio_p2`, `acompanhamento.estado`, `visita.estado` e `pos_venda.estagio` quando `app.transicao` não veio da função.
 5. Tabela do 7.1 (status do prompt e onde vivem no banco) em comentário da função.
 
-Aceite: pgTAP do invariante 1 passa por todas as transições permitidas, recusa uma amostra das proibidas, recusa update direto e só deixa sair de `intercorrencia` com papel de coordenação.
+Aceite: pgTAP do invariante 1 passa por todas as transições permitidas, recusa uma amostra das proibidas, recusa update direto e só deixa sair de `intercorrencia` com papel de coordenação (ou `supabase/sem-docker`, ver P01 item 7).
 
 ## P07 · Autenticação, papéis, MFA e permissões (invariante 2)
 
@@ -212,17 +219,18 @@ Ler: PRD 13, 21.1, 21.2 e 5.1 (autenticação)
 
 Fazer:
 1. `perfil` criado a partir de `auth.users`; papéis em `usuario_papel`, que só a diretoria altera.
-2. `privado.aal2()` e `privado.familias_atribuidas()` (famílias com designação aceita da profissional logada, `security definer`).
-3. `docs/adr/0002-permissoes.md` com a matriz tabela por tabela, incluindo as tabelas que o capítulo 13 cita no fim (consulta pré-natal, ocorrência privada, evento restrito, log, tarefa, notificação, mensagens, base de conhecimento, profissionais, fila de sincronização, gravação da sessão). O Leonardo aprova antes das políticas.
+2. **[v4.2]** `privado.aal2()` e `privado.familias_atribuidas()` (famílias com designação aceita da profissional logada, com `profissional.ativa = true`, cujo acompanhamento está em estado anterior ao encerramento ou foi encerrado há no máximo `parametro.acesso_enfermeira_pos_encerramento_dias` (padrão 7, para fechar a evolução); `security definer`).
+3. **[v4.2]** `docs/adr/0002-permissoes.md` com a matriz tabela por tabela, incluindo as tabelas que o capítulo 13 cita no fim (consulta pré-natal, ocorrência privada, evento restrito, log, tarefa, notificação, mensagens, base de conhecimento, profissionais, fila de sincronização, gravação da sessão) e a leitura de `pessoa_dados_contrato` só por `api.dados_contrato(pessoa_id, completo)`, sem SELECT direto (PRD 6.10 regra 6). O Leonardo e a Edilaine aprovam antes das políticas (O-05, P-1 item 18a).
 4. Políticas RLS para todas as tabelas conforme o ADR. AAL2 exigido em tabelas assistenciais, financeiras e em `pessoa_dados_contrato`. `sessao_venda_gravacao` só para quem conduziu e para a diretoria.
-5. Schema `api` com os wrappers que o app chama por RPC (cada um `security definer`, checando papel e AAL) e as funções de recorte: `api.familias_do_dia()` e `api.ficha_assistencial(familia_id)` para a enfermeira, `api.marketing_*()` com agregados para o marketing.
+5. Schema `api` com os wrappers que o app chama por RPC (cada um `security definer`, checando papel e AAL) e as funções de recorte: `api.familias_do_dia()` e `api.ficha_assistencial(familia_id)` para a enfermeira, `api.marketing_*()` com agregados para o marketing, **[v4.2]** `api.dados_contrato(pessoa_id, completo boolean)` (com `completo = false` devolve CPF e endereço mascarados; com `true` exige AAL2 e papel comercial, financeiro ou diretoria, e grava "leitura" em `log_auditoria`).
 6. Telas: login, cadastro do MFA com QR, desafio do MFA, esqueci a senha, convite de usuário pela diretoria. Middleware que exige AAL2 para os papéis que precisam.
 7. Tela de sessões para a diretoria com revogação de todas as sessões de um usuário.
 8. Um usuário de teste por papel, só no seed local.
+9. **[v4.2]** Migration idempotente: `alter default privileges for role postgres in schema public revoke execute on functions from anon, authenticated`; `authenticated` recebe `usage` em `privado` e `execute` só em `privado.tem_papel`, `privado.familias_atribuidas`, `privado.aal2` e `privado.sem_acento`; `anon` não recebe `execute` em nada.
 
 Fora de escopo: telas de negócio.
 
-Aceite: pgTAP do invariante 2 cobre cada linha do ADR com JWT simulado por papel, em `aal1` e `aal2`, inclusive a enfermeira sem acesso a coluna comercial e o marketing sem acesso à tabela `familia`; Playwright faz login com MFA no celular.
+Aceite: pgTAP do invariante 2 cobre cada linha do ADR com JWT simulado por papel, em `aal1` e `aal2`, inclusive a enfermeira sem acesso a coluna comercial e o marketing sem acesso à tabela `familia`; **[v4.2]** comercial e financeiro em `aal2` recebem permissão negada num select direto em `pessoa_dados_contrato`; enfermeira perde o acesso 8 dias depois do encerramento do acompanhamento e na hora em que a profissional é desativada; pgTAP lista as funções executáveis por `anon` (esperado: nenhuma além de `public.ig`) e por `authenticated` (esperado: a lista do ADR 0002); Playwright faz login com MFA no celular.
 
 ## P08 · Seed sintético, parâmetros e textos em rascunho
 
@@ -245,7 +253,7 @@ Fazer:
 
 Fora de escopo: definições JSON dos instrumentos (P34).
 
-Aceite: `supabase db reset` popula tudo; pgTAP confere uma versão vigente por pacote e que toda `mensagem_chave` de `regua_faixa` e `termo_alerta` existe; `seed:check` verde.
+Aceite: `supabase db reset` popula tudo (ou `supabase/sem-docker/scripts/resetar.sh`, ver P01 item 7); pgTAP confere uma versão vigente por pacote e que toda `mensagem_chave` de `regua_faixa` e `termo_alerta` existe; `seed:check` verde.
 
 ## P09 · Freio global (invariante 3, parte do banco)
 
@@ -258,20 +266,22 @@ Fazer:
 3. `privado.acionar_freio(familia_id, estado, motivo)`: qualquer papel com acesso à família aciona, motivo pode vir depois (cria tarefa de justificativa), reavalia na hora as execuções agendadas e registra evento restrito. `privado.reverter_freio(...)` só com coordenação ou diretoria e justificativa.
 4. Conferir que `familia_elegivel_marketing` exclui estados sensíveis, `nao_contatar` e famílias mescladas.
 
-Aceite: pgTAP do invariante 3 cobre as 16 combinações de categoria e estado, a execução agendada abortada quando o estado muda antes do envio e a reversão recusada sem papel.
+Aceite: pgTAP do invariante 3 cobre as 16 combinações de categoria e estado, a execução agendada abortada quando o estado muda antes do envio e a reversão recusada sem papel (ou `supabase/sem-docker`, ver P01 item 7).
 
 ## P10 · Casca do app e design system
 
+**[v4.2] Parcialmente antecipado.** A parte que não depende do P07 (tokens, fontes, logo provisório, dezenove componentes base e formatadores) já está feita; relatório em `docs/sessoes/P10-parcial.md`. Falta só o item 3 (casca por papel), que depende do P07.
+
 Fase 0 · S4 · depende de P07 · trilha de interface
-Ler: PRD 20 inteiro; CLAUDE.md (design e texto de interface)
+Ler: PRD 20 inteiro; CLAUDE.md (design e texto de interface); **[v4.2]** `docs/design/DESIGN.md`, `docs/design/fluxos.md` e o protótipo em `docs/prototipo/` (visão geral: `_kit.html` e as telas de cada papel)
 
 Fazer:
-1. Tokens do 20.2 no `@theme` de `globals.css`, tema do shadcn apontando para eles, fontes com `next/font` (Jost, Inter, IBM Plex Mono), logo de `/public/brand`.
-2. Componentes base: botão, campos, seleção, caixa de marcação, cartão, selo de estado (com a cor `sensivel`), aviso, diálogo e painel lateral, tabela que vira lista no celular, estado vazio com próxima ação, indicador de sincronização de três estados, cabeçalho da família com espaço para o botão de freio, formatadores (R$, datas, `38s2d`).
-3. Casca por papel: abas inferiores no celular (20.4) e barra lateral agrupada no computador (Comercial, Operação, Experiência, Gestão, Sistema). Rotas vazias com estado vazio.
-4. Página `/design-system` só em desenvolvimento e homologação.
-5. Acessibilidade: foco visível, área de toque de 44 px, contraste AA, teste com axe no Playwright.
-6. Teste que falha se aparecer cor em hexadecimal fora de `globals.css`.
+1. Tokens do 20.2 no `@theme` de `globals.css`, tema do shadcn apontando para eles, fontes com `next/font` (Jost, Inter, IBM Plex Mono), logo de `/public/brand`. **[v4.2]** Feito em `docs/sessoes/P10-parcial.md`.
+2. Componentes base: botão, campos, seleção, caixa de marcação, cartão, selo de estado (com a cor `sensivel`), aviso, diálogo e painel lateral, tabela que vira lista no celular, estado vazio com próxima ação, indicador de sincronização de três estados, cabeçalho da família com espaço para o botão de freio, formatadores (R$, datas, `38s2d`). **[v4.2]** Feito em `docs/sessoes/P10-parcial.md`.
+3. Casca por papel: abas inferiores no celular (20.4) e barra lateral agrupada no computador (Comercial, Operação, Experiência, Gestão, Sistema). Rotas vazias com estado vazio. **[v4.2]** Pendente, depende do P07; segue a direção de `docs/design/DESIGN.md` seção 6 e o protótipo (`comercial.html`, `coordenacao.html`, `enfermeira-hoje.html`).
+4. Página `/design-system` só em desenvolvimento e homologação. **[v4.2]** Feito em `docs/sessoes/P10-parcial.md`.
+5. Acessibilidade: foco visível, área de toque de 44 px, contraste AA, teste com axe no Playwright. **[v4.2]** Feito em `docs/sessoes/P10-parcial.md`.
+6. Teste que falha se aparecer cor em hexadecimal fora de `globals.css`. **[v4.2]** Feito em `docs/sessoes/P10-parcial.md`.
 
 Aceite: Playwright no celular e no computador mostra a navegação certa por papel; axe sem violação grave; teste de cores verde.
 
@@ -343,7 +353,7 @@ Aceite: preview de pull request abre em homologação com login e MFA; produçã
 ## P15 · Pipelines 1 e 2
 
 Fase 1 · S5 · depende de P06, P08 e P10
-Ler: PRD 7.1, 7.2, 20.4 e 20.5
+Ler: PRD 7.1, 7.2, 20.4 e 20.5; **[v4.2]** `docs/design/DESIGN.md`, `docs/design/fluxos.md` (fluxo D) e o protótipo `docs/prototipo/comercial-pipeline.html`
 
 Fazer:
 1. Tela de pipeline: lista agrupada por estágio no celular, kanban no computador. Filtros por região, responsável, classificação e semanas; busca por nome e telefone.
@@ -356,7 +366,7 @@ Aceite: e2e leva um lead de `novo` a `sessao_venda_agendada` no celular; transi�
 ## P16 · Ficha 360º e estado sensível
 
 Fase 1 · S5 · depende de P15 e P09
-Ler: PRD 6.2, 6.10 (as quatro datas), 8.3 e 20.4
+Ler: PRD 6.2, 6.10 (as quatro datas), 8.3, 20.4 e 21.3 (eliminação a pedido do titular); **[v4.2]** `docs/design/DESIGN.md`, `docs/design/fluxos.md` (fluxo D) e o protótipo `docs/prototipo/comercial-ficha.html`
 
 Fazer:
 1. Ficha com resumo (as quatro datas com "estimativa" e "fato", semanas, cidade, pacote, estágio), linha do tempo (`evento_familia`, com os restritos só para quem pode), pessoas, comercial, conversas do WhatsApp (leitura para comercial, coordenação e diretoria) e estado sensível.
@@ -364,8 +374,9 @@ Fazer:
 3. Marcar "não contatar" com motivo.
 4. Registro das datas de nascimento e alta (as automações delas chegam no P36).
 5. Dados de contrato mascarados, com botão "mostrar" que exige AAL2 e grava a leitura no log.
+6. **[v4.2]** Eliminação a pedido do titular: função `privado.eliminar_titular(familia_id, motivo)`, só diretoria com AAL2 (PRD 21.3), com pgTAP provando que depois da eliminação não sobra linha de `chat_memoria`, `mensagem` nem `handoff` da família, e que o registro assistencial fica intacto. Tela na diretoria (a partir da ficha ou de uma lista própria), com confirmação explícita e o que é retido explicado antes de confirmar (PRD 22.4, L-05).
 
-Aceite: e2e no celular aciona o freio em um toque; a família some de `familia_elegivel_marketing`; a linha do tempo mostra o evento; comercial não vê evento restrito.
+Aceite: e2e no celular aciona o freio em um toque; a família some de `familia_elegivel_marketing`; a linha do tempo mostra o evento; comercial não vê evento restrito; **[v4.2]** `privado.eliminar_titular` apaga a família de teste do seed sem tocar no registro assistencial.
 
 ## P17 · Deduplicação, mesclagem e pontuação de leads
 
@@ -374,10 +385,10 @@ Ler: PRD 6.10 (regra 2) e 7.1 (pontuação)
 
 Fazer:
 1. Duplicata certa por telefone normalizado; duplicata provável por similaridade de nome (`pg_trgm`, limiar em parâmetro) com DPP a até 14 dias.
-2. Tela de mesclagem lado a lado. A mesclagem move conversas, mensagens, tarefas e oportunidades, marca `mesclada_em_id` e grava auditoria. Os eventos não se movem (`evento_familia` é append-only): a linha do tempo junta os da família mesclada por `mesclada_em_id`. Confirmação clara, porque não há desfazer. Mesmo telefone com DPP muito distante sugere vínculo de nova gestação (regra 12), não mesclagem.
+2. Tela de mesclagem lado a lado. A mesclagem move conversas, mensagens, tarefas e oportunidades, marca `mesclada_em_id` e grava auditoria. Os eventos não se movem (`evento_familia` é append-only): a linha do tempo junta os da família mesclada por `mesclada_em_id`. Confirmação clara, porque não há desfazer. Mesmo telefone com DPP muito distante sugere vínculo de nova gestação (regra 12), não mesclagem. **[v4.2]** Antes de mover, se as duas famílias têm oportunidade aberta, a tela pede qual fica; a outra passa para `perdido` com `motivo_perda = 'outro'` e detalhe "mesclada em <id>", por `privado.transicionar`, e só depois é movida.
 3. `privado.calcular_score(familia_id)` com os pesos de `parametro.score_pesos` e os cortes de classificação, recalculado a cada dado novo e no cron diário.
 
-Aceite: pgTAP da pontuação com três perfis (quente, morno, frio); e2e de mesclagem preservando o histórico.
+Aceite: pgTAP da pontuação com três perfis (quente, morno, frio); e2e de mesclagem preservando o histórico; **[v4.2]** e2e de mesclagem com uma oportunidade aberta em cada família.
 
 ## P18 · Mensageria, tarefas e notificações internas
 
@@ -385,12 +396,30 @@ Fase 1 · S5 · depende de P09 e P13
 Ler: PRD 4.1 (D-08), 8.2, 6.4 (`tarefa`), 6.7 (`notificacao`), 23.2 e 23.3
 
 Fazer:
-1. `src/lib/messaging` com a interface do mensageiro e três implementações: `manual` (tarefa com link `wa.me` e texto pré-preenchido), `uazapi` (só em conversa iniciada pela família e para os grupos internos, com `track_source: "kraamzorg-app"`) e `cloud_api` (preparada, sem uso). Toda chamada passa por `pode_enviar_mensagem`.
+1. `src/lib/messaging` com a interface do mensageiro e três implementações: `manual` (tarefa com link `wa.me` e texto pré-preenchido), `uazapi` (só em conversa iniciada pela família e para os grupos internos, com `track_source: "kraamzorg-app"`) e `cloud_api` (interface e assinatura prontas, implementação real no P18b **[v4.2]**). Toda chamada passa por `pode_enviar_mensagem`.
 2. Tela de tarefas no início do comercial, por prioridade e vencimento. A tarefa mostra o texto sugerido editável, o botão "Abrir no WhatsApp" e o botão "Enviei", que grava `mensagem` com `enviado_por = humano` e avança a régua ou a cadência.
 3. Notificações internas: central no app, push, mensagem nos grupos da equipe pela UAZAPI com os modelos do 23.3 e e-mail pelo Resend como reserva. Preferências por usuário.
 4. Rota interna `POST /api/interno/notificar` protegida por segredo, para o banco chamar via `pg_net`.
 
 Aceite: tarefa da régua do seed aparece com o link certo; "Enviei" registra a mensagem; família em `bloqueio_total` não gera link.
+
+## P18b · Adaptador cloud_api e follow-up fora da janela de 24 horas [v4.2]
+
+Fase 1 · S7 [v4.2] (antes do P33, para o aceite poder usar o número real; não bloqueia as outras trilhas) · depende de P18
+Ler: PRD 4.1 (D-08), 14, 22.1 (T-01 e a mitigação registrada); `n8n/prompts/isadora-followup.md`
+
+Objetivo: implementar de verdade a interface `cloud_api` do `src/lib/messaging`, hoje só "preparada, sem uso" no P18. A produção da Isadora só volta com esse adaptador pronto, testado e homologado (PRD 22.1, T-01 e 4.1); `uazapi` fica restrita a homologação e avisos internos até a migração.
+
+Fazer:
+1. `cloud_api` chamando a API oficial do WhatsApp (Cloud API da Meta): mensagem de texto livre dentro da janela de 24 horas desde a última mensagem da família, e envio por modelo de mensagem aprovado pela Meta fora dessa janela. Toda chamada passa por `pode_enviar_mensagem` (app) ou `agente.pode_enviar` (n8n), como as demais.
+2. Cadastro dos modelos de mensagem aprovados (nome, idioma, categoria, variáveis) com o texto exato submetido à Meta e o status de aprovação; nenhum texto de modelo aprovado é editado fora desse cadastro.
+3. Ajuste do follow-up fora da janela de 24 horas: quando a última mensagem da família tiver mais de 24 horas, o primeiro retorno da Isadora (`agente_followup_horas`, PRD 11.3) e as réguas proativas do capítulo 23 saem por modelo aprovado, não pelo texto livre que `n8n/prompts/isadora-followup.md` gera hoje. Documentar no próprio arquivo a diferença entre o texto livre (dentro da janela) e o texto do modelo aprovado (fora dela).
+4. Webhook de status de entrega da Cloud API (entregue, lido, falhou) gravado em `mensagem`.
+5. Coexistência de número: se a Meta confirmar que o WhatsApp Business comum e a Cloud API coexistem no mesmo número, a migração usa o número já em uso pelo Leonardo, mantendo um único `conversa.wa_jid`; confirmar a viabilidade técnica nesta sessão antes de codar. Se não for viável, o protocolo de passagem entre dois números fica registrado como pendência do PRD (T-01), fora do escopo desta sessão.
+
+Fora de escopo: desligar `uazapi` (só acontece quando T-01 estiver resolvido e a homologação deste adaptador estiver completa, junto com P28 e P33).
+
+Aceite: teste automatizado com credencial de sandbox da Cloud API (ou simulada, se a credencial ainda não existir) cobre envio dentro e fora da janela de 24 horas, com o modelo aprovado certo escolhido fora dela; nenhum texto livre sai fora da janela.
 
 ## P19 · Ocupação projetada e recálculo diário
 
@@ -412,10 +441,10 @@ Ler: PRD 10 inteiro, 8.2 e 4.1
 
 Fazer:
 1. `privado.processar_automacoes()` a cada 5 minutos no `pg_cron`: materializa execuções devidas (tempo, evento, data), chama `pode_executar`, aplica as ações de banco (tarefa, transição, alerta, notificação) e manda as externas por `pg_net` para `/api/interno/automacao`, com segredo guardado no Vault do Supabase. A rota reconsulta o freio antes de sair.
-2. Automações da Fase 1: `qualificacao`, `followup_d3_d14` (tarefas), `retorno_combinado`, `regua_nutricao` (uma tarefa por mudança de faixa, só para quem já escreveu), `lembrete_sessao` (tarefa), `prenatal_urgente`, `alerta_34s` (interna), `pagamento_atrasado`, e ganchos vazios de `contrato_fechado`, `pos_assinatura` e `pagamento_confirmado` que os prompts P30 a P32 preenchem. `contratar_sem_transferencia` e `sessao_sem_agenda` (10.1), que leem os marcos gravados pelo agente. `followup_d1` e `boas_vindas` são do agente: o motor só agenda, e o n8n consome por `agente.followups_devidos()`.
+2. Automações da Fase 1: `qualificacao`, `followup_d3_d14` (tarefas), `retorno_combinado`, `regua_nutricao` (uma tarefa por mudança de faixa, só para quem já escreveu), `lembrete_sessao` (tarefa), `prenatal_urgente`, `alerta_34s` (interna), `pagamento_atrasado`, e ganchos vazios de `contrato_fechado`, `pos_assinatura` e `pagamento_confirmado` que os prompts P30 a P32 preenchem. `contratar_sem_transferencia` e `sessao_sem_agenda` (10.1), que leem os marcos gravados pelo agente. `followup_d1` e `boas_vindas` são do agente: o motor só agenda, e o n8n consome por `agente.followups_devidos()`. **[v4.2]** `retencao_diaria` (interna): apaga `agente_n8n.chat_memoria` 180 dias depois da última mensagem da conversa; apaga ou anonimiza `mensagem`, `handoff` e `conversa` de família que nunca contratou 24 meses depois de `perdido` ou `nao_qualificado`; anonimiza o IP de `log_auditoria` 12 meses depois. Prazos em `parametro.retencao` (PRD 22.4, O-06) **[decisão: Leonardo e jurídico, prazos exatos]**.
 3. Tela de automações para a diretoria: ligar e desligar, ver execuções e abortos pelo freio.
 
-Aceite: pgTAP mostra família em `atencao` sem tarefa de régua, uma tarefa só por mudança de faixa e execução externa abortada quando o estado muda entre o agendamento e o envio.
+Aceite: pgTAP mostra família em `atencao` sem tarefa de régua, uma tarefa só por mudança de faixa e execução externa abortada quando o estado muda entre o agendamento e o envio; **[v4.2]** pgTAP com um lead fictício vencido confirma que `retencao_diaria` apaga ou anonimiza o que passou do prazo e preserva o que não passou.
 
 ## P21 · Fronteira do agente, parte 1
 
@@ -423,14 +452,14 @@ Fase 1 · S5 · depende de P17, P18 e P19 · trilha do agente · **plano primeir
 Ler: PRD 11.7, 11.9, 11.10, 11.11 e Apêndice A; `n8n/prompts/isadora-system.md` (formato da ficha no cabeçalho)
 
 Fazer:
-1. Papel `n8n_agente` criado na migration sem senha (a senha é definida à mão a partir do cofre, por runbook), sem `bypassrls`, `search_path = agente_n8n, extensions`, privilégios exatamente como no 11.10: `usage` em `extensions`, políticas `for all to n8n_agente` nas duas tabelas de `agente_n8n`, `execute` revogado de `public` em todas as funções de `agente`. Documentar a conexão pelo pooler em modo sessão (usuário `n8n_agente.<ref>`).
+1. Papel `n8n_agente` criado na migration **[v4.2]** de forma idempotente (`do $$ begin if not exists (select 1 from pg_roles where rolname = 'n8n_agente') then create role n8n_agente login noinherit nobypassrls; end if; end $$;`), sem senha (a senha é definida à mão a partir do cofre, por runbook), `search_path = agente_n8n, extensions`, privilégios exatamente como no 11.10: `usage` em `extensions`, políticas `for all to n8n_agente` nas duas tabelas de `agente_n8n`, `execute` revogado de `public` em todas as funções de `agente`. Documentar a conexão pelo pooler em modo sessão (usuário `n8n_agente.<ref>`).
 2. Funções do Apêndice A (parte 1), todas `security definer` com `set search_path = ''`, nomes qualificados, validação de parâmetros e retorno `jsonb`:
    - `registrar_mensagem`: resolve a conversa por LID, telefone e jid, nessa ordem; cria ou atualiza (E.164, LID, nome salvo, quem iniciou), mascara com `privado.mascarar_documentos`, deduplica por `wa_message_id`, lê "paciente potencial" e "paciente fechada" no nome salvo e devolve `conversa_id` e se o número é da equipe ou do plantão. `registrar_transcricao`.
-   - `pode_responder`: modos do 11.7 a partir de `agente_modo`, lista de teste, pausa, transferência aberta, estado sensível e classificação; silêncio para números da equipe e do plantão. `pode_enviar(jid, categoria)`: a regra de `privado.pode_enviar_mensagem` mais pausa e modo, no instante do envio.
-   - `pausar`, `contexto_conversa` (marca onde começa o pedido atual), `checar_termos_alerta` (sem acento, por palavra ou expressão, devolve ação e `mensagem_chave`), `mensagem_alerta(jid, acao, chave)` e `mensagem_sistema(jid, chave)`, só com textos aprovados e com a regra do nome vazio (capítulo 23). `sincronizar_memoria(jid, papel, texto)` sobre `agente_n8n.chat_memoria`, usando o id da conversa como sessão.
-   - `ficha_para_agente`: texto no formato exato do cabeçalho do prompt (campos livres com até 200 caracteres, sem colchetes), mais planos vigentes, valor, parcela e página por plano (as variáveis `valor.*`, `parcela.*` e `pagina.*` do prompt), valores permitidos (sem taxas enquanto `taxa_visivel_agente` for falso), situação da apresentação, horários da Edilaine e data e hora de Brasília.
+   - `pode_responder`: modos do 11.7 a partir de `agente_modo`, lista de teste, pausa, transferência aberta, estado sensível e classificação; silêncio para números da equipe e do plantão; **[v4.2]** inclui `humano_comercial` na precedência do 11.7. **[v4.2]** `pode_enviar(conversa_id, tipo, handoff_id)` com `tipo` em `resposta`, `conteudo`, `operacional` e `marketing`, exatamente como no PRD 8.2 e no Apêndice A (a v4.1 usava `jid` e a categoria `'conversa'`, que não existe).
+   - **[v4.2]** Todas as funções abaixo recebem `conversa_id`, nunca o jid (PRD Apêndice A, abertura): `pausar`, `contexto_conversa` (marca onde começa o pedido atual), `checar_termos_alerta` (sem acento, por palavra ou expressão, devolve ação e `mensagem_chave`), `mensagem_alerta(conversa_id, acao, chave)` (aceita `alerta_saude`, `alerta_internacao`, `alerta_emocional`, `alerta_saude_sensivel` ou `perda`; chave desconhecida, parâmetro de ativação desligado ou texto não aprovado devolvem `alerta_saude`, ou `perda` quando a ação é perda; nunca devolve erro) e `mensagem_sistema(conversa_id, chave)`, só com textos aprovados e com a regra do nome vazio (capítulo 23). `sincronizar_memoria(conversa_id, papel, texto)` sobre `agente_n8n.chat_memoria`, usando o id da conversa como sessão e o formato LangChain do Apêndice A.
+   - `ficha_para_agente`: texto no formato exato do cabeçalho do prompt (campos livres com até 200 caracteres, sem colchetes), mais planos vigentes, valor e página por plano (as variáveis `valor.*` e `pagina.*` do prompt), a parcela do Continuado (`parcela.continuado`) e as demais parcelas via o bloco de planos (`planos`) **[v4.2]**, valores permitidos (sem taxas enquanto `taxa_visivel_agente` for falso), situação da apresentação, horários da Edilaine e data e hora de Brasília.
    - `planos_vigentes`, `verificar_cobertura` (localidade e alias, depois `cidade`, depois `municipio` pela região intermediária; devolve `tem_taxa` e só mostra o valor com `taxa_visivel_agente`; nunca usa DDD), `verificar_disponibilidade` (usa `privado.disponibilidade`, nunca expõe números), `atualizar_lead` (cria família, pessoa e oportunidade quando faltam, converte semanas em DPP pela data de hoje, move o pipeline pela máquina de estado, recalcula a pontuação, deduplica pelo telefone; se a família da conversa já terminou um atendimento e a pessoa fala de uma gestação nova, cria outra família ligada por `familia_anterior_id`, PRD 6.10 regra 12) e `registrar_marco` (inclui `quer_contratar`, `sem_interesse` e `proximo_contato` por data ou semanas-alvo). `atualizar_lead` grava a principal preocupação só como tema e `historico_sensivel` sem detalhe.
-3. pgTAP da fronteira: `n8n_agente` não lê nenhuma tabela de `public`, `privado` ou `assistencial`, não executa função fora da lista, não baixa freio, e nenhuma função devolve campo assistencial. Testes de cada função com as conversas do seed.
+3. pgTAP da fronteira: `n8n_agente` não lê nenhuma tabela de `public`, `privado` ou `assistencial`, não executa função fora da lista, não baixa freio, e nenhuma função devolve campo assistencial. Testes de cada função com as conversas do seed. **[v4.2]** Também: conversa criada com jid `@s.whatsapp.net` recebe mensagem com jid `@lid` e o mesmo LID, `wa_jid` é atualizado e `pode_responder(conversa_id)` responde; `pode_enviar` com `resposta` depois de transferência com `reuniao` passa, às 22h passa, e o segundo follow-up de `conteudo` no mesmo dia é recusado; `mensagem_alerta` com `alerta_emocional` e o parâmetro desligado devolve `alerta_saude`.
 4. `docs/adr/0003-fronteira-agente.md`.
 
 Aceite: pgTAP verde. Parar para revisão do SQL.
@@ -441,12 +470,12 @@ Fase 1 · S5 · depende de P21 · trilha do agente
 Ler: PRD 11.4, 19.3, 23.3, 23.4 e Apêndice A
 
 Fazer:
-1. `registrar_handoff` (sete parâmetros, Apêndice A): matriz de `parametro.handoff_matriz` (destino, prioridade, SLA em horas úteis), família mínima quando a conversa ainda não tem família, freio (perda sobe para `bloqueio_total`, saúde para `atencao`), pausa, deduplicação de pedido igual em 10 minutos, `mensagem_grupo` montada a partir de `mensagem_modelo` com o resumo interno do banco, `grupo_jid` do destino, lista de plantão só na prioridade máxima, `instrucao_agente` e `pausa_horas`.
+1. **[v4.2]** `registrar_handoff` (sete parâmetros, Apêndice A): matriz de `parametro.handoff_matriz` (destino, prioridade, SLA em horas úteis), família mínima quando a conversa ainda não tem família, freio (perda sobe para `bloqueio_total`, saúde para `atencao`), pausa, deduplicação **só de motivos comerciais** (pedido igual é mesma conversa, mesmo motivo e mesmo hash de solicitação em até 10 minutos); `saude`, `perda` e `estado_sensivel_escreveu` nunca são deduplicados: dentro de 10 minutos reaproveitam o `handoff_id` aberto, acrescentam o texto novo e seguem para o grupo e o plantão de novo, com o prefixo "ATUALIZAÇÃO". `mensagem_grupo` montada a partir de `mensagem_modelo` com o resumo interno do banco, `grupo_jid` do destino, lista de plantão só na prioridade máxima, `instrucao_agente` e `pausa_horas`.
 2. `registrar_notificacao_handoff` (falha deixa faixa vermelha no CRM e aciona e-mail), `marcar_nao_lead` (devolve o texto de encaminhamento), `followups_devidos` (reserva a execução e aplica freio, `nao_contatar`, pausa, transferência aberta, modo, lista de teste, conversa iniciada pela família, janela e uma mensagem de conteúdo por dia), `registrar_followup`.
 3. `base_para_indexar` (itens aprovados, um documento por plano vigente e um por praça), `promover_lote`, `descartar_lote`, `registrar_ingestao`.
-4. `privado.retomar_agente(conversa_id)`, usado pelo app quando alguém da equipe resolve a transferência e devolve a conversa à Isadora.
+4. **[v4.2]** `privado.retomar_agente(conversa_id)`, chamada só pelo botão "Devolver à Isadora" (P27; comercial, coordenação ou diretoria): limpa `agente_pausado_ate`, `agente_encerrado_em` e `agente_encerrado_motivo` e grava no log. "Resolver" a transferência nunca chama esta função: fecha o handoff e mantém o modo da conversa. Transferência comercial de lead qualificado (`reuniao`, `contratar`, `condicao_comercial`, ou transferência ao comercial com a oportunidade em `qualificado` ou adiante, PRD 11.4 e 11.7) põe a conversa em `humano_comercial`, que não vence por prazo (decisão do Leonardo em 24/09, notas-reuniao-24-09.md 11:22, D-17) **[confirmar: Leonardo, lista exata de motivos]**.
 
-Aceite: pgTAP mostra perda subindo o freio e pausando (inclusive numa conversa sem família), pedido repetido em 10 minutos sem duplicar, `followups_devidos` sem família em `atencao`, com transferência aberta, fora da janela ou que já recebeu mensagem de conteúdo no dia, e `base_para_indexar` sem nada clínico nem em rascunho.
+Aceite: pgTAP mostra perda subindo o freio e pausando (inclusive numa conversa sem família), **[v4.2]** dois alertas de saúde da mesma conversa em 5 minutos gerando dois avisos ao grupo e ao plantão, pedido comercial repetido em 10 minutos sem duplicar, `followups_devidos` sem família em `atencao`, com transferência aberta, fora da janela ou que já recebeu mensagem de conteúdo no dia, `base_para_indexar` sem nada clínico nem em rascunho, e **[v4.2]** conversa transferida com `reuniao` continua em `humano_comercial` depois de o handoff ser fechado, e só `retomar_agente` a devolve, com linha no log.
 
 ## P23 · n8n: build, configuração e testes
 
@@ -456,9 +485,9 @@ Ler: PRD 19.1 e 19.5; `n8n/referencia/`; `n8n/prompts/`
 Objetivo: a máquina que gera os três JSON, com testes, antes de qualquer fluxo.
 
 Fazer:
-1. `n8n/config.example.json` (o único config no git): versão de cada tipo de nó (tirada da amostra exportada), ids e nomes das credenciais, URL base e instância da UAZAPI, segredos dos caminhos de webhook, modelos e se aceitam temperatura, id do fluxo 2 (preenchido depois do P24), prefixo do Redis e as opções `envio_simulado` e `transcricao_simulada` para homologação. Valores de negócio (tempo de agrupamento, pausa, PDF oficial) não vão no config: o fluxo lê de `parametro` pelas funções do agente.
+1. `n8n/config.example.json` (o único config no git): versão de cada tipo de nó (tirada da referência de `n8n/referencia/`), ids e nomes das credenciais, URL base e instância da UAZAPI, segredos dos caminhos de webhook, modelos e se aceitam temperatura, id do fluxo 2 (preenchido depois do P24), prefixo do Redis, **[v4.2]** `grupo_fallback_jid` (exceção documentada no ADR 0003, usado só quando `registrar_handoff` falha num alerta de saúde ou perda) e as opções `envio_simulado` e `transcricao_simulada` para homologação. Valores de negócio (tempo de agrupamento, pausa, PDF oficial) não vão no config: o fluxo lê de `parametro` pelas funções do agente.
 2. `n8n/build.mjs`: lê o config do ambiente, monta os fluxos a partir de definições em `n8n/src/*.mjs` (nós e conexões declarados em código), embute o código dos nós Code a partir de funções puras em `n8n/src/code/*.js`, carrega os prompts de `n8n/prompts/` entre as marcas (procuradas no começo da linha, porque o cabeçalho de cada arquivo cita as marcas no meio do texto) e troca as variáveis por expressões do n8n, aplica as configurações do 19.1, coloca a nota de cabeçalho e grava `n8n/dist/*.json` (com "(HML)" no nome em homologação).
-3. `n8n/build.test.mjs` (node:test) com tudo o que o 19.5 lista, mais: nenhum `$fromAI` preenchendo `jid`; nenhuma credencial `supabaseApi` nem `service_role`; todo nó Postgres com parâmetros em lista; toda ferramenta com descrição; toda chamada externa com tratamento de erro; `track_source` em todo envio; varredura de segredos nos JSON gerados e em `n8n/referencia/`.
+3. `n8n/build.test.mjs` (node:test) com tudo o que o 19.5 lista, mais: nenhum `$fromAI` preenchendo `jid` nem **[v4.2]** `conversa_id`; nenhuma credencial `supabaseApi` nem `service_role`; todo nó Postgres com parâmetros em lista; toda ferramenta com descrição; toda chamada externa com tratamento de erro; `track_source` em todo envio; varredura de segredos nos JSON gerados e em `n8n/referencia/`; **[v4.2]** o campo `query` de todo nó Postgres e `postgresTool` é literal, começa por `select agente.` ou `select * from agente.`, não contém `{{` nem `$fromAI` (que só aparece em `queryReplacement`); todo nó PGVector usa `tableName = 'documentos'` e todo nó Postgres Chat Memory usa `tableName = 'chat_memoria'`, sem espaço nem variação.
 4. Funções puras iniciais com testes: `mascararDocumentos` (o teste roda os mesmos casos contra a função SQL `privado.mascarar_documentos` no banco local e contra o código), `normalizarTexto`, `dividirEmBlocos`, `agrupamento`, `lerClassificacaoMensagem`, `lerClassificacaoPedido`.
 
 Diferenças deliberadas em relação aos fluxos da Enjoy, para registrar no ADR 0003: banco por papel restrito e funções Postgres no lugar de RPC com credencial do Supabase; PGVector no lugar do vector store do Supabase; memória em Postgres no lugar do Redis com expiração; token da UAZAPI em credencial, nunca lido do corpo do webhook.
@@ -471,8 +500,8 @@ Fase 1 · S6 · depende de P23 · trilha do agente
 Ler: PRD 19.3, 11.4, 23.3 e 23.4; `n8n/prompts/classificar-pedido.md`; o fluxo de pausa da Enjoy em `n8n/referencia/` só como formato
 
 Fazer:
-1. Os 19 nós do 19.3 em `n8n/src/fluxo-2.mjs`, com as regras do "Pular Classificador?" e do "Ler Classificação" como funções puras testadas. O fluxo 2 é o único que envia o texto fixo de saúde ou de perda (`agente.mensagem_alerta`), quando `enviar_texto` vier verdadeiro, e devolve `instrucao_saude` ao agente.
-2. Testes dos cenários: classificador pulado para motivos do sistema, `pediu_humano`, `reclamacao` e `bebe_nasceu`; classificador falhou; classificador subindo para saúde; `sem_aviso` recusado para `contratar` e aceito só para `duvida_sem_resposta` e `outro`; não lead preservado; pedido duplicado sem novo aviso; banco fora do ar em saúde avisando o grupo com a marca "não registrado no sistema"; texto de alerta enviado só com `enviar_texto`.
+1. Os 19 nós do 19.3, **[v4.2]** mais o nó 8a "Subiu para Alerta?", em `n8n/src/fluxo-2.mjs`, com as regras do "Pular Classificador?" e do "Ler Classificação" como funções puras testadas. O fluxo 2 é o único que envia o texto fixo de saúde ou de perda (`agente.mensagem_alerta`), quando `enviar_texto` vier verdadeiro, e devolve `instrucao_saude` ao agente.
+2. Testes dos cenários: classificador pulado para motivos do sistema, `pediu_humano`, `reclamacao` e `bebe_nasceu`; classificador falhou; classificador subindo para saúde (**[v4.2]** pelo nó 8a: a família recebe `alerta_saude`, o grupo recebe a mensagem com `{mensagem_enviada}` preenchido e o agente recebe `instrucao_saude`); `sem_aviso` recusado para `contratar` e para o modo `cliente`, aceito só para `duvida_sem_resposta` e `outro` fora desse modo **[v4.2]**; **[v4.2]** troca de motivo mantém a maior prioridade entre o motivo original e o novo, sem perder `{opcoes}` quando a troca reduziria a prioridade; **[v4.2]** `pediu_humano` com prioridade maior que `condicao_comercial` (logo depois de `reclamacao` na ordem de `classificar-pedido.md`); não lead preservado (inclusive gestante que cita o Leonardo como seu médico, tratada como lead); pedido **comercial** duplicado sem novo aviso, e **[v4.2]** pedido de `saude`, `perda` ou `estado_sensivel_escreveu` repetido em 5 minutos gerando um segundo aviso ao grupo e ao plantão; banco fora do ar em saúde avisando o grupo com a marca "não registrado no sistema"; texto de alerta enviado só com `enviar_texto`; **[v4.2]** `acionar_equipe_saude` com tipo `emocional` e `alerta_emocional_ativo` falso envia `alerta_saude`.
 3. Build de `n8n/dist/kraamzorg-pausar-ia-notificar-equipe.json`, importação em homologação e id do fluxo anotado no config.
 
 Aceite: o JSON importa sem erro; chamadas de teste com payloads de exemplo (registradas no relatório) põem a mensagem no grupo de teste e a pausa no Redis e no banco.
@@ -483,15 +512,15 @@ Fase 1 · S6 · depende de P24 · trilha do agente · **plano primeiro** · pode
 Ler: PRD 11 inteiro, 19.1 e 19.4; `n8n/prompts/isadora-system.md`, `classificar-mensagem.md`, `reescrever-resposta.md` e `isadora-followup.md`; o fluxo de entrada da Enjoy em `n8n/referencia/` só como formato
 
 Fazer:
-1. Entrada A (nós 1 a 35) e entrada B (nós 36 a 41) exatamente como no 19.4, em `n8n/src/fluxo-3.mjs`. A ordem é a regra de segurança do fluxo: termos e classificador (nós 17 a 20) antes do "Decidir Modo" e do desvio de mídia, e o alerta chega ao fluxo 2 em todos os modos menos `desligado`. O teste do build confere essa ordem pelas conexões.
-2. `validarResposta` como função pura com todas as regras do 11.11 (itens 3 a 8): valores em reais em qualquer forma ("R$ x", "x reais", "3x de x") contra a lista permitida e contra o plano citado na mesma frase; percentual perto de palavras de condição; promessas; escassez; palavras que a marca evita por palavra inteira (`parametro.validador_listas`, lido pela ficha); pedido de documento ou dado pessoal; negar ser assistente virtual; travessão trocado por vírgula; markdown removido com um negrito do WhatsApp permitido por bloco; nenhum emoji em bloco com valor; no máximo uma exclamação e um emoji por bloco; marca `precisa_pdf`.
-3. `prepararEnvio`: até três blocos de cerca de 280 caracteres sem quebrar frase; apresentação antes do primeiro bloco com valor, com a janela de `pdf_reenvio_janela_horas` (zero por padrão, ou seja, sempre) e sempre que o modelo pedir `[ENVIAR_APRESENTACAO]`; `[SILENCIO]` encerra. Se a reescrita devolver `transferir`, o fluxo abre a transferência antes do envio.
-4. Eco reconhecido por `wasSentByApi` ou `track_source`; agrupamento de 20 segundos com a chave do Redis vencendo em 5 minutos; texto mascarado já no "Extrair Dados"; `jid` sempre do nó "Extrair Dados"; memória em `agente_n8n.chat_memoria` com o id da conversa como sessão; `agente.sincronizar_memoria` depois do envio, para a memória guardar o texto que de fato saiu; `agente.pode_enviar` imediatamente antes de cada envio; banco fora do ar no "Pode Responder?" para o fluxo sem responder.
+1. Entrada A (nós 1 a 35) e entrada B (nós 36 a 41) exatamente como no 19.4, em `n8n/src/fluxo-3.mjs`. A ordem é a regra de segurança do fluxo: termos e classificador (nós 17 a 20) antes do "Decidir Modo" e do desvio de mídia, e o alerta chega ao fluxo 2 em todos os modos menos `desligado`. O teste do build confere essa ordem pelas conexões. **[v4.2]** Depois do Caminho de Alerta (nó 20) a execução termina em todos os modos, inclusive `vendas` e `cliente`; o nó 21 só roda sem alerta; teste fora da lista passa pelos nós 17 a 20 com `enviar_texto` falso. O teste do build confere que nenhuma conexão liga o ramo de alerta ativo ao nó 26 e que o nó 16 não para teste fora da lista antes do nó 17 (PRD 19.5).
+2. `validarResposta` como função pura com todas as regras do 11.11 (itens 3 a 8): valores em reais em qualquer forma ("R$ x", "x reais", "3x de x") contra a lista permitida e **[v4.2]** contra o plano citado no mesmo bloco (não só na mesma frase; valor por extenso reprova) **[confirmar: Leonardo, a regra do "a partir de"]**; percentual perto de palavras de condição; promessas; escassez; palavras que a marca evita por palavra inteira (`parametro.validador_listas`, lido pela ficha); pedido de documento ou dado pessoal; negar ser assistente virtual; travessão trocado por vírgula; markdown removido com um negrito do WhatsApp permitido por bloco; nenhum emoji em bloco com valor; no máximo uma exclamação e um emoji por bloco; marca `precisa_pdf`. **[v4.2]** Mais o item 5a do 11.11: emoji acima de um por resposta cortado, nenhum emoji com "R$" ou com motivo em curso `saude`, `perda` ou `reclamacao`; mais de um "?" fora de citação aciona a reescrita, exceto no fechamento da venda; texto entre colchetes que não seja `[ENVIAR_APRESENTACAO]` sozinho numa linha reprova.
+3. `prepararEnvio`: até três blocos de cerca de 280 caracteres sem quebrar frase; apresentação antes do primeiro bloco com valor, com a janela de `pdf_reenvio_janela_horas` (zero por padrão, ou seja, sempre) e sempre que o modelo pedir `[ENVIAR_APRESENTACAO]`; `[SILENCIO]` encerra, **[v4.2]** em qualquer posição do texto. Se nesta execução o agente chamou `acionar_equipe_saude` ou o fluxo 2 devolveu `instrucao_saude`, a saída do modelo é descartada, seja qual for (PRD 19.4, nó 27); teste com "Tente se deitar e beber água. [SILENCIO]" não envia nada. Se a reescrita devolver `transferir`, o fluxo abre a transferência antes do envio.
+4. Eco reconhecido por `wasSentByApi` ou `track_source`; agrupamento de 20 segundos com a chave do Redis vencendo em 5 minutos; texto mascarado já no "Extrair Dados"; **[v4.2]** `conversa_id` sempre do nó "Registrar Msg Família" (ou "Registrar Msg Humana") e `jid`, só para enviar, do nó "Extrair Dados", nunca de `$fromAI()` (PRD 19.1 e Apêndice A); memória em `agente_n8n.chat_memoria` com o id da conversa como sessão; `agente.sincronizar_memoria` depois do envio, para a memória guardar o texto que de fato saiu; `agente.pode_enviar` imediatamente antes de cada resposta ou follow-up à família **[v4.2]** (nunca no texto de alerta que sai por `agente.mensagem_alerta` nem nos avisos internos ao grupo ou ao plantão, que não passam por essa checagem); banco fora do ar no "Pode Responder?" para o fluxo sem responder. **[v4.2]** Falha do Redis no agrupamento segue sem agrupar, nunca para o fluxo; falha do modelo de conversa chama o fluxo 2 com motivo `outro`, prioridade alta e resumo "IA fora do ar, responder a família"; se `registrar_handoff` falhar nesse caminho, usa `grupo_fallback_jid` (config do build, P23 item 1) com o texto "[NÃO REGISTRADO NO SISTEMA] Possível alerta de saúde · {telefone} · \"{texto}\"".
 5. Com `envio_simulado` ligado, os envios vão para a rota de captura `/api/teste/uazapi`, criada nesta sessão no app e recusada fora de homologação. Com `transcricao_simulada`, o download e a transcrição de áudio devolvem o texto que o teste mandar. É o que o P28 usa.
-6. Teste de fumaça na conta real da OpenAI em homologação: uma chamada do modelo de conversa e uma do classificador com os parâmetros do config.
+6. Teste de fumaça na conta real da OpenAI em homologação: uma chamada do modelo de conversa e uma do classificador com os parâmetros do config. **[v4.2]** Registrar no relatório a versão exata do n8n usada em homologação (o comportamento de `$('Registrar Msg Família')` dentro de sub-nós de ferramenta precisa ser reconfirmado a cada troca de versão, `n8n/referencia/README.md`); disparar duas conversas concorrentes (dois `jid` distintos) que cada uma chame pelo menos um `postgresTool`, e conferir no banco que o `conversa_id` usado em cada chamada corresponde exatamente à conversa que a originou; falha bloqueia o build.
 7. Build de `n8n/dist/kraamzorg-agente-isadora.json`, importação em homologação e webhook da instância de teste da UAZAPI apontando para o fluxo.
 
-Aceite: testes do build verdes; em homologação, com `agente_modo = teste` e os números da equipe na lista, uma conversa real do "Olá" até o pedido de conversa com a Edilaine funciona, com a apresentação chegando antes do primeiro valor.
+Aceite: testes do build verdes; em homologação, com `agente_modo = teste` e os números da equipe na lista, uma conversa real do "Olá" até o pedido de conversa com a Edilaine funciona, com a apresentação chegando antes do primeiro valor; **[v4.2]** com `agente_modo = teste`, número fora da lista com "sangramento" chama o fluxo 2 com `enviar_texto` falso; **[v4.2]** teste de ida e volta da memória: o nó grava uma troca, `agente.sincronizar_memoria` grava uma fala da equipe e troca a última fala da IA, e a mensagem seguinte relê a memória pelo nó sem erro (confere o formato do JSON contra P-1 item 15); **[v4.2]** resposta depois de transferência com `reuniao` chega à família e a mensagem seguinte não recebe resposta automática (`humano_comercial`); áudio com a transcrição forçada a falhar abre `audio_nao_transcrito` e envia o texto `audio_nao_transcrito`; áudio com sintoma, transcrição certa e gravação forçada a falhar chama o fluxo 2 com `alerta_saude`; foto com legenda neutra abre `midia_recebida`; os casos extras [v4.2] do Apêndice C passam.
 
 ## P26 · n8n: fluxo 1, Ingestão RAG, e base de conhecimento inicial
 
@@ -508,20 +537,20 @@ Aceite: com itens aprovados em homologação, a ingestão cria o lote, promove e
 ## P27 · Tela do agente no CRM
 
 Fase 1 · S7 · depende de P22, P26 e P18
-Ler: PRD 11.3, 11.4, 11.12 e 20.5
+Ler: PRD 11.3, 11.4, 11.12 e 20.5; **[v4.2]** `docs/design/DESIGN.md`, `docs/design/fluxos.md` (fluxo E) e o protótipo `docs/prototipo/comercial-conversa.html`, `comercial-conversas.html` e `comercial-agente-regras.html`
 
 Fazer:
-1. Conversas: lista com modo, pausa, última mensagem e transferência aberta. Na conversa: mensagens com quem enviou, pausar e retomar a Isadora, assumir e resolver a transferência (resolver devolve à Isadora), marcar como não lead, abrir a ficha.
+1. **[v4.2]** Conversas: lista com modo, pausa, última mensagem e transferência aberta. Na conversa: mensagens com quem enviou, pausar e retomar a Isadora, assumir e resolver a transferência, marcar como não lead, abrir a ficha. **"Resolver" nunca devolve a conversa à Isadora**: encerra a transferência com o desfecho (formulário enviado, sessão marcada, condição negociada, sem retorno) e mantém o modo atual da conversa. Conversa em `humano_comercial` (PRD 11.7, D-17) mostra o selo do modo e o motivo: a Isadora não volta a responder ali; só o botão específico "Devolver à Isadora", que chama `privado.retomar_agente` (P22 item 4), com confirmação explicando que a Isadora volta a responder a partir da próxima mensagem da família.
 2. Transferências: fila por prioridade e prazo, com cores; faixa vermelha quando o aviso ao grupo falhou.
 3. Modo do agente (diretoria): desligado, teste ou produção, e a lista de números de teste.
 4. Base de conhecimento: cadastro com status, aprovação pelo Leonardo, botão "Reindexar" e última ingestão.
 5. Métricas do 11.12, com as consultas SQL documentadas.
 
-Aceite: e2e com transferência aparecendo com o prazo; assumir pausa a Isadora; resolver retoma.
+Aceite: e2e com transferência aparecendo com o prazo; assumir pausa a Isadora; **[v4.2]** resolver não reativa a Isadora numa conversa `humano_comercial`; "Devolver à Isadora" tira a conversa de `humano_comercial` e grava no log.
 
 ## P28 · Homologação automatizada da Isadora
 
-Fase 1 · S7 · depende de P25, P26, P27 e da aprovação do item 16 do P-1
+Fase 1 · S7 · depende de P25, P26, P27 e da aprovação do item 17 do P-1 **[v4.2]**
 Ler: PRD 11.5, Apêndice C e 16.2 (Fase 1)
 
 Fazer:
@@ -575,16 +604,16 @@ Fase 1 · S6 · depende de P31 · trilha de venda
 Ler: PRD 14 (InfinitePay), 6.3 (`cobranca`), 7.2 e 10.1
 
 Fazer:
-1. Cobrança criada depois da assinatura, com `order_nsu` igual ao id da cobrança; link pela API de links com itens em centavos, `redirect_url`, `webhook_url` e dados do cliente; texto `link_pagamento` na tarefa.
+1. **[v4.2]** Cobrança criada depois da assinatura, com `order_nsu` igual ao id da cobrança; link gerado pelo endpoint escolhido no PRD 14/T-06 para travar o parcelamento em 3x sem juros (Plano de Cobrança da InfinitePay, ou o link simples sem repasse de taxa, conforme a decisão registrada lá) **[confirmar: Leonardo, entre repassar a taxa da bandeira ou não]**, com itens em centavos, `redirect_url`, `webhook_url` e dados do cliente; texto `link_pagamento` na tarefa.
 2. Webhook `/api/webhooks/infinitepay`: não confia no corpo, confirma com `payment_check` antes de qualquer baixa, é idempotente, grava método, parcelas, valor pago e recibo, e responde 200 rápido.
 3. Baixa move para `pagamento_confirmado`. Acima de 34 semanas, `prenatal_urgente` (tarefa máxima e aviso imediato à coordenação). Tarefa com `pagamento_confirmado` ou `pagamento_confirmado_34s`. A nota fiscal fica pendente para o P43.
 4. Baixa manual pelo financeiro para Pix recebido fora do sistema, com comprovante e motivo.
 
-Aceite: teste automatizado com `payment_check` simulado cobre webhook duplicado e forjado; em homologação, um pagamento de valor mínimo percorre o fluxo quando a credencial existir.
+Aceite: teste automatizado com `payment_check` simulado cobre webhook duplicado e forjado; em homologação, um pagamento de valor mínimo percorre o fluxo quando a credencial existir; **[v4.2]** o link de pagamento gerado no teste mostra no máximo 3 parcelas sem juros; se mostrar mais, o teste falha.
 
 ## P33 · Aceite das Fases 0 e 1
 
-Fase 1 · S7 (21/10 na proposta) · depende de P00 a P32
+Fase 1 · S8 [v4.2] (30/10 na proposta, condicionado a T-01 e T-06 conforme o Calendário) · depende de P00 a P32, inclusive P18b
 Ler: PRD 16.1 e 16.2
 
 Fazer:
@@ -617,16 +646,16 @@ Aceite: o DOC 2 renderiza os blocos do 9.2 com os tipos certos; aprovar uma vers
 ## P35 · Consulta pré-natal (DOC 1) e alerta de 34 semanas
 
 Fase 2 · S7 · depende de P34 e P32
-Ler: PRD 9.1, 7.2, 10.1 (`alerta_34s` e `prenatal_urgente`) e 4 (D-10)
+Ler: PRD 9.1, 7.2, 10.1 (`alerta_34s` e `prenatal_urgente`) e 4 (D-10); **[v4.2]** `docs/design/DESIGN.md`, `docs/design/fluxos.md` (fluxo B) e o protótipo `docs/prototipo/coordenacao-entrevista.html`
 
 Fazer:
 1. Tarefa `agendar_prenatal` quando o pagamento é confirmado, urgente acima de 34 semanas; agenda da consulta.
-2. Preenchimento do DOC 1 pelo celular. Toda entrevista começa em branco e não existe opção de duplicar outra família.
+2. Preenchimento do DOC 1 pelo celular. Toda entrevista começa em branco e não existe opção de duplicar outra família. **[v4.2]** Entrevista em etapas numa sequência lógica (a ordem da conversa, não a do papel, `fluxos.md` fluxo B) e retomável: cada campo grava ao sair dele, e sair no meio e voltar reabre na etapa e no campo onde parou (critério de aceite de UX, reunião de 24/09, notas-reuniao-24-09.md 11:14).
 3. Médicos do bloco H gravados em `medico`; preferência de período em `consulta_prenatal.periodo_preferido`; plano de cuidado.
 4. `alerta_34s` diário, só interno.
 5. Transições `consulta_prenatal_agendada` e `consulta_realizada`.
 
-Aceite: e2e com família sintética; entrevista nova sempre vazia; família com 34 semanas gera aviso só para a coordenação.
+Aceite: e2e com família sintética; entrevista nova sempre vazia; família com 34 semanas gera aviso só para a coordenação; **[v4.2]** sair da entrevista na etapa 4 e voltar reabre na etapa 4, no campo onde parou.
 
 ## P36 · Designação, radar de nascimentos, nascimento e alta
 
@@ -644,7 +673,7 @@ Aceite: e2e em que nascimento e alta geram 6 ou 12 visitas no período certo; re
 ## P37 · Agenda, escalas e equipe
 
 Fase 2 · S8 · depende de P36
-Ler: PRD 3.4 (duas visitas por dia, mesmo período), 6.5 (`profissional`, `documento_profissional`, `bloqueio_agenda`) e 10.1 (`documento_vencendo`)
+Ler: PRD 3.4 (duas visitas por dia, mesmo período), 6.5 (`profissional`, `documento_profissional`, `bloqueio_agenda`) e 10.1 (`documento_vencendo`); **[v4.2]** `docs/design/fluxos.md` (fluxo C, estado das enfermeiras no CRM)
 
 Fazer:
 1. Cadastro de profissionais (conselho e UF, regiões, vínculo, valor da hora, ajuda de deslocamento), documentos com validade e aviso 30 dias antes, bloqueios de agenda.
@@ -652,13 +681,14 @@ Fazer:
 3. Conflitos: mais de duas visitas no dia, período diferente do D1, bloqueio, sobreposição.
 4. Reagendamento em cascata quando nascimento ou alta mudam, mantendo o período.
 5. Escala semanal.
+6. **[v4.2]** Status operacional da profissional, pedido na reunião de 24/09 (notas-reuniao-24-09.md 11:31): nunca digitado, sempre calculado das designações (`designacao`: oferecida, aceita, recusada, expirada; titular ou backup), das visitas do dia (`visita`) e dos bloqueios de agenda, na ordem de `docs/design/fluxos.md` fluxo C (em visita, em atendimento, reservada, backup, oferta pendente, folga ou bloqueio, livre). Visível na tela de Equipe (coordenação e diretoria) e no início delas; a enfermeira vê só o próprio estado. **[confirmar: Edilaine, casos de borda fora do horário de visita]**.
 
-Aceite: conflito aparece na tela antes de salvar; a cascata mantém o período.
+Aceite: conflito aparece na tela antes de salvar; a cascata mantém o período; **[v4.2]** o status muda para "em visita" no check-in e volta ao estado anterior no check-out, sem nenhuma tela oferecer digitar o status à mão.
 
 ## P38 · Portal da enfermeira
 
 Fase 2 · S8 · depende de P37 e P12
-Ler: PRD 20.4 (Enfermeira), 15 e 13 (famílias atribuídas)
+Ler: PRD 20.4 (Enfermeira), 15 e 13 (famílias atribuídas); **[v4.2]** `docs/design/DESIGN.md`, `docs/design/fluxos.md` e o protótipo `docs/prototipo/enfermeira-hoje.html`, `enfermeira-familias.html`, `enfermeira-familia.html` e `enfermeira-alertas.html`
 
 Fazer:
 1. Abas Hoje (visitas do dia com endereço, período, chegada e saída com hora), Famílias (só as atribuídas, sem dado comercial), Alertas e Perfil.
@@ -670,21 +700,21 @@ Aceite: enfermeira só vê as famílias atribuídas; o dia funciona sem conexão
 ## P39 · Checklist diário (DOC 2), registro append-only e adendos
 
 Fase 2 · S8 · depende de P38 e P34 · **plano primeiro**
-Ler: PRD 9.2, 6.5 (`registro_atendimento`, `registro_adendo`, `anexo_audio`), 7.3 (contatos dos médicos) e 15; `docs/referencia-materiais-clinicos.md`
+Ler: PRD 9.2, 6.5 (`registro_atendimento`, `registro_adendo`, `anexo_audio`), 7.3 (contatos dos médicos) e 15; `docs/referencia-materiais-clinicos.md`; **[v4.2]** `docs/design/DESIGN.md`, `docs/design/fluxos.md` (fluxo A) e o protótipo `docs/prototipo/enfermeira-checklist-vitais.html`, `enfermeira-checklist-bebe.html`, `enfermeira-checklist-perguntas.html` e `enfermeira-assinatura.html`
 
 Fazer:
-1. DOC 2 offline por visita, com o bloco do recém-nascido repetido por bebê.
+1. DOC 2 offline por visita, com o bloco do recém-nascido repetido por bebê. **[v4.2]** Checklist respondido por uma mão, bloco a bloco (oito etapas, uma por tela, `fluxos.md` fluxo A), um toque por pergunta sim ou não, sem copiar dado de outro dia sem confirmação campo a campo: valor numérico mostra o do dia anterior só como referência, nunca preenchido; texto que costuma se repetir oferece "Trazer o texto do dia anterior" com confirmação explícita antes de contar como respondido (critério de aceite de UX, reunião de 24/09, notas-reuniao-24-09.md 11:12).
 2. Obrigatórios para concluir a visita (PRD 9.2) e resumo descritivo.
 3. Assinatura: hash sha256 de dados, resumo, profissional e hora, calculado no aparelho na hora de assinar e conferido no servidor. Registro final por `assistencial.registrar_atendimento()`, append-only. Correção por adendo com motivo.
 4. Último dia: contatos do obstetra e do pediatra obrigatórios, com justificativa quando faltar. Sem contato, a visita encerra, a tarefa `obter_contato_medico` nasce e a evolução fica bloqueada.
 5. Curva de peso automática: perda percentual, menor peso, ganho absoluto e ganho médio diário com uma casa decimal, a partir do menor peso (K-11).
 6. Áudio anexado à visita, no storage privado com URL assinada de 60 segundos. A transcrição fica desligada por parâmetro até a aprovação do L-04; a retenção vem do parâmetro.
 
-Aceite: registro não aceita update; divergência offline vira adendo; visita sem obrigatórios não conclui; invariante 4 roda com o DOC 2.
+Aceite: registro não aceita update; divergência offline vira adendo; visita sem obrigatórios não conclui; invariante 4 roda com o DOC 2; **[v4.2]** campo numérico com valor de outro dia visível só como referência (nunca preenchido) e campo de texto trazido de outro dia sem confirmação não conta como respondido.
 
 ## P40 · Motor de alertas clínicos (DOC 3) e apoio do DOC 4
 
-Fase 2 · S8 · depende de P39 e da aprovação do item 17 do P-1
+Fase 2 · S8 · depende de P39 e da aprovação do item 18 do P-1 **[v4.2]**
 Ler: PRD 9.3, 9.4, Apêndice B e 8; `docs/referencia-materiais-clinicos.md`
 
 Fazer:
@@ -699,7 +729,7 @@ Aceite: registro de teste com temperatura de 38,2 °C dispara PU-01 sem conexão
 ## P41 · Evoluções em PDF e envio aos médicos
 
 Fase 2 · S8 · depende de P40 · **plano primeiro**
-Ler: PRD 9.5 inteiro; `docs/analise-evolucoes.md`
+Ler: PRD 9.5 inteiro; `docs/analise-evolucoes.md`; **[v4.2]** `docs/design/DESIGN.md` (tokens, tipografia e o padrão de documento formal). O protótipo (`docs/prototipo/`) não tem tela própria para o PDF; a tela de edição da enfermeira segue o padrão geral do portal (fluxo A) e o documento gerado segue só os tokens e a tipografia do DESIGN.md, sem layout de tela.
 
 Fazer:
 1. Rascunho da evolução puerperal e da neonatal (uma por bebê) a partir dos dados agregados e dos textos padrão aprovados (`mensagem_modelo` com destinatário `medico`), com concordância de gênero.
@@ -739,7 +769,7 @@ Aceite: nota de teste autorizada na homologação do provedor; erro mostra o mot
 
 ## P44 · Aceite da Fase 2
 
-Fase 2 · S9 (04/11 na proposta) · depende de P34 a P43
+Fase 2 · S11 [v4.2] (semana de 16 a 20/11 na proposta) · depende de P34 a P43
 Ler: PRD 16.2 (Fase 2)
 
 Fazer: roteiro em `docs/aceite/fase-2.md` com uma enfermeira real usando dados sintéticos em homologação: um dia inteiro pelo celular, com um trecho sem sinal, um alerta clínico de teste, a evolução gerada e a pesquisa enviada. Treinamento curto antes; ajustes depois.
@@ -852,16 +882,16 @@ Aceite: `docs/homologacao/final.md` sem pendência crítica.
 
 ## P54 · Treinamento, transferência e aceite final
 
-Homologação · S11 (16 a 19/11) · depende de P53
+Homologação · S13 [v4.2] (30/11 a 04/12 na proposta) · depende de P53
 Ler: PRD 4 (D-12) e 21.4
 
 Fazer:
 1. Manual de uso por papel em `docs/manual/`.
-2. Apoio aos treinamentos: instalação do portal no celular de cada enfermeira (16/11), diretoria e coordenação (17/11), enfermeiras (17/11).
+2. Apoio aos treinamentos: instalação do portal no celular de cada enfermeira, diretoria e coordenação, enfermeiras, nos primeiros dias da semana do P54 [v4.2: datas a combinar com a Kraamzorg].
 3. Conferência de que repositório, projetos, domínio e contas estão em nome da Kraamzorg; exportação dos fluxos n8n com instruções de migração da instância (cláusula 2.6.2).
 4. Lista final dos itens `[confirmar]` que continuam abertos, com responsável.
 
-Aceite: termo de aceite final em 19/11.
+Aceite: termo de aceite final [v4.2] na semana de 30/11 a 04/12, conforme o Calendário [confirmar: Leonardo, por escrito].
 
 ---
 
