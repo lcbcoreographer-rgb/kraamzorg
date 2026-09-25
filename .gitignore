@@ -1,0 +1,53 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# variáveis de ambiente: nunca valor real no repositório (CLAUDE.md)
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# testes
+/coverage
+/playwright-report/
+/playwright-report-offline/
+/test-results/
+/test-results-offline/
+/blob-report/
+
+# n8n: configuração e fluxos gerados carregam segredo/caminho (CLAUDE.md)
+n8n/config.*.json
+!n8n/config.example.json
+n8n/dist/
+
+# Supabase CLI
+supabase/.temp

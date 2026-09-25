@@ -1,0 +1,23 @@
+.next/
+node_modules/
+pnpm-lock.yaml
+playwright-report/
+playwright-report-offline/
+test-results/
+test-results-offline/
+coverage/
+n8n/dist/
+supabase/.temp/
+docs/prototipo/
+
+# Entregues com o projeto ou escritos por outra sessão em paralelo: nunca
+# reformatar (ver instruções da tarefa do P00).
+CLAUDE.md
+PRD.md
+PROMPTS.md
+docs/analise-*.md
+docs/referencia-materiais-clinicos.md
+docs/aprovacao/
+docs/design/
+n8n/prompts/
+n8n/referencia/
