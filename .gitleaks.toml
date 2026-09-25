@@ -1,0 +1,23 @@
+title = "Kraamzorg OS · configuração do gitleaks"
+
+# Usa o conjunto de regras padrão do gitleaks e só acrescenta os caminhos
+# que nunca entram no repositório (build, dependências, relatórios de
+# teste). Eles já estão fora do git pelo .gitignore; esta lista existe
+# para que `gitleaks detect --no-git`, que varre o disco e não o git,
+# não acuse segredo de build efêmero (chave de preview do Next.js etc.)
+# quando alguém rodar o comando localmente depois de `pnpm build`.
+[extend]
+useDefault = true
+
+[allowlist]
+paths = [
+  '''\.next/''',
+  '''node_modules/''',
+  '''playwright-report/''',
+  '''playwright-report-offline/''',
+  '''test-results/''',
+  '''test-results-offline/''',
+  '''coverage/''',
+  '''n8n/dist/''',
+  '''supabase/\.temp/''',
+]
