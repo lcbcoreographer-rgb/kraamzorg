@@ -1,0 +1,1177 @@
+{
+  "codigo": "DOC2_CHECKLIST",
+  "versao": "v1-2026-09",
+  "titulo": "Checklist diário de atendimento",
+  "fonte": "PRD v4.2, 9.2 e Apêndice B",
+  "descricao": "Uma coluna por dia, de D1 a D6 ou D12. Um registro por visita, assinado pela profissional.",
+  "cabecalho": [
+    {
+      "id": "cabecalho",
+      "titulo": "Cabeçalho do acompanhamento",
+      "ajuda": "Preenchido uma vez por acompanhamento.",
+      "campos": [
+        {
+          "id": "paciente",
+          "tipo": "texto",
+          "rotulo": "Paciente"
+        },
+        {
+          "id": "ginecologista",
+          "tipo": "texto",
+          "rotulo": "Ginecologista"
+        },
+        {
+          "id": "hospital",
+          "tipo": "texto",
+          "rotulo": "Hospital"
+        },
+        {
+          "id": "data_da_alta",
+          "tipo": "data",
+          "rotulo": "Data da alta"
+        },
+        {
+          "id": "pediatra",
+          "tipo": "texto",
+          "rotulo": "Pediatra"
+        }
+      ]
+    },
+    {
+      "id": "cabecalho_bebe",
+      "titulo": "Cabeçalho do recém-nascido",
+      "ajuda": "Em gemelares, os campos do bebê repetem por bebê.",
+      "repete_por_bebe": true,
+      "campos": [
+        {
+          "id": "nome_recem_nascido",
+          "tipo": "texto",
+          "rotulo": "Nome do recém-nascido"
+        },
+        {
+          "id": "peso_ao_nascer",
+          "tipo": "numero",
+          "rotulo": "Peso ao nascer",
+          "unidade": "g"
+        },
+        {
+          "id": "peso_na_alta",
+          "tipo": "numero",
+          "rotulo": "Peso do bebê na alta",
+          "unidade": "g"
+        }
+      ]
+    }
+  ],
+  "blocos": [
+    {
+      "id": "1",
+      "titulo": "Chegada e preparo",
+      "campos": [
+        {
+          "id": "data",
+          "tipo": "data",
+          "rotulo": "Data",
+          "obrigatorio": true
+        },
+        {
+          "id": "horario",
+          "tipo": "hora",
+          "rotulo": "Horário",
+          "obrigatorio": true
+        },
+        {
+          "id": "acompanhante_presente",
+          "tipo": "sim_nao_texto",
+          "rotulo": "Acompanhante presente?",
+          "rotulo_texto": "Quem?"
+        },
+        {
+          "id": "pontualidade_confirmada",
+          "tipo": "sim_nao",
+          "rotulo": "Pontualidade confirmada"
+        },
+        {
+          "id": "higienizacao_das_maos",
+          "tipo": "sim_nao",
+          "rotulo": "Higienização das mãos"
+        },
+        {
+          "id": "apresentacao_acolhimento_familia",
+          "tipo": "sim_nao",
+          "rotulo": "Apresentação e acolhimento da família"
+        },
+        {
+          "id": "relato_desde_ultima_visita",
+          "tipo": "sim_nao",
+          "rotulo": "Relato desde a última visita coletado"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "titulo": "Puérpera, estado geral",
+      "campos": [
+        {
+          "id": "bem_estar_geral_preservado",
+          "tipo": "sim_nao",
+          "rotulo": "Bem-estar geral preservado"
+        },
+        {
+          "id": "queixa_de_dor",
+          "tipo": "sim_nao_texto",
+          "rotulo": "Queixa de dor?",
+          "rotulo_texto": "Local"
+        },
+        {
+          "id": "dor_intensidade",
+          "tipo": "escala",
+          "rotulo": "Dor, intensidade",
+          "min": 0,
+          "max": 10,
+          "alertas": [
+            {
+              "descricao": "≥ 7",
+              "regras": [
+                "PU-03",
+                "PU-09"
+              ],
+              "condicao": {
+                "campo": "2.dor_intensidade",
+                "operador": ">=",
+                "valor": 7
+              },
+              "clinico": true,
+              "nota_clinica": "Apêndice B: PU-03 imediato ou PU-09 prioritário."
+            }
+          ]
+        },
+        {
+          "id": "sangramento_loquios_esperado",
+          "tipo": "sim_nao",
+          "rotulo": "Sangramento (lóquios) esperado",
+          "alertas": [
+            {
+              "descricao": "se não",
+              "regras": [
+                "PU-02",
+                "PU-10"
+              ],
+              "condicao": {
+                "campo": "2.sangramento_loquios_esperado",
+                "operador": "=",
+                "valor": false
+              },
+              "acao": "abrir_seletor_doc3",
+              "clinico": true,
+              "nota_clinica": "Apêndice B: o seletor pergunta a intensidade; PU-02 imediato ou PU-10 prioritário."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2.1",
+      "titulo": "Sinais vitais",
+      "campos": [
+        {
+          "id": "pressao_arterial",
+          "tipo": "numero",
+          "rotulo": "Pressão arterial",
+          "unidade": "mmHg",
+          "partes": [
+            {
+              "id": "sistolica",
+              "rotulo": "Sistólica"
+            },
+            {
+              "id": "diastolica",
+              "rotulo": "Diastólica"
+            }
+          ],
+          "obrigatorio": true,
+          "alertas": [
+            {
+              "descricao": "ver Apêndice B: sem corte definido",
+              "regras": [],
+              "severidade": "informativo",
+              "clinico": true,
+              "nota_clinica": "K-05: corte da pressão arterial a definir. Por ora, só registro."
+            }
+          ]
+        },
+        {
+          "id": "temperatura",
+          "tipo": "numero",
+          "rotulo": "Temperatura",
+          "unidade": "°C",
+          "casas_decimais": 1,
+          "obrigatorio": true,
+          "alertas": [
+            {
+              "descricao": "≥ 38",
+              "regras": [
+                "PU-01"
+              ],
+              "severidade": "imediato",
+              "condicao": {
+                "campo": "2.1.temperatura",
+                "operador": ">=",
+                "valor": 38
+              },
+              "fonte": "DOC 3"
+            },
+            {
+              "descricao": "37,5 a 37,9 °C em duas visitas seguidas",
+              "regras": [
+                "PU-08"
+              ],
+              "severidade": "prioritario",
+              "condicao": {
+                "campo": "2.1.temperatura",
+                "operador": "entre",
+                "min": 37.5,
+                "max": 37.9
+              },
+              "clinico": true,
+              "nota_clinica": "Corte de \"febre baixa persistente\" a confirmar. As duas visitas seguidas são conferidas pelo motor de alertas (P40)."
+            }
+          ]
+        },
+        {
+          "id": "frequencia_cardiaca",
+          "tipo": "numero",
+          "rotulo": "Frequência cardíaca",
+          "unidade": "bpm",
+          "obrigatorio": true
+        }
+      ]
+    },
+    {
+      "id": "2.2",
+      "titulo": "Ferida operatória",
+      "campos": [
+        {
+          "id": "cesarea_sem_sinais_infeccao",
+          "tipo": "sim_nao",
+          "rotulo": "Cesárea sem sinais de infecção",
+          "alertas": [
+            {
+              "descricao": "se não",
+              "regras": [
+                "PU-04"
+              ],
+              "severidade": "imediato",
+              "condicao": {
+                "campo": "2.2.cesarea_sem_sinais_infeccao",
+                "operador": "=",
+                "valor": false
+              },
+              "fonte": "DOC 3"
+            }
+          ]
+        },
+        {
+          "id": "episiotomia_laceracao_sem_alteracoes",
+          "tipo": "sim_nao",
+          "rotulo": "Episiotomia ou laceração sem alterações",
+          "alertas": [
+            {
+              "descricao": "se não",
+              "regras": [
+                "PU-04"
+              ],
+              "severidade": "imediato",
+              "condicao": {
+                "campo": "2.2.episiotomia_laceracao_sem_alteracoes",
+                "operador": "=",
+                "valor": false
+              },
+              "clinico": true
+            }
+          ]
+        },
+        {
+          "id": "orientacoes_cuidado_reforcadas",
+          "tipo": "sim_nao",
+          "rotulo": "Orientações de cuidado reforçadas"
+        }
+      ]
+    },
+    {
+      "id": "2.3",
+      "titulo": "Medicações",
+      "campos": [
+        {
+          "id": "medicacoes_em_uso",
+          "tipo": "texto",
+          "rotulo": "Medicações em uso"
+        }
+      ]
+    },
+    {
+      "id": "2.4",
+      "titulo": "Autocuidado",
+      "campos": [
+        {
+          "id": "higiene_intima_orientada",
+          "tipo": "sim_nao",
+          "rotulo": "Higiene íntima orientada"
+        },
+        {
+          "id": "sono_repouso_adequados",
+          "tipo": "sim_nao",
+          "rotulo": "Sono e repouso adequados"
+        },
+        {
+          "id": "alimentacao_hidratacao_adequadas",
+          "tipo": "sim_nao",
+          "rotulo": "Alimentação e hidratação adequadas"
+        },
+        {
+          "id": "eliminacoes_evacuacao_presentes",
+          "tipo": "sim_nao",
+          "rotulo": "Eliminações e evacuação presentes"
+        }
+      ]
+    },
+    {
+      "id": "2.5",
+      "titulo": "Mamas",
+      "campos": [
+        {
+          "id": "turgidas_ou_secretantes",
+          "tipo": "sim_nao",
+          "rotulo": "Túrgidas ou secretantes",
+          "obrigatorio": true
+        },
+        {
+          "id": "flacidas",
+          "tipo": "sim_nao",
+          "rotulo": "Flácidas",
+          "obrigatorio": true
+        },
+        {
+          "id": "ingurgitadas",
+          "tipo": "sim_nao",
+          "rotulo": "Ingurgitadas",
+          "alertas": [
+            {
+              "descricao": "se sim",
+              "regras": [
+                "PU-11"
+              ],
+              "severidade": "prioritario",
+              "condicao": {
+                "campo": "2.5.ingurgitadas",
+                "operador": "=",
+                "valor": true
+              },
+              "clinico": true,
+              "nota_clinica": "DOC 3 .docx pede \"sem melhora com o manejo\"."
+            }
+          ],
+          "obrigatorio": true
+        }
+      ],
+      "clinico": true,
+      "nota_clinica": "PRD 9.2 v4.2: até a Edilaine dizer qual subcampo conta como registro de amamentação preenchido, o bloco inteiro 2.5 a 2.13 é obrigatório para concluir a visita (K-09)."
+    },
+    {
+      "id": "2.6",
+      "titulo": "Amamentação e dor",
+      "campos": [
+        {
+          "id": "dor_mamilos_amamentar",
+          "tipo": "sim_nao",
+          "rotulo": "Dor nos mamilos para amamentar",
+          "obrigatorio": true
+        },
+        {
+          "id": "evn",
+          "tipo": "escala",
+          "rotulo": "EVN",
+          "min": 0,
+          "max": 10,
+          "alertas": [
+            {
+              "descricao": "≥ 7",
+              "regras": [
+                "AM-05"
+              ],
+              "severidade": "prioritario",
+              "condicao": {
+                "campo": "2.6.evn",
+                "operador": ">=",
+                "valor": 7
+              },
+              "clinico": true
+            }
+          ],
+          "obrigatorio": true
+        },
+        {
+          "id": "intervencoes_para_dor",
+          "tipo": "texto",
+          "rotulo": "Intervenções realizadas para dor",
+          "obrigatorio": true
+        }
+      ],
+      "clinico": true,
+      "nota_clinica": "PRD 9.2 v4.2: até a Edilaine dizer qual subcampo conta como registro de amamentação preenchido, o bloco inteiro 2.5 a 2.13 é obrigatório para concluir a visita (K-09)."
+    },
+    {
+      "id": "2.7",
+      "titulo": "Lesão mamilar",
+      "campos": [
+        {
+          "id": "lesao_mamilar",
+          "tipo": "opcao_unica",
+          "rotulo": "Apresenta lesão mamilar?",
+          "opcoes": [
+            {
+              "valor": "nao",
+              "rotulo": "Não"
+            },
+            {
+              "valor": "direita",
+              "rotulo": "Direita"
+            },
+            {
+              "valor": "esquerda",
+              "rotulo": "Esquerda"
+            },
+            {
+              "valor": "ambas",
+              "rotulo": "Ambas"
+            }
+          ],
+          "obrigatorio": true
+        },
+        {
+          "id": "nts",
+          "tipo": "escala",
+          "rotulo": "Escore de trauma mamilar (NTS)",
+          "min": 0,
+          "max": 5,
+          "ajuda": "Escala do DOC 4.",
+          "alertas": [
+            {
+              "descricao": "escala DOC 4; Apêndice B: ≥ 4",
+              "regras": [
+                "PU-12",
+                "AM-04"
+              ],
+              "severidade": "prioritario",
+              "condicao": {
+                "campo": "2.7.nts",
+                "operador": ">=",
+                "valor": 4
+              },
+              "clinico": true
+            }
+          ],
+          "obrigatorio": true
+        },
+        {
+          "id": "interrupcao_adequada_succao",
+          "tipo": "sim_nao",
+          "rotulo": "Interrupção adequada da sucção",
+          "obrigatorio": true
+        }
+      ],
+      "clinico": true,
+      "nota_clinica": "PRD 9.2 v4.2: até a Edilaine dizer qual subcampo conta como registro de amamentação preenchido, o bloco inteiro 2.5 a 2.13 é obrigatório para concluir a visita (K-09)."
+    },
+    {
+      "id": "2.8",
+      "titulo": "Técnica",
+      "campos": [
+        {
+          "id": "latch",
+          "tipo": "escala",
+          "rotulo": "LATCH",
+          "min": 0,
+          "max": 10,
+          "ajuda": "Tabela L-A-T-C-H do DOC 4.",
+          "complemento": {
+            "rotulo": "Avaliação",
+            "opcoes": [
+              {
+                "valor": "otimo",
+                "rotulo": "Ótimo"
+              },
+              {
+                "valor": "regular",
+                "rotulo": "Regular"
+              },
+              {
+                "valor": "ruim",
+                "rotulo": "Ruim"
+              }
+            ]
+          },
+          "alertas": [
+            {
+              "descricao": "≤ 5",
+              "regras": [],
+              "severidade": "atencao",
+              "condicao": {
+                "campo": "2.8.latch",
+                "operador": "<=",
+                "valor": 5
+              },
+              "clinico": true,
+              "nota_clinica": "K-03: o DOC 4 interpreta 0 a 7 como \"apoio necessário\". Sem regra no DOC 3."
+            }
+          ],
+          "obrigatorio": true
+        },
+        {
+          "id": "teste_da_linguinha",
+          "tipo": "opcao_unica",
+          "rotulo": "Teste da linguinha",
+          "opcoes": [
+            {
+              "valor": "normal",
+              "rotulo": "Normal"
+            },
+            {
+              "valor": "alterado",
+              "rotulo": "Alterado"
+            },
+            {
+              "valor": "nao_fez",
+              "rotulo": "Não fez"
+            }
+          ],
+          "obrigatorio": true
+        }
+      ],
+      "clinico": true,
+      "nota_clinica": "PRD 9.2 v4.2: até a Edilaine dizer qual subcampo conta como registro de amamentação preenchido, o bloco inteiro 2.5 a 2.13 é obrigatório para concluir a visita (K-09)."
+    },
+    {
+      "id": "2.9",
+      "titulo": "Laserterapia",
+      "campos": [
+        {
+          "id": "fbm_aplicada",
+          "tipo": "multipla",
+          "rotulo": "FBM aplicada",
+          "opcoes": [
+            {
+              "valor": "analgesia",
+              "rotulo": "Analgesia"
+            },
+            {
+              "valor": "reparacao",
+              "rotulo": "Reparação"
+            },
+            {
+              "valor": "ilib",
+              "rotulo": "ILIB"
+            },
+            {
+              "valor": "nao_aplicada",
+              "rotulo": "Não aplicada",
+              "exclusiva": true
+            }
+          ],
+          "obrigatorio": true
+        }
+      ],
+      "clinico": true,
+      "nota_clinica": "PRD 9.2 v4.2: até a Edilaine dizer qual subcampo conta como registro de amamentação preenchido, o bloco inteiro 2.5 a 2.13 é obrigatório para concluir a visita (K-09)."
+    },
+    {
+      "id": "2.10",
+      "titulo": "Hábitos",
+      "campos": [
+        {
+          "id": "bicos_artificiais",
+          "tipo": "sim_nao",
+          "rotulo": "Uso de bicos artificiais",
+          "obrigatorio": true
+        },
+        {
+          "id": "forros_e_conchas",
+          "tipo": "sim_nao",
+          "rotulo": "Uso de forros e conchas",
+          "obrigatorio": true
+        },
+        {
+          "id": "bomba_de_extracao",
+          "tipo": "sim_nao",
+          "rotulo": "Uso de bomba de extração",
+          "obrigatorio": true
+        }
+      ],
+      "clinico": true,
+      "nota_clinica": "PRD 9.2 v4.2: até a Edilaine dizer qual subcampo conta como registro de amamentação preenchido, o bloco inteiro 2.5 a 2.13 é obrigatório para concluir a visita (K-09)."
+    },
+    {
+      "id": "2.11",
+      "titulo": "Frequência",
+      "campos": [
+        {
+          "id": "succoes_por_dia",
+          "tipo": "opcao_unica",
+          "rotulo": "Sucções por dia",
+          "opcoes": [
+            {
+              "valor": "menos_de_8",
+              "rotulo": "< 8"
+            },
+            {
+              "valor": "mais_de_8",
+              "rotulo": "> 8"
+            }
+          ],
+          "clinico": true,
+          "nota_clinica": "O impresso não diz onde entra o 8.",
+          "alertas": [
+            {
+              "descricao": "se < 8",
+              "regras": [],
+              "severidade": "atencao",
+              "condicao": {
+                "campo": "2.11.succoes_por_dia",
+                "operador": "=",
+                "valor": "menos_de_8"
+              },
+              "clinico": true,
+              "nota_clinica": "Sem regra no DOC 3."
+            }
+          ],
+          "obrigatorio": true
+        }
+      ],
+      "clinico": true,
+      "nota_clinica": "PRD 9.2 v4.2: até a Edilaine dizer qual subcampo conta como registro de amamentação preenchido, o bloco inteiro 2.5 a 2.13 é obrigatório para concluir a visita (K-09)."
+    },
+    {
+      "id": "2.12",
+      "titulo": "Produção",
+      "campos": [
+        {
+          "id": "producao_de_leite",
+          "tipo": "opcao_unica",
+          "rotulo": "Produção de leite",
+          "opcoes": [
+            {
+              "valor": "alta",
+              "rotulo": "Alta"
+            },
+            {
+              "valor": "normal",
+              "rotulo": "Normal"
+            },
+            {
+              "valor": "baixa",
+              "rotulo": "Baixa"
+            }
+          ],
+          "alertas": [
+            {
+              "descricao": "se baixa",
+              "regras": [
+                "AM-06"
+              ],
+              "severidade": "prioritario",
+              "condicao": {
+                "campo": "2.12.producao_de_leite",
+                "operador": "=",
+                "valor": "baixa"
+              },
+              "clinico": true,
+              "nota_clinica": "Quando houver impacto no RN."
+            }
+          ],
+          "obrigatorio": true
+        }
+      ],
+      "clinico": true,
+      "nota_clinica": "PRD 9.2 v4.2: até a Edilaine dizer qual subcampo conta como registro de amamentação preenchido, o bloco inteiro 2.5 a 2.13 é obrigatório para concluir a visita (K-09)."
+    },
+    {
+      "id": "2.13",
+      "titulo": "Apoio",
+      "campos": [
+        {
+          "id": "sente_se_apoiada",
+          "tipo": "escala",
+          "rotulo": "Sente-se apoiada ao amamentar",
+          "min": 0,
+          "max": 10,
+          "alertas": [
+            {
+              "descricao": "≤ 3",
+              "regras": [],
+              "severidade": "atencao",
+              "condicao": {
+                "campo": "2.13.sente_se_apoiada",
+                "operador": "<=",
+                "valor": 3
+              },
+              "clinico": true,
+              "nota_clinica": "Sem regra no DOC 3."
+            }
+          ],
+          "obrigatorio": true
+        },
+        {
+          "id": "quem_mais_apoia",
+          "tipo": "texto",
+          "rotulo": "Quem mais apoia",
+          "obrigatorio": true
+        }
+      ],
+      "clinico": true,
+      "nota_clinica": "PRD 9.2 v4.2: até a Edilaine dizer qual subcampo conta como registro de amamentação preenchido, o bloco inteiro 2.5 a 2.13 é obrigatório para concluir a visita (K-09)."
+    },
+    {
+      "id": "3",
+      "titulo": "RN, avaliação",
+      "repete_por_bebe": true,
+      "campos": [
+        {
+          "id": "cor_da_pele_icterica",
+          "tipo": "opcao_unica",
+          "rotulo": "Cor da pele ictérica",
+          "opcoes": [
+            {
+              "valor": "ausente",
+              "rotulo": "Ausente"
+            },
+            {
+              "valor": "zona_i",
+              "rotulo": "Zona I"
+            },
+            {
+              "valor": "zona_ii",
+              "rotulo": "Zona II"
+            },
+            {
+              "valor": "zona_iii",
+              "rotulo": "Zona III"
+            },
+            {
+              "valor": "zona_iv",
+              "rotulo": "Zona IV"
+            },
+            {
+              "valor": "zona_v",
+              "rotulo": "Zona V"
+            }
+          ],
+          "alertas": [
+            {
+              "descricao": "≥ zona III",
+              "regras": [
+                "RN-10"
+              ],
+              "severidade": "prioritario",
+              "condicao": {
+                "campo": "3.cor_da_pele_icterica",
+                "operador": "em",
+                "valores": [
+                  "zona_iii",
+                  "zona_iv",
+                  "zona_v"
+                ]
+              },
+              "fonte": "v4.0"
+            }
+          ]
+        },
+        {
+          "id": "respiracao_sem_sinais_esforco",
+          "tipo": "sim_nao",
+          "rotulo": "Respiração sem sinais de esforço",
+          "alertas": [
+            {
+              "descricao": "se não",
+              "regras": [
+                "RN-01"
+              ],
+              "severidade": "imediato",
+              "condicao": {
+                "campo": "3.respiracao_sem_sinais_esforco",
+                "operador": "=",
+                "valor": false
+              },
+              "fonte": "DOC 3"
+            }
+          ]
+        },
+        {
+          "id": "choro_habitual",
+          "tipo": "sim_nao",
+          "rotulo": "Choro habitual"
+        },
+        {
+          "id": "atividade_responsividade_preservadas",
+          "tipo": "sim_nao",
+          "rotulo": "Atividade e responsividade preservadas",
+          "alertas": [
+            {
+              "descricao": "se não",
+              "regras": [
+                "RN-03"
+              ],
+              "severidade": "imediato",
+              "condicao": {
+                "campo": "3.atividade_responsividade_preservadas",
+                "operador": "=",
+                "valor": false
+              },
+              "fonte": "DOC 3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3.1",
+      "titulo": "Sinais vitais do RN",
+      "repete_por_bebe": true,
+      "campos": [
+        {
+          "id": "temperatura",
+          "tipo": "numero",
+          "rotulo": "Temperatura",
+          "unidade": "°C",
+          "casas_decimais": 1,
+          "obrigatorio": true,
+          "alertas": [
+            {
+              "descricao": "> 38 ou < 36",
+              "regras": [
+                "RN-08"
+              ],
+              "severidade": "imediato",
+              "condicao": {
+                "campo": "3.1.temperatura",
+                "operador": "fora_da_faixa",
+                "min": 36,
+                "max": 38
+              },
+              "fonte": "DOC 3"
+            }
+          ]
+        },
+        {
+          "id": "frequencia_cardiaca",
+          "tipo": "numero",
+          "rotulo": "Frequência cardíaca",
+          "unidade": "bpm",
+          "obrigatorio": true
+        },
+        {
+          "id": "frequencia_respiratoria",
+          "tipo": "numero",
+          "rotulo": "Frequência respiratória",
+          "unidade": "rpm",
+          "obrigatorio": true
+        },
+        {
+          "id": "peso",
+          "tipo": "numero",
+          "rotulo": "Peso",
+          "unidade": "g",
+          "obrigatorio": true,
+          "alertas": [
+            {
+              "descricao": "curva",
+              "regras": [
+                "RN-13"
+              ],
+              "severidade": "prioritario",
+              "clinico": true,
+              "nota_clinica": "Apêndice B: perda acima de 10% do peso ao nascer ou sem recuperação do peso até o D14. Corte a definir; a curva de peso é do P39."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "3.2",
+      "titulo": "Cuidados com o RN",
+      "repete_por_bebe": true,
+      "campos": [
+        {
+          "id": "troca_fraldas_avaliacao_diurese",
+          "tipo": "sim_nao_texto",
+          "rotulo": "Troca de fraldas e avaliação de diurese",
+          "alertas": [
+            {
+              "descricao": "sem diurese ≥ 4 h",
+              "regras": [
+                "RN-04"
+              ],
+              "severidade": "imediato",
+              "fonte": "DOC 3",
+              "nota_clinica": "O campo não traz as horas sem diurese como número; a forma de avaliar fica para o motor de alertas (P40)."
+            }
+          ]
+        },
+        {
+          "id": "banho_orientado_realizado",
+          "tipo": "sim_nao",
+          "rotulo": "Banho orientado ou realizado"
+        },
+        {
+          "id": "coto_umbilical_avaliado",
+          "tipo": "sim_nao_texto",
+          "rotulo": "Coto umbilical avaliado e cuidado",
+          "rotulo_texto": "Estado",
+          "alertas": [
+            {
+              "descricao": "sinais flogísticos",
+              "regras": [
+                "RN-07"
+              ],
+              "severidade": "imediato",
+              "fonte": "DOC 3",
+              "nota_clinica": "O estado do coto é texto; a forma de avaliar fica para o motor de alertas (P40)."
+            }
+          ]
+        },
+        {
+          "id": "vestimenta_adequada_clima",
+          "tipo": "sim_nao",
+          "rotulo": "Vestimenta adequada ao clima"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "titulo": "Orientações adicionais",
+      "nota_clinica": "PRD 20.6 item 2 e K-19: a forma \"feito hoje\" é proposta da direção de arte e ainda não foi aprovada. Até a aprovação, sim ou não item a item.",
+      "campos": [
+        {
+          "id": "massagem_extracao_leite",
+          "tipo": "sim_nao",
+          "rotulo": "Massagem e extração de leite"
+        },
+        {
+          "id": "correcao_pega_posicao",
+          "tipo": "sim_nao",
+          "rotulo": "Correção de pega e posição"
+        },
+        {
+          "id": "livre_demanda_reforcada",
+          "tipo": "sim_nao",
+          "rotulo": "Livre demanda reforçada"
+        },
+        {
+          "id": "colica_disquesia",
+          "tipo": "sim_nao",
+          "rotulo": "Cólica e disquesia"
+        },
+        {
+          "id": "posturas_de_conforto",
+          "tipo": "sim_nao",
+          "rotulo": "Posturas de conforto"
+        },
+        {
+          "id": "sinais_de_fome",
+          "tipo": "sim_nao",
+          "rotulo": "Sinais de fome"
+        },
+        {
+          "id": "manobra_de_desengasgo",
+          "tipo": "sim_nao",
+          "rotulo": "Manobra de desengasgo"
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "titulo": "Sono e rotina",
+      "nota_clinica": "PRD 20.6 item 2 e K-19: a forma \"feito hoje\" é proposta da direção de arte e ainda não foi aprovada. Até a aprovação, sim ou não item a item.",
+      "campos": [
+        {
+          "id": "sono_seguro_orientado",
+          "tipo": "sim_nao",
+          "rotulo": "Sono seguro orientado"
+        },
+        {
+          "id": "sinais_janelas_sono_explicados",
+          "tipo": "sim_nao",
+          "rotulo": "Sinais e janelas de sono explicados"
+        },
+        {
+          "id": "organizacao_rotina_familiar",
+          "tipo": "sim_nao",
+          "rotulo": "Organização em acordo com a rotina familiar"
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "titulo": "Educação da família",
+      "nota_clinica": "PRD 20.6 item 2 e K-19: a forma \"feito hoje\" é proposta da direção de arte e ainda não foi aprovada. Até a aprovação, sim ou não item a item.",
+      "campos": [
+        {
+          "id": "orientacoes_ao_parceiro",
+          "tipo": "sim_nao",
+          "rotulo": "Orientações ao parceiro"
+        },
+        {
+          "id": "duvidas_esclarecidas",
+          "tipo": "sim_nao",
+          "rotulo": "Dúvidas esclarecidas"
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "titulo": "Apoio emocional",
+      "campos": [
+        {
+          "id": "escuta_ativa_emocoes_validadas",
+          "tipo": "sim_nao",
+          "rotulo": "Escuta ativa e emoções validadas"
+        },
+        {
+          "id": "sinais_sofrimento_emocional",
+          "tipo": "sim_nao_texto",
+          "rotulo": "Sinais de sofrimento emocional",
+          "alertas": [
+            {
+              "descricao": "se sim",
+              "regras": [
+                "SM-01",
+                "SM-02",
+                "SM-03",
+                "SM-04",
+                "SM-05",
+                "SM-06",
+                "SM-07"
+              ],
+              "condicao": {
+                "campo": "7.sinais_sofrimento_emocional",
+                "operador": "=",
+                "valor": true
+              },
+              "acao": "abrir_seletor_doc3",
+              "nota_clinica": "Apêndice B: seletor SM-01 a SM-07; severidade conforme o sinal; SM imediato cria ocorrência privada."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "titulo": "Encerramento",
+      "nota_clinica": "PRD 20.6 item 2 e K-19: a forma \"feito hoje\" é proposta da direção de arte e ainda não foi aprovada. Até a aprovação, sim ou não item a item.",
+      "campos": [
+        {
+          "id": "ambiente_organizado",
+          "tipo": "sim_nao",
+          "rotulo": "Ambiente organizado"
+        },
+        {
+          "id": "alinhamento_dia_seguinte",
+          "tipo": "sim_nao",
+          "rotulo": "Alinhamento para o dia seguinte"
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "titulo": "Comunicação",
+      "campos": [
+        {
+          "id": "contato_medico_necessario",
+          "tipo": "sim_nao",
+          "rotulo": "Contato com médico necessário",
+          "alertas": [
+            {
+              "descricao": "abre ocorrência",
+              "regras": [],
+              "acao": "abrir_ocorrencia",
+              "condicao": {
+                "campo": "9.contato_medico_necessario",
+                "operador": "=",
+                "valor": true
+              },
+              "fonte": "v4.0"
+            }
+          ]
+        },
+        {
+          "id": "motivo_contato_realizado",
+          "tipo": "texto",
+          "rotulo": "Motivo do contato realizado",
+          "aparece_se": {
+            "campo": "9.contato_medico_necessario",
+            "operador": "=",
+            "valor": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "ultimo_dia",
+      "titulo": "Último dia",
+      "ajuda": "Obrigatórios do último dia.",
+      "aparece_se": {
+        "contexto": "ultimo_dia",
+        "operador": "=",
+        "valor": true
+      },
+      "campos": [
+        {
+          "id": "contato_obstetra",
+          "tipo": "texto",
+          "rotulo": "Contato do obstetra",
+          "obrigatorio": true
+        },
+        {
+          "id": "contato_pediatra",
+          "tipo": "texto",
+          "rotulo": "Contato do pediatra",
+          "obrigatorio": true,
+          "justificar_ausencia": {
+            "rotulo_acao": "Não consegui, justificar",
+            "rotulo_justificativa": "Justificativa da ausência do contato do pediatra"
+          }
+        },
+        {
+          "id": "resumo_encerramento",
+          "tipo": "texto_longo",
+          "rotulo": "Resumo de encerramento",
+          "obrigatorio": true
+        }
+      ]
+    },
+    {
+      "id": "assinatura",
+      "titulo": "Assinatura",
+      "campos": [
+        {
+          "id": "enfermeira_e_hora",
+          "tipo": "automatico",
+          "origem": "assinatura",
+          "rotulo": "Enfermeira e hora",
+          "obrigatorio": true
+        }
+      ]
+    },
+    {
+      "id": "resumo",
+      "titulo": "Resumo",
+      "campos": [
+        {
+          "id": "resumo_descritivo",
+          "tipo": "texto_longo",
+          "rotulo": "Resumo descritivo do dia",
+          "obrigatorio": true
+        }
+      ]
+    }
+  ]
+}

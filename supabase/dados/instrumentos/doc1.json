@@ -1,0 +1,671 @@
+{
+  "codigo": "DOC1_ENTREVISTA",
+  "versao": "v1-2026-09",
+  "titulo": "Ficha de entrevista pré-natal",
+  "fonte": "PRD v4.2, 9.1",
+  "descricao": "Preenchida na consulta pré-natal online, pelo celular, com salvamento a cada campo. Toda entrevista nova começa em branco.",
+  "blocos": [
+    {
+      "id": "A",
+      "titulo": "Origem",
+      "campos": [
+        {
+          "id": "como_chegou",
+          "tipo": "opcao_unica",
+          "rotulo": "Como chegou até a Kraamzorg",
+          "opcoes": [
+            {
+              "valor": "instagram",
+              "rotulo": "Instagram"
+            },
+            {
+              "valor": "indicacao_de_amigo",
+              "rotulo": "Indicação de amigo"
+            },
+            {
+              "valor": "indicacao_medica",
+              "rotulo": "Indicação médica"
+            },
+            {
+              "valor": "presente",
+              "rotulo": "Presente"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "titulo": "Dados da entrevista",
+      "campos": [
+        {
+          "id": "data_da_entrevista",
+          "tipo": "data",
+          "rotulo": "Data da entrevista"
+        },
+        {
+          "id": "hora_de_inicio",
+          "tipo": "hora",
+          "rotulo": "Hora de início",
+          "preenchimento": "ao_abrir",
+          "ajuda": "Preenchida automaticamente, editável."
+        },
+        {
+          "id": "hora_de_termino",
+          "tipo": "hora",
+          "rotulo": "Hora de término",
+          "preenchimento": "ao_concluir",
+          "ajuda": "Preenchida automaticamente, editável."
+        },
+        {
+          "id": "data_provavel_do_parto",
+          "tipo": "data",
+          "rotulo": "Data provável do parto"
+        },
+        {
+          "id": "local_maternidade",
+          "tipo": "texto",
+          "rotulo": "Local (maternidade)"
+        },
+        {
+          "id": "idade_gestacional_atual",
+          "tipo": "automatico",
+          "origem": "idade_gestacional_calculada",
+          "rotulo": "Idade gestacional atual (semanas e dias)",
+          "ajuda": "Calculada da data provável do parto e da data da entrevista. Não é gravada."
+        },
+        {
+          "id": "percentil",
+          "tipo": "numero",
+          "rotulo": "Percentil"
+        },
+        {
+          "id": "ganho_de_peso",
+          "tipo": "numero",
+          "rotulo": "Ganho de peso"
+        },
+        {
+          "id": "tipo_de_parto_esperado",
+          "tipo": "opcao_unica",
+          "rotulo": "Tipo de parto esperado",
+          "opcoes": [
+            {
+              "valor": "vaginal",
+              "rotulo": "Vaginal"
+            },
+            {
+              "valor": "cesarea",
+              "rotulo": "Cesárea"
+            }
+          ]
+        },
+        {
+          "id": "data_do_parto_agendado",
+          "tipo": "data",
+          "rotulo": "Data do parto agendado"
+        },
+        {
+          "id": "ila",
+          "tipo": "opcao_unica",
+          "rotulo": "ILA",
+          "opcoes": [
+            {
+              "valor": "normal",
+              "rotulo": "Normal"
+            },
+            {
+              "valor": "diminuido",
+              "rotulo": "Diminuído"
+            },
+            {
+              "valor": "aumentado",
+              "rotulo": "Aumentado"
+            }
+          ]
+        },
+        {
+          "id": "coletador",
+          "tipo": "automatico",
+          "origem": "login",
+          "rotulo": "Coletador"
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "titulo": "Identificação",
+      "campos": [
+        {
+          "id": "nome_da_gestante",
+          "tipo": "texto",
+          "rotulo": "Nome da gestante"
+        },
+        {
+          "id": "idade_da_gestante",
+          "tipo": "numero",
+          "rotulo": "Idade da gestante",
+          "unidade": "anos"
+        },
+        {
+          "id": "ocupacao_da_gestante",
+          "tipo": "texto",
+          "rotulo": "Ocupação da gestante"
+        },
+        {
+          "id": "nome_do_companheiro",
+          "tipo": "texto",
+          "rotulo": "Nome do companheiro"
+        },
+        {
+          "id": "idade_do_companheiro",
+          "tipo": "numero",
+          "rotulo": "Idade do companheiro",
+          "unidade": "anos"
+        },
+        {
+          "id": "ocupacao_do_companheiro",
+          "tipo": "texto",
+          "rotulo": "Ocupação do companheiro"
+        },
+        {
+          "id": "gestacao_planejada",
+          "tipo": "sim_nao",
+          "rotulo": "Gestação planejada"
+        },
+        {
+          "id": "sexo_do_bebe",
+          "tipo": "texto",
+          "rotulo": "Sexo do bebê"
+        },
+        {
+          "id": "nome_do_bebe",
+          "tipo": "texto",
+          "rotulo": "Nome do bebê"
+        },
+        {
+          "id": "crenca_religiosa",
+          "tipo": "texto",
+          "rotulo": "Crença religiosa"
+        },
+        {
+          "id": "situacao_conjugal",
+          "tipo": "opcao_unica",
+          "rotulo": "Situação conjugal",
+          "opcoes": [
+            {
+              "valor": "solteira",
+              "rotulo": "Solteira"
+            },
+            {
+              "valor": "casada",
+              "rotulo": "Casada, civil e/ou religioso"
+            },
+            {
+              "valor": "uniao_estavel",
+              "rotulo": "União estável ou vive em união"
+            }
+          ]
+        },
+        {
+          "id": "escolaridade",
+          "tipo": "opcao_unica",
+          "rotulo": "Escolaridade",
+          "opcoes": [
+            {
+              "valor": "sem_instrucao",
+              "rotulo": "Sem instrução ou menos de 1 ano"
+            },
+            {
+              "valor": "fundamental_incompleto",
+              "rotulo": "Fundamental incompleto"
+            },
+            {
+              "valor": "fundamental_completo",
+              "rotulo": "Fundamental completo"
+            },
+            {
+              "valor": "medio_incompleto",
+              "rotulo": "Médio incompleto"
+            },
+            {
+              "valor": "medio_completo",
+              "rotulo": "Médio completo"
+            },
+            {
+              "valor": "superior_incompleto",
+              "rotulo": "Superior incompleto"
+            },
+            {
+              "valor": "superior_completo",
+              "rotulo": "Superior completo"
+            }
+          ]
+        },
+        {
+          "id": "ocupacao",
+          "tipo": "opcao_unica",
+          "rotulo": "Ocupação",
+          "opcoes": [
+            {
+              "valor": "autonoma",
+              "rotulo": "Autônoma"
+            },
+            {
+              "valor": "empregadora",
+              "rotulo": "Empregadora"
+            },
+            {
+              "valor": "empregada",
+              "rotulo": "Empregada"
+            }
+          ]
+        },
+        {
+          "id": "endereco_completo",
+          "tipo": "texto_longo",
+          "rotulo": "Endereço completo"
+        },
+        {
+          "id": "telefone_da_gestante",
+          "tipo": "texto",
+          "rotulo": "Telefone da gestante",
+          "teclado": "telefone"
+        },
+        {
+          "id": "telefone_do_acompanhante",
+          "tipo": "texto",
+          "rotulo": "Telefone do acompanhante",
+          "teclado": "telefone"
+        }
+      ]
+    },
+    {
+      "id": "D",
+      "titulo": "História obstétrica",
+      "campos": [
+        {
+          "id": "gestacoes_anteriores",
+          "tipo": "opcao_unica",
+          "rotulo": "Gestações anteriores",
+          "opcoes": [
+            {
+              "valor": "nenhuma",
+              "rotulo": "Nenhuma"
+            },
+            {
+              "valor": "um",
+              "rotulo": "1"
+            },
+            {
+              "valor": "dois",
+              "rotulo": "2"
+            },
+            {
+              "valor": "tres_ou_mais",
+              "rotulo": "Três ou mais"
+            }
+          ]
+        },
+        {
+          "id": "filhos_vivos",
+          "tipo": "opcao_unica",
+          "rotulo": "Filhos vivos",
+          "opcoes": [
+            {
+              "valor": "nenhum",
+              "rotulo": "Nenhum"
+            },
+            {
+              "valor": "um",
+              "rotulo": "1"
+            },
+            {
+              "valor": "dois",
+              "rotulo": "2"
+            },
+            {
+              "valor": "tres_ou_mais",
+              "rotulo": "Três ou mais"
+            }
+          ]
+        },
+        {
+          "id": "partos_vaginais_anteriores",
+          "tipo": "opcao_unica",
+          "rotulo": "Partos vaginais anteriores",
+          "opcoes": [
+            {
+              "valor": "nenhum",
+              "rotulo": "Nenhum"
+            },
+            {
+              "valor": "um",
+              "rotulo": "1"
+            },
+            {
+              "valor": "dois",
+              "rotulo": "2"
+            },
+            {
+              "valor": "tres_ou_mais",
+              "rotulo": "Três ou mais"
+            }
+          ]
+        },
+        {
+          "id": "cesareas_anteriores",
+          "tipo": "opcao_unica",
+          "rotulo": "Cesáreas anteriores",
+          "opcoes": [
+            {
+              "valor": "nenhuma",
+              "rotulo": "Nenhuma"
+            },
+            {
+              "valor": "um",
+              "rotulo": "1"
+            },
+            {
+              "valor": "dois",
+              "rotulo": "2"
+            },
+            {
+              "valor": "tres_ou_mais",
+              "rotulo": "Três ou mais"
+            }
+          ]
+        },
+        {
+          "id": "consultas_de_prenatal",
+          "tipo": "opcao_unica",
+          "rotulo": "Número de consultas de pré-natal",
+          "opcoes": [
+            {
+              "valor": "menos_de_6",
+              "rotulo": "Menos de 6"
+            },
+            {
+              "valor": "seis_ou_mais",
+              "rotulo": "Seis ou mais"
+            }
+          ]
+        },
+        {
+          "id": "intercorrencias_gestacao_atual",
+          "tipo": "texto",
+          "rotulo": "Intercorrências na gestação atual"
+        },
+        {
+          "id": "orientacao_amamentacao_prenatal",
+          "tipo": "sim_nao_texto",
+          "rotulo": "Orientação sobre amamentação no pré-natal",
+          "rotulo_texto": "Detalhe"
+        }
+      ]
+    },
+    {
+      "id": "E",
+      "titulo": "História de amamentação",
+      "campos": [
+        {
+          "id": "amamentou_anteriormente",
+          "tipo": "opcao_unica",
+          "rotulo": "Amamentou anteriormente",
+          "opcoes": [
+            {
+              "valor": "sim",
+              "rotulo": "Sim"
+            },
+            {
+              "valor": "nao",
+              "rotulo": "Não"
+            },
+            {
+              "valor": "nao_se_aplica",
+              "rotulo": "Não se aplica"
+            }
+          ]
+        },
+        {
+          "id": "numero_de_filhos_amamentados",
+          "tipo": "opcao_unica",
+          "rotulo": "Número de filhos amamentados",
+          "opcoes": [
+            {
+              "valor": "um",
+              "rotulo": "1"
+            },
+            {
+              "valor": "dois",
+              "rotulo": "2"
+            },
+            {
+              "valor": "tres_ou_mais",
+              "rotulo": "Três ou mais"
+            }
+          ],
+          "aparece_se": {
+            "campo": "E.amamentou_anteriormente",
+            "operador": "=",
+            "valor": "sim"
+          }
+        },
+        {
+          "id": "maior_tempo_de_amamentacao",
+          "tipo": "opcao_unica",
+          "rotulo": "Maior tempo de amamentação",
+          "opcoes": [
+            {
+              "valor": "menos_de_1_mes",
+              "rotulo": "Menos de 1 mês"
+            },
+            {
+              "valor": "de_2_a_3_meses",
+              "rotulo": "2 a 3 meses"
+            },
+            {
+              "valor": "de_4_a_6_meses",
+              "rotulo": "4 a 6 meses"
+            },
+            {
+              "valor": "de_7_meses_a_1_ano",
+              "rotulo": "7 meses a 1 ano"
+            },
+            {
+              "valor": "mais_de_1_ano",
+              "rotulo": "Mais de 1 ano"
+            }
+          ],
+          "aparece_se": {
+            "campo": "E.amamentou_anteriormente",
+            "operador": "=",
+            "valor": "sim"
+          }
+        },
+        {
+          "id": "dor_lesao_mamilar_anterior",
+          "tipo": "sim_nao",
+          "rotulo": "Dor ou lesão mamilar em amamentação anterior",
+          "aparece_se": {
+            "campo": "E.amamentou_anteriormente",
+            "operador": "=",
+            "valor": "sim"
+          }
+        },
+        {
+          "id": "motivo_do_desmame",
+          "tipo": "opcao_unica",
+          "rotulo": "Motivo do desmame",
+          "opcoes": [
+            {
+              "valor": "dor_ou_lesao_mamilar",
+              "rotulo": "Dor ou lesão mamilar"
+            },
+            {
+              "valor": "naturalmente",
+              "rotulo": "Naturalmente"
+            },
+            {
+              "valor": "contexto_ou_desejo",
+              "rotulo": "Contexto ou desejo"
+            },
+            {
+              "valor": "indesejado_ou_insucesso",
+              "rotulo": "Indesejado ou insucesso da amamentação"
+            }
+          ],
+          "aparece_se": {
+            "campo": "E.amamentou_anteriormente",
+            "operador": "=",
+            "valor": "sim"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F",
+      "titulo": "Expectativas",
+      "ajuda": "Texto livre.",
+      "campos": [
+        {
+          "id": "sobre_amamentacao",
+          "tipo": "texto_longo",
+          "rotulo": "O que pensam e sabem sobre amamentação"
+        },
+        {
+          "id": "disponibilidade_para_o_processo",
+          "tipo": "texto_longo",
+          "rotulo": "Disponibilidade para o processo"
+        },
+        {
+          "id": "o_que_motiva_a_amamentar",
+          "tipo": "texto_longo",
+          "rotulo": "O que motiva a amamentar"
+        },
+        {
+          "id": "sobre_o_puerperio",
+          "tipo": "texto_longo",
+          "rotulo": "O que sabem sobre o puerpério"
+        },
+        {
+          "id": "medos_e_receios",
+          "tipo": "texto_longo",
+          "rotulo": "Medos e receios"
+        },
+        {
+          "id": "ajuda_prevista",
+          "tipo": "texto_longo",
+          "rotulo": "Ajuda prevista e de quem"
+        },
+        {
+          "id": "expectativas_primeira_semana",
+          "tipo": "texto_longo",
+          "rotulo": "Expectativas para a primeira semana"
+        },
+        {
+          "id": "o_que_esperam_do_cuidado",
+          "tipo": "texto_longo",
+          "rotulo": "O que esperam do cuidado"
+        }
+      ]
+    },
+    {
+      "id": "G",
+      "titulo": "Temas essenciais abordados",
+      "campos": [
+        {
+          "id": "temas_abordados",
+          "tipo": "multipla",
+          "rotulo": "Temas essenciais abordados",
+          "opcoes": [
+            {
+              "valor": "golden_hour",
+              "rotulo": "Golden Hour"
+            },
+            {
+              "valor": "apojadura",
+              "rotulo": "Apojadura"
+            },
+            {
+              "valor": "complemento",
+              "rotulo": "Complemento"
+            },
+            {
+              "valor": "chupeta_e_mamadeira",
+              "rotulo": "Chupeta e mamadeira"
+            },
+            {
+              "valor": "beneficios_leite_materno",
+              "rotulo": "Benefícios do leite materno e malefícios do leite de vaca"
+            },
+            {
+              "valor": "aviso_do_nascimento",
+              "rotulo": "Necessidade de aviso do nascimento"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "H",
+      "titulo": "Médicos e preferências",
+      "campos": [
+        {
+          "id": "nome_do_obstetra",
+          "tipo": "texto",
+          "rotulo": "Nome do obstetra",
+          "destino": "medico.obstetra"
+        },
+        {
+          "id": "telefone_do_obstetra",
+          "tipo": "texto",
+          "rotulo": "Telefone do obstetra",
+          "teclado": "telefone",
+          "destino": "medico.obstetra"
+        },
+        {
+          "id": "nome_do_pediatra",
+          "tipo": "texto",
+          "rotulo": "Nome do pediatra",
+          "destino": "medico.pediatra",
+          "ajuda": "Opcional aqui, obrigatório no último dia."
+        },
+        {
+          "id": "telefone_do_pediatra",
+          "tipo": "texto",
+          "rotulo": "Telefone do pediatra",
+          "teclado": "telefone",
+          "destino": "medico.pediatra",
+          "ajuda": "Opcional aqui, obrigatório no último dia."
+        },
+        {
+          "id": "recomendacoes_pedidos_especiais",
+          "tipo": "texto_longo",
+          "rotulo": "Recomendações ou pedidos especiais",
+          "destino": "consulta_prenatal.plano_cuidado"
+        },
+        {
+          "id": "preferencia_de_periodo",
+          "tipo": "multipla",
+          "rotulo": "Preferência de período em ordem",
+          "opcoes": [
+            {
+              "valor": "manha",
+              "rotulo": "Manhã"
+            },
+            {
+              "valor": "tarde",
+              "rotulo": "Tarde"
+            },
+            {
+              "valor": "noite_avaliar",
+              "rotulo": "Noite"
+            }
+          ],
+          "ordenada": true,
+          "destino": "consulta_prenatal.periodo_preferido"
+        }
+      ]
+    }
+  ]
+}
