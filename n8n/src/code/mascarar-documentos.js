@@ -10,6 +10,23 @@
 
 const SEPARADORES_GRUPO = ' .\\-/';
 
+// Teto técnico de segurança do texto da família (SEG-BANCO-01): o nó Extrair
+// Dados e a leitura da transcrição cortam o texto aqui antes de qualquer outra
+// coisa (máscara, Redis, classificador, memória). É o mesmo valor que
+// `agente.registrar_mensagem` e `agente.registrar_transcricao` aplicam no
+// banco (migration 0016). Não é regra de negócio: nenhuma mensagem real de
+// família chega perto disso.
+export const LIMITE_TEXTO_MENSAGEM = 20000;
+
+export function limitarTexto(texto) {
+  if (typeof texto !== 'string' || texto.length <= LIMITE_TEXTO_MENSAGEM) return texto;
+  let corte = LIMITE_TEXTO_MENSAGEM;
+  // não deixa meio caractere (par substituto do UTF-16, emoji) no fim
+  const codigo = texto.charCodeAt(corte - 1);
+  if (codigo >= 0xd800 && codigo <= 0xdbff) corte -= 1;
+  return texto.slice(0, corte);
+}
+
 function apenasDigitos(texto) {
   return (texto ?? '').replace(/\D/g, '');
 }
@@ -17,7 +34,9 @@ function apenasDigitos(texto) {
 function cpfValido(candidato) {
   const digitos = apenasDigitos(candidato);
   if (digitos.length !== 11) return false;
-  if (/^(\d)\1{10}$/.test(digitos)) return false;
+  // Dígitos repetidos (111.111.111-11) têm verificadores que batem e saem
+  // mascarados, como em `privado.cpf_valido` (leitura literal do P05, caso
+  // extra de supabase/tests/005_auditoria.sql).
 
   const calcularDv = (base) => {
     let soma = 0;
@@ -52,14 +71,6 @@ function luhnValido(candidato) {
   return soma % 10 === 0;
 }
 
-// "+55" seguido de DDD (2 dígitos) e número de 9 dígitos: formato de telefone
-// E.164, nunca tratado como cartão, mesmo que o Luhn dos 13 dígitos bata por
-// coincidência (regra do P05 item 5: "não tenha formato de telefone").
-function ehTelefoneE164(textoOriginal, inicio, digitos) {
-  const precedente = textoOriginal.slice(Math.max(0, inicio - 1), inicio);
-  return precedente === '+' && digitos.length === 13 && digitos.startsWith('55');
-}
-
 function mascararCpf(texto) {
   let resultado = texto;
 
@@ -77,21 +88,67 @@ function mascararCpf(texto) {
   return resultado;
 }
 
+// Número de cartão: 13 a 19 dígitos, Luhn válido e sem formato de telefone
+// E.164 brasileiro. `anterior` é o caractere logo antes do trecho no texto.
+// Mesma regra de `privado.cartao_valido`.
+function cartaoValido(digitos, anterior) {
+  if (digitos.length < 13 || digitos.length > 19) return false;
+  if (anterior === '+' && digitos.length === 13 && digitos.startsWith('55')) return false;
+  return luhnValido(digitos);
+}
+
+// Mascara cartão dentro de um trecho de grupos de dígitos (um separador de um
+// caractere entre eles), com a mesma regra de `privado.mascarar_trecho_cartao`:
+// primeiro o trecho inteiro; se ele não for cartão, a menor sequência de
+// grupos inteiros que seja, da esquerda para a direita (cartão seguido de
+// validade e CVV na mesma linha forma um trecho só, com mais de 19 dígitos).
+// A busca que começa num grupo para quando a sequência passa de 19 dígitos,
+// o que deixa o custo linear no tamanho do trecho (SEG-BANCO-01).
+function mascararTrechoCartao(trecho, anterior) {
+  const digitos = apenasDigitos(trecho);
+  if (digitos.length < 13) return trecho;
+  if (digitos.length <= 19 && cartaoValido(digitos, anterior)) return '[cartão ocultado]';
+
+  const grupos = trecho.split(/\D/);
+  if (grupos.length < 2) return trecho;
+  const separadores = trecho.match(/\D/g) ?? [];
+
+  const pedacos = [];
+  let i = 0;
+  while (i < grupos.length) {
+    let achou = false;
+    let juntos = '';
+    const antes = i === 0 ? anterior : separadores[i - 1];
+    for (let j = i; j < grupos.length; j += 1) {
+      juntos += grupos[j];
+      if (juntos.length > 19) break;
+      if (juntos.length >= 13 && cartaoValido(juntos, antes)) {
+        pedacos.push('[cartão ocultado]');
+        achou = true;
+        i = j + 1;
+        break;
+      }
+    }
+    if (!achou) {
+      pedacos.push(grupos[i]);
+      i += 1;
+    }
+    if (i < grupos.length) pedacos.push(separadores[i - 1]);
+  }
+  return pedacos.join('');
+}
+
 // Junta grupos de dígitos separados por espaço, ponto, hífen ou barra antes do
-// teste de Luhn (regra do P05 item 5, cartão em grupos e Amex 4-6-5), e mascara
-// o trecho inteiro (dígitos + separadores) quando o resultado tem de 13 a 19
-// dígitos, passa no Luhn e não tem formato de telefone.
+// teste de Luhn (regra do P05 item 5, cartão em grupos e Amex 4-6-5) e
+// mascara o trecho inteiro, ou só a sequência de grupos que for cartão.
 function mascararCartao(texto) {
   const regexCandidato = new RegExp(`\\d(?:[${SEPARADORES_GRUPO}]?\\d)*`, 'g');
   let houveCartao = false;
 
   const resultado = texto.replace(regexCandidato, (match, offset) => {
-    const digitos = apenasDigitos(match);
-    if (digitos.length < 13 || digitos.length > 19) return match;
-    if (ehTelefoneE164(texto, offset, digitos)) return match;
-    if (!luhnValido(digitos)) return match;
-    houveCartao = true;
-    return '[cartão ocultado]';
+    const troca = mascararTrechoCartao(match, texto.slice(Math.max(0, offset - 1), offset));
+    if (troca !== match) houveCartao = true;
+    return troca;
   });
 
   return { texto: resultado, houveCartao };

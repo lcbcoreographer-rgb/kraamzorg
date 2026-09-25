@@ -33,6 +33,43 @@ test("sem sessão, a tela pedida volta depois de entrar", async ({ page }) => {
   await expect(page).toHaveURL(/\/pipeline$/);
 });
 
+// AUTH-01 (revisão de segurança de 25/09/2026): um TAB entre as barras
+// ("/%09/site.exemplo") passava pelo filtro do ?proximo= e o navegador, ao
+// apagar o TAB, levava a pessoa para outro domínio logo depois de entrar.
+for (const [papel, comMfa] of [
+  ["Comercial", false],
+  ["Diretoria", true],
+] as const) {
+  test(`AUTH-01: ?proximo= com TAB não tira ${papel.toLowerCase()} do domínio depois de entrar`, async ({
+    page,
+    baseURL,
+  }) => {
+    const pedidosDeFora: string[] = [];
+    await page.route(
+      (url) => url.hostname.endsWith("evil.example"),
+      async (rota) => {
+        pedidosDeFora.push(rota.request().url());
+        await rota.abort();
+      },
+    );
+
+    await page.goto("/entrar?proximo=%2F%09%2Fevil.example%2Fentrar");
+    await page
+      .getByRole("button", { name: new RegExp(`^${papel} Perfil Teste`) })
+      .click();
+    await page.waitForURL((url) => url.pathname !== "/entrar");
+    if (comMfa) {
+      await expect(page).toHaveURL(/\/mfa\/desafio$/);
+      await passarPeloMfa(page);
+    }
+
+    await page.waitForLoadState("networkidle");
+    expect(new URL(page.url()).origin).toBe(new URL(baseURL!).origin);
+    expect(page.url()).not.toContain("evil.example");
+    expect(pedidosDeFora).toEqual([]);
+  });
+}
+
 test("diretoria passa pelo desafio do MFA; código errado explica o que fazer", async ({
   page,
 }) => {

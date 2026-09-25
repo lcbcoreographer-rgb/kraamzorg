@@ -61,7 +61,7 @@ import {
   executarTodosOsValidadoresEstruturais,
 } from './src/lib/validadores.mjs';
 
-import { mascararDocumentos } from './src/code/mascarar-documentos.js';
+import { LIMITE_TEXTO_MENSAGEM, limitarTexto, mascararDocumentos } from './src/code/mascarar-documentos.js';
 import { normalizarTexto, contemPalavra } from './src/code/normalizar-texto.js';
 import { dividirEmBlocos } from './src/code/dividir-blocos.js';
 import { agrupamento } from './src/code/agrupamento.js';
@@ -1071,12 +1071,83 @@ const CASOS_MASCARAR_DOCUMENTOS = [
     contido: '[cartão ocultado]',
     tambemContido: ['[dado de cartão ocultado]'],
   },
+  // Os outros cinco dos 16 do P05 v2, com a saída exata, para a comparação
+  // com o SQL cobrir todos.
+  {
+    nome: 'validade MM/AAAA junto com cartão',
+    entrada: 'cartao 4532015112830366 validade 08/2029',
+    saida: 'cartao [cartão ocultado] validade [dado de cartão ocultado]',
+  },
+  {
+    nome: 'CVC junto com cartão',
+    entrada: 'cartao 4532015112830366 cvc 456',
+    saida: 'cartao [cartão ocultado] cvc [dado de cartão ocultado]',
+  },
+  {
+    nome: '"código de segurança" junto com cartão',
+    entrada: 'cartao 4532015112830366 código de segurança 789',
+    saida: 'cartao [cartão ocultado] código de segurança [dado de cartão ocultado]',
+  },
+  {
+    nome: 'validade sem cartão na mensagem fica',
+    entrada: 'minha assinatura vence em 08/29',
+    saida: 'minha assinatura vence em 08/29',
+  },
+  {
+    nome: 'texto sem documento passa direto',
+    entrada: 'oi, tudo bem? sou a Marina, estou com 32 semanas',
+    saida: 'oi, tudo bem? sou a Marina, estou com 32 semanas',
+  },
+  // [LGPD-01] Extras de supabase/tests/005_auditoria.sql e da revisão de
+  // segurança de 25/09/2026: cartão seguido de validade e CVV na mesma linha
+  // forma um trecho só, com mais de 19 dígitos, e mesmo assim sai ocultado.
+  {
+    nome: 'LGPD-01: cartão em grupos seguido de validade e CVV na mesma linha',
+    entrada: 'pode passar no cartão 4111 1111 1111 1111 12/28 123',
+    saida: 'pode passar no cartão [cartão ocultado] [dado de cartão ocultado] 123',
+  },
+  {
+    nome: 'LGPD-01: cartão corrido seguido de validade e cvv',
+    entrada: 'cartão 4111111111111111 12/28 cvv 123',
+    saida: 'cartão [cartão ocultado] [dado de cartão ocultado] cvv [dado de cartão ocultado]',
+  },
+  {
+    nome: 'extra 005: cartão em grupos colado à validade no mesmo trecho',
+    entrada: 'cartao 4532 0151 1283 0366 08/29 123',
+    saida: 'cartao [cartão ocultado] [dado de cartão ocultado] 123',
+  },
+  {
+    nome: 'extra 005: Amex 4-6-5 e CVV em maiúsculas com dois-pontos',
+    entrada: 'amex 3782 822463 10005 e CVV: 1234',
+    saida: 'amex [cartão ocultado] e CVV: [dado de cartão ocultado]',
+  },
+  {
+    nome: 'extra 005: telefone +55 que passa no Luhn continua fora',
+    entrada: 'whats +5511987654309 ok',
+    saida: 'whats +5511987654309 ok',
+  },
+  {
+    nome: 'extra 005: CPF de dígitos repetidos tem verificadores que batem',
+    entrada: 'cpf 111.111.111-11',
+    saida: 'cpf [CPF ocultado]',
+  },
+  {
+    nome: 'cartão no meio de outros grupos de dígitos',
+    entrada: 'lista 1 2 4111 1111 1111 1111 3 e fim',
+    saida: 'lista 1 2 [cartão ocultado] 3 e fim',
+  },
+  {
+    nome: 'grupo com mais de 19 dígitos fica e o cartão depois dele sai',
+    entrada: '1111111111111111111111 4111 1111 1111 1111',
+    saida: '1111111111111111111111 [cartão ocultado]',
+  },
 ];
 
-describe('mascararDocumentos (P05 v2, 16 casos)', () => {
+describe('mascararDocumentos (P05 v2, 16 casos e extras)', () => {
   for (const caso of CASOS_MASCARAR_DOCUMENTOS) {
     test(caso.nome, () => {
       const saida = mascararDocumentos(caso.entrada);
+      if (caso.saida !== undefined) assert.equal(saida, caso.saida);
       if (caso.contido) assert.ok(saida.includes(caso.contido), `esperava conter "${caso.contido}", saiu "${saida}"`);
       if (caso.naoContido) assert.ok(!saida.includes(caso.naoContido), `não deveria conter "${caso.naoContido}", saiu "${saida}"`);
       for (const trecho of caso.tambemContido ?? []) {
@@ -1111,6 +1182,34 @@ describe('mascararDocumentos (P05 v2, 16 casos)', () => {
   test('entrada vazia ou não-string não quebra', () => {
     assert.equal(mascararDocumentos(''), '');
     assert.equal(mascararDocumentos(undefined), '');
+  });
+
+  // [SEG-BANCO-01] Textos longos que derrubavam a versão SQL da 0005 (custo
+  // cúbico) e que a busca de subsequência de grupos também tornaria cara:
+  // tudo termina em tempo linear.
+  test('SEG-BANCO-01: 60 mil caracteres nos formatos de ataque mascarados em menos de 1 s cada', () => {
+    const formatos = {
+      espaco: '1 '.repeat(30000),
+      letra: '1a'.repeat(30000),
+      ponto_letra: '1.1a'.repeat(15000),
+      hifen: '1-'.repeat(30000),
+      zeros: '0 '.repeat(30000),
+    };
+    for (const [nome, texto] of Object.entries(formatos)) {
+      const inicio = performance.now();
+      mascararDocumentos(texto);
+      const ms = performance.now() - inicio;
+      assert.ok(ms < 1000, `${nome}: ${ms.toFixed(0)} ms`);
+    }
+  });
+
+  test('SEG-BANCO-01: limitarTexto corta em LIMITE_TEXTO_MENSAGEM sem partir emoji', () => {
+    assert.equal(LIMITE_TEXTO_MENSAGEM, 20000);
+    assert.equal(limitarTexto('curto'), 'curto');
+    assert.equal(limitarTexto('x'.repeat(30000)).length, 20000);
+    const comEmoji = 'x'.repeat(19999) + '😀' + 'y';
+    assert.equal(limitarTexto(comEmoji), 'x'.repeat(19999));
+    assert.equal(limitarTexto(undefined), undefined);
   });
 });
 
@@ -1154,7 +1253,7 @@ describe('mascararDocumentos contra privado.mascarar_documentos (banco local)', 
     return stdout.trim();
   }
 
-  test('compara os 16 casos com a função SQL quando o banco responde; pula com aviso se não responder', async (t) => {
+  test('compara os 16 casos e os extras com a função SQL quando o banco responde; pula com aviso se não responder', async (t) => {
     let PORTA = null;
     for (const porta of PORTAS) {
       if (!(await bancoResponde(porta))) continue;

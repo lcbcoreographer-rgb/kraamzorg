@@ -247,4 +247,42 @@ describe("precisaMfa e proximoSeguro", () => {
     expect(proximoSeguro("/\\exemplo.com")).toBeNull();
     expect(proximoSeguro(undefined)).toBeNull();
   });
+
+  // AUTH-01 (revisão de segurança de 25/09/2026): o parser de URL do
+  // navegador apaga TAB e quebra de linha, e "/<TAB>/site" vira "//site",
+  // outro domínio. Nenhum destes pode voltar como destino.
+  it.each([
+    ["TAB entre as barras", "/\t/evil.example/entrar"],
+    ["TAB antes da barra dupla", "/\t//evil.example"],
+    ["quebra de linha", "/\n/evil.com"],
+    ["retorno de carro", "/\r/evil.com"],
+    ["caractere nulo", "/\u0000/evil.com"],
+    ["DEL", "/\u007F/evil.com"],
+    ["%09 já decodificado da query", decodeURIComponent("/%09/evil.com")],
+    ["ponto que vira barra dupla", "/.//evil.com"],
+    ["barra dupla", "//exemplo.com"],
+    ["barra invertida", "/\\exemplo.com"],
+    ["URL absoluta", "https://evil.example/entrar"],
+  ])("proximoSeguro recusa %s", (_nome, valor) => {
+    expect(proximoSeguro(valor)).toBeNull();
+  });
+
+  it("o que sai de proximoSeguro, resolvido como o navegador faz, fica na mesma origem", () => {
+    const origem = "https://app.kraamzorg.invalid";
+    for (const valor of [
+      "/pipeline?x=1",
+      "/familias/abc?aba=1#topo",
+      "/a/../familias",
+      "/%2F%2Fevil.com",
+    ]) {
+      const destino = proximoSeguro(valor);
+      expect(destino).not.toBeNull();
+      expect(new URL(destino!, `${origem}/entrar`).origin).toBe(origem);
+    }
+  });
+
+  it("caminho interno volta normalizado", () => {
+    expect(proximoSeguro("/familias/abc?aba=1")).toBe("/familias/abc?aba=1");
+    expect(proximoSeguro("/a/../familias")).toBe("/familias");
+  });
 });

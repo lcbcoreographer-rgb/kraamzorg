@@ -21,7 +21,7 @@
 //   `agente_pausa_humano_horas`.
 // - registrar_transcricao(wa_message_id, texto) -> {ok}.
 
-import { mascararDocumentos } from './mascarar-documentos.js';
+import { limitarTexto, mascararDocumentos } from './mascarar-documentos.js';
 import { agrupamento, lerBufferRedis } from './agrupamento.js';
 import { comMarca, resultadoDoBanco, falhouChamada, descreverErro, textoLimpo } from './resultado-no.js';
 
@@ -65,7 +65,7 @@ export function lerTranscricao(estado, resposta) {
     ...estado,
     transcricao_ok: ok,
     transcricao_erro: ok ? null : falhou ? descreverErro(resposta) : 'transcrição vazia',
-    texto: ok ? mascararDocumentos(bruto) : estado.texto ?? '',
+    texto: ok ? mascararDocumentos(limitarTexto(bruto)) : estado.texto ?? '',
     tipo: ok ? 'audio' : 'audio_nao_transcrito',
     audio_nao_transcrito: !ok,
   });

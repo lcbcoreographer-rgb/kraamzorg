@@ -349,6 +349,42 @@ describe('fluxo 3 · Extrair Dados (função pura)', () => {
     assert.equal(extrairDadosMensagem(corpo({ wasSentByApi: true })).eh_eco, false, 'sem fromMe nunca é eco');
   });
 
+  test('N8N-01: em mensagem nossa, o LID é o do chat, nunca o sender_lid (que é o do número da Kraamzorg)', () => {
+    const LID_DONO = '999000000000001@lid';
+    const nossa = (chatid, extra = {}) => {
+      const c = corpo({ fromMe: true, chatid });
+      Object.assign(c.message, { sender_lid: LID_DONO }, extra);
+      return c;
+    };
+    const paraA = extrairDadosMensagem(nossa('000000000011@s.whatsapp.net'));
+    const paraB = extrairDadosMensagem(nossa('000000000022@s.whatsapp.net'));
+    assert.equal(paraA.lid, '', 'fromMe só com sender_lid: sem LID');
+    assert.equal(paraB.lid, '', 'duas famílias diferentes nunca saem com o mesmo LID do dono');
+    assert.equal(extrairDadosMensagem(nossa('000000000033@lid')).lid, '000000000033@lid', 'chatid já em @lid vale como LID do chat');
+    assert.equal(
+      extrairDadosMensagem(nossa('000000000011@s.whatsapp.net', { chatlid: '000000000011000@lid' })).lid,
+      '000000000011000@lid',
+      'chatlid continua valendo em mensagem nossa',
+    );
+    const daFamilia = corpo({ chatid: '000000000044@s.whatsapp.net' });
+    daFamilia.message.sender_lid = '000000000044000@lid';
+    assert.equal(extrairDadosMensagem(daFamilia).lid, '000000000044000@lid', 'na mensagem da família, o sender_lid é dela');
+  });
+
+  test('LGPD-01: cartão seguido de validade e CVV na mesma linha sai mascarado antes do Redis e da memória', () => {
+    const dados = extrairDadosMensagem(corpo({ texto: 'pode passar no cartão 4111 1111 1111 1111 12/28 123' }));
+    assert.equal(dados.texto, 'pode passar no cartão [cartão ocultado] [dado de cartão ocultado] 123');
+  });
+
+  test('SEG-BANCO-01: texto da família cortado em 20 mil caracteres antes da máscara, em tempo linear', () => {
+    const inicio = performance.now();
+    const dados = extrairDadosMensagem(corpo({ texto: '1 '.repeat(30000) }));
+    assert.ok(performance.now() - inicio < 1000);
+    assert.equal(dados.texto.length, 20000);
+    const transcrito = lerTranscricao({ texto: '' }, { transcription: '1 '.repeat(30000) });
+    assert.equal(transcrito.texto.length, 20000);
+  });
+
   test('em mensagem nossa, o telefone é o da família (do chat), nunca o remetente', () => {
     assert.equal(telefoneE164({ senderPn: '000000000099@s.whatsapp.net', telefoneChat: '00 0000-0001', jid: JID, fromMe: true }), '+0000000001');
     assert.equal(telefoneE164({ senderPn: '000000000099@lid', telefoneChat: '', jid: 'x@lid', fromMe: false }), '');
@@ -1174,6 +1210,17 @@ describe('fluxo 3 · cenários do P25 (JSON gerado no simulador)', () => {
     const semLid = criarAmbiente();
     await rodar(semLid, corpo({ texto: 'oi' }));
     assert.equal(semLid.chamadas('registrar_mensagem')[0].argumentos[8], null, 'sem LID vai nulo, nunca texto vazio');
+
+    // N8N-01: evento fromMe sem chatlid, só com o LID do número da Kraamzorg
+    const doDono = corpo({ fromMe: true, texto: 'Oi Ana' });
+    doDono.message.sender_lid = '999000000000001@lid';
+    const humanaSemChatlid = criarAmbiente();
+    await rodar(humanaSemChatlid, doDono);
+    assert.equal(
+      humanaSemChatlid.chamadas('registrar_mensagem')[0].argumentos[8],
+      null,
+      'mensagem da equipe nunca manda o LID do dono como LID da família',
+    );
   });
 
   test('grupo e instância diferente são ignorados', async () => {

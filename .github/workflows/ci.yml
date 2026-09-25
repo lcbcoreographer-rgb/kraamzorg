@@ -1,10 +1,15 @@
 name: CI
 
+# Todo push e todo pull request, em qualquer branch (CADEIA-01, revisão de
+# segurança de 25/09/2026): hml e main ainda não existem no remoto, e com o
+# gatilho só nelas nenhum commit passava pelo gitleaks antes de subir. Quando
+# hml e main existirem com proteção de branch (PR obrigatório e estes checks
+# exigidos), o gatilho de push pode voltar a ser só hml e main.
 on:
   pull_request:
-    branches: [hml, main]
+    branches: ["**"]
   push:
-    branches: [hml, main]
+    branches: ["**"]
 
 env:
   PNPM_VERSION: "10.33.0"

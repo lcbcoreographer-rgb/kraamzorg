@@ -16,7 +16,7 @@
 //   sem legenda (PRD 19.4 nó 11, v4.2).
 // - O token que a UAZAPI manda no corpo nunca é lido (PRD 11.10).
 
-import { mascararDocumentos } from './mascarar-documentos.js';
+import { limitarTexto, mascararDocumentos } from './mascarar-documentos.js';
 
 // `track_source` dos envios da própria Kraamzorg: o do agente (PRD 19.1) e o
 // do adaptador de mensageria do app (P18).
@@ -93,9 +93,16 @@ export function extrairDadosMensagem(corpo = {}) {
   const chat = corpo && typeof corpo.chat === 'object' && corpo.chat ? corpo.chat : {};
 
   const jid = primeiroTexto(mensagem.chatid, chat.wa_chatid);
-  const lidBruto = primeiroTexto(mensagem.chatlid, chat.wa_chatlid, mensagem.sender_lid);
-  const lid = lidBruto.endsWith('@lid') ? lidBruto : '';
   const fromMe = mensagem.fromMe === true;
+  // LID do chat (o da família): chatlid, wa_chatlid ou o próprio chatid
+  // quando ele já é @lid. O LID do remetente (`sender_lid`) só vale em
+  // mensagem da família: em mensagem nossa (`fromMe`) ele é o LID do número
+  // da Kraamzorg, igual em todas as conversas, e juntaria famílias
+  // diferentes numa conversa só (N8N-01). Mesma regra do telefone, logo
+  // abaixo.
+  const lidDoChat = primeiroTexto(mensagem.chatlid, chat.wa_chatlid, jid.endsWith('@lid') ? jid : '');
+  const lidBruto = fromMe ? lidDoChat : primeiroTexto(lidDoChat, mensagem.sender_lid);
+  const lid = lidBruto.endsWith('@lid') ? lidBruto : '';
   const tipo = tipoDaMensagem(mensagem);
   const conteudo = mensagem.content;
   const textoBruto = primeiroTexto(
@@ -105,7 +112,9 @@ export function extrairDadosMensagem(corpo = {}) {
     conteudo && typeof conteudo === 'object' ? conteudo.caption : '',
     mensagem.caption,
   );
-  const texto = mascararDocumentos(textoBruto);
+  // Corta no teto de segurança antes da máscara e de tudo o mais
+  // (SEG-BANCO-01): o mesmo teto que o banco aplica em registrar_mensagem.
+  const texto = mascararDocumentos(limitarTexto(textoBruto));
   const midia = TIPOS_MIDIA.includes(tipo);
   const trackSource = textoOuVazio(mensagem.track_source);
   const wasSentByApi = mensagem.wasSentByApi === true;

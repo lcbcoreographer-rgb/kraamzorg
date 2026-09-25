@@ -47,7 +47,23 @@ function comProximo(destino: string, caminho: string): string {
   return `${destino}?proximo=${encodeURIComponent(caminho)}`;
 }
 
-/** Aceita só caminho interno do app como destino depois do login. */
+/** Origem fictícia, só para resolver o destino com o parser de URL. */
+const ORIGEM_INTERNA = "https://interno.invalid";
+
+/**
+ * Caractere de controle (TAB, quebra de linha, retorno de carro e os
+ * demais de U+0000 a U+001F, mais U+007F) e barra invertida. O parser de
+ * URL do navegador e do Next apaga TAB e quebra de linha e trata a barra
+ * invertida como barra: "/<TAB>/site.exemplo" viraria "//site.exemplo",
+ * outro domínio (AUTH-01, redirecionamento aberto depois do login).
+ */
+const CARACTERE_PERIGOSO = /[\u0000-\u001F\u007F\\]/;
+
+/**
+ * Aceita só caminho interno do app como destino depois do login e devolve
+ * o caminho já normalizado pelo parser de URL (o mesmo que o navegador usa
+ * no redirect), nunca o texto cru que veio na query string.
+ */
 export function proximoSeguro(
   proximo: string | null | undefined,
 ): string | null {
@@ -55,11 +71,20 @@ export function proximoSeguro(
     !proximo ||
     !proximo.startsWith("/") ||
     proximo.startsWith("//") ||
-    proximo.includes("\\")
+    CARACTERE_PERIGOSO.test(proximo)
   ) {
     return null;
   }
-  return proximo;
+  let url: URL;
+  try {
+    url = new URL(proximo, ORIGEM_INTERNA);
+  } catch {
+    return null;
+  }
+  if (url.origin !== ORIGEM_INTERNA) return null;
+  const caminho = `${url.pathname}${url.search}${url.hash}`;
+  if (!caminho.startsWith("/") || caminho.startsWith("//")) return null;
+  return caminho;
 }
 
 export function decidirAcesso(
