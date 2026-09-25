@@ -5,6 +5,7 @@ import { definicaoInstrumento, lerDefinicao } from "./schema";
 import {
   alertasSatisfeitos,
   avaliarCondicao,
+  camposOcultosComValor,
   comValor,
   etapasVisiveis,
   paraDados,
@@ -151,6 +152,38 @@ describe("condição para aparecer", () => {
     expect(
       avaliarCondicao(cond, { definicao: DOC1, respostas: com("sim") }),
     ).toBe(true);
+  });
+});
+
+describe("respostas que deixam de se aplicar", () => {
+  it("DOC 1: detalhes da amamentação anterior ficam ocultos com valor quando a resposta vira não", () => {
+    let r = comValor(
+      respostasVazias(),
+      { bloco: "E", campo: "amamentou_anteriormente" },
+      "sim",
+    );
+    r = comValor(
+      r,
+      { bloco: "E", campo: "maior_tempo_de_amamentacao" },
+      "mais_de_1_ano",
+    );
+    expect(camposOcultosComValor(DOC1, r)).toEqual([]);
+    r = comValor(r, { bloco: "E", campo: "amamentou_anteriormente" }, "nao");
+    expect(camposOcultosComValor(DOC1, r)).toEqual([
+      { bloco: "E", campo: "maior_tempo_de_amamentacao", bebe: undefined },
+    ]);
+  });
+
+  it("não aponta campo sem resposta nem bloco escondido por contexto", () => {
+    let r = comValor(
+      respostasVazias(),
+      { bloco: "ultimo_dia", campo: "contato_obstetra" },
+      "Obstetra Teste",
+    );
+    r = comValor(r, { bloco: "9", campo: "contato_medico_necessario" }, false);
+    expect(
+      camposOcultosComValor(DOC2, r, { contexto: { ultimo_dia: false } }),
+    ).toEqual([]);
   });
 });
 

@@ -308,6 +308,42 @@ export function etapasVisiveis(ambiente: AmbienteCondicao): Bloco[] {
   return ambiente.definicao.blocos.filter((b) => blocoVisivel(b, ambiente));
 }
 
+/**
+ * Campos com resposta gravada cuja condição para aparecer deixou de valer
+ * (ex: "Motivo do contato realizado" depois que "Contato com médico
+ * necessário" virou não). O gerador apaga essas respostas, para que o
+ * registro não leve dado de uma pergunta que não se aplica mais. Só olha a
+ * condição do campo; bloco escondido por contexto (último dia) não entra,
+ * porque o contexto vem da tela e não de uma resposta.
+ */
+export function camposOcultosComValor(
+  definicao: DefinicaoInstrumento,
+  respostas: RespostasFormulario,
+  opcoes: { bebes?: BebeFormulario[]; contexto?: ContextoFormulario } = {},
+): EnderecoCampo[] {
+  const ocultos: EnderecoCampo[] = [];
+  const base: AmbienteCondicao = {
+    definicao,
+    respostas,
+    contexto: opcoes.contexto,
+  };
+  for (const bloco of definicao.blocos) {
+    const bebes: (BebeFormulario | undefined)[] = bloco.repete_por_bebe
+      ? (opcoes.bebes ?? [])
+      : [undefined];
+    for (const bebe of bebes) {
+      const ambiente = { ...base, bebe: bebe?.id };
+      for (const campo of bloco.campos) {
+        if (!campo.aparece_se) continue;
+        const endereco = { bloco: bloco.id, campo: campo.id, bebe: bebe?.id };
+        if (lerValor(respostas, endereco) === undefined) continue;
+        if (!campoVisivel(campo, ambiente)) ocultos.push(endereco);
+      }
+    }
+  }
+  return ocultos;
+}
+
 export interface Pendencia extends EnderecoCampo {
   rotulo: string;
   rotuloBloco: string;

@@ -181,6 +181,61 @@ describe("FormularioInstrumento com o DOC 2", () => {
     ).toBeInTheDocument();
   });
 
+  it("resposta que deixa de se aplicar é apagada e a remoção grava", async () => {
+    const user = userEvent.setup();
+    const { persistencia } = montar();
+    await avancar(user, TITULOS_9_2.indexOf("9 Comunicação"));
+    const grupo = screen.getByRole("radiogroup", {
+      name: /Contato com médico necessário/,
+    });
+    await user.click(within(grupo).getByRole("radio", { name: /Sim/ }));
+    await user.type(
+      screen.getByLabelText(/Motivo do contato realizado/),
+      "Febre persistente",
+    );
+    await user.tab();
+    expect(persistencia.gravacoes.at(-1)).toEqual({
+      endereco: { bloco: "9", campo: "motivo_contato_realizado" },
+      valor: "Febre persistente",
+    });
+
+    await user.click(within(grupo).getByRole("radio", { name: /Não/ }));
+    const ultimas = persistencia.gravacoes.slice(-2);
+    expect(ultimas).toContainEqual({
+      endereco: { bloco: "9", campo: "motivo_contato_realizado" },
+      valor: null,
+    });
+    expect(ultimas).toContainEqual({
+      endereco: { bloco: "9", campo: "contato_medico_necessario" },
+      valor: false,
+    });
+    // Voltar ao sim abre o campo vazio: o texto antigo não volta escondido.
+    await user.click(within(grupo).getByRole("radio", { name: /Sim/ }));
+    expect(screen.getByLabelText(/Motivo do contato realizado/)).toHaveValue(
+      "",
+    );
+  });
+
+  it("sim ou não com texto: o texto não fica gravado quando a resposta deixa de pedir", async () => {
+    const user = userEvent.setup();
+    const { persistencia } = montar();
+    const grupo = screen.getByRole("radiogroup", {
+      name: /Acompanhante presente/,
+    });
+    await user.click(within(grupo).getByRole("radio", { name: /Sim/ }));
+    await user.type(screen.getByLabelText("Quem?"), "Parceiro");
+    await user.tab();
+    expect(persistencia.gravacoes.at(-1)?.valor).toEqual({
+      resposta: true,
+      texto: "Parceiro",
+    });
+    await user.click(within(grupo).getByRole("radio", { name: /Não/ }));
+    expect(persistencia.gravacoes.at(-1)).toEqual({
+      endereco: { bloco: "1", campo: "acompanhante_presente" },
+      valor: { resposta: false },
+    });
+  });
+
   it("sim ou não com texto abre o texto só quando a resposta pede", async () => {
     const user = userEvent.setup();
     montar();

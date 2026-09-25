@@ -15,6 +15,7 @@ import type {
 } from "@/lib/instrumentos/schema";
 import {
   alertasSatisfeitos,
+  camposOcultosComValor,
   campoVisivel,
   comValor,
   etapasVisiveis,
@@ -208,8 +209,16 @@ export function FormularioInstrumento({
     valor: ValorCampo | null,
     salvar: boolean,
   ) {
-    const proximas = comValor(respostas, endereco, valor);
+    let proximas = comValor(respostas, endereco, valor);
+    // Resposta que deixou de se aplicar (condição para aparecer) é apagada e
+    // a remoção grava na hora, para o registro não levar dado escondido.
+    const ocultos = camposOcultosComValor(definicao, proximas, {
+      bebes,
+      contexto,
+    });
+    for (const oculto of ocultos) proximas = comValor(proximas, oculto, null);
     definirRespostas(proximas);
+    for (const oculto of ocultos) void persistencia.salvarCampo(oculto, null);
     if (!salvar) return;
     void persistencia.salvarCampo(endereco, valor);
     aoAvaliarAlertas?.(

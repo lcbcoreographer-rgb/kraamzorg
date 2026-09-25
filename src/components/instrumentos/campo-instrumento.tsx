@@ -149,11 +149,11 @@ export function CampoInstrumento({
           ? (valor as ValorSimNaoTexto)
           : undefined;
       const quando = campo.texto_quando ?? "sim";
-      const mostraTexto =
-        atual !== undefined &&
-        (quando === "sempre" ||
-          (quando === "sim" && atual.resposta) ||
-          (quando === "nao" && !atual.resposta));
+      const textoAparece = (resposta: boolean) =>
+        quando === "sempre" ||
+        (quando === "sim" && resposta) ||
+        (quando === "nao" && !resposta);
+      const mostraTexto = atual !== undefined && textoAparece(atual.resposta);
       return (
         <div data-campo={id} className="flex flex-col gap-3">
           <SimNao
@@ -162,9 +162,17 @@ export function CampoInstrumento({
             rotuloSim={t.sim}
             rotuloNao={t.nao}
             valor={atual ? (atual.resposta ? "sim" : "nao") : undefined}
-            onMudar={(v) =>
-              aoMudar({ resposta: v === "sim", texto: atual?.texto }, true)
-            }
+            onMudar={(v) => {
+              // O texto complementar só acompanha a resposta que o pede
+              // ("Queixa de dor? Local" some no não, e o local digitado
+              // antes não fica gravado escondido).
+              const resposta = v === "sim";
+              const texto = textoAparece(resposta) ? atual?.texto : undefined;
+              aoMudar(
+                texto !== undefined ? { resposta, texto } : { resposta },
+                true,
+              );
+            }}
           />
           {campo.ajuda ? <Ajuda>{campo.ajuda}</Ajuda> : null}
           {mostraTexto ? (
