@@ -1,0 +1,104 @@
+{
+  "_comentario": "Único config versionado (CLAUDE.md, PRD 19.5). Valores de exemplo óbvios em todo campo sensível: nunca aponta para um projeto, credencial ou instância real. Para gerar de verdade, copie para n8n/config.hml.json ou n8n/config.prod.json (fora do git) e troque cada EXEMPLO_* por um valor do cofre da Kraamzorg.",
+
+  "n8n": {
+    "versao": "2.40.6"
+  },
+
+  "fluxo": {
+    "idFluxo2": "EXEMPLO_ID_FLUXO_2_PREENCHER_APOS_IMPORTAR_P24",
+    "settings": {
+      "executionOrder": "v1",
+      "callerPolicy": "workflowsFromSameOwner",
+      "timezone": "America/Sao_Paulo",
+      "saveDataSuccessExecution": "none",
+      "saveDataErrorExecution": "all"
+    }
+  },
+
+  "_comentario_nos": "typeVersion de cada tipo de nó, copiado de n8n/referencia/versoes-nos.json (versão corrente listada no PRD 19.5). Atualize os dois juntos quando a referência mudar.",
+  "nos": {
+    "webhook": { "typeVersion": 2.1 },
+    "code": { "typeVersion": 2 },
+    "if": { "typeVersion": 2.3 },
+    "switch": { "typeVersion": 3.4 },
+    "set": { "typeVersion": 3.4 },
+    "httpRequest": { "typeVersion": 4.4 },
+    "postgres": { "typeVersion": 2.6 },
+    "postgresTool": { "typeVersion": 2.6 },
+    "redis": { "typeVersion": 1 },
+    "wait": { "typeVersion": 1.1 },
+    "splitOut": { "typeVersion": 1 },
+    "splitInBatches": { "typeVersion": 3 },
+    "scheduleTrigger": { "typeVersion": 1.3 },
+    "manualTrigger": { "typeVersion": 1 },
+    "executeWorkflowTrigger": { "typeVersion": 1.1 },
+    "executeWorkflow": { "typeVersion": 1.3 },
+    "toolWorkflow": { "typeVersion": 2.2 },
+    "agent": { "typeVersion": 3.1 },
+    "lmChatOpenAi": { "typeVersion": 1.3 },
+    "embeddingsOpenAi": { "typeVersion": 1.2 },
+    "vectorStorePGVector": { "typeVersion": 1.3 },
+    "documentDefaultDataLoader": { "typeVersion": 1.1 },
+    "textSplitterRecursiveCharacterTextSplitter": { "typeVersion": 1 },
+    "memoryPostgresChat": { "typeVersion": 1.4 },
+    "stickyNote": { "typeVersion": 1 }
+  },
+
+  "credenciais": {
+    "postgres": {
+      "id": "EXEMPLO-CRED-0001-POSTGRES-AGENTE",
+      "name": "Postgres Kraamzorg Agente"
+    },
+    "redis": {
+      "id": "EXEMPLO-CRED-0002-REDIS-DROP",
+      "name": "Redis Drop"
+    },
+    "openai": {
+      "id": "EXEMPLO-CRED-0003-OPENAI-KRAAMZORG",
+      "name": "OpenAI Kraamzorg"
+    },
+    "uazapi": {
+      "id": "EXEMPLO-CRED-0004-UAZAPI-KRAAMZORG",
+      "name": "UAZAPI Kraamzorg"
+    }
+  },
+
+  "uazapi": {
+    "urlBase": "https://exemplo-nao-real.uazapi.com",
+    "instancia": "kraamzorg-exemplo"
+  },
+
+  "webhooks": {
+    "fluxo3Entrada": "isadora-entrada-EXEMPLO-TROQUE-ESTE-SEGREDO",
+    "fluxo1Reindexar": "reindexar-base-EXEMPLO-TROQUE-ESTE-SEGREDO"
+  },
+
+  "modelos": {
+    "conversa": {
+      "modelo": "gpt-5.1",
+      "aceitaTemperatura": false,
+      "temperatura": 0.5,
+      "reasoningEffort": "medium"
+    },
+    "classificadores": {
+      "modelo": "gpt-4.1-mini",
+      "aceitaTemperatura": true,
+      "temperatura": 0
+    },
+    "embeddings": {
+      "modelo": "text-embedding-3-small"
+    }
+  },
+
+  "redis": {
+    "prefixo": "kz:"
+  },
+
+  "grupoFallbackJid": "000000000000-0000000000@g.us",
+
+  "homologacao": {
+    "envioSimulado": true,
+    "transcricaoSimulada": true
+  }
+}

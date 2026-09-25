@@ -203,16 +203,20 @@ migration do projeto, não uma mudança nesta camada de base.
   antigos e 17 em projetos novos, dependendo de quando o projeto foi criado.
   Nada no PRD depende de um recurso exclusivo de uma versão específica, mas é
   uma diferença de versão real, não só de nome.
-- **`pg_net` é stub, não a extensão.** A biblioteca não está instalada nesta
-  máquina. O schema `net` tem `net.http_post`/`net.http_get` com a mesma
+- **`pg_net` é uma extensão FALSA, não a biblioteca real.** A biblioteca
+  verdadeira não está instalada nesta máquina (sem rede para baixar). Em vez
+  disso, `scripts/iniciar.sh` grava uma extensão de nome `pg_net` (arquivos
+  `pg_net.control` e `pg_net--1.0.sql`) no diretório de extensões do Postgres
+  local, de forma idempotente, sem mexer em nenhuma migration versionada. O
+  schema `net` dela tem `net.http_post`/`net.http_get` com a mesma
   assinatura, mas são síncronas e só gravam a chamada em `net._chamadas` — não
   saem para a rede, não enfileiram nada e não existe `net._http_response`.
-  Quando a migration real do capítulo 6.0 (`create extension if not exists
-pg_net;`) for escrita, ela vai **falhar** aqui, porque a extensão de
-  verdade não está disponível nesta máquina. Isso é esperado: quem for rodar
-  `resetar.sh` depois que essa linha existir vai precisar aplicar a migration
-  sem essa linha localmente (nunca editando o arquivo versionado) só para
-  testar aqui, e confirmar de verdade num ambiente com Docker.
+  Como a extensão falsa já existe antes da primeira migration (seção 5 de
+  `camada-supabase.sql`, mesmo padrão de pgcrypto/uuid-ossp na seção 2), a
+  migration 0001 do capítulo 6.0 do PRD (`create extension if not exists
+  pg_net;`) encontra a extensão já instalada e não faz nada — não falha.
+  Continua sendo uma diferença real do pg_net de verdade (que é assíncrono, com
+  fila e worker em background), só documentada aqui, não escondida.
 - **Vault é stub, não cifra nada.** `vault.secrets.secret` fica em texto
   puro. A Vault real cifra com pgsodium e chave gerenciada fora do banco.
   Nunca trate o conteúdo de `vault.secrets` neste ambiente como protegido, e

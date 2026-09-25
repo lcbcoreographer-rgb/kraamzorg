@@ -263,88 +263,33 @@ grant execute on function auth.jwt()   to public;
 
 
 -- -----------------------------------------------------------------------------
--- 5. Schema net: stub de pg_net
+-- 5. Schema net: stub de pg_net, instalado como extensão de verdade
 --
 -- Imita: a assinatura de net.http_post e net.http_get do pg_net, para
 -- privado.processar_automacoes (PRD 10) e qualquer outra função de banco que
 -- chame rota externa por pg_net continuarem compilando e rodando aqui sem
 -- rede. Toda chamada é gravada em net._chamadas em vez de sair para a rede.
+-- Igual a pgcrypto/uuid-ossp/etc. na seção 2, isto reproduz o que um projeto
+-- Supabase novo já traz instalado ANTES da primeira migration: quando a
+-- migration 0001 do capítulo 6.0 do PRD rodar "create extension if not
+-- exists pg_net;", ela encontra a extensão já instalada e não faz nada.
 --
--- Difere: não é uma extensão de verdade (esta máquina não tem a biblioteca
--- pg_net instalada: "não existe pg_net" no enunciado desta tarefa). Por
--- isso, quando a migration real do capítulo 6.0 chegar com
--- "create extension if not exists pg_net;", ela vai FALHAR aqui (extensão
--- não disponível) -- é uma diferença conhecida, documentada no README, e
--- não algo que este arquivo tenta esconder. Além disso, o pg_net real é
--- assíncrono: enfileira a chamada, um worker em background faz a requisição
--- e a resposta chega depois em net._http_response (ou net._http_collect_
--- response). Aqui não tem fila nem worker: a função devolve um id na hora e
--- pronto, ninguém deve esperar por uma resposta.
+-- [v4.2] Passou a ser uma extensão de verdade (arquivo .control mais
+-- .sql), não SQL solto como antes: esta máquina não tem a biblioteca real
+-- do pg_net (sem rede para baixar), então scripts/iniciar.sh grava uma
+-- extensão FALSA com esse nome no diretório de extensões do Postgres local
+-- (idempotente, não mexe em nenhuma migration versionada). O SQL de dentro
+-- dela é o mesmo stub de sempre: net._chamadas, net.http_post, net.http_get,
+-- nada sai da rede. Ver scripts/iniciar.sh e o README para o texto completo.
+--
+-- Difere do pg_net real: ele é assíncrono (enfileira a chamada, um worker em
+-- background faz a requisição e a resposta chega depois em
+-- net._http_response); aqui não tem fila nem worker, a função devolve um id
+-- na hora e pronto, ninguém deve esperar por uma resposta.
 -- -----------------------------------------------------------------------------
 
-create schema if not exists net;
-grant usage on schema net to postgres, service_role;
-comment on schema net is 'sem-docker: stub de pg_net. Não faz chamada HTTP nenhuma; grava em net._chamadas para os testes conferirem. Extensão pg_net de verdade não está instalada nesta máquina (ver README).';
-
-create table if not exists net._chamadas (
-  id            bigserial primary key,
-  metodo        text not null check (metodo in ('GET', 'POST')),
-  url           text not null,
-  corpo         jsonb,
-  parametros    jsonb,
-  cabecalhos    jsonb,
-  timeout_ms    integer,
-  chamado_por   text not null default current_user,
-  chamado_em    timestamptz not null default clock_timestamp()
-);
-comment on table net._chamadas is 'sem-docker: histórico das chamadas que passariam por net.http_post/net.http_get, só para os testes conferirem o que seria enviado (método, url, corpo, quem chamou). Não existe no pg_net real.';
-
-grant select, insert on net._chamadas to postgres, service_role;
-grant usage, select on all sequences in schema net to postgres, service_role;
-
-create or replace function net.http_post(
-  url                  text,
-  body                 jsonb default null,
-  params               jsonb default '{}'::jsonb,
-  headers              jsonb default '{"Content-Type": "application/json"}'::jsonb,
-  timeout_milliseconds integer default 5000
-)
-returns bigint
-language plpgsql
-as $$
-declare
-  id_chamada bigint;
-begin
-  insert into net._chamadas (metodo, url, corpo, parametros, cabecalhos, timeout_ms)
-  values ('POST', url, body, params, headers, timeout_milliseconds)
-  returning id into id_chamada;
-  return id_chamada;
-end;
-$$;
-comment on function net.http_post(text, jsonb, jsonb, jsonb, integer) is 'sem-docker: mesma assinatura de net.http_post do pg_net. Não sai da máquina; grava em net._chamadas e devolve um id sequencial na hora (o pg_net real devolve o id de uma fila processada em background).';
-
-create or replace function net.http_get(
-  url                  text,
-  params               jsonb default '{}'::jsonb,
-  headers              jsonb default '{}'::jsonb,
-  timeout_milliseconds integer default 5000
-)
-returns bigint
-language plpgsql
-as $$
-declare
-  id_chamada bigint;
-begin
-  insert into net._chamadas (metodo, url, corpo, parametros, cabecalhos, timeout_ms)
-  values ('GET', url, null, params, headers, timeout_milliseconds)
-  returning id into id_chamada;
-  return id_chamada;
-end;
-$$;
-comment on function net.http_get(text, jsonb, jsonb, integer) is 'sem-docker: mesma assinatura de net.http_get do pg_net. Não sai da máquina; grava em net._chamadas.';
-
-grant execute on function net.http_post(text, jsonb, jsonb, jsonb, integer) to postgres, service_role;
-grant execute on function net.http_get(text, jsonb, jsonb, integer)        to postgres, service_role;
+create extension if not exists pg_net;
+comment on extension pg_net is 'sem-docker: extensão FALSA (ver scripts/iniciar.sh). Não faz chamada HTTP nenhuma; grava em net._chamadas para os testes conferirem. A biblioteca real do pg_net não está instalada nesta máquina (ver README).';
 
 
 -- -----------------------------------------------------------------------------

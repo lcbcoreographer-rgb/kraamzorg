@@ -1,0 +1,11 @@
+{
+  "name": "kraamzorg-n8n-build",
+  "private": true,
+  "type": "module",
+  "description": "Build dos fluxos n8n do agente (PRD 19). Sem dependências: node puro e node:test. Ver n8n/README.md.",
+  "scripts": {
+    "build:hml": "node build.mjs --env hml",
+    "build:prod": "node build.mjs --env prod",
+    "test": "node --test build.test.mjs"
+  }
+}
