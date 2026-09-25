@@ -22,6 +22,8 @@ export interface EscolhaUnicaProps {
   onMudar?: (valor: string) => void;
   descricao?: React.ReactNode;
   disabled?: boolean;
+  /** "checklist" sobe a pílula para 52 px (densidade do checklist da enfermeira). */
+  tamanho?: "padrao" | "checklist";
   className?: string;
 }
 
@@ -39,6 +41,7 @@ export function EscolhaUnica({
   onMudar,
   descricao,
   disabled,
+  tamanho = "padrao",
   className,
 }: EscolhaUnicaProps) {
   const idGrupo = React.useId();
@@ -76,7 +79,8 @@ export function EscolhaUnica({
               <label
                 htmlFor={idOpcao}
                 className={cn(
-                  "min-h-toque rounded-pilula border-borda-campo bg-superficie text-apoio text-texto flex cursor-pointer items-center gap-2 border-[1.5px] px-4 font-medium select-none",
+                  "rounded-pilula border-borda-campo bg-superficie text-apoio text-texto flex cursor-pointer items-center gap-2 border-[1.5px] px-4 font-medium select-none",
+                  tamanho === "checklist" ? "min-h-toque-campo" : "min-h-toque",
                   "hover:bg-marinho-08",
                   "peer-checked:border-acao peer-checked:bg-acao peer-checked:text-acao-texto",
                   "peer-focus-visible:outline-foco peer-focus-visible:shadow-[0_0_0_5px_var(--foco-halo)] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2",

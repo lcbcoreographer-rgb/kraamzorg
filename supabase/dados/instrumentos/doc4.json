@@ -1,0 +1,129 @@
+{
+  "codigo": "DOC4_MAMADA",
+  "versao": "v1-2026-09",
+  "titulo": "Avaliação da mamada e laserterapia",
+  "fonte": "PRD v4.2, 9.4",
+  "descricao": "Instrumento de apoio visual, usado durante a visita, em janela auxiliar dos campos 2.7, 2.8 e 2.9 do checklist diário.",
+  "blocos": [
+    {
+      "id": "latch",
+      "titulo": "Escala LATCH",
+      "apoia_campo": "DOC2_CHECKLIST:2.8.latch",
+      "ajuda": "Interpretação do DOC 4: 0 a 7 apoio necessário, 8 a 10 amamentação eficaz.",
+      "campos": [
+        {
+          "id": "pega",
+          "tipo": "escala",
+          "rotulo": "Pega",
+          "min": 0,
+          "max": 2
+        },
+        {
+          "id": "degluticao_audivel",
+          "tipo": "escala",
+          "rotulo": "Deglutição audível",
+          "min": 0,
+          "max": 2
+        },
+        {
+          "id": "tipo_de_mamilo",
+          "tipo": "escala",
+          "rotulo": "Tipo de mamilo",
+          "min": 0,
+          "max": 2
+        },
+        {
+          "id": "conforto",
+          "tipo": "escala",
+          "rotulo": "Conforto",
+          "min": 0,
+          "max": 2
+        },
+        {
+          "id": "colo",
+          "tipo": "escala",
+          "rotulo": "Colo",
+          "min": 0,
+          "max": 2
+        }
+      ]
+    },
+    {
+      "id": "nts",
+      "titulo": "Escore de trauma mamilar (NTS)",
+      "apoia_campo": "DOC2_CHECKLIST:2.7.nts",
+      "ajuda": "Escala visual em janela auxiliar.",
+      "campos": [
+        {
+          "id": "nts",
+          "tipo": "escala",
+          "rotulo": "Escore de trauma mamilar (NTS)",
+          "min": 0,
+          "max": 5,
+          "pontos": [
+            {
+              "valor": 0,
+              "rotulo": "Normal"
+            },
+            {
+              "valor": 1,
+              "rotulo": "Leve (eritema ou edema)"
+            },
+            {
+              "valor": 2,
+              "rotulo": "Moderado (dano superficial em menos de 25% do mamilo)"
+            },
+            {
+              "valor": 3,
+              "rotulo": "Grave (dano superficial em mais de 25%)"
+            },
+            {
+              "valor": 4,
+              "rotulo": "Crítico (lesão de espessura parcial em menos de 25%)"
+            },
+            {
+              "valor": 5,
+              "rotulo": "Severo (lesão de espessura parcial em mais de 25%)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "laserterapia",
+      "titulo": "Protocolos de laserterapia",
+      "apoia_campo": "DOC2_CHECKLIST:2.9.fbm_aplicada",
+      "campos": [
+        {
+          "id": "protocolo",
+          "tipo": "opcao_unica",
+          "rotulo": "Protocolo",
+          "opcoes": [
+            {
+              "valor": "analgesia",
+              "rotulo": "Analgesia",
+              "ajuda": "4 J de infravermelho nos 4 pontos cardeais"
+            },
+            {
+              "valor": "reparacao",
+              "rotulo": "Reparação",
+              "ajuda": "2 J de vermelho no centro do mamilo"
+            },
+            {
+              "valor": "fotoativacao_drenagem_linfatica",
+              "rotulo": "Fotoativação e drenagem linfática",
+              "ajuda": "4 J de infravermelho na rede ganglionar"
+            },
+            {
+              "valor": "ilib",
+              "rotulo": "ILIB",
+              "ajuda": "Vermelho, 30 minutos",
+              "clinico": true,
+              "nota_clinica": "PRD 9.4 e K-08: no impresso o ILIB aparece como \"infravermelho\"; a v4.0 e o treinamento de 25/07 mandam \"vermelho\". A versão digital já nasce com vermelho; confirmar o texto exato."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

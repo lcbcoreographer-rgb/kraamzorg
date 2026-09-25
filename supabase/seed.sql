@@ -774,7 +774,11 @@ insert into instrumento (codigo, versao, definicao, vigente) values
   ('DOC1_ENTREVISTA', 'v1-2026-09', '{"blocos":[],"observacao":"definição completa fica para o P34"}', true),
   ('DOC2_CHECKLIST',  'v1-2026-09', '{"blocos":[],"observacao":"definição completa fica para o P34"}', true),
   ('DOC3_ALERTAS',    'v1-2026-09', '{"blocos":[],"observacao":"definição completa fica para o P34"}', true),
-  ('DOC4_MAMADA',     'v1-2026-09', '{"blocos":[],"observacao":"definição completa fica para o P34"}', true);
+  ('DOC4_MAMADA',     'v1-2026-09', '{"blocos":[],"observacao":"definição completa fica para o P34"}', true)
+-- [P34] A migration 0045_instrumentos_v1.sql já carrega a definição completa
+-- da v1 com vigente = false. Aqui o seed só a marca como vigente no ambiente
+-- sintético, sem trocar a definição pela provisória acima.
+on conflict (codigo, versao) do update set vigente = excluded.vigente;
 
 insert into regra_alerta (id, grupo, descricao, severidade, conduta, campo, condicao, instrumento_versao, ativa) values
   -- Puérpera (PRD 9.3)

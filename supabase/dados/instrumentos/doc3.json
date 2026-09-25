@@ -1,0 +1,475 @@
+{
+  "codigo": "DOC3_ALERTAS",
+  "versao": "v1-2026-09",
+  "titulo": "Sinais de alerta e acionamento médico",
+  "fonte": "PRD v4.2, 9.3 (texto conforme a versão .docx do DOC 3)",
+  "descricao": "Cada regra vira uma linha em regra_alerta. Sinais que não têm campo no checklist são registrados pela enfermeira num seletor com a lista do DOC 3.",
+  "blocos": [
+    {
+      "id": "registro",
+      "titulo": "Registro obrigatório",
+      "ajuda": "Antes de fechar qualquer alerta. O registro e a comunicação ficam no checklist diário.",
+      "campos": [
+        {
+          "id": "sinal_identificado",
+          "tipo": "opcao_unica",
+          "rotulo": "Sinal identificado",
+          "opcoes": [
+            {
+              "valor": "pu_01",
+              "rotulo": "PU-01 · Febre ≥ 38 °C"
+            },
+            {
+              "valor": "pu_02",
+              "rotulo": "PU-02 · Sangramento vaginal intenso (encharcar 1 absorvente em menos de 1 hora)"
+            },
+            {
+              "valor": "pu_03",
+              "rotulo": "PU-03 · Dor intensa, progressiva ou fora do esperado"
+            },
+            {
+              "valor": "pu_04",
+              "rotulo": "PU-04 · Sinais de infecção em ferida operatória (calor, vermelhidão, secreção purulenta)"
+            },
+            {
+              "valor": "pu_05",
+              "rotulo": "PU-05 · Cefaleia intensa associada a alteração visual"
+            },
+            {
+              "valor": "pu_06",
+              "rotulo": "PU-06 · Falta de ar, dor torácica"
+            },
+            {
+              "valor": "pu_07",
+              "rotulo": "PU-07 · Mal-estar importante ou prostração"
+            },
+            {
+              "valor": "pu_08",
+              "rotulo": "PU-08 · Febre baixa persistente (< 38 °C)"
+            },
+            {
+              "valor": "pu_09",
+              "rotulo": "PU-09 · Dor moderada não controlada"
+            },
+            {
+              "valor": "pu_10",
+              "rotulo": "PU-10 · Aumento progressivo dos lóquios (1 absorvente saturado em 3 h de uso)"
+            },
+            {
+              "valor": "pu_11",
+              "rotulo": "PU-11 · Sinais de ingurgitamento mamário patológico sem melhora com o manejo (hiperemia, dor intensa, febre, sem sucesso na drenagem de alívio)"
+            },
+            {
+              "valor": "pu_12",
+              "rotulo": "PU-12 · Fissuras mamilares graves ou com sinais inflamatórios"
+            },
+            {
+              "valor": "sm_01",
+              "rotulo": "SM-01 · Ideação suicida ou autoagressiva"
+            },
+            {
+              "valor": "sm_02",
+              "rotulo": "SM-02 · Comportamento desorganizado"
+            },
+            {
+              "valor": "sm_03",
+              "rotulo": "SM-03 · Desconexão importante com o bebê"
+            },
+            {
+              "valor": "sm_04",
+              "rotulo": "SM-04 · Tristeza intensa e persistente"
+            },
+            {
+              "valor": "sm_05",
+              "rotulo": "SM-05 · Ansiedade incapacitante"
+            },
+            {
+              "valor": "sm_06",
+              "rotulo": "SM-06 · Choro frequente sem alívio"
+            },
+            {
+              "valor": "sm_07",
+              "rotulo": "SM-07 · Relato de incapacidade de cuidar do bebê"
+            },
+            {
+              "valor": "rn_01",
+              "rotulo": "RN-01 · Dificuldade respiratória"
+            },
+            {
+              "valor": "rn_02",
+              "rotulo": "RN-02 · Cianose ou palidez acentuada"
+            },
+            {
+              "valor": "rn_03",
+              "rotulo": "RN-03 · Letargia importante"
+            },
+            {
+              "valor": "rn_04",
+              "rotulo": "RN-04 · Ausência de diurese por 4 horas ou mais"
+            },
+            {
+              "valor": "rn_05",
+              "rotulo": "RN-05 · Sangue nas fezes"
+            },
+            {
+              "valor": "rn_06",
+              "rotulo": "RN-06 · Convulsão"
+            },
+            {
+              "valor": "rn_07",
+              "rotulo": "RN-07 · Um ou mais sinais flogísticos do coto umbilical (hiperemia, secreção purulenta ou odor fétido)"
+            },
+            {
+              "valor": "rn_08",
+              "rotulo": "RN-08 · Febre (> 38 °C) ou hipotermia (< 36 °C)"
+            },
+            {
+              "valor": "rn_09",
+              "rotulo": "RN-09 · Recusa alimentar completa"
+            },
+            {
+              "valor": "rn_10",
+              "rotulo": "RN-10 · Icterícia progressiva indicando fototerapia"
+            },
+            {
+              "valor": "rn_11",
+              "rotulo": "RN-11 · Oligúria concentrada"
+            },
+            {
+              "valor": "rn_12",
+              "rotulo": "RN-12 · Vômitos frequentes"
+            },
+            {
+              "valor": "rn_13",
+              "rotulo": "RN-13 · Ganho ponderal insatisfatório (quando conhecido)"
+            },
+            {
+              "valor": "am_01",
+              "rotulo": "AM-01 · Mastite com sinais sistêmicos"
+            },
+            {
+              "valor": "am_02",
+              "rotulo": "AM-02 · Dor intensa associada a febre"
+            },
+            {
+              "valor": "am_03",
+              "rotulo": "AM-03 · Abscesso suspeito"
+            },
+            {
+              "valor": "am_04",
+              "rotulo": "AM-04 · Fissuras profundas"
+            },
+            {
+              "valor": "am_05",
+              "rotulo": "AM-05 · Dor persistente à amamentação"
+            },
+            {
+              "valor": "am_06",
+              "rotulo": "AM-06 · Baixa produção percebida com impacto no RN"
+            }
+          ],
+          "obrigatorio": true,
+          "clinico": true,
+          "nota_clinica": "PRD 9.3: validar o seletor com a lista do DOC 3."
+        },
+        {
+          "id": "horario_do_acionamento",
+          "tipo": "hora",
+          "rotulo": "Horário do acionamento",
+          "obrigatorio": true
+        },
+        {
+          "id": "orientacao_medica_recebida",
+          "tipo": "texto_longo",
+          "rotulo": "Orientação médica recebida",
+          "obrigatorio": true
+        },
+        {
+          "id": "conduta_adotada",
+          "tipo": "texto_longo",
+          "rotulo": "Conduta adotada",
+          "obrigatorio": true
+        }
+      ]
+    }
+  ],
+  "catalogo_alertas": {
+    "severidades": [
+      {
+        "id": "imediato",
+        "significado": "Acionar supervisão médica imediatamente. Orientar busca de atendimento emergencial."
+      },
+      {
+        "id": "prioritario",
+        "significado": "Comunicar supervisão médica no mesmo dia. Seguir orientação."
+      }
+    ],
+    "grupos": [
+      {
+        "id": "puerpera",
+        "titulo": "Puérpera",
+        "condutas": [
+          {
+            "severidade": "imediato",
+            "texto": "Acionar supervisão médica imediatamente e orientar busca de atendimento emergencial."
+          },
+          {
+            "severidade": "prioritario",
+            "texto": "Comunicar supervisão médica e seguir orientação."
+          }
+        ],
+        "sinais": [
+          {
+            "codigo": "PU-01",
+            "descricao": "Febre ≥ 38 °C",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "PU-02",
+            "descricao": "Sangramento vaginal intenso (encharcar 1 absorvente em menos de 1 hora)",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "PU-03",
+            "descricao": "Dor intensa, progressiva ou fora do esperado",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "PU-04",
+            "descricao": "Sinais de infecção em ferida operatória (calor, vermelhidão, secreção purulenta)",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "PU-05",
+            "descricao": "Cefaleia intensa associada a alteração visual",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "PU-06",
+            "descricao": "Falta de ar, dor torácica",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "PU-07",
+            "descricao": "Mal-estar importante ou prostração",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "PU-08",
+            "descricao": "Febre baixa persistente (< 38 °C)",
+            "severidade": "prioritario"
+          },
+          {
+            "codigo": "PU-09",
+            "descricao": "Dor moderada não controlada",
+            "severidade": "prioritario"
+          },
+          {
+            "codigo": "PU-10",
+            "descricao": "Aumento progressivo dos lóquios (1 absorvente saturado em 3 h de uso)",
+            "severidade": "prioritario"
+          },
+          {
+            "codigo": "PU-11",
+            "descricao": "Sinais de ingurgitamento mamário patológico sem melhora com o manejo (hiperemia, dor intensa, febre, sem sucesso na drenagem de alívio)",
+            "severidade": "prioritario"
+          },
+          {
+            "codigo": "PU-12",
+            "descricao": "Fissuras mamilares graves ou com sinais inflamatórios",
+            "severidade": "prioritario"
+          }
+        ]
+      },
+      {
+        "id": "saude_mental",
+        "titulo": "Saúde mental materna",
+        "condutas": [
+          {
+            "severidade": "imediato",
+            "texto": "Não deixar a puérpera sozinha, acionar supervisão médica imediatamente e orientar busca de atendimento emergencial."
+          },
+          {
+            "severidade": "prioritario",
+            "texto": "Comunicar supervisão médica e registrar."
+          }
+        ],
+        "observacao": "Regras SM imediatas escalam para a coordenação com prioridade máxima e criam ocorrência privada.",
+        "sinais": [
+          {
+            "codigo": "SM-01",
+            "descricao": "Ideação suicida ou autoagressiva",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "SM-02",
+            "descricao": "Comportamento desorganizado",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "SM-03",
+            "descricao": "Desconexão importante com o bebê",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "SM-04",
+            "descricao": "Tristeza intensa e persistente",
+            "severidade": "prioritario"
+          },
+          {
+            "codigo": "SM-05",
+            "descricao": "Ansiedade incapacitante",
+            "severidade": "prioritario"
+          },
+          {
+            "codigo": "SM-06",
+            "descricao": "Choro frequente sem alívio",
+            "severidade": "prioritario"
+          },
+          {
+            "codigo": "SM-07",
+            "descricao": "Relato de incapacidade de cuidar do bebê",
+            "severidade": "prioritario"
+          }
+        ]
+      },
+      {
+        "id": "recem_nascido",
+        "titulo": "Recém-nascido",
+        "condutas": [
+          {
+            "severidade": "imediato",
+            "texto": "Acionar supervisão médica imediatamente e orientar a família a procurar emergência pediátrica."
+          },
+          {
+            "severidade": "prioritario",
+            "texto": "Comunicar supervisão médica e seguir orientação."
+          }
+        ],
+        "sinais": [
+          {
+            "codigo": "RN-01",
+            "descricao": "Dificuldade respiratória",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "RN-02",
+            "descricao": "Cianose ou palidez acentuada",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "RN-03",
+            "descricao": "Letargia importante",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "RN-04",
+            "descricao": "Ausência de diurese por 4 horas ou mais",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "RN-05",
+            "descricao": "Sangue nas fezes",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "RN-06",
+            "descricao": "Convulsão",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "RN-07",
+            "descricao": "Um ou mais sinais flogísticos do coto umbilical (hiperemia, secreção purulenta ou odor fétido)",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "RN-08",
+            "descricao": "Febre (> 38 °C) ou hipotermia (< 36 °C)",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "RN-09",
+            "descricao": "Recusa alimentar completa",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "RN-10",
+            "descricao": "Icterícia progressiva indicando fototerapia",
+            "severidade": "prioritario"
+          },
+          {
+            "codigo": "RN-11",
+            "descricao": "Oligúria concentrada",
+            "severidade": "prioritario"
+          },
+          {
+            "codigo": "RN-12",
+            "descricao": "Vômitos frequentes",
+            "severidade": "prioritario"
+          },
+          {
+            "codigo": "RN-13",
+            "descricao": "Ganho ponderal insatisfatório (quando conhecido)",
+            "severidade": "prioritario"
+          }
+        ]
+      },
+      {
+        "id": "amamentacao",
+        "titulo": "Amamentação e mamas",
+        "condutas": [
+          {
+            "severidade": "imediato",
+            "texto": "Suspender procedimentos eletivos (laser) e acionar supervisão médica."
+          },
+          {
+            "severidade": "prioritario",
+            "texto": "Comunicar supervisão médica e avaliar consultoria especializada."
+          }
+        ],
+        "sinais": [
+          {
+            "codigo": "AM-01",
+            "descricao": "Mastite com sinais sistêmicos",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "AM-02",
+            "descricao": "Dor intensa associada a febre",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "AM-03",
+            "descricao": "Abscesso suspeito",
+            "severidade": "imediato"
+          },
+          {
+            "codigo": "AM-04",
+            "descricao": "Fissuras profundas",
+            "severidade": "prioritario"
+          },
+          {
+            "codigo": "AM-05",
+            "descricao": "Dor persistente à amamentação",
+            "severidade": "prioritario"
+          },
+          {
+            "codigo": "AM-06",
+            "descricao": "Baixa produção percebida com impacto no RN",
+            "severidade": "prioritario"
+          }
+        ]
+      }
+    ],
+    "notificacao": [
+      {
+        "severidade": "imediato",
+        "texto": "Push para a coordenação, mensagem no grupo clínico da equipe pelo WhatsApp interno e ligação sugerida na tela da enfermeira. O alerta aparece na ficha até ser fechado."
+      },
+      {
+        "severidade": "prioritario",
+        "texto": "Push e mensagem no grupo. O alerta aparece na ficha até ser fechado."
+      }
+    ]
+  }
+}
