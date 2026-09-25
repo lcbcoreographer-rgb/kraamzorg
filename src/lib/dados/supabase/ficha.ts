@@ -10,10 +10,18 @@ import {
   type LinhaFamilia,
 } from "./familias";
 
-export function criarFichaSupabase(contexto: ContextoSupabase): FichaRepositorio {
+export function criarFichaSupabase(
+  contexto: ContextoSupabase,
+): FichaRepositorio {
   const { cliente } = contexto;
 
-  async function freio(chamada: PromiseLike<{ data: unknown; error: { code?: string; message?: string } | null }>, nome: string): Promise<ResultadoFreio> {
+  async function freio(
+    chamada: PromiseLike<{
+      data: unknown;
+      error: { code?: string; message?: string } | null;
+    }>,
+    nome: string,
+  ): Promise<ResultadoFreio> {
     const resposta = exigir(await chamada, nome);
     return { ok: true, resposta: resposta as ResultadoFreio["resposta"] };
   }
@@ -21,7 +29,11 @@ export function criarFichaSupabase(contexto: ContextoSupabase): FichaRepositorio
   return {
     async obterFicha(familiaId) {
       const familia = exigir(
-        await cliente.from("familia").select(COLUNAS_FAMILIA).eq("id", familiaId).maybeSingle(),
+        await cliente
+          .from("familia")
+          .select(COLUNAS_FAMILIA)
+          .eq("id", familiaId)
+          .maybeSingle(),
         "ficha: família",
       ) as unknown as LinhaFamilia | null;
       if (!familia) return null;
@@ -44,7 +56,9 @@ export function criarFichaSupabase(contexto: ContextoSupabase): FichaRepositorio
 
       const linhasPessoas = exigir(pessoas, "ficha: pessoas");
       const linhasOportunidade = exigir(oportunidades, "ficha: oportunidade");
-      const abertas = await familiasComTransferenciaAberta(contexto, [familiaId]);
+      const abertas = await familiasComTransferenciaAberta(contexto, [
+        familiaId,
+      ]);
       const oportunidade = linhasOportunidade[0];
 
       const ficha: Ficha = {
@@ -63,7 +77,9 @@ export function criarFichaSupabase(contexto: ContextoSupabase): FichaRepositorio
           email: p.email,
           contatoPrincipal: p.contato_principal,
         })),
-        oportunidade: oportunidade ? cartaoDaLinha({ ...oportunidade, familia }, abertas) : null,
+        oportunidade: oportunidade
+          ? cartaoDaLinha({ ...oportunidade, familia }, abertas)
+          : null,
       };
       return ficha;
     },
@@ -89,14 +105,18 @@ export function criarFichaSupabase(contexto: ContextoSupabase): FichaRepositorio
 
     async dadosContrato(pessoaId, completo) {
       return exigir(
-        await cliente.schema("api").rpc("dados_contrato", { pessoa_id: pessoaId, completo }),
+        await cliente
+          .schema("api")
+          .rpc("dados_contrato", { pessoa_id: pessoaId, completo }),
         "api.dados_contrato",
       );
     },
 
     acionarFreio(familiaId, estado: EstadoSensivel, motivo) {
       return freio(
-        cliente.schema("api").rpc("acionar_freio", { familia_id: familiaId, estado, motivo }),
+        cliente
+          .schema("api")
+          .rpc("acionar_freio", { familia_id: familiaId, estado, motivo }),
         "api.acionar_freio",
       );
     },
@@ -110,16 +130,20 @@ export function criarFichaSupabase(contexto: ContextoSupabase): FichaRepositorio
 
     justificarFreio(familiaId, motivo) {
       return freio(
-        cliente.schema("api").rpc("justificar_freio", { familia_id: familiaId, motivo }),
+        cliente
+          .schema("api")
+          .rpc("justificar_freio", { familia_id: familiaId, motivo }),
         "api.justificar_freio",
       );
     },
 
     reverterFreio(familiaId, estado, justificativa) {
       return freio(
-        cliente
-          .schema("api")
-          .rpc("reverter_freio", { familia_id: familiaId, estado, justificativa }),
+        cliente.schema("api").rpc("reverter_freio", {
+          familia_id: familiaId,
+          estado,
+          justificativa,
+        }),
         "api.reverter_freio",
       );
     },

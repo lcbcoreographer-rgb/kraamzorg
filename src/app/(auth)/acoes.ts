@@ -3,10 +3,11 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { proximoSeguro } from "@/lib/auth/acesso";
+import { precisaMfa, proximoSeguro } from "@/lib/auth/acesso";
 import { PAPEIS, type Papel } from "@/lib/auth/papeis";
 import { exigirSessao, obterAutenticacao } from "@/lib/auth/sessao";
 import { obterRepositorios } from "@/lib/dados/fabrica";
+import { caminhoInicial } from "@/lib/navegacao";
 import { ERRO_AUTH } from "./mensagens";
 
 /**
@@ -24,16 +25,35 @@ export interface EstadoFormulario {
 const codigoMfa = z
   .string()
   .trim()
-  .regex(/^\d{6}$/, "O código tem 6 números. Confira no aplicativo e digite de novo.");
+  .regex(
+    /^\d{6}$/,
+    "O código tem 6 números. Confira no aplicativo e digite de novo.",
+  );
 
-function destinoDepoisDoLogin(formulario: FormData): string {
-  return proximoSeguro(formulario.get("proximo")?.toString()) ?? "/";
+/**
+ * Para onde ir depois de entrar, do MFA ou da senha nova: direto para o
+ * destino final (desafio ou cadastro do MFA quando falta, senão o ?proximo=
+ * ou o início do papel). O redirect de Server Action não passa pelo proxy,
+ * então a decisão tem de ser a mesma dele (precisaMfa, caminhoInicial).
+ */
+async function destinoDepoisDoLogin(formulario?: FormData): Promise<string> {
+  const proximo = proximoSeguro(formulario?.get("proximo")?.toString());
+  const sessao = await obterAutenticacao().obterSessao();
+  if (!sessao) return "/entrar";
+  const mfa = precisaMfa(sessao);
+  if (mfa)
+    return proximo ? `${mfa}?proximo=${encodeURIComponent(proximo)}` : mfa;
+  return proximo ?? caminhoInicial(sessao.papeis);
 }
 
 async function origem(): Promise<string> {
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
-  const protocolo = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") || host.startsWith("127.") ? "http" : "https");
+  const protocolo =
+    h.get("x-forwarded-proto") ??
+    (host.startsWith("localhost") || host.startsWith("127.")
+      ? "http"
+      : "https");
   return `${protocolo}://${host}`;
 }
 
@@ -46,7 +66,10 @@ export async function entrarComSenha(
       email: z.email("Digite um e-mail completo, como nome@exemplo.com.br."),
       senha: z.string().min(1, "Digite a sua senha."),
     })
-    .safeParse({ email: formulario.get("email"), senha: formulario.get("senha") });
+    .safeParse({
+      email: formulario.get("email"),
+      senha: formulario.get("senha"),
+    });
   if (!dados.success) {
     return {
       errosCampo: Object.fromEntries(
@@ -54,9 +77,12 @@ export async function entrarComSenha(
       ),
     };
   }
-  const resultado = await obterAutenticacao().entrarComSenha(dados.data.email, dados.data.senha);
+  const resultado = await obterAutenticacao().entrarComSenha(
+    dados.data.email,
+    dados.data.senha,
+  );
   if (!resultado.ok) return { erro: ERRO_AUTH[resultado.erro] };
-  redirect(destinoDepoisDoLogin(formulario));
+  redirect(await destinoDepoisDoLogin(formulario));
 }
 
 export async function entrarPorSeletor(formulario: FormData): Promise<void> {
@@ -64,7 +90,7 @@ export async function entrarPorSeletor(formulario: FormData): Promise<void> {
   if (!usuarioId.success) redirect("/entrar");
   const resultado = await obterAutenticacao().entrarPorSeletor(usuarioId.data);
   if (!resultado.ok) redirect("/entrar?aviso=sem-acesso");
-  redirect(destinoDepoisDoLogin(formulario));
+  redirect(await destinoDepoisDoLogin(formulario));
 }
 
 export async function verificarMfa(
@@ -72,10 +98,12 @@ export async function verificarMfa(
   formulario: FormData,
 ): Promise<EstadoFormulario> {
   const codigo = codigoMfa.safeParse(formulario.get("codigo"));
-  if (!codigo.success) return { errosCampo: { codigo: codigo.error.issues[0]?.message ?? "" } };
+  if (!codigo.success)
+    return { errosCampo: { codigo: codigo.error.issues[0]?.message ?? "" } };
   const resultado = await obterAutenticacao().verificarMfa(codigo.data);
-  if (!resultado.ok) return { errosCampo: { codigo: ERRO_AUTH[resultado.erro] } };
-  redirect(destinoDepoisDoLogin(formulario));
+  if (!resultado.ok)
+    return { errosCampo: { codigo: ERRO_AUTH[resultado.erro] } };
+  redirect(await destinoDepoisDoLogin(formulario));
 }
 
 export async function confirmarCadastroMfa(
@@ -85,10 +113,15 @@ export async function confirmarCadastroMfa(
   const fatorId = z.string().min(1).safeParse(formulario.get("fatorId"));
   const codigo = codigoMfa.safeParse(formulario.get("codigo"));
   if (!fatorId.success) return { erro: ERRO_AUTH.desconhecido };
-  if (!codigo.success) return { errosCampo: { codigo: codigo.error.issues[0]?.message ?? "" } };
-  const resultado = await obterAutenticacao().confirmarCadastroMfa(fatorId.data, codigo.data);
-  if (!resultado.ok) return { errosCampo: { codigo: ERRO_AUTH[resultado.erro] } };
-  redirect(destinoDepoisDoLogin(formulario));
+  if (!codigo.success)
+    return { errosCampo: { codigo: codigo.error.issues[0]?.message ?? "" } };
+  const resultado = await obterAutenticacao().confirmarCadastroMfa(
+    fatorId.data,
+    codigo.data,
+  );
+  if (!resultado.ok)
+    return { errosCampo: { codigo: ERRO_AUTH[resultado.erro] } };
+  redirect(await destinoDepoisDoLogin(formulario));
 }
 
 export async function pedirRecuperacao(
@@ -98,7 +131,8 @@ export async function pedirRecuperacao(
   const email = z
     .email("Digite um e-mail completo, como nome@exemplo.com.br.")
     .safeParse(formulario.get("email"));
-  if (!email.success) return { errosCampo: { email: email.error.issues[0]?.message ?? "" } };
+  if (!email.success)
+    return { errosCampo: { email: email.error.issues[0]?.message ?? "" } };
   const resultado = await obterAutenticacao().enviarRecuperacaoSenha(
     email.data,
     `${await origem()}/auth/confirmar`,
@@ -114,11 +148,16 @@ export async function definirSenha(
   _anterior: EstadoFormulario,
   formulario: FormData,
 ): Promise<EstadoFormulario> {
+  await exigirSessao("/definir-senha");
   const senha = formulario.get("senha")?.toString() ?? "";
   const confirmacao = formulario.get("confirmacao")?.toString() ?? "";
   if (!senha) return { errosCampo: { senha: "Digite a senha nova." } };
   if (senha !== confirmacao) {
-    return { errosCampo: { confirmacao: "As duas senhas não são iguais. Digite de novo." } };
+    return {
+      errosCampo: {
+        confirmacao: "As duas senhas não são iguais. Digite de novo.",
+      },
+    };
   }
   const resultado = await obterAutenticacao().definirSenha(senha);
   if (!resultado.ok) {
@@ -126,15 +165,16 @@ export async function definirSenha(
       ? { errosCampo: { senha: ERRO_AUTH.senha_fraca } }
       : { erro: ERRO_AUTH[resultado.erro] };
   }
-  redirect("/");
+  redirect(await destinoDepoisDoLogin());
 }
 
 export async function convidarPessoa(
   _anterior: EstadoFormulario,
   formulario: FormData,
 ): Promise<EstadoFormulario> {
-  const sessao = await exigirSessao();
-  if (!sessao.papeis.includes("diretoria")) return { erro: "Só a diretoria convida pessoas." };
+  const sessao = await exigirSessao("/convidar");
+  if (!sessao.papeis.includes("diretoria"))
+    return { erro: "Só a diretoria convida pessoas." };
 
   const dados = z
     .object({
@@ -164,8 +204,10 @@ export async function convidarPessoa(
   });
   if (!resultado.ok) {
     const frases = {
-      email_em_uso: "Este e-mail já tem acesso. Confira a lista em Sessões e acessos.",
-      sem_permissao: "Só a diretoria convida pessoas, com o código do aplicativo confirmado.",
+      email_em_uso:
+        "Este e-mail já tem acesso. Confira a lista em Sessões e acessos.",
+      sem_permissao:
+        "Só a diretoria convida pessoas, com o código do aplicativo confirmado.",
       indisponivel: ERRO_AUTH.indisponivel,
     } as const;
     return { erro: frases[resultado.erro] };

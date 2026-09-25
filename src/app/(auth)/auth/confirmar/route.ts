@@ -12,11 +12,17 @@ import { obterAutenticacao } from "@/lib/auth/sessao";
 export async function GET(request: NextRequest) {
   const tokenHash = request.nextUrl.searchParams.get("token_hash");
   const tipo = request.nextUrl.searchParams.get("type");
-  const destino = (caminho: string) => NextResponse.redirect(new URL(caminho, request.url));
+  const destino = (caminho: string) =>
+    NextResponse.redirect(new URL(caminho, request.url));
 
   if (!tokenHash || (tipo !== "invite" && tipo !== "recovery")) {
     return destino("/entrar?aviso=link-invalido");
   }
-  const resultado = await obterAutenticacao().confirmarLinkEmail(tokenHash, tipo);
-  return resultado.ok ? destino("/definir-senha") : destino("/entrar?aviso=link-invalido");
+  const resultado = await obterAutenticacao().confirmarLinkEmail(
+    tokenHash,
+    tipo,
+  );
+  return resultado.ok
+    ? destino("/definir-senha")
+    : destino("/entrar?aviso=link-invalido");
 }

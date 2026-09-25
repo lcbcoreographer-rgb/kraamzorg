@@ -9,6 +9,10 @@ import { defineConfig, devices } from "@playwright/test";
  */
 const executablePath = process.env.PW_CHROMIUM_EXECUTABLE || undefined;
 
+// Porta do servidor de teste. PW_PORT evita colidir com outra sessão que já
+// tenha um `next start` na 3000 (reuseExistingServer usaria o app errado).
+const porta = process.env.PW_PORT || "3000";
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
@@ -17,17 +21,21 @@ export default defineConfig({
   reporter: [["html", { open: "never", outputFolder: "playwright-report" }]],
   outputDir: "test-results",
   webServer: {
-    command: "pnpm build && pnpm start",
-    url: "http://127.0.0.1:3000",
+    command: `pnpm build && pnpm start -p ${porta}`,
+    url: `http://127.0.0.1:${porta}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     // /design-system só existe em desenvolvimento e homologação (P10 item
     // 4): sem isto, `vitrineLiberada()` recusa por omissão e os testes de
     // design-system.spec.ts e overflow.spec.ts quebram.
-    env: { NEXT_PUBLIC_APP_ENV: "desenvolvimento" },
+    //
+    // KZ_DADOS=demonstracao: as telas rodam sobre os dados fictícios em
+    // memória (src/lib/dados/modo.ts), porque esta máquina não tem Supabase
+    // Auth nem PostgREST. Só vale junto de NEXT_PUBLIC_APP_ENV=desenvolvimento.
+    env: { NEXT_PUBLIC_APP_ENV: "desenvolvimento", KZ_DADOS: "demonstracao" },
   },
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL: `http://127.0.0.1:${porta}`,
     trace: "on-first-retry",
   },
   projects: [

@@ -29,8 +29,15 @@ export default async function PaginaMais() {
         </p>
 
         {grupos.map((grupo) => (
-          <section key={grupo.titulo} aria-labelledby={`mais-${grupo.titulo}`} className="flex flex-col gap-3">
-            <h2 id={`mais-${grupo.titulo}`} className="font-titulo text-2 text-texto font-medium">
+          <section
+            key={grupo.titulo}
+            aria-labelledby={`mais-${grupo.titulo}`}
+            className="flex flex-col gap-3"
+          >
+            <h2
+              id={`mais-${grupo.titulo}`}
+              className="font-titulo text-2 text-texto font-medium"
+            >
               {grupo.titulo}
             </h2>
             <ul className="flex flex-col gap-2">
@@ -42,7 +49,11 @@ export default async function PaginaMais() {
                   >
                     <IconeNavegacao nome={item.icone} />
                     <span>{item.rotulo}</span>
-                    <ChevronRight aria-hidden="true" className="text-texto-2 ml-auto" strokeWidth={1.75} />
+                    <ChevronRight
+                      aria-hidden="true"
+                      className="text-texto-2 ml-auto"
+                      strokeWidth={1.75}
+                    />
                   </Link>
                 </li>
               ))}

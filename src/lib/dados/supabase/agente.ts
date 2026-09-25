@@ -1,13 +1,21 @@
 import "server-only";
 import { ErroRepositorio } from "../erros";
 import type { AgenteRepositorio } from "../repositorios";
-import type { FiltroConversas, FiltroTransferencias, ResumoConversa, Transferencia } from "../tipos";
+import type {
+  FiltroConversas,
+  FiltroTransferencias,
+  ResumoConversa,
+  Transferencia,
+} from "../tipos";
 import { exigir, type ContextoSupabase } from "./comum";
 
 /** Classificações de conversa que são da Isadora (as demais são "não lead", PRD 7.1). */
 const CLASSIFICACOES_LEAD = ["lead", "cliente", "nao_classificado"] as const;
 
-export function criarAgenteSupabase({ cliente, usuarioId }: ContextoSupabase): AgenteRepositorio {
+export function criarAgenteSupabase({
+  cliente,
+  usuarioId,
+}: ContextoSupabase): AgenteRepositorio {
   return {
     async listarConversas(filtro: FiltroConversas = {}) {
       const agora = new Date().toISOString();
@@ -33,7 +41,11 @@ export function criarAgenteSupabase({ cliente, usuarioId }: ContextoSupabase): A
           consulta = consulta.gt("agente_pausado_ate", agora);
           break;
         case "nao_lead":
-          consulta = consulta.not("classificacao", "in", `(${CLASSIFICACOES_LEAD.join(",")})`);
+          consulta = consulta.not(
+            "classificacao",
+            "in",
+            `(${CLASSIFICACOES_LEAD.join(",")})`,
+          );
           break;
       }
 
@@ -51,22 +63,20 @@ export function criarAgenteSupabase({ cliente, usuarioId }: ContextoSupabase): A
         : [];
       const porConversa = new Map(abertas.map((h) => [h.conversa_id, h.id]));
 
-      return linhas.map(
-        (c): ResumoConversa => ({
-          id: c.id,
-          familiaId: c.familia_id,
-          nomeFamilia: c.familia?.nome_exibicao ?? null,
-          nomeContato: c.nome_contato_salvo ?? c.nome_whatsapp,
-          telefoneE164: c.telefone_e164,
-          classificacao: c.classificacao,
-          agentePausadoAte: c.agente_pausado_ate,
-          agenteEncerradoEm: c.agente_encerrado_em,
-          agenteEncerradoMotivo: c.agente_encerrado_motivo,
-          ultimaEntradaEm: c.ultima_entrada_em,
-          ultimaSaidaEm: c.ultima_saida_em,
-          transferenciaAbertaId: porConversa.get(c.id) ?? null,
-        }),
-      );
+      return linhas.map((c): ResumoConversa => ({
+        id: c.id,
+        familiaId: c.familia_id,
+        nomeFamilia: c.familia?.nome_exibicao ?? null,
+        nomeContato: c.nome_contato_salvo ?? c.nome_whatsapp,
+        telefoneE164: c.telefone_e164,
+        classificacao: c.classificacao,
+        agentePausadoAte: c.agente_pausado_ate,
+        agenteEncerradoEm: c.agente_encerrado_em,
+        agenteEncerradoMotivo: c.agente_encerrado_motivo,
+        ultimaEntradaEm: c.ultima_entrada_em,
+        ultimaSaidaEm: c.ultima_saida_em,
+        transferenciaAbertaId: porConversa.get(c.id) ?? null,
+      }));
     },
 
     async mensagensDaConversa(conversaId) {
@@ -96,7 +106,8 @@ export function criarAgenteSupabase({ cliente, usuarioId }: ContextoSupabase): A
         )
         .order("prioridade", { ascending: false })
         .order("sla_vence_em", { ascending: true, nullsFirst: false });
-      if (filtro.status?.length) consulta = consulta.in("status", filtro.status);
+      if (filtro.status?.length)
+        consulta = consulta.in("status", filtro.status);
       if (filtro.destino) consulta = consulta.eq("destino", filtro.destino);
 
       return exigir(await consulta, "transferências").map(
@@ -120,7 +131,8 @@ export function criarAgenteSupabase({ cliente, usuarioId }: ContextoSupabase): A
     },
 
     async assumirTransferencia(transferenciaId) {
-      if (!usuarioId) throw new ErroRepositorio("sem_permissao", "assumir sem sessão");
+      if (!usuarioId)
+        throw new ErroRepositorio("sem_permissao", "assumir sem sessão");
       const linhas = exigir(
         await cliente
           .from("handoff")
@@ -135,7 +147,10 @@ export function criarAgenteSupabase({ cliente, usuarioId }: ContextoSupabase): A
         "assumir transferência",
       );
       if (linhas.length === 0) {
-        throw new ErroRepositorio("recusado", "a transferência já foi assumida ou resolvida");
+        throw new ErroRepositorio(
+          "recusado",
+          "a transferência já foi assumida ou resolvida",
+        );
       }
     },
   };

@@ -7,7 +7,9 @@ export type Papel = Enums<"papel_usuario">;
 export const PAPEIS: readonly Papel[] = Constants.public.Enums.papel_usuario;
 
 export function ehPapel(valor: unknown): valor is Papel {
-  return typeof valor === "string" && (PAPEIS as readonly string[]).includes(valor);
+  return (
+    typeof valor === "string" && (PAPEIS as readonly string[]).includes(valor)
+  );
 }
 
 /**

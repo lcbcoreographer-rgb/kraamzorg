@@ -41,7 +41,7 @@ export interface LojaDemonstracao {
   familias: FamiliaDemonstracao[];
   oportunidades: OportunidadeDemonstracao[];
   pessoas: PessoaDemonstracao[];
-  conversas: (Omit<ResumoConversa, "nomeFamilia" | "transferenciaAbertaId">)[];
+  conversas: Omit<ResumoConversa, "nomeFamilia" | "transferenciaAbertaId">[];
   mensagens: (Mensagem & { conversaId: string })[];
   transferencias: Omit<Transferencia, "nomeFamilia">[];
   tarefas: Omit<Tarefa, "nomeFamilia" | "payload">[];
@@ -51,7 +51,10 @@ export interface LojaDemonstracao {
   /** Quando as sessões de cada usuário foram revogadas pela diretoria. */
   sessoesRevogadasEm: Record<string, number>;
   /** Freio acionado por quem e quando, para o "Desfazer" (PRD 8.3). */
-  freios: Record<string, { por: string; em: number; de: FamiliaDemonstracao["estadoSensivel"] }>;
+  freios: Record<
+    string,
+    { por: string; em: number; de: FamiliaDemonstracao["estadoSensivel"] }
+  >;
   proximoEvento: number;
 }
 
@@ -70,10 +73,14 @@ export function criarLoja(agora = Date.now()): LojaDemonstracao {
     oportunidades: clonar(OPORTUNIDADES),
     pessoas: clonar(PESSOAS),
     conversas: CONVERSAS.map((c) => {
-      const mensagensDaConversa = MENSAGENS.filter((m) => m.conversaId === c.id);
+      const mensagensDaConversa = MENSAGENS.filter(
+        (m) => m.conversaId === c.id,
+      );
       const ultima = (direcao: "entrada" | "saida") => {
         const menor = Math.min(
-          ...mensagensDaConversa.filter((m) => m.direcao === direcao).map((m) => m.haMinutos),
+          ...mensagensDaConversa
+            .filter((m) => m.direcao === direcao)
+            .map((m) => m.haMinutos),
         );
         return Number.isFinite(menor) ? isoDaqui(agora, -menor) : null;
       };
@@ -83,8 +90,11 @@ export function criarLoja(agora = Date.now()): LojaDemonstracao {
         nomeContato: c.nomeWhatsapp,
         telefoneE164: c.telefoneE164,
         classificacao: c.classificacao,
-        agentePausadoAte: c.pausaMinutos === null ? null : isoDaqui(agora, c.pausaMinutos),
-        agenteEncerradoEm: c.encerradoMotivo ? isoDaqui(agora, -5 * 24 * 60) : null,
+        agentePausadoAte:
+          c.pausaMinutos === null ? null : isoDaqui(agora, c.pausaMinutos),
+        agenteEncerradoEm: c.encerradoMotivo
+          ? isoDaqui(agora, -5 * 24 * 60)
+          : null,
         agenteEncerradoMotivo: c.encerradoMotivo,
         ultimaEntradaEm: ultima("entrada"),
         ultimaSaidaEm: ultima("saida"),
@@ -143,7 +153,8 @@ export function criarLoja(agora = Date.now()): LojaDemonstracao {
     })),
     mensagensModelo: MENSAGENS_MODELO.map((m) => ({
       ...m,
-      aprovadoEm: m.status === "aprovado" ? isoDaqui(agora, -7 * 24 * 60) : null,
+      aprovadoEm:
+        m.status === "aprovado" ? isoDaqui(agora, -7 * 24 * 60) : null,
     })),
     sessoesRevogadasEm: {},
     freios: {},
@@ -154,14 +165,20 @@ export function criarLoja(agora = Date.now()): LojaDemonstracao {
 /** A loja do processo. Lança erro fora de desenvolvimento (modo.ts). */
 export function obterLoja(): LojaDemonstracao {
   garantirDemonstracaoPermitida();
-  const global = globalThis as unknown as Record<string, LojaDemonstracao | undefined>;
+  const global = globalThis as unknown as Record<
+    string,
+    LojaDemonstracao | undefined
+  >;
   global[CHAVE_GLOBAL] ??= criarLoja();
   return global[CHAVE_GLOBAL];
 }
 
 /** Só para testes: volta a loja ao estado das fixtures. */
 export function reiniciarLoja(agora?: number): LojaDemonstracao {
-  const global = globalThis as unknown as Record<string, LojaDemonstracao | undefined>;
+  const global = globalThis as unknown as Record<
+    string,
+    LojaDemonstracao | undefined
+  >;
   global[CHAVE_GLOBAL] = criarLoja(agora);
   return global[CHAVE_GLOBAL];
 }
@@ -171,7 +188,10 @@ export function cartaoDemonstracao(
   oportunidade: OportunidadeDemonstracao,
 ): CartaoOportunidade {
   const familia = loja.familias.find((f) => f.id === oportunidade.familiaId);
-  if (!familia) throw new Error(`família ausente na demonstração: ${oportunidade.familiaId}`);
+  if (!familia)
+    throw new Error(
+      `família ausente na demonstração: ${oportunidade.familiaId}`,
+    );
   return {
     oportunidadeId: oportunidade.id,
     familiaId: familia.id,
@@ -193,7 +213,9 @@ export function cartaoDemonstracao(
     motivoPerda: oportunidade.motivoPerda,
     atualizadoEm: new Date(loja.criadaEm).toISOString(),
     transferenciaAberta: loja.transferencias.some(
-      (t) => t.familiaId === familia.id && (t.status === "aberto" || t.status === "assumido"),
+      (t) =>
+        t.familiaId === familia.id &&
+        (t.status === "aberto" || t.status === "assumido"),
     ),
   };
 }

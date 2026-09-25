@@ -7,7 +7,9 @@ import type { SessaoBorda, SessaoUsuario } from "./tipos";
  * "server-only" nem next/headers: o proxy também usa. A revogação da
  * diretoria vale para sessão aberta antes dela.
  */
-export function sessaoDemonstracaoDoCookie(valor: string | undefined): SessaoUsuario | null {
+export function sessaoDemonstracaoDoCookie(
+  valor: string | undefined,
+): SessaoUsuario | null {
   const dados = lerCookieDemonstracao(valor);
   if (!dados) return null;
   const loja = obterLoja();
@@ -26,10 +28,11 @@ export function sessaoDemonstracaoDoCookie(valor: string | undefined): SessaoUsu
   };
 }
 
-export function sessaoBordaDemonstracao(valor: string | undefined): SessaoBorda | null {
+export function sessaoBordaDemonstracao(
+  valor: string | undefined,
+): SessaoBorda | null {
   const sessao = sessaoDemonstracaoDoCookie(valor);
   if (!sessao) return null;
   const { usuarioId, papeis, ativo, aal, aalPossivel } = sessao;
   return { usuarioId, papeis, ativo, aal, aalPossivel };
 }
-

@@ -20,7 +20,11 @@ export interface NavegacaoAppProps {
   papeis: string;
 }
 
-export function NavegacaoLateral({ grupos, nome, papeis }: Omit<NavegacaoAppProps, "abas">) {
+export function NavegacaoLateral({
+  grupos,
+  nome,
+  papeis,
+}: Omit<NavegacaoAppProps, "abas">) {
   const caminho = usePathname();
   return (
     <BarraLateral
@@ -48,7 +52,11 @@ export function NavegacaoLateral({ grupos, nome, papeis }: Omit<NavegacaoAppProp
               type="submit"
               className="min-h-toque rounded-pilula text-apoio text-texto-inverso hover:bg-lateral-hover -ml-3 inline-flex items-center gap-2 px-3 font-medium"
             >
-              <LogOut aria-hidden="true" className="text-texto-inverso-2 size-5" strokeWidth={1.75} />
+              <LogOut
+                aria-hidden="true"
+                className="text-texto-inverso-2 size-5"
+                strokeWidth={1.75}
+              />
               Sair
             </button>
           </form>

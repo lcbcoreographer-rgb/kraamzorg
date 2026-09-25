@@ -38,9 +38,12 @@ const mensagemDaLinha = (m: LinhaMensagem): MensagemModelo => ({
   aprovadoEm: m.aprovado_em,
 });
 
-const COLUNAS_MENSAGEM = "chave, canal, destinatario, texto, variaveis, status, aprovado_em";
+const COLUNAS_MENSAGEM =
+  "chave, canal, destinatario, texto, variaveis, status, aprovado_em";
 
-export function criarConfiguracoesSupabase({ cliente }: ContextoSupabase): ConfiguracoesRepositorio {
+export function criarConfiguracoesSupabase({
+  cliente,
+}: ContextoSupabase): ConfiguracoesRepositorio {
   return {
     async lerParametro(chave) {
       // A RLS de parametro hoje só deixa a diretoria ler (ADR 0002). Para os
@@ -69,21 +72,32 @@ export function criarConfiguracoesSupabase({ cliente }: ContextoSupabase): Confi
 
     async obterMensagemModelo(chave) {
       const linha = exigir(
-        await cliente.from("mensagem_modelo").select(COLUNAS_MENSAGEM).eq("chave", chave).maybeSingle(),
+        await cliente
+          .from("mensagem_modelo")
+          .select(COLUNAS_MENSAGEM)
+          .eq("chave", chave)
+          .maybeSingle(),
         `mensagem ${chave}`,
       );
       return linha ? mensagemDaLinha(linha) : null;
     },
 
     async listarMensagensModelo(filtro = {}) {
-      let consulta = cliente.from("mensagem_modelo").select(COLUNAS_MENSAGEM).order("chave");
-      if (filtro.destinatario) consulta = consulta.eq("destinatario", filtro.destinatario);
+      let consulta = cliente
+        .from("mensagem_modelo")
+        .select(COLUNAS_MENSAGEM)
+        .order("chave");
+      if (filtro.destinatario)
+        consulta = consulta.eq("destinatario", filtro.destinatario);
       return exigir(await consulta, "mensagens").map(mensagemDaLinha);
     },
 
     async listarPacotesVigentes(data) {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) {
-        throw new ErroRepositorio("recusado", `data fora do formato aaaa-mm-dd: ${data}`);
+        throw new ErroRepositorio(
+          "recusado",
+          `data fora do formato aaaa-mm-dd: ${data}`,
+        );
       }
       const linhas = exigir(
         await cliente
@@ -97,19 +111,17 @@ export function criarConfiguracoesSupabase({ cliente }: ContextoSupabase): Confi
         "pacotes vigentes",
       );
       return linhas
-        .map(
-          (v): PacoteVigente & { ordem: number } => ({
-            pacoteId: v.pacote.id,
-            versaoId: v.id,
-            nome: v.pacote.nome,
-            dias: v.pacote.dias,
-            gemelar: v.pacote.gemelar,
-            valorCentavos: v.valor_centavos,
-            parcelasMaxSemJuros: v.parcelas_max_sem_juros,
-            vigenciaInicio: v.vigencia_inicio,
-            ordem: v.pacote.ordem,
-          }),
-        )
+        .map((v): PacoteVigente & { ordem: number } => ({
+          pacoteId: v.pacote.id,
+          versaoId: v.id,
+          nome: v.pacote.nome,
+          dias: v.pacote.dias,
+          gemelar: v.pacote.gemelar,
+          valorCentavos: v.valor_centavos,
+          parcelasMaxSemJuros: v.parcelas_max_sem_juros,
+          vigenciaInicio: v.vigencia_inicio,
+          ordem: v.pacote.ordem,
+        }))
         .sort((a, b) => a.ordem - b.ordem)
         .map(({ ordem: _ordem, ...pacote }) => pacote);
     },

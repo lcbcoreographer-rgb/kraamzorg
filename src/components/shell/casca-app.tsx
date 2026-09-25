@@ -14,7 +14,13 @@ import { NavegacaoInferior, NavegacaoLateral } from "./navegacao-app";
  * A casca não sabe de que módulo é a tela: cada rota preenche só o próprio
  * conteúdo (src/app/(app)/<rota>/page.tsx).
  */
-export function CascaApp({ sessao, children }: { sessao: SessaoUsuario; children: ReactNode }) {
+export function CascaApp({
+  sessao,
+  children,
+}: {
+  sessao: SessaoUsuario;
+  children: ReactNode;
+}) {
   return (
     <>
       <a
@@ -48,7 +54,13 @@ export function CascaApp({ sessao, children }: { sessao: SessaoUsuario; children
  * centralizado em até 720 px. O P38 preenche as telas; o P11 e o P12
  * acrescentam o que é offline.
  */
-export function CascaEnfermeira({ sessao, children }: { sessao: SessaoUsuario; children: ReactNode }) {
+export function CascaEnfermeira({
+  sessao,
+  children,
+}: {
+  sessao: SessaoUsuario;
+  children: ReactNode;
+}) {
   return (
     <>
       <a
@@ -60,7 +72,7 @@ export function CascaEnfermeira({ sessao, children }: { sessao: SessaoUsuario; c
       <main
         id="conteudo"
         tabIndex={-1}
-        className="mx-auto w-full max-w-portal px-4 pb-[calc(88px+env(safe-area-inset-bottom))]"
+        className="max-w-portal mx-auto w-full px-4 pb-[calc(88px+env(safe-area-inset-bottom))]"
       >
         {children}
       </main>

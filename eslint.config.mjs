@@ -22,7 +22,22 @@ const eslintConfig = defineConfig([
     "test-results-offline/**",
     "coverage/**",
     "docs/prototipo/**",
+    // Worktrees de outras sessões em paralelo (git ignora; o lint também).
+    ".claude/**",
   ]),
+  {
+    rules: {
+      // `{ campo: _campo, ...resto }` tira um campo de propósito.
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          ignoreRestSiblings: true,
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

@@ -35,7 +35,12 @@ export interface ContextoDemonstracao {
   aal: NivelAutenticacao;
 }
 
-const ORDEM_ESTADO: EstadoSensivel[] = ["normal", "atencao", "bloqueio_total", "encerrado_sensivel"];
+const ORDEM_ESTADO: EstadoSensivel[] = [
+  "normal",
+  "atencao",
+  "bloqueio_total",
+  "encerrado_sensivel",
+];
 const ORDEM_PRIORIDADE = { normal: 0, alta: 1, maxima: 2 } as const;
 const ESTAGIOS_COM_CONTRATO: EstagioP2[] = [
   "contrato_gerado",
@@ -54,16 +59,23 @@ const ESTAGIOS_COM_CONTRATO: EstagioP2[] = [
   "distrato",
 ];
 
-export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): Repositorios {
+export function criarRepositoriosDemonstracao(
+  contexto: ContextoDemonstracao,
+): Repositorios {
   garantirDemonstracaoPermitida();
-  const tem = (...papeis: Papel[]) => papeis.some((p) => contexto.papeis.includes(p));
+  const tem = (...papeis: Papel[]) =>
+    papeis.some((p) => contexto.papeis.includes(p));
   /** RLS restritiva do MFA: papel com MFA em AAL1 não enxerga linha nenhuma. */
-  const bloqueadoPorMfa = () => exigeMfa(contexto.papeis) && contexto.aal !== "aal2";
+  const bloqueadoPorMfa = () =>
+    exigeMfa(contexto.papeis) && contexto.aal !== "aal2";
   const loja = () => obterLoja();
 
   function exigirSessao(): string {
     if (!contexto.usuarioId || bloqueadoPorMfa()) {
-      throw new ErroRepositorio("sem_permissao", "demonstração: sessão sem permissão");
+      throw new ErroRepositorio(
+        "sem_permissao",
+        "demonstração: sessão sem permissão",
+      );
     }
     return contexto.usuarioId;
   }
@@ -75,7 +87,9 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
     if (tem("financeiro")) {
       const comContrato = new Set(
         l.oportunidades
-          .filter((o) => o.estagioP2 && ESTAGIOS_COM_CONTRATO.includes(o.estagioP2))
+          .filter(
+            (o) => o.estagioP2 && ESTAGIOS_COM_CONTRATO.includes(o.estagioP2),
+          )
           .map((o) => o.familiaId),
       );
       return l.familias.filter((f) => comContrato.has(f.id));
@@ -98,7 +112,13 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
     };
   }
 
-  function registrarEvento(l: LojaDemonstracao, familiaId: string, tipo: string, titulo: string, restrito: boolean) {
+  function registrarEvento(
+    l: LojaDemonstracao,
+    familiaId: string,
+    tipo: string,
+    titulo: string,
+    restrito: boolean,
+  ) {
     l.eventos.push({
       id: l.proximoEvento++,
       familiaId,
@@ -114,12 +134,16 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
     async listarPipeline(filtro) {
       const l = loja();
       const visiveis = new Set(
-        tem("comercial", "coordenacao", "diretoria") ? familiasVisiveis(l).map((f) => f.id) : [],
+        tem("comercial", "coordenacao", "diretoria")
+          ? familiasVisiveis(l).map((f) => f.id)
+          : [],
       );
       const busca = filtro.busca?.trim().toLowerCase();
       const digitos = filtro.busca?.replace(/\D/g, "");
       return l.oportunidades
-        .filter((o) => o.pipeline === filtro.pipeline && visiveis.has(o.familiaId))
+        .filter(
+          (o) => o.pipeline === filtro.pipeline && visiveis.has(o.familiaId),
+        )
         .filter((o) =>
           !filtro.estagio
             ? true
@@ -127,8 +151,14 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
               ? o.estagioP1 === filtro.estagio
               : o.estagioP2 === filtro.estagio,
         )
-        .filter((o) => !filtro.classificacao || o.classificacao === filtro.classificacao)
-        .filter((o) => !filtro.responsavelId || o.responsavelId === filtro.responsavelId)
+        .filter(
+          (o) =>
+            !filtro.classificacao || o.classificacao === filtro.classificacao,
+        )
+        .filter(
+          (o) =>
+            !filtro.responsavelId || o.responsavelId === filtro.responsavelId,
+        )
         .map((o) => cartaoDemonstracao(l, o))
         .filter((c) => {
           if (filtro.regiaoId) {
@@ -139,8 +169,11 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
           if (c.nomeFamilia.toLowerCase().includes(busca)) return true;
           return Boolean(
             digitos &&
-              digitos.length >= 4 &&
-              l.pessoas.some((p) => p.familiaId === c.familiaId && p.telefoneE164.includes(digitos)),
+            digitos.length >= 4 &&
+            l.pessoas.some(
+              (p) =>
+                p.familiaId === c.familiaId && p.telefoneE164.includes(digitos),
+            ),
           );
         });
     },
@@ -167,25 +200,55 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
     async transicionar(pedido) {
       const usuarioId = exigirSessao();
       if (!tem("comercial", "diretoria", "coordenacao")) {
-        throw new ErroRepositorio("sem_permissao", "demonstração: papel sem transição");
+        throw new ErroRepositorio(
+          "sem_permissao",
+          "demonstração: papel sem transição",
+        );
       }
       const l = loja();
-      const oportunidade = l.oportunidades.find((o) => o.id === pedido.entidadeId);
-      if (!oportunidade || (pedido.maquina !== "p1" && pedido.maquina !== "p2")) {
-        throw new ErroRepositorio("nao_encontrado", "demonstração: oportunidade inexistente");
+      const oportunidade = l.oportunidades.find(
+        (o) => o.id === pedido.entidadeId,
+      );
+      if (
+        !oportunidade ||
+        (pedido.maquina !== "p1" && pedido.maquina !== "p2")
+      ) {
+        throw new ErroRepositorio(
+          "nao_encontrado",
+          "demonstração: oportunidade inexistente",
+        );
       }
-      const de = pedido.maquina === "p1" ? oportunidade.estagioP1 : oportunidade.estagioP2;
+      const de =
+        pedido.maquina === "p1"
+          ? oportunidade.estagioP1
+          : oportunidade.estagioP2;
       const permitida = TRANSICOES.some(
-        (t) => t.maquina === pedido.maquina && t.de === de && t.para === pedido.para,
+        (t) =>
+          t.maquina === pedido.maquina && t.de === de && t.para === pedido.para,
       );
       if (!permitida) {
-        throw new ErroRepositorio("recusado", `demonstração: transição ${de} para ${pedido.para} não permitida`);
+        throw new ErroRepositorio(
+          "recusado",
+          `demonstração: transição ${de} para ${pedido.para} não permitida`,
+        );
       }
-      if (pedido.maquina === "p1") oportunidade.estagioP1 = pedido.para as EstagioP1;
+      if (pedido.maquina === "p1")
+        oportunidade.estagioP1 = pedido.para as EstagioP1;
       else oportunidade.estagioP2 = pedido.para as EstagioP2;
-      registrarEvento(l, oportunidade.familiaId, "estagio", `Estágio mudou para ${pedido.para}`, false);
+      registrarEvento(
+        l,
+        oportunidade.familiaId,
+        "estagio",
+        `Estágio mudou para ${pedido.para}`,
+        false,
+      );
       void usuarioId;
-      return { maquina: pedido.maquina, entidade_id: pedido.entidadeId, de, para: pedido.para };
+      return {
+        maquina: pedido.maquina,
+        entidade_id: pedido.entidadeId,
+        de,
+        para: pedido.para,
+      };
     },
   };
 
@@ -198,7 +261,9 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
       const l = loja();
       const familia = familiasVisiveis(l).find((f) => f.id === familiaId);
       if (!familia) return null;
-      const oportunidade = l.oportunidades.find((o) => o.familiaId === familiaId);
+      const oportunidade = l.oportunidades.find(
+        (o) => o.familiaId === familiaId,
+      );
       return {
         familia: {
           ...resumo(familia),
@@ -209,7 +274,9 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
         },
         pessoas: l.pessoas
           .filter((p) => p.familiaId === familiaId)
-          .sort((a, b) => Number(b.contatoPrincipal) - Number(a.contatoPrincipal))
+          .sort(
+            (a, b) => Number(b.contatoPrincipal) - Number(a.contatoPrincipal),
+          )
           .map(({ familiaId: _familiaId, ...p }) => p),
         oportunidade: oportunidade ? cartaoDemonstracao(l, oportunidade) : null,
       };
@@ -228,17 +295,27 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
     async dadosContrato(pessoaId, completo) {
       exigirSessao();
       if (!tem("comercial", "financeiro", "diretoria")) {
-        throw new ErroRepositorio("sem_permissao", "demonstração: dados de contrato");
+        throw new ErroRepositorio(
+          "sem_permissao",
+          "demonstração: dados de contrato",
+        );
       }
       if (completo && contexto.aal !== "aal2") {
-        throw new ErroRepositorio("sem_permissao", "demonstração: dados completos exigem AAL2");
+        throw new ErroRepositorio(
+          "sem_permissao",
+          "demonstração: dados completos exigem AAL2",
+        );
       }
       const pessoa = loja().pessoas.find((p) => p.id === pessoaId);
-      if (!pessoa) throw new ErroRepositorio("nao_encontrado", "demonstração: pessoa");
+      if (!pessoa)
+        throw new ErroRepositorio("nao_encontrado", "demonstração: pessoa");
       return {
         pessoa_id: pessoaId,
         cpf: completo ? "000.000.000-00" : "***.000.000-**",
-        endereco_residencial: { logradouro: "Rua Fictícia das Acácias", numero: completo ? "120" : null },
+        endereco_residencial: {
+          logradouro: "Rua Fictícia das Acácias",
+          numero: completo ? "120" : null,
+        },
       };
     },
 
@@ -246,12 +323,22 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
       const usuarioId = exigirSessao();
       const l = loja();
       const familia = familiasVisiveis(l).find((f) => f.id === familiaId);
-      if (!familia) throw new ErroRepositorio("nao_encontrado", "demonstração: família");
+      if (!familia)
+        throw new ErroRepositorio("nao_encontrado", "demonstração: família");
       const de = familia.estadoSensivel;
       if (ORDEM_ESTADO.indexOf(estado) < ORDEM_ESTADO.indexOf(de)) {
-        throw new ErroRepositorio("sem_permissao", "demonstração: o freio só sobe");
+        throw new ErroRepositorio(
+          "sem_permissao",
+          "demonstração: o freio só sobe",
+        );
       }
-      if (estado === de) return freioResposta({ familia_id: familiaId, de, para: estado, alterado: false });
+      if (estado === de)
+        return freioResposta({
+          familia_id: familiaId,
+          de,
+          para: estado,
+          alterado: false,
+        });
       familia.estadoSensivel = estado;
       familia.estadoSensivelEm = new Date().toISOString();
       l.freios[familiaId] = { por: usuarioId, em: Date.now(), de };
@@ -270,33 +357,62 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
           criadoEm: new Date().toISOString(),
         });
       }
-      return freioResposta({ familia_id: familiaId, de, para: estado, alterado: true });
+      return freioResposta({
+        familia_id: familiaId,
+        de,
+        para: estado,
+        alterado: true,
+      });
     },
 
     async desfazerFreio(familiaId) {
       const usuarioId = exigirSessao();
       const l = loja();
       const registro = l.freios[familiaId];
-      const parametro = l.parametros.find((p) => p.chave === "freio_desfazer_segundos");
-      const segundos = typeof parametro?.valor === "number" ? parametro.valor : 0;
+      const parametro = l.parametros.find(
+        (p) => p.chave === "freio_desfazer_segundos",
+      );
+      const segundos =
+        typeof parametro?.valor === "number" ? parametro.valor : 0;
       const familia = l.familias.find((f) => f.id === familiaId);
-      if (!registro || !familia || registro.por !== usuarioId || Date.now() - registro.em > segundos * 1000) {
-        throw new ErroRepositorio("recusado", "demonstração: o prazo do Desfazer passou");
+      if (
+        !registro ||
+        !familia ||
+        registro.por !== usuarioId ||
+        Date.now() - registro.em > segundos * 1000
+      ) {
+        throw new ErroRepositorio(
+          "recusado",
+          "demonstração: o prazo do Desfazer passou",
+        );
       }
       const para = registro.de;
       const de = familia.estadoSensivel;
       familia.estadoSensivel = para;
       delete l.freios[familiaId];
-      registrarEvento(l, familiaId, "freio", "Freio desfeito por quem acionou", true);
+      registrarEvento(
+        l,
+        familiaId,
+        "freio",
+        "Freio desfeito por quem acionou",
+        true,
+      );
       return freioResposta({ familia_id: familiaId, de, para, alterado: true });
     },
 
     async justificarFreio(familiaId, motivo) {
       exigirSessao();
-      if (!motivo.trim()) throw new ErroRepositorio("recusado", "demonstração: justificativa vazia");
+      if (!motivo.trim())
+        throw new ErroRepositorio(
+          "recusado",
+          "demonstração: justificativa vazia",
+        );
       const l = loja();
       const tarefa = l.tarefas.find(
-        (t) => t.familiaId === familiaId && t.titulo.startsWith("Justificar o freio") && t.status === "aberta",
+        (t) =>
+          t.familiaId === familiaId &&
+          t.titulo.startsWith("Justificar o freio") &&
+          t.status === "aberta",
       );
       if (tarefa) tarefa.status = "concluida";
       registrarEvento(l, familiaId, "freio", "Freio justificado", true);
@@ -306,17 +422,37 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
     async reverterFreio(familiaId, estado, justificativa) {
       exigirSessao();
       if (!tem("coordenacao", "diretoria")) {
-        throw new ErroRepositorio("sem_permissao", "demonstração: reverter exige coordenação ou diretoria");
+        throw new ErroRepositorio(
+          "sem_permissao",
+          "demonstração: reverter exige coordenação ou diretoria",
+        );
       }
-      if (!justificativa.trim()) throw new ErroRepositorio("recusado", "demonstração: justificativa vazia");
+      if (!justificativa.trim())
+        throw new ErroRepositorio(
+          "recusado",
+          "demonstração: justificativa vazia",
+        );
       const l = loja();
       const familia = l.familias.find((f) => f.id === familiaId);
-      if (!familia) throw new ErroRepositorio("nao_encontrado", "demonstração: família");
+      if (!familia)
+        throw new ErroRepositorio("nao_encontrado", "demonstração: família");
       const de = familia.estadoSensivel;
       familia.estadoSensivel = estado;
-      familia.estadoSensivelEm = estado === "normal" ? null : new Date().toISOString();
-      registrarEvento(l, familiaId, "freio", "Freio revertido pela coordenação", true);
-      return freioResposta({ familia_id: familiaId, de, para: estado, alterado: true });
+      familia.estadoSensivelEm =
+        estado === "normal" ? null : new Date().toISOString();
+      registrarEvento(
+        l,
+        familiaId,
+        "freio",
+        "Freio revertido pela coordenação",
+        true,
+      );
+      return freioResposta({
+        familia_id: familiaId,
+        de,
+        para: estado,
+        alterado: true,
+      });
     },
   };
 
@@ -328,10 +464,14 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
         .filter(
           (t) =>
             t.responsavelId === contexto.usuarioId ||
-            (t.responsavelId === null && t.papelResponsavel !== null && tem(t.papelResponsavel)) ||
+            (t.responsavelId === null &&
+              t.papelResponsavel !== null &&
+              tem(t.papelResponsavel)) ||
             tem("diretoria"),
         )
-        .filter((t) => !filtro.status?.length || filtro.status.includes(t.status))
+        .filter(
+          (t) => !filtro.status?.length || filtro.status.includes(t.status),
+        )
         .filter((t) => !filtro.familiaId || t.familiaId === filtro.familiaId)
         .filter((t) => !filtro.minhas || t.responsavelId === contexto.usuarioId)
         .sort(
@@ -342,19 +482,27 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
         .map((t) => ({
           ...t,
           payload: {},
-          nomeFamilia: l.familias.find((f) => f.id === t.familiaId)?.nome ?? null,
+          nomeFamilia:
+            l.familias.find((f) => f.id === t.familiaId)?.nome ?? null,
         }));
     },
 
     async concluirTarefa(tarefaId) {
       const usuarioId = exigirSessao();
       const tarefa = loja().tarefas.find((t) => t.id === tarefaId);
-      if (!tarefa) throw new ErroRepositorio("nao_encontrado", "demonstração: tarefa");
+      if (!tarefa)
+        throw new ErroRepositorio("nao_encontrado", "demonstração: tarefa");
       const pode =
         tarefa.responsavelId === usuarioId ||
-        (tarefa.responsavelId === null && tarefa.papelResponsavel !== null && tem(tarefa.papelResponsavel)) ||
+        (tarefa.responsavelId === null &&
+          tarefa.papelResponsavel !== null &&
+          tem(tarefa.papelResponsavel)) ||
         tem("diretoria");
-      if (!pode) throw new ErroRepositorio("sem_permissao", "demonstração: tarefa de outra pessoa");
+      if (!pode)
+        throw new ErroRepositorio(
+          "sem_permissao",
+          "demonstração: tarefa de outra pessoa",
+        );
       tarefa.status = "concluida";
     },
   };
@@ -366,7 +514,9 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
     },
     async listarParametros() {
       if (!tem("diretoria") || bloqueadoPorMfa()) return [];
-      return [...loja().parametros].sort((a, b) => a.chave.localeCompare(b.chave));
+      return [...loja().parametros].sort((a, b) =>
+        a.chave.localeCompare(b.chave),
+      );
     },
     async obterMensagemModelo(chave) {
       if (bloqueadoPorMfa() || contexto.papeis.length === 0) return null;
@@ -380,7 +530,9 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
     },
     async listarPacotesVigentes(data) {
       return VERSOES_PACOTE.filter(
-        (v) => v.vigenciaInicio <= data && (v.vigenciaFim === null || v.vigenciaFim >= data),
+        (v) =>
+          v.vigenciaInicio <= data &&
+          (v.vigenciaFim === null || v.vigenciaFim >= data),
       ).flatMap((v) => {
         const pacote = PACOTES.find((p) => p.pacoteId === v.pacoteId);
         return pacote
@@ -404,7 +556,8 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
     },
   };
 
-  const veConversas = () => tem("comercial", "coordenacao", "diretoria") && !bloqueadoPorMfa();
+  const veConversas = () =>
+    tem("comercial", "coordenacao", "diretoria") && !bloqueadoPorMfa();
 
   const agente: AgenteRepositorio = {
     async listarConversas(filtro = {}) {
@@ -417,7 +570,11 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
         .filter((c) => {
           switch (filtro.situacao) {
             case "isadora":
-              return ehLead(c) && !c.agenteEncerradoEm && (!c.agentePausadoAte || c.agentePausadoAte < agora);
+              return (
+                ehLead(c) &&
+                !c.agenteEncerradoEm &&
+                (!c.agentePausadoAte || c.agentePausadoAte < agora)
+              );
             case "equipe":
               return Boolean(c.agenteEncerradoEm);
             case "pausada":
@@ -428,14 +585,19 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
               return true;
           }
         })
-        .sort((a, b) => (b.ultimaEntradaEm ?? "").localeCompare(a.ultimaEntradaEm ?? ""))
+        .sort((a, b) =>
+          (b.ultimaEntradaEm ?? "").localeCompare(a.ultimaEntradaEm ?? ""),
+        )
         .slice(0, filtro.limite ?? 100)
         .map((c) => ({
           ...c,
-          nomeFamilia: l.familias.find((f) => f.id === c.familiaId)?.nome ?? null,
+          nomeFamilia:
+            l.familias.find((f) => f.id === c.familiaId)?.nome ?? null,
           transferenciaAbertaId:
             l.transferencias.find(
-              (t) => t.conversaId === c.id && (t.status === "aberto" || t.status === "assumido"),
+              (t) =>
+                t.conversaId === c.id &&
+                (t.status === "aberto" || t.status === "assumido"),
             )?.id ?? null,
         }));
     },
@@ -452,22 +614,35 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
       if (!veConversas()) return [];
       const l = loja();
       return l.transferencias
-        .filter((t) => !filtro.status?.length || filtro.status.includes(t.status))
+        .filter(
+          (t) => !filtro.status?.length || filtro.status.includes(t.status),
+        )
         .filter((t) => !filtro.destino || t.destino === filtro.destino)
         .sort(
           (a, b) =>
             ORDEM_PRIORIDADE[b.prioridade] - ORDEM_PRIORIDADE[a.prioridade] ||
             (a.slaVenceEm ?? "9").localeCompare(b.slaVenceEm ?? "9"),
         )
-        .map((t) => ({ ...t, nomeFamilia: l.familias.find((f) => f.id === t.familiaId)?.nome ?? null }));
+        .map((t) => ({
+          ...t,
+          nomeFamilia:
+            l.familias.find((f) => f.id === t.familiaId)?.nome ?? null,
+        }));
     },
 
     async assumirTransferencia(transferenciaId) {
       const usuarioId = exigirSessao();
-      if (!veConversas()) throw new ErroRepositorio("sem_permissao", "demonstração: transferências");
+      if (!veConversas())
+        throw new ErroRepositorio(
+          "sem_permissao",
+          "demonstração: transferências",
+        );
       const t = loja().transferencias.find((x) => x.id === transferenciaId);
       if (!t || t.status !== "aberto") {
-        throw new ErroRepositorio("recusado", "demonstração: já assumida ou resolvida");
+        throw new ErroRepositorio(
+          "recusado",
+          "demonstração: já assumida ou resolvida",
+        );
       }
       t.status = "assumido";
       t.assumidoPor = usuarioId;
@@ -478,7 +653,10 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
   const usuarios: UsuariosRepositorio = {
     async listarUsuarios() {
       if (!tem("diretoria") || bloqueadoPorMfa()) {
-        throw new ErroRepositorio("sem_permissao", "demonstração: só a diretoria vê as sessões");
+        throw new ErroRepositorio(
+          "sem_permissao",
+          "demonstração: só a diretoria vê as sessões",
+        );
       }
       const l = loja();
       return l.usuarios.map((u) => ({
@@ -492,10 +670,12 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
     },
 
     async convidarUsuario(pedido) {
-      if (!tem("diretoria") || bloqueadoPorMfa()) return { ok: false, erro: "sem_permissao" };
+      if (!tem("diretoria") || bloqueadoPorMfa())
+        return { ok: false, erro: "sem_permissao" };
       const l = loja();
       const email = pedido.email.trim().toLowerCase();
-      if (l.usuarios.some((u) => u.email === email)) return { ok: false, erro: "email_em_uso" };
+      if (l.usuarios.some((u) => u.email === email))
+        return { ok: false, erro: "email_em_uso" };
       const novo = {
         id: crypto.randomUUID(),
         nome: pedido.nome.trim(),
@@ -510,7 +690,10 @@ export function criarRepositoriosDemonstracao(contexto: ContextoDemonstracao): R
 
     async revogarSessoes(usuarioId) {
       if (!tem("diretoria") || bloqueadoPorMfa()) {
-        throw new ErroRepositorio("sem_permissao", "demonstração: só a diretoria revoga sessões");
+        throw new ErroRepositorio(
+          "sem_permissao",
+          "demonstração: só a diretoria revoga sessões",
+        );
       }
       const l = loja();
       if (!l.usuarios.some((u) => u.id === usuarioId)) {

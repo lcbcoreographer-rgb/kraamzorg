@@ -12,6 +12,14 @@ export default defineConfig({
     // "**/node_modules/**" (não só "node_modules/**") para não varrer
     // node_modules aninhado, como o de n8n/referencia (n8n/build.test.mjs
     // roda por node --test, não por Vitest).
-    exclude: ["**/node_modules/**", "tests/e2e/**", "tests/e2e-offline/**"],
+    exclude: [
+      "**/node_modules/**",
+      "tests/e2e/**",
+      "tests/e2e-offline/**",
+      // Worktrees de outras sessões em paralelo.
+      ".claude/**",
+      // Testes do n8n são do node:test (node --test n8n/*.test.mjs, CLAUDE.md).
+      "n8n/**",
+    ],
   },
 });

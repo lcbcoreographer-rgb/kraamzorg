@@ -74,7 +74,10 @@ export function resumoDaLinha(linha: LinhaFamilia): ResumoFamilia {
   };
 }
 
-export function cartaoDaLinha(linha: LinhaCartao, comTransferencia: Set<string>): CartaoOportunidade {
+export function cartaoDaLinha(
+  linha: LinhaCartao,
+  comTransferencia: Set<string>,
+): CartaoOportunidade {
   return {
     oportunidadeId: linha.id,
     familiaId: linha.familia_id,
@@ -112,10 +115,14 @@ export async function familiasComTransferenciaAberta(
       .in("status", ["aberto", "assumido"]),
     "handoff abertos",
   );
-  return new Set(linhas.map((l) => l.familia_id).filter((id): id is string => Boolean(id)));
+  return new Set(
+    linhas.map((l) => l.familia_id).filter((id): id is string => Boolean(id)),
+  );
 }
 
-export function criarFamiliasSupabase(contexto: ContextoSupabase): FamiliasRepositorio {
+export function criarFamiliasSupabase(
+  contexto: ContextoSupabase,
+): FamiliasRepositorio {
   const { cliente } = contexto;
 
   return {
@@ -133,14 +140,23 @@ export function criarFamiliasSupabase(contexto: ContextoSupabase): FamiliasRepos
             ? consulta.eq("estagio_p1", filtro.estagio as EstagioP1)
             : consulta.eq("estagio_p2", filtro.estagio as EstagioP2);
       }
-      if (filtro.regiaoId) consulta = consulta.eq("familia.regiao_id", filtro.regiaoId);
-      if (filtro.responsavelId) consulta = consulta.eq("responsavel_id", filtro.responsavelId);
-      if (filtro.classificacao) consulta = consulta.eq("classificacao", filtro.classificacao);
+      if (filtro.regiaoId)
+        consulta = consulta.eq("familia.regiao_id", filtro.regiaoId);
+      if (filtro.responsavelId)
+        consulta = consulta.eq("responsavel_id", filtro.responsavelId);
+      if (filtro.classificacao)
+        consulta = consulta.eq("classificacao", filtro.classificacao);
       if (filtro.busca && limparBusca(filtro.busca)) {
-        consulta = consulta.ilike("familia.nome_exibicao", `%${limparBusca(filtro.busca)}%`);
+        consulta = consulta.ilike(
+          "familia.nome_exibicao",
+          `%${limparBusca(filtro.busca)}%`,
+        );
       }
 
-      const linhas = exigir(await consulta, "pipeline") as unknown as LinhaCartao[];
+      const linhas = exigir(
+        await consulta,
+        "pipeline",
+      ) as unknown as LinhaCartao[];
       const abertas = await familiasComTransferenciaAberta(
         contexto,
         linhas.map((l) => l.familia_id),
@@ -172,9 +188,15 @@ export function criarFamiliasSupabase(contexto: ContextoSupabase): FamiliasRepos
         .order("nome_exibicao")
         .limit(filtro.limite ?? 200);
       if (filtro.busca && limparBusca(filtro.busca)) {
-        consulta = consulta.ilike("nome_exibicao", `%${limparBusca(filtro.busca)}%`);
+        consulta = consulta.ilike(
+          "nome_exibicao",
+          `%${limparBusca(filtro.busca)}%`,
+        );
       }
-      const linhas = exigir(await consulta, "famílias") as unknown as LinhaFamilia[];
+      const linhas = exigir(
+        await consulta,
+        "famílias",
+      ) as unknown as LinhaFamilia[];
       return linhas.map(resumoDaLinha);
     },
 

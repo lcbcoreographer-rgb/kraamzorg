@@ -21,7 +21,9 @@ import { exigir, rpcPendente, type ContextoSupabase } from "./comum";
  * docs/sessoes/P07-app.md). O access token já emitido vale até expirar
  * (jwt_expiry do Supabase Auth, 1 hora por padrão).
  */
-export function criarUsuariosSupabase(contexto: ContextoSupabase): UsuariosRepositorio {
+export function criarUsuariosSupabase(
+  contexto: ContextoSupabase,
+): UsuariosRepositorio {
   const { cliente } = contexto;
 
   return {
@@ -36,27 +38,28 @@ export function criarUsuariosSupabase(contexto: ContextoSupabase): UsuariosRepos
       const ultimoAcesso = new Map<string, string | null>();
       try {
         const servico = criarClienteServico("sessoes_diretoria");
-        const { data, error } = await servico.auth.admin.listUsers({ perPage: 1000 });
+        const { data, error } = await servico.auth.admin.listUsers({
+          perPage: 1000,
+        });
         if (!error) {
-          for (const usuario of data.users) ultimoAcesso.set(usuario.id, usuario.last_sign_in_at ?? null);
+          for (const usuario of data.users)
+            ultimoAcesso.set(usuario.id, usuario.last_sign_in_at ?? null);
         }
       } catch {
         // Sem a chave de serviço a tela mostra "sem registro" no último acesso.
       }
 
-      return linhasPerfis.map(
-        (p): UsuarioSistema => ({
-          id: p.id,
-          nome: p.nome,
-          email: p.email,
-          ativo: p.ativo,
-          papeis: linhasPapeis
-            .filter((l) => l.usuario_id === p.id)
-            .map((l) => l.papel)
-            .filter(ehPapel),
-          ultimoAcessoEm: ultimoAcesso.get(p.id) ?? null,
-        }),
-      );
+      return linhasPerfis.map((p): UsuarioSistema => ({
+        id: p.id,
+        nome: p.nome,
+        email: p.email,
+        ativo: p.ativo,
+        papeis: linhasPapeis
+          .filter((l) => l.usuario_id === p.id)
+          .map((l) => l.papel)
+          .filter(ehPapel),
+        ultimoAcessoEm: ultimoAcesso.get(p.id) ?? null,
+      }));
     },
 
     async convidarUsuario(pedido: PedidoConvite): Promise<ResultadoConvite> {
@@ -71,7 +74,10 @@ export function criarUsuariosSupabase(contexto: ContextoSupabase): UsuariosRepos
       });
       if (criado.error || !criado.data.user) {
         const mensagem = criado.error?.message ?? "";
-        if (criado.error?.status === 422 || /registered|exists/i.test(mensagem)) {
+        if (
+          criado.error?.status === 422 ||
+          /registered|exists/i.test(mensagem)
+        ) {
           return { ok: false, erro: "email_em_uso" };
         }
         return { ok: false, erro: "indisponivel" };
@@ -82,11 +88,17 @@ export function criarUsuariosSupabase(contexto: ContextoSupabase): UsuariosRepos
       //    exige diretoria em AAL2), não pela chave de serviço.
       const papeis = await cliente
         .from("usuario_papel")
-        .insert(pedido.papeis.map((papel) => ({ usuario_id: usuarioId, papel })));
+        .insert(
+          pedido.papeis.map((papel) => ({ usuario_id: usuarioId, papel })),
+        );
       if (papeis.error) {
         await servico.auth.admin.deleteUser(usuarioId);
-        if (papeis.error.code === "42501") return { ok: false, erro: "sem_permissao" };
-        throw new ErroRepositorio("indisponivel", `convite: papéis: ${papeis.error.message}`);
+        if (papeis.error.code === "42501")
+          return { ok: false, erro: "sem_permissao" };
+        throw new ErroRepositorio(
+          "indisponivel",
+          `convite: papéis: ${papeis.error.message}`,
+        );
       }
 
       // 3. E-mail de convite com o link para definir a senha.

@@ -34,7 +34,10 @@ export async function rpcPendente(
   args: Record<string, unknown>,
 ): Promise<Json> {
   const api = cliente.schema("api") as unknown as {
-    rpc(nome: string, parametros: Record<string, unknown>): PromiseLike<RespostaBanco<Json>>;
+    rpc(
+      nome: string,
+      parametros: Record<string, unknown>,
+    ): PromiseLike<RespostaBanco<Json>>;
   };
   return exigir(await api.rpc(funcao, args), `api.${funcao}`);
 }

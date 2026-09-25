@@ -22,11 +22,7 @@ import type { Papel } from "@/lib/auth/papeis";
  */
 
 export type GrupoLateral =
-  | "Comercial"
-  | "Operação"
-  | "Experiência"
-  | "Gestão"
-  | "Sistema";
+  "Comercial" | "Operação" | "Experiência" | "Gestão" | "Sistema";
 
 export const ORDEM_GRUPOS: readonly GrupoLateral[] = [
   "Comercial",
@@ -68,26 +64,146 @@ export interface Rota {
 }
 
 export const ROTAS = {
-  inicio: { caminho: "/inicio", rotulo: "Início", icone: "inicio", dono: "P18 e P27", casca: "app" },
-  pipeline: { caminho: "/pipeline", rotulo: "Pipeline", icone: "pipeline", dono: "P15", casca: "app" },
-  familias: { caminho: "/familias", rotulo: "Famílias", icone: "familias", dono: "P16", casca: "app" },
-  conversas: { caminho: "/conversas", rotulo: "Conversas", icone: "conversas", dono: "P27", casca: "app" },
-  transferencias: { caminho: "/transferencias", rotulo: "Transferências", icone: "transferencias", dono: "P27", casca: "app" },
-  agente: { caminho: "/agente", rotulo: "Isadora", icone: "agente", dono: "P27", casca: "app" },
-  tarefas: { caminho: "/tarefas", rotulo: "Tarefas", icone: "tarefas", dono: "P18", casca: "app" },
-  configuracoes: { caminho: "/configuracoes", rotulo: "Configurações", icone: "configuracoes", dono: "P13", casca: "app" },
-  equipe: { caminho: "/equipe", rotulo: "Equipe", icone: "equipe", dono: "P37", casca: "app" },
-  sessoes: { caminho: "/sessoes", rotulo: "Sessões e acessos", icone: "sessoes", dono: "P07", casca: "app" },
-  radar: { caminho: "/radar", rotulo: "Radar", icone: "radar", dono: "P36", casca: "app" },
-  agenda: { caminho: "/agenda", rotulo: "Agenda", icone: "agenda", dono: "P37", casca: "app" },
-  cobrancas: { caminho: "/cobrancas", rotulo: "Cobranças", icone: "cobrancas", dono: "P32", casca: "app" },
-  notas: { caminho: "/notas", rotulo: "Notas", icone: "notas", dono: "P43", casca: "app" },
-  financeiro: { caminho: "/financeiro", rotulo: "Financeiro", icone: "financeiro", dono: "P46", casca: "app" },
-  mais: { caminho: "/mais", rotulo: "Mais", icone: "mais", dono: "P10", casca: "app" },
-  hoje: { caminho: "/hoje", rotulo: "Hoje", icone: "inicio", dono: "P38", casca: "enfermeira" },
-  minhasFamilias: { caminho: "/minhas-familias", rotulo: "Famílias", icone: "familias", dono: "P38", casca: "enfermeira" },
-  alertas: { caminho: "/alertas", rotulo: "Alertas", icone: "alertas", dono: "P40", casca: "enfermeira" },
-  perfil: { caminho: "/perfil", rotulo: "Perfil", icone: "perfil", dono: "P38", casca: "enfermeira" },
+  inicio: {
+    caminho: "/inicio",
+    rotulo: "Início",
+    icone: "inicio",
+    dono: "P18 e P27",
+    casca: "app",
+  },
+  pipeline: {
+    caminho: "/pipeline",
+    rotulo: "Pipeline",
+    icone: "pipeline",
+    dono: "P15",
+    casca: "app",
+  },
+  familias: {
+    caminho: "/familias",
+    rotulo: "Famílias",
+    icone: "familias",
+    dono: "P16",
+    casca: "app",
+  },
+  conversas: {
+    caminho: "/conversas",
+    rotulo: "Conversas",
+    icone: "conversas",
+    dono: "P27",
+    casca: "app",
+  },
+  transferencias: {
+    caminho: "/transferencias",
+    rotulo: "Transferências",
+    icone: "transferencias",
+    dono: "P27",
+    casca: "app",
+  },
+  agente: {
+    caminho: "/agente",
+    rotulo: "Isadora",
+    icone: "agente",
+    dono: "P27",
+    casca: "app",
+  },
+  tarefas: {
+    caminho: "/tarefas",
+    rotulo: "Tarefas",
+    icone: "tarefas",
+    dono: "P18",
+    casca: "app",
+  },
+  configuracoes: {
+    caminho: "/configuracoes",
+    rotulo: "Configurações",
+    icone: "configuracoes",
+    dono: "P13",
+    casca: "app",
+  },
+  equipe: {
+    caminho: "/equipe",
+    rotulo: "Equipe",
+    icone: "equipe",
+    dono: "P37",
+    casca: "app",
+  },
+  sessoes: {
+    caminho: "/sessoes",
+    rotulo: "Sessões e acessos",
+    icone: "sessoes",
+    dono: "P07",
+    casca: "app",
+  },
+  radar: {
+    caminho: "/radar",
+    rotulo: "Radar",
+    icone: "radar",
+    dono: "P36",
+    casca: "app",
+  },
+  agenda: {
+    caminho: "/agenda",
+    rotulo: "Agenda",
+    icone: "agenda",
+    dono: "P37",
+    casca: "app",
+  },
+  cobrancas: {
+    caminho: "/cobrancas",
+    rotulo: "Cobranças",
+    icone: "cobrancas",
+    dono: "P32",
+    casca: "app",
+  },
+  notas: {
+    caminho: "/notas",
+    rotulo: "Notas",
+    icone: "notas",
+    dono: "P43",
+    casca: "app",
+  },
+  financeiro: {
+    caminho: "/financeiro",
+    rotulo: "Financeiro",
+    icone: "financeiro",
+    dono: "P46",
+    casca: "app",
+  },
+  mais: {
+    caminho: "/mais",
+    rotulo: "Mais",
+    icone: "mais",
+    dono: "P10",
+    casca: "app",
+  },
+  hoje: {
+    caminho: "/hoje",
+    rotulo: "Hoje",
+    icone: "inicio",
+    dono: "P38",
+    casca: "enfermeira",
+  },
+  minhasFamilias: {
+    caminho: "/minhas-familias",
+    rotulo: "Famílias",
+    icone: "familias",
+    dono: "P38",
+    casca: "enfermeira",
+  },
+  alertas: {
+    caminho: "/alertas",
+    rotulo: "Alertas",
+    icone: "alertas",
+    dono: "P40",
+    casca: "enfermeira",
+  },
+  perfil: {
+    caminho: "/perfil",
+    rotulo: "Perfil",
+    icone: "perfil",
+    dono: "P38",
+    casca: "enfermeira",
+  },
 } as const satisfies Record<string, Rota>;
 
 export type IdRota = keyof typeof ROTAS;
@@ -105,7 +221,17 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
   comercial: {
     abas: ["inicio", "pipeline", "conversas", "familias", "mais"],
     grupos: [
-      { titulo: "Comercial", itens: ["inicio", "pipeline", "conversas", "transferencias", "familias", "tarefas"] },
+      {
+        titulo: "Comercial",
+        itens: [
+          "inicio",
+          "pipeline",
+          "conversas",
+          "transferencias",
+          "familias",
+          "tarefas",
+        ],
+      },
       { titulo: "Sistema", itens: ["agente"] },
     ],
     inicio: "inicio",
@@ -113,8 +239,14 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
   coordenacao: {
     abas: ["inicio", "radar", "agenda", "familias", "mais"],
     grupos: [
-      { titulo: "Operação", itens: ["inicio", "radar", "agenda", "equipe", "tarefas"] },
-      { titulo: "Experiência", itens: ["familias", "conversas", "transferencias"] },
+      {
+        titulo: "Operação",
+        itens: ["inicio", "radar", "agenda", "equipe", "tarefas"],
+      },
+      {
+        titulo: "Experiência",
+        itens: ["familias", "conversas", "transferencias"],
+      },
       { titulo: "Sistema", itens: ["configuracoes"] },
     ],
     inicio: "inicio",
@@ -135,7 +267,17 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
   diretoria: {
     abas: ["inicio", "pipeline", "radar", "financeiro", "mais"],
     grupos: [
-      { titulo: "Comercial", itens: ["inicio", "pipeline", "conversas", "transferencias", "familias", "tarefas"] },
+      {
+        titulo: "Comercial",
+        itens: [
+          "inicio",
+          "pipeline",
+          "conversas",
+          "transferencias",
+          "familias",
+          "tarefas",
+        ],
+      },
       { titulo: "Operação", itens: ["radar", "agenda", "equipe"] },
       { titulo: "Gestão", itens: ["financeiro", "cobrancas", "notas"] },
       { titulo: "Sistema", itens: ["agente", "configuracoes", "sessoes"] },
@@ -214,9 +356,12 @@ export function gruposDe(
     }
   }
 
-  return ORDEM_GRUPOS.filter((titulo) => (porGrupo.get(titulo) ?? []).length > 0).map(
-    (titulo) => ({ titulo, itens: (porGrupo.get(titulo) ?? []).map(item) }),
-  );
+  return ORDEM_GRUPOS.filter(
+    (titulo) => (porGrupo.get(titulo) ?? []).length > 0,
+  ).map((titulo) => ({
+    titulo,
+    itens: (porGrupo.get(titulo) ?? []).map(item),
+  }));
 }
 
 /** O que a aba "Mais" mostra: tudo da barra lateral que não está nas abas. */
@@ -243,7 +388,9 @@ export function rotasPermitidas(papeis: readonly Papel[]): Set<IdRota> {
   const ids = new Set<IdRota>();
   for (const papel of papeis) {
     NAVEGACAO[papel].abas.forEach((id) => ids.add(id));
-    NAVEGACAO[papel].grupos.forEach((grupo) => grupo.itens.forEach((id) => ids.add(id)));
+    NAVEGACAO[papel].grupos.forEach((grupo) =>
+      grupo.itens.forEach((id) => ids.add(id)),
+    );
   }
   return ids;
 }
@@ -252,8 +399,12 @@ export function rotasPermitidas(papeis: readonly Papel[]): Set<IdRota> {
 export function rotaDoCaminho(caminho: string): IdRota | null {
   let melhor: IdRota | null = null;
   for (const [id, rota] of Object.entries(ROTAS) as [IdRota, Rota][]) {
-    const casa = caminho === rota.caminho || caminho.startsWith(`${rota.caminho}/`);
-    if (casa && (!melhor || rota.caminho.length > ROTAS[melhor].caminho.length)) {
+    const casa =
+      caminho === rota.caminho || caminho.startsWith(`${rota.caminho}/`);
+    if (
+      casa &&
+      (!melhor || rota.caminho.length > ROTAS[melhor].caminho.length)
+    ) {
       melhor = id;
     }
   }
@@ -264,7 +415,10 @@ export function rotaDoCaminho(caminho: string): IdRota | null {
  * Pode abrir este caminho? Caminho fora do registro (ex: /mfa, /api) não é
  * decidido aqui: devolve null e quem chama decide.
  */
-export function podeAbrir(papeis: readonly Papel[], caminho: string): boolean | null {
+export function podeAbrir(
+  papeis: readonly Papel[],
+  caminho: string,
+): boolean | null {
   const id = rotaDoCaminho(caminho);
   if (!id) return null;
   return rotasPermitidas(papeis).has(id);

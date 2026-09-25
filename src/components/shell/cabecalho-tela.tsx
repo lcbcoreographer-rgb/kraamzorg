@@ -24,9 +24,13 @@ export function CabecalhoTela({
         <h1 className="font-titulo text-display lg:text-display-lg text-texto font-normal">
           {titulo}
         </h1>
-        {lateral ? <div className="ml-auto flex items-center gap-2">{lateral}</div> : null}
+        {lateral ? (
+          <div className="ml-auto flex items-center gap-2">{lateral}</div>
+        ) : null}
       </header>
-      {subtitulo ? <p className="text-apoio text-texto-2 mt-3">{subtitulo}</p> : null}
+      {subtitulo ? (
+        <p className="text-apoio text-texto-2 mt-3">{subtitulo}</p>
+      ) : null}
     </>
   );
 }

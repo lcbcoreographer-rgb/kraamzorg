@@ -2,18 +2,27 @@ import type { Metadata } from "next";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao, obterAutenticacao } from "@/lib/auth/sessao";
 import { FormularioCadastroMfa } from "../../_componentes/formularios";
-import { proximoDaBusca, type ParametrosBusca } from "../../_componentes/parametros";
+import {
+  proximoDaBusca,
+  type ParametrosBusca,
+} from "../../_componentes/parametros";
 import { ERRO_AUTH } from "../../mensagens";
 
-export const metadata: Metadata = { title: "Cadastrar o código de acesso · Kraamzorg OS" };
+export const metadata: Metadata = {
+  title: "Cadastrar o código de acesso · Kraamzorg OS",
+};
 
 /**
  * Cadastro do MFA com QR (P07 item 6; PRD 5.1: TOTP obrigatório para quem
  * vê dado assistencial ou financeiro). O QR e o segredo vêm do Supabase
  * Auth (`mfa.enroll`); nada disso é guardado pelo app.
  */
-export default async function PaginaCadastroMfa({ searchParams }: { searchParams: ParametrosBusca }) {
-  await exigirSessao();
+export default async function PaginaCadastroMfa({
+  searchParams,
+}: {
+  searchParams: ParametrosBusca;
+}) {
+  await exigirSessao("/mfa/cadastro");
   const proximo = proximoDaBusca(await searchParams);
   const cadastro = await obterAutenticacao().iniciarCadastroMfa();
 
@@ -24,8 +33,8 @@ export default async function PaginaCadastroMfa({ searchParams }: { searchParams
           Proteja o seu acesso
         </h1>
         <p className="text-corpo text-texto">
-          O seu papel vê dados de saúde ou financeiros, então cada entrada pede também um código
-          que muda a cada 30 segundos.
+          O seu papel vê dados de saúde ou financeiros, então cada entrada pede
+          também um código que muda a cada 30 segundos.
         </p>
       </div>
 
@@ -35,10 +44,13 @@ export default async function PaginaCadastroMfa({ searchParams }: { searchParams
         <>
           <ol className="text-corpo text-texto flex list-decimal flex-col gap-3 pl-5">
             <li>
-              Instale no celular um aplicativo autenticador, como Google Authenticator, Microsoft
-              Authenticator ou 1Password.
+              Instale no celular um aplicativo autenticador, como Google
+              Authenticator, Microsoft Authenticator ou 1Password.
             </li>
-            <li>No aplicativo, escolha adicionar conta e aponte a câmera para o QR code abaixo.</li>
+            <li>
+              No aplicativo, escolha adicionar conta e aponte a câmera para o QR
+              code abaixo.
+            </li>
             <li>Digite o código de 6 números que aparecer no aplicativo.</li>
           </ol>
           <figure className="rounded-3 bg-superficie shadow-1 flex flex-col items-center gap-3 p-5">

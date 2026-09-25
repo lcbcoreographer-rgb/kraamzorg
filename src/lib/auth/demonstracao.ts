@@ -25,7 +25,11 @@ export function criarAutenticacaoDemonstracao(): ProvedorAutenticacao {
 
   async function gravar(dados: CookieDemonstracao) {
     const loja = await cookies();
-    loja.set(COOKIE_DEMONSTRACAO, codificarCookieDemonstracao(dados), OPCOES_COOKIE_DEMONSTRACAO);
+    loja.set(
+      COOKIE_DEMONSTRACAO,
+      codificarCookieDemonstracao(dados),
+      OPCOES_COOKIE_DEMONSTRACAO,
+    );
   }
 
   async function sessaoAtual(): Promise<SessaoUsuario | null> {
@@ -43,9 +47,13 @@ export function criarAutenticacaoDemonstracao(): ProvedorAutenticacao {
     formaDeEntrada() {
       return {
         tipo: "seletor",
-        opcoes: obterLoja().usuarios
-          .filter((u) => u.ativo)
-          .map((u) => ({ usuarioId: u.id, nome: u.nome, papeis: [...u.papeis] })),
+        opcoes: obterLoja()
+          .usuarios.filter((u) => u.ativo)
+          .map((u) => ({
+            usuarioId: u.id,
+            nome: u.nome,
+            papeis: [...u.papeis],
+          })),
       };
     },
 
@@ -56,7 +64,9 @@ export function criarAutenticacaoDemonstracao(): ProvedorAutenticacao {
     },
 
     async entrarPorSeletor(usuarioId) {
-      const usuario = obterLoja().usuarios.find((u) => u.id === usuarioId && u.ativo);
+      const usuario = obterLoja().usuarios.find(
+        (u) => u.id === usuarioId && u.ativo,
+      );
       if (!usuario) return { ok: false, erro: "credenciais" };
       await gravar({ u: usuario.id, aal: "aal1", em: Date.now() });
       return { ok: true };
@@ -83,8 +93,11 @@ export function criarAutenticacaoDemonstracao(): ProvedorAutenticacao {
     async confirmarCadastroMfa(_fatorId, codigo) {
       const sessao = await sessaoAtual();
       if (!sessao) return { ok: false, erro: "sem_sessao" };
-      if (codigo !== CODIGO_MFA_DEMONSTRACAO) return { ok: false, erro: "codigo_invalido" };
-      const usuario = obterLoja().usuarios.find((u) => u.id === sessao.usuarioId);
+      if (codigo !== CODIGO_MFA_DEMONSTRACAO)
+        return { ok: false, erro: "codigo_invalido" };
+      const usuario = obterLoja().usuarios.find(
+        (u) => u.id === sessao.usuarioId,
+      );
       if (usuario) usuario.mfaCadastrado = true;
       await subirParaAal2(sessao.usuarioId);
       return { ok: true };
@@ -111,7 +124,9 @@ export function criarAutenticacaoDemonstracao(): ProvedorAutenticacao {
     async definirSenha(novaSenha) {
       const sessao = await sessaoAtual();
       if (!sessao) return { ok: false, erro: "sem_sessao" };
-      return novaSenha.length >= 12 ? { ok: true } : { ok: false, erro: "senha_fraca" };
+      return novaSenha.length >= 12
+        ? { ok: true }
+        : { ok: false, erro: "senha_fraca" };
     },
 
     async confirmarLinkEmail() {

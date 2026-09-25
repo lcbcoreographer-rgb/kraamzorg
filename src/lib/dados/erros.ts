@@ -32,17 +32,26 @@ interface ErroPostgrest {
 }
 
 /** Traduz o erro do PostgREST (código do Postgres ou PGRST) para o código do app. */
-export function traduzirErroBanco(erro: ErroPostgrest, contexto: string): ErroRepositorio {
+export function traduzirErroBanco(
+  erro: ErroPostgrest,
+  contexto: string,
+): ErroRepositorio {
   const codigo = erro.code ?? "";
   const detalhe = `${contexto}: ${erro.message ?? "erro sem mensagem"}`;
   if (codigo === "42501" || codigo === "PGRST301" || codigo === "PGRST302") {
     return new ErroRepositorio("sem_permissao", detalhe);
   }
-  if (codigo === "PGRST116") return new ErroRepositorio("nao_encontrado", detalhe);
+  if (codigo === "PGRST116")
+    return new ErroRepositorio("nao_encontrado", detalhe);
   if (codigo === "PGRST202" || codigo === "42883") {
     return new ErroRepositorio("funcao_pendente", detalhe);
   }
-  if (codigo.startsWith("P0") || codigo === "23514" || codigo === "22023" || codigo === "23505") {
+  if (
+    codigo.startsWith("P0") ||
+    codigo === "23514" ||
+    codigo === "22023" ||
+    codigo === "23505"
+  ) {
     return new ErroRepositorio("recusado", detalhe);
   }
   if (codigo === "" || codigo.startsWith("08") || codigo === "57P01") {

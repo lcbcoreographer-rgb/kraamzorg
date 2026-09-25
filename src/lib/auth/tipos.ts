@@ -48,8 +48,7 @@ export interface OpcaoEntradaDemonstracao {
  * demonstração é um seletor de pessoa fictícia, só em desenvolvimento.
  */
 export type FormaDeEntrada =
-  | { tipo: "senha" }
-  | { tipo: "seletor"; opcoes: OpcaoEntradaDemonstracao[] };
+  { tipo: "senha" } | { tipo: "seletor"; opcoes: OpcaoEntradaDemonstracao[] };
 
 export interface CadastroMfa {
   fatorId: string;
@@ -76,9 +75,15 @@ export interface ProvedorAutenticacao {
   /** Texto de apoio do desafio só no modo demonstração; null na real. */
   ajudaDesafioMfa(): string | null;
   /** Sempre responde ok para não revelar se o e-mail existe. */
-  enviarRecuperacaoSenha(email: string, urlRetorno: string): Promise<ResultadoAuth>;
+  enviarRecuperacaoSenha(
+    email: string,
+    urlRetorno: string,
+  ): Promise<ResultadoAuth>;
   /** Troca a senha de quem chegou pelo link do e-mail (convite ou recuperação). */
   definirSenha(novaSenha: string): Promise<ResultadoAuth>;
   /** Confere o link do e-mail (convite ou recuperação) e abre a sessão. */
-  confirmarLinkEmail(tokenHash: string, tipo: "invite" | "recovery"): Promise<ResultadoAuth>;
+  confirmarLinkEmail(
+    tokenHash: string,
+    tipo: "invite" | "recovery",
+  ): Promise<ResultadoAuth>;
 }

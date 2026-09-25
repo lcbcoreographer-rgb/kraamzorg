@@ -64,7 +64,11 @@ export interface FichaRepositorio {
   linhaDoTempo(familiaId: string): Promise<EventoLinhaDoTempo[]>;
   /** `api.dados_contrato`: completo exige AAL2 e grava a leitura no log. */
   dadosContrato(pessoaId: string, completo: boolean): Promise<Json>;
-  acionarFreio(familiaId: string, estado: EstadoSensivel, motivo?: string): Promise<ResultadoFreio>;
+  acionarFreio(
+    familiaId: string,
+    estado: EstadoSensivel,
+    motivo?: string,
+  ): Promise<ResultadoFreio>;
   desfazerFreio(familiaId: string): Promise<ResultadoFreio>;
   justificarFreio(familiaId: string, motivo: string): Promise<ResultadoFreio>;
   reverterFreio(
@@ -85,7 +89,9 @@ export interface ConfiguracoesRepositorio {
   listarParametros(): Promise<Parametro[]>;
   /** Texto para a família sempre vem daqui, nunca do código (CLAUDE.md). */
   obterMensagemModelo(chave: string): Promise<MensagemModelo | null>;
-  listarMensagensModelo(filtro?: { destinatario?: string }): Promise<MensagemModelo[]>;
+  listarMensagensModelo(filtro?: {
+    destinatario?: string;
+  }): Promise<MensagemModelo[]>;
   /** Versão vigente de cada pacote na data (PRD 6.3, D-06). */
   listarPacotesVigentes(data: string): Promise<PacoteVigente[]>;
   listarRegioes(): Promise<Regiao[]>;

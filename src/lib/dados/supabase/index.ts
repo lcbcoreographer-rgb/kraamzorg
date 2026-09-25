@@ -11,7 +11,9 @@ import { criarUsuariosSupabase } from "./usuarios";
 export type { ContextoSupabase } from "./comum";
 
 /** Implementação real: Supabase com a sessão do usuário (RLS) e o schema api. */
-export function criarRepositoriosSupabase(contexto: ContextoSupabase): Repositorios {
+export function criarRepositoriosSupabase(
+  contexto: ContextoSupabase,
+): Repositorios {
   return {
     familias: criarFamiliasSupabase(contexto),
     ficha: criarFichaSupabase(contexto),

@@ -1,3 +1,3 @@
-Painel para diretoria, comercial, coordenação, financeiro e marketing.
-Usa a casca com barra lateral agrupada no computador e abas no celular.
-Preenchido pelo P10 (casca e design system) e pelos módulos de cada fase.
+Painel de diretoria, comercial, coordenação, financeiro e marketing, dentro da casca (`src/components/shell/casca-app.tsx`).
+Cada pasta é de um módulo (o dono está em `src/lib/navegacao`, campo `dono`): o módulo troca o `TelaEmConstrucao` da própria `page.tsx` e não mexe na casca.
+Leitura por `await obterRepositorios()` (src/lib/dados); escrita por Server Action na própria pasta.

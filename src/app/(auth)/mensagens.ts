@@ -33,5 +33,15 @@ export const AVISO_ENTRAR: Record<string, string> = {
   saiu: "Você saiu. Até a próxima.",
 };
 
+/**
+ * Sem conexão no envio (telas.md, C7, estado offline): entrar e o código
+ * são conferidos no servidor, então não há fila offline aqui.
+ */
+export const SEM_SINAL_ENTRAR =
+  "Sem sinal agora. Para entrar é preciso conexão, porque a senha e o código são conferidos no servidor. Quando o sinal voltar, toque em Entrar de novo.";
+
+export const SEM_SINAL_ACESSO =
+  "Sem sinal agora. Para continuar é preciso conexão, porque a senha e o código são conferidos no servidor. Quando o sinal voltar, tente de novo.";
+
 export const TEXTO_LGPD =
   "Aqui há dados de saúde de gestantes e bebês, e todo acesso fica registrado.";

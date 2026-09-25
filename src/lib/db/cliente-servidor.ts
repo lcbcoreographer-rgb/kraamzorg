@@ -15,8 +15,10 @@ import type { Database } from "./types";
  * fica com o proxy (src/proxy.ts), por isso o setAll ignora a recusa.
  */
 export async function criarClienteServidor() {
-  const { url, chaveAnonima } = configuracaoSupabase();
+  // cookies() antes de tudo: marca a rota como dinâmica (nunca pré-renderizada
+  // no build, que não tem sessão nem as variáveis do Supabase).
   const loja = await cookies();
+  const { url, chaveAnonima } = configuracaoSupabase();
 
   return createServerClient<Database>(url, chaveAnonima, {
     cookies: {

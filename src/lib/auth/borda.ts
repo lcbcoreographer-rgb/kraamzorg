@@ -18,7 +18,9 @@ export async function lerSessaoNaBorda(
 ): Promise<{ sessao: SessaoBorda | null; resposta: NextResponse }> {
   if (modoDados() === "demonstracao") {
     return {
-      sessao: sessaoBordaDemonstracao(request.cookies.get(COOKIE_DEMONSTRACAO)?.value),
+      sessao: sessaoBordaDemonstracao(
+        request.cookies.get(COOKIE_DEMONSTRACAO)?.value,
+      ),
       resposta: NextResponse.next({ request }),
     };
   }
@@ -31,7 +33,8 @@ export async function lerSessaoNaBorda(
         return request.cookies.getAll();
       },
       setAll(cookiesParaGravar, cabecalhos) {
-        for (const { name, value } of cookiesParaGravar) request.cookies.set(name, value);
+        for (const { name, value } of cookiesParaGravar)
+          request.cookies.set(name, value);
         resposta = NextResponse.next({ request });
         for (const { name, value, options } of cookiesParaGravar) {
           resposta.cookies.set(name, value, options);
@@ -54,6 +57,7 @@ export function redirecionarComCookies(
   destino: string,
 ): NextResponse {
   const redirecionamento = NextResponse.redirect(new URL(destino, request.url));
-  for (const cookie of resposta.cookies.getAll()) redirecionamento.cookies.set(cookie);
+  for (const cookie of resposta.cookies.getAll())
+    redirecionamento.cookies.set(cookie);
   return redirecionamento;
 }

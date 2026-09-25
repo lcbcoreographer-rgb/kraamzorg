@@ -28,7 +28,10 @@ import pg from "pg";
 
 const SCHEMAS = ["api", "public"];
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const SAIDA = resolve(RAIZ, process.env.KZ_TIPOS_SAIDA ?? "src/lib/db/types.ts");
+const SAIDA = resolve(
+  RAIZ,
+  process.env.KZ_TIPOS_SAIDA ?? "src/lib/db/types.ts",
+);
 
 const conexao = process.env.KZ_DB_URL
   ? { connectionString: process.env.KZ_DB_URL }
@@ -201,12 +204,14 @@ async function main() {
       }
       return "string";
     }
-    if (t.typcategory === "A" && t.typelem) return `${envolver(tsTipo(t.typelem))}[]`;
+    if (t.typcategory === "A" && t.typelem)
+      return `${envolver(tsTipo(t.typelem))}[]`;
     if (t.typtype === "d") return tsTipo(t.typbasetype);
     if (t.typtype === "c" && t.typrelid) {
       const rel = relacaoPorOid.get(t.typrelid);
       if (rel) {
-        const grupo = rel.relkind === "v" || rel.relkind === "m" ? "Views" : "Tables";
+        const grupo =
+          rel.relkind === "v" || rel.relkind === "m" ? "Views" : "Tables";
         return `Database[${JSON.stringify(rel.schema)}][${JSON.stringify(grupo)}][${JSON.stringify(rel.nome)}]["Row"]`;
       }
       const composto = compostos.find((x) => x.relid === t.typrelid);
@@ -225,9 +230,15 @@ async function main() {
   const saida = [];
   const escrever = (linha = "") => saida.push(linha);
 
-  escrever("// Gerado por scripts/gerar-tipos-local.mjs (pnpm db:types:local).");
-  escrever("// Não edite à mão: rode o script de novo depois de cada migration.");
-  escrever("// Mesmo formato do `supabase gen types typescript` (pnpm db:types).");
+  escrever(
+    "// Gerado por scripts/gerar-tipos-local.mjs (pnpm db:types:local).",
+  );
+  escrever(
+    "// Não edite à mão: rode o script de novo depois de cada migration.",
+  );
+  escrever(
+    "// Mesmo formato do `supabase gen types typescript` (pnpm db:types).",
+  );
   escrever();
   escrever("export type Json =");
   escrever("  | string");
@@ -238,7 +249,9 @@ async function main() {
   escrever("  | Json[]");
   escrever();
   escrever("export type Database = {");
-  escrever("  // Permite instanciar o createClient com as opções certas do PostgREST.");
+  escrever(
+    "  // Permite instanciar o createClient com as opções certas do PostgREST.",
+  );
   escrever("  __InternalSupabase: {");
   escrever('    PostgrestVersion: "12"');
   escrever("  }");
@@ -250,18 +263,25 @@ async function main() {
 
     // Tables
     const tabelas = ordenar(
-      relacoes.filter((r) => r.schema === schema && ["r", "p", "f"].includes(r.relkind)),
+      relacoes.filter(
+        (r) => r.schema === schema && ["r", "p", "f"].includes(r.relkind),
+      ),
       (r) => r.nome,
     );
     escrever("    Tables: {");
     if (tabelas.length === 0) vazio("    ").forEach((l) => escrever(l));
     for (const tabela of tabelas) {
-      const cols = ordenar(colunasPorRelacao.get(tabela.oid) ?? [], (c) => c.nome);
+      const cols = ordenar(
+        colunasPorRelacao.get(tabela.oid) ?? [],
+        (c) => c.nome,
+      );
       escrever(`      ${nomeSeguro(tabela.nome)}: {`);
       escrever("        Row: {");
       for (const c of cols) {
         const tipo = tsTipo(c.tipo);
-        escrever(`          ${nomeSeguro(c.nome)}: ${c.nao_nulo ? tipo : `${tipo} | null`}`);
+        escrever(
+          `          ${nomeSeguro(c.nome)}: ${c.nao_nulo ? tipo : `${tipo} | null`}`,
+        );
       }
       escrever("        }");
       escrever("        Insert: {");
@@ -284,7 +304,9 @@ async function main() {
           escrever(`          ${nomeSeguro(c.nome)}?: never`);
           continue;
         }
-        escrever(`          ${nomeSeguro(c.nome)}?: ${c.nao_nulo ? tipo : `${tipo} | null`}`);
+        escrever(
+          `          ${nomeSeguro(c.nome)}?: ${c.nao_nulo ? tipo : `${tipo} | null`}`,
+        );
       }
       escrever("        }");
       escreverRelacionamentos(tabela.oid, "        ");
@@ -294,16 +316,22 @@ async function main() {
 
     // Views
     const views = ordenar(
-      relacoes.filter((r) => r.schema === schema && ["v", "m"].includes(r.relkind)),
+      relacoes.filter(
+        (r) => r.schema === schema && ["v", "m"].includes(r.relkind),
+      ),
       (r) => r.nome,
     );
     escrever("    Views: {");
     if (views.length === 0) vazio("    ").forEach((l) => escrever(l));
     for (const view of views) {
-      const cols = ordenar(colunasPorRelacao.get(view.oid) ?? [], (c) => c.nome);
+      const cols = ordenar(
+        colunasPorRelacao.get(view.oid) ?? [],
+        (c) => c.nome,
+      );
       escrever(`      ${nomeSeguro(view.nome)}: {`);
       escrever("        Row: {");
-      for (const c of cols) escrever(`          ${nomeSeguro(c.nome)}: ${tsTipo(c.tipo)} | null`);
+      for (const c of cols)
+        escrever(`          ${nomeSeguro(c.nome)}: ${tsTipo(c.tipo)} | null`);
       escrever("        }");
       escreverRelacionamentos(view.oid, "        ");
       escrever("      }");
@@ -348,11 +376,13 @@ async function main() {
       (c) => c.nome,
     );
     escrever("    CompositeTypes: {");
-    if (compostosDoSchema.length === 0) vazio("    ").forEach((l) => escrever(l));
+    if (compostosDoSchema.length === 0)
+      vazio("    ").forEach((l) => escrever(l));
     for (const c of compostosDoSchema) {
       const cols = ordenar(colunasPorRelacao.get(c.relid) ?? [], (x) => x.nome);
       escrever(`      ${nomeSeguro(c.nome)}: {`);
-      for (const col of cols) escrever(`        ${nomeSeguro(col.nome)}: ${tsTipo(col.tipo)} | null`);
+      for (const col of cols)
+        escrever(`        ${nomeSeguro(col.nome)}: ${tsTipo(col.tipo)} | null`);
       escrever("      }");
     }
     escrever("    }");
@@ -390,7 +420,9 @@ async function main() {
 
   function escreverRelacionamentos(relid, indent) {
     const fks = ordenar(
-      chavesEstrangeiras.filter((f) => f.relid === relid && relacaoPorOid.has(f.refid)),
+      chavesEstrangeiras.filter(
+        (f) => f.relid === relid && relacaoPorOid.has(f.refid),
+      ),
       (f) => f.nome,
     );
     if (fks.length === 0) {
@@ -402,10 +434,14 @@ async function main() {
       const ref = relacaoPorOid.get(fk.refid);
       escrever(`${indent}  {`);
       escrever(`${indent}    foreignKeyName: ${JSON.stringify(fk.nome)}`);
-      escrever(`${indent}    columns: [${fk.colunas.map((c) => JSON.stringify(c)).join(", ")}]`);
+      escrever(
+        `${indent}    columns: [${fk.colunas.map((c) => JSON.stringify(c)).join(", ")}]`,
+      );
       escrever(`${indent}    isOneToOne: ${fk.um_para_um}`);
       escrever(`${indent}    referencedRelation: ${JSON.stringify(ref.nome)}`);
-      escrever(`${indent}    referencedColumns: [${fk.colunas_ref.map((c) => JSON.stringify(c)).join(", ")}]`);
+      escrever(
+        `${indent}    referencedColumns: [${fk.colunas_ref.map((c) => JSON.stringify(c)).join(", ")}]`,
+      );
       escrever(`${indent}  },`);
     }
     escrever(`${indent}]`);
@@ -420,8 +456,10 @@ async function main() {
     tiposArgs.forEach((oid, i) => {
       const modo = modos[i];
       const nome = nomes[i];
-      if (modo === "i" || modo === "b" || modo === "v") entradas.push({ oid, nome });
-      if (modo === "t" || modo === "o" || modo === "b") saidasTabela.push({ oid, nome });
+      if (modo === "i" || modo === "b" || modo === "v")
+        entradas.push({ oid, nome });
+      if (modo === "t" || modo === "o" || modo === "b")
+        saidasTabela.push({ oid, nome });
     });
     // Sem nome de argumento o PostgREST não consegue chamar por RPC.
     if (entradas.some((a) => !a.nome)) return null;
@@ -431,10 +469,16 @@ async function main() {
       entradas.length === 0
         ? "never"
         : `{ ${ordenar(
-            entradas.map((a, i) => ({ ...a, opcional: i >= primeiraComPadrao })),
+            entradas.map((a, i) => ({
+              ...a,
+              opcional: i >= primeiraComPadrao,
+            })),
             (a) => a.nome,
           )
-            .map((a) => `${nomeSeguro(a.nome)}${a.opcional ? "?" : ""}: ${tsTipo(a.oid)}`)
+            .map(
+              (a) =>
+                `${nomeSeguro(a.nome)}${a.opcional ? "?" : ""}: ${tsTipo(a.oid)}`,
+            )
             .join("; ")} }`;
 
     let retorno;

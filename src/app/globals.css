@@ -259,7 +259,7 @@
 
   /* Tipografia: tamanho mínimo permitido (13 px é --text-mini; este é o
      único caso documentado de texto menor, na data curta da régua de dias
-     em telas muito estreitas — DESIGN.md, seção 4). */
+     em telas muito estreitas, DESIGN.md, seção 4). */
   --text-micro: 0.6875rem; /* 11px */
   --text-micro--line-height: 1.3;
 
@@ -306,6 +306,13 @@
   button:focus-visible,
   [tabindex]:focus-visible {
     border-radius: inherit;
+  }
+
+  /* Seleção de texto no tom da marca (craft floor: a superfície do
+     navegador também é desenho). Marinho sobre dourado lavado: 13:1. */
+  ::selection {
+    background: var(--dourado-lavado);
+    color: var(--marinho);
   }
 
   * {

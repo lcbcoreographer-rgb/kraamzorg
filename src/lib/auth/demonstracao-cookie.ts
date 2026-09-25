@@ -22,10 +22,14 @@ export function codificarCookieDemonstracao(dados: CookieDemonstracao): string {
   return Buffer.from(JSON.stringify(dados), "utf8").toString("base64url");
 }
 
-export function lerCookieDemonstracao(valor: string | undefined): CookieDemonstracao | null {
+export function lerCookieDemonstracao(
+  valor: string | undefined,
+): CookieDemonstracao | null {
   if (!valor) return null;
   try {
-    const bruto: unknown = JSON.parse(Buffer.from(valor, "base64url").toString("utf8"));
+    const bruto: unknown = JSON.parse(
+      Buffer.from(valor, "base64url").toString("utf8"),
+    );
     const resultado = esquema.safeParse(bruto);
     return resultado.success ? resultado.data : null;
   } catch {

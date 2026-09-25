@@ -104,7 +104,10 @@ export function EscolhaMultipla({
         <p className="text-apoio text-texto-2">{descricao}</p>
       ) : null}
       {erro ? (
-        <p role="alert" className="text-apoio text-alerta flex items-start gap-2 font-medium">
+        <p
+          role="alert"
+          className="text-apoio text-alerta flex items-start gap-2 font-medium"
+        >
           <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <span>{erro}</span>
         </p>

@@ -20,8 +20,11 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Tudo, menos arquivos estáticos, imagens, a marca e as rotas de API
-    // (webhooks e cron têm autenticação própria, PRD 14).
-    "/((?!_next/static|_next/image|favicon.ico|brand/|api/|.*\\.(?:png|svg|ico|webp|woff2)$).*)",
+    // Tudo, menos os arquivos do Next, a marca, o favicon e as rotas de API
+    // (webhooks e cron têm autenticação própria, PRD 14). Sem exceção por
+    // extensão (.png, .svg): com ela, /familias/qualquer.png abria a rota
+    // dinâmica /familias/[id] sem passar pelo proxy. Arquivo novo em
+    // public/ que precise abrir sem sessão entra aqui pelo caminho exato.
+    "/((?!_next/|__nextjs|favicon\\.ico$|brand/|api/).*)",
   ],
 };

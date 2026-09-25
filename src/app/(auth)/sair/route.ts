@@ -11,7 +11,10 @@ const AVISOS = new Set(["sem-acesso", "sessao-encerrada"]);
 async function sair(request: NextRequest, aviso: string) {
   await obterAutenticacao().sair();
   // 303: depois de um POST, o navegador segue com GET.
-  return NextResponse.redirect(new URL(`/entrar?aviso=${aviso}`, request.url), 303);
+  return NextResponse.redirect(
+    new URL(`/entrar?aviso=${aviso}`, request.url),
+    303,
+  );
 }
 
 export async function POST(request: NextRequest) {
