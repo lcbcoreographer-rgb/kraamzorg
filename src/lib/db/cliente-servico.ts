@@ -15,12 +15,23 @@ import type { Database } from "./types";
  *   só o servidor grava).
  * - "sessoes_diretoria": a tela de sessões da diretoria lê o último acesso
  *   de cada pessoa no Supabase Auth (PRD 21.2, P07 item 7).
+ * - "webhook_autentique": a rota `/api/webhooks/autentique/[segredo]` marca
+ *   o contrato como assinado depois de reconsultar o documento pela API
+ *   (P31). Roda sem sessão de usuário (chamada da Autentique), por isso
+ *   precisa da chave de serviço.
+ * - "webhook_infinitepay": a rota `/api/webhooks/infinitepay` baixa a
+ *   cobrança depois de confirmar com `payment_check` (P32). Mesmo motivo:
+ *   sem sessão de usuário.
  *
- * Rotas de webhook e jobs (P18, P31, P32) acrescentam o próprio motivo aqui
+ * Rotas de webhook e jobs futuros (P18) acrescentam o próprio motivo aqui
  * quando chegarem. O teste src/lib/db/cliente-servico.test.ts falha se um
  * arquivo fora da lista de autorizados importar este módulo.
  */
-export type MotivoClienteServico = "convite_usuario" | "sessoes_diretoria";
+export type MotivoClienteServico =
+  | "convite_usuario"
+  | "sessoes_diretoria"
+  | "webhook_autentique"
+  | "webhook_infinitepay";
 
 export function criarClienteServico(motivo: MotivoClienteServico) {
   const chave = process.env.SUPABASE_SERVICE_ROLE_KEY;
