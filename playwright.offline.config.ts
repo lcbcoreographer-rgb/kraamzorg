@@ -25,6 +25,10 @@ export default defineConfig({
     url: "http://127.0.0.1:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // /dev/sync só existe fora de produção (P12 item 5, mesma regra do
+    // /design-system em playwright.config.ts): sem isto, vitrineLiberada()
+    // recusa por omissão e os specs deste diretório quebram.
+    env: { NEXT_PUBLIC_APP_ENV: "desenvolvimento" },
   },
   use: {
     baseURL: "http://127.0.0.1:3000",
