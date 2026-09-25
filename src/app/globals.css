@@ -2,66 +2,167 @@
 @import "tw-animate-css";
 
 /*
- * Única fonte de cor, raio e sombra do projeto (CLAUDE.md, seção "Design").
- * Nenhuma outra tela ou componente declara cor em hexadecimal.
+ * Única fonte de cor, fonte, raio, sombra e espaçamento do projeto
+ * (CLAUDE.md, seção "Design"; PRD 20.1 e 20.2). Nenhuma outra tela ou
+ * componente declara cor em hexadecimal, rgb() ou hsl() fora daqui
+ * (conferido pelo teste em tests/tokens/sem-cor-solta.test.ts).
  *
- * Os valores abaixo são o baseline neutro do shadcn/ui (inicialização do P00).
- * A paleta da marca (marinho, dourado, areia, creme, sucesso, aviso, alerta,
- * sensivel) e as fontes entram no P10, a partir de docs/design/DESIGN.md.
+ * Direção "Caderneta de visita" (docs/design/DESIGN.md, seção 4). Os
+ * valores espelham docs/prototipo/assets/tokens.css; qualquer mudança de
+ * token muda os dois lugares.
+ *
+ * Camadas: 1) primitivos da marca (os nove tokens do PRD 20.2), 2)
+ * derivados (misturas fixas, nenhum matiz novo), 3) semânticos (o que os
+ * componentes consomem), 4) compatibilidade shadcn/ui (aponta para os
+ * semânticos, para quem vem do baseline do P00), 5) @theme do Tailwind v4,
+ * que transforma tudo isso em utilitário (bg-marinho, text-apoio, rounded-3
+ * etc).
+ *
+ * Só um tema: DESIGN.md decide "Modo escuro: não, nesta fase" (as cores
+ * semânticas de estado clínico foram medidas só sobre fundo claro).
  */
 
-@custom-variant dark (&:is(.dark *));
-
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  color-scheme: light;
+
+  /* 1. Primitivos da marca. Só estes nove valores existem (PRD 20.2). */
+  --marinho: #0f1f36;
+  --dourado: #bc9c5d;
+  --areia: #e8dac5;
+  --creme: #fcf8ed;
+  --branco: #ffffff;
+  --sucesso: #4b7358;
+  --aviso: #b5822a;
+  --alerta: #9e4438;
+  --sensivel: #63557a;
+
+  /* 2. Derivados: mistura fixa de um primitivo com creme ou branco. Nenhum
+        matiz novo (DESIGN.md, seção 4). Contraste medido em WCAG 2.x. */
+  --marinho-72: color-mix(in srgb, var(--marinho) 72%, var(--creme)); /* 6,4:1 creme */
+  --marinho-62: color-mix(in srgb, var(--marinho) 62%, var(--creme)); /* 4,7:1 creme, nunca sobre areia */
+  --marinho-50: color-mix(in srgb, var(--marinho) 50%, var(--creme)); /* borda de campo, 3,2:1 creme */
+  --marinho-14: color-mix(in srgb, var(--marinho) 14%, var(--creme)); /* divisória fina */
+  --marinho-08: color-mix(in srgb, var(--marinho) 8%, var(--creme)); /* hover neutro, selo neutro */
+  --marinho-claro: color-mix(in srgb, var(--marinho) 84%, var(--creme)); /* hover do primário, item ativo da lateral */
+  --creme-62: color-mix(in srgb, var(--creme) 62%, var(--marinho)); /* texto de apoio sobre marinho, 6,7:1 */
+  --aviso-texto: color-mix(in srgb, var(--aviso) 60%, var(--marinho)); /* texto de estado pendente, 6,1:1 creme */
+  --alerta-lavado: color-mix(in srgb, var(--alerta) 12%, var(--branco));
+  --aviso-lavado: color-mix(in srgb, var(--aviso) 14%, var(--branco));
+  --sucesso-lavado: color-mix(in srgb, var(--sucesso) 12%, var(--branco));
+  --sensivel-lavado: color-mix(in srgb, var(--sensivel) 12%, var(--branco));
+  --dourado-lavado: color-mix(in srgb, var(--dourado) 18%, var(--branco));
+  --alerta-borda: color-mix(in srgb, var(--alerta) 40%, var(--branco));
+  --aviso-borda: color-mix(in srgb, var(--aviso) 45%, var(--branco));
+  --sensivel-borda: color-mix(in srgb, var(--sensivel) 40%, var(--branco));
+  --sucesso-borda: color-mix(in srgb, var(--sucesso) 40%, var(--branco));
+
+  /* 3. Semânticos. Componentes consomem estes nomes, não os primitivos. */
+  --fundo: var(--creme);
+  --superficie: var(--branco);
+  --superficie-2: var(--areia);
+  --texto: var(--marinho);
+  --texto-2: var(--marinho-72);
+  --texto-3: var(--marinho-62);
+  --texto-inverso: var(--creme);
+  --texto-inverso-2: var(--creme-62);
+  --linha: var(--marinho-14);
+  --borda-campo: var(--marinho-50);
+  --acao: var(--marinho);
+  --acao-texto: var(--creme);
+  --acao-hover: var(--marinho-claro);
+  --destaque: var(--dourado); /* borda ativa, marcador, trilha. Texto sobre dourado: sempre marinho. */
+  --foco: var(--marinho);
+  --foco-halo: color-mix(in srgb, var(--dourado) 55%, transparent);
+
+  /* Sombras, tingidas de marinho (DESIGN.md, seção 4). */
+  --sombra-1: 0 1px 2px color-mix(in srgb, var(--marinho) 6%, transparent), 0 6px 16px -10px
+    color-mix(in srgb, var(--marinho) 18%, transparent);
+  --sombra-2: 0 2px 6px color-mix(in srgb, var(--marinho) 8%, transparent), 0 18px 40px -16px
+    color-mix(in srgb, var(--marinho) 30%, transparent);
+
+  /* Camadas, movimento e estrutura: variáveis simples (não geram utilitário
+     Tailwind; usadas via arbitrário, ex. z-[var(--z-barra)]). */
+  --z-barra: 20;
+  --z-folha: 40;
+  --z-aviso: 60;
+  --dur-rapida: 140ms;
+  --dur-media: 220ms;
+  --curva-saida: cubic-bezier(0.16, 1, 0.3, 1);
+  --curva-estado: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 4. Compatibilidade shadcn/ui (baseline do P00, agora apontando para a
+        marca). Usado só por primitivos Radix que ainda leem estas
+        variáveis; os componentes de src/components/ui usam os tokens
+        semânticos acima diretamente. */
+  --background: var(--fundo);
+  --foreground: var(--texto);
+  --card: var(--superficie);
+  --card-foreground: var(--texto);
+  --popover: var(--superficie);
+  --popover-foreground: var(--texto);
+  --primary: var(--acao);
+  --primary-foreground: var(--acao-texto);
+  --secondary: var(--superficie-2);
+  --secondary-foreground: var(--texto);
+  --muted: var(--marinho-08);
+  --muted-foreground: var(--texto-2);
+  --accent: var(--marinho-08);
+  --accent-foreground: var(--texto);
+  --destructive: var(--alerta);
+  --destructive-foreground: var(--texto-inverso);
+  --border: var(--linha);
+  --input: var(--borda-campo);
+  --ring: var(--foco);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-}
-
+/* 5. @theme: registra os tokens acima como design tokens do Tailwind v4,
+      o que gera os utilitários (bg-marinho, text-apoio, rounded-3, ...). */
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  /* Cores: primitivas, derivadas, semânticas e de compatibilidade shadcn. */
+  --color-marinho: var(--marinho);
+  --color-dourado: var(--dourado);
+  --color-areia: var(--areia);
+  --color-creme: var(--creme);
+  --color-branco: var(--branco);
+  --color-sucesso: var(--sucesso);
+  --color-aviso: var(--aviso);
+  --color-alerta: var(--alerta);
+  --color-sensivel: var(--sensivel);
+
+  --color-marinho-72: var(--marinho-72);
+  --color-marinho-62: var(--marinho-62);
+  --color-marinho-50: var(--marinho-50);
+  --color-marinho-14: var(--marinho-14);
+  --color-marinho-08: var(--marinho-08);
+  --color-marinho-claro: var(--marinho-claro);
+  --color-creme-62: var(--creme-62);
+  --color-aviso-texto: var(--aviso-texto);
+  --color-alerta-lavado: var(--alerta-lavado);
+  --color-aviso-lavado: var(--aviso-lavado);
+  --color-sucesso-lavado: var(--sucesso-lavado);
+  --color-sensivel-lavado: var(--sensivel-lavado);
+  --color-dourado-lavado: var(--dourado-lavado);
+  --color-alerta-borda: var(--alerta-borda);
+  --color-aviso-borda: var(--aviso-borda);
+  --color-sensivel-borda: var(--sensivel-borda);
+  --color-sucesso-borda: var(--sucesso-borda);
+
+  --color-fundo: var(--fundo);
+  --color-superficie: var(--superficie);
+  --color-superficie-2: var(--superficie-2);
+  --color-texto: var(--texto);
+  --color-texto-2: var(--texto-2);
+  --color-texto-3: var(--texto-3);
+  --color-texto-inverso: var(--texto-inverso);
+  --color-texto-inverso-2: var(--texto-inverso-2);
+  --color-linha: var(--linha);
+  --color-borda-campo: var(--borda-campo);
+  --color-acao: var(--acao);
+  --color-acao-texto: var(--acao-texto);
+  --color-acao-hover: var(--acao-hover);
+  --color-destaque: var(--destaque);
+  --color-foco: var(--foco);
+  --color-foco-halo: var(--foco-halo);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -82,14 +183,94 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  /* Tipografia: três famílias (Jost em títulos, Inter na interface, IBM
+     Plex Mono em dado), escala fixa em rem (DESIGN.md, seção 4). */
+  --font-sans: var(--font-inter), "Segoe UI", Roboto, sans-serif;
+  --font-titulo: var(--font-jost), "Avenir Next", "Century Gothic", sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  --text-display: 2rem; /* 32px celular */
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.02em;
+  --text-display-lg: 2.5rem; /* 40px computador */
+  --text-display-lg--line-height: 1.05;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-1: 1.625rem; /* 26px: nome da família, título de etapa */
+  --text-1--line-height: 1.12;
+  --text-1--letter-spacing: -0.015em;
+  --text-2: 1.25rem; /* 20px: título de seção */
+  --text-2--line-height: 1.2;
+  --text-2--letter-spacing: -0.01em;
+  --text-3: 1.0625rem; /* 17px: pergunta, título de cartão */
+  --text-3--line-height: 1.35;
+  --text-corpo: 1rem; /* 16px: corpo, campo */
+  --text-corpo--line-height: 1.5;
+  --text-apoio: 0.875rem; /* 14px: rótulo, ajuda, metadado */
+  --text-apoio--line-height: 1.45;
+  --text-mini: 0.8125rem; /* 13px: menor texto permitido */
+  --text-mini--line-height: 1.4;
+  --text-dado: 0.875rem; /* 14px: datas, IG, R$, D1, PU-01 */
+  --text-dado--line-height: 1.4;
+  --text-dado-lg: 1.125rem; /* 18px: campo numérico */
+  --text-dado-lg--line-height: 1.3;
+
+  /* Toque e leitura */
+  --spacing-toque: 44px; /* mínimo absoluto (CLAUDE.md) */
+  --spacing-toque-campo: 52px; /* linha de resposta da enfermeira */
+  --spacing-margem-tela: 16px;
+  --container-conteudo: 1240px;
+  --container-leitura: 68ch;
+  --container-lateral: 248px;
+
+  /* Raio: quatro degraus, comprometidos (nada fora daqui). */
+  --radius-1: 4px; /* caixa de seleção, marca pequena */
+  --radius-2: 12px; /* campo, faixa, bloco da régua */
+  --radius-3: 20px; /* cartão, folha inferior */
+  --radius-pilula: 999px; /* botão, selo, seletor sim ou não, aba */
+
+  /* Sombra: duas, tingidas de marinho. */
+  --shadow-1: var(--sombra-1);
+  --shadow-2: var(--sombra-2);
+
+  /* Curvas de movimento (duração fica no utilitário: duration-140/220). */
+  --ease-saida: var(--curva-saida);
+  --ease-estado: var(--curva-estado);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-linha outline-foco/50;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-fundo text-texto;
+    font-feature-settings:
+      "cv11",
+      "ss01";
+    caret-color: var(--marinho);
+    accent-color: var(--marinho);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--foco);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px var(--foco-halo);
+    border-radius: inherit;
+  }
+
+  * {
+    scrollbar-color: var(--marinho-50) transparent;
+    scrollbar-width: thin;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
   }
 }

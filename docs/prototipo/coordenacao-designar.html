@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Designar enfermeira · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/icones.js"></script>
+<style>
+  .k3-candidata { display: flex; flex-direction: column; gap: var(--e-3); }
+  .k3-candidata__topo { display: flex; align-items: center; gap: var(--e-3); flex-wrap: wrap; }
+  .k3-candidata__acoes { display: flex; gap: var(--e-2); flex-wrap: wrap; margin-left: auto; }
+  .k3-secao { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); border-top: var(--borda-fina); margin-top: var(--e-8); }
+  .k3-secao__titulo { font-size: var(--tam-mini); font-weight: 600; color: var(--texto-2); }
+</style>
+</head>
+<body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<div class="app">
+
+  <nav class="lateral" aria-label="Navegação principal">
+    <div class="lateral__marca">
+      <img src="assets/simbolo-provisorio.png" alt="" width="36" height="31">
+      <span class="lateral__nome">Kraamzorg OS</span>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Operação</span>
+      <a class="lateral__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">2</span></a>
+      <a class="lateral__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+      <a class="lateral__item" href="coordenacao-equipe.html"><svg class="icone"><use href="#i-user-check"/></svg>Equipe</a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Experiência</span>
+      <a class="lateral__item" href="#" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    </div>
+    <div class="lateral__pe">
+      <div class="forte">Beatriz Falcão</div>
+      <div class="mini" style="color: var(--texto-inverso-2)">Coordenação clínica · perfil fictício</div>
+    </div>
+  </nav>
+
+  <main class="app__principal" id="conteudo">
+    <header class="cab-tela">
+      <a class="botao botao--terciario botao--compacto" href="coordenacao-radar.html"><svg class="icone"><use href="#i-arrow-left"/></svg>Radar</a>
+      <span class="cab-tela__titulo t-2 empurra">Designar enfermeira</span>
+    </header>
+
+    <div class="pilha pilha--6" style="padding-top: var(--e-5)">
+
+      <div class="familia-cab">
+        <div>
+          <h1 class="familia-cab__nome">Família Teste Horizonte</h1>
+          <div class="familia-cab__linha">
+            <span class="selo">Essencial 6 dias</span>
+            <span><svg class="icone icone--16"><use href="#i-map-pin"/></svg> Moema, São Paulo</span>
+            <span class="apoio">Período preferido: manhã</span>
+          </div>
+        </div>
+        <button class="botao-freio" type="button"><svg class="icone"><use href="#i-hand"/></svg>Freio</button>
+        <div class="familia-cab__datas">
+          <div class="data-chave"><span class="data-chave__rotulo">DPP</span><span class="data-chave__valor">12/11/2026</span><span class="data-chave__tipo">estimativa</span></div>
+          <div class="data-chave"><span class="data-chave__rotulo">Janela</span><span class="data-chave__valor">22/10 a 26/11</span><span class="data-chave__tipo">menos 21, mais 14 dias</span></div>
+          <div class="data-chave"><span class="data-chave__rotulo">Nascimento</span><span class="data-chave__valor">Ainda não</span></div>
+          <div class="data-chave"><span class="data-chave__rotulo">Início</span><span class="data-chave__valor">Ainda não</span></div>
+        </div>
+      </div>
+
+      <section>
+        <h2 class="t-3" style="margin-bottom: var(--e-2)">Oferta em andamento</h2>
+        <div class="fila-item">
+          <div>
+            <div class="fila-item__motivo">Rosana Vieira, titular</div>
+            <div class="fila-item__meta">Oferecida em 23/09/2026, 20:10</div>
+          </div>
+          <span class="prazo" data-estado="perto"><svg class="icone"><use href="#i-hourglass"/></svg>Responda até 26/09/2026, 18:00</span>
+        </div>
+      </section>
+
+      <section class="pilha pilha--4">
+        <h2 class="t-3">Candidatas, ordenadas por livre na janela, praça, período e carga da semana</h2>
+
+        <div class="cartao k3-candidata">
+          <div class="k3-candidata__topo">
+            <span class="forte">Priscila Andrade</span>
+            <span class="selo selo--sucesso">Livre em toda a janela</span>
+            <span class="apoio">Alphaville e Cotia · período manhã · 2 famílias na semana</span>
+            <div class="k3-candidata__acoes">
+              <button class="botao botao--primario botao--compacto" type="button">Oferecer como titular</button>
+              <button class="botao botao--compacto" type="button">Oferecer como backup</button>
+            </div>
+          </div>
+          <div class="semana semana--compacta"><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div></div>
+        </div>
+
+        <div class="cartao k3-candidata">
+          <div class="k3-candidata__topo">
+            <span class="forte">Rosana Vieira</span>
+            <span class="selo selo--destaque">Oferta pendente</span>
+            <span class="apoio">São Paulo · período manhã · titular ofertada</span>
+          </div>
+          <div class="semana semana--compacta"><div class="semana__dia"><span class="semana__turno" data-estado="oferta"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="oferta"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="oferta"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="oferta"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="oferta"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div></div>
+        </div>
+
+        <div class="cartao k3-candidata">
+          <div class="k3-candidata__topo">
+            <span class="forte">Marta Quintela</span>
+            <span class="selo selo--contorno">Livre na maior parte da janela</span>
+            <span class="apoio">Londrina · fora da praça preferida · 1 família na semana</span>
+            <div class="k3-candidata__acoes">
+              <button class="botao botao--compacto" type="button">Oferecer como titular</button>
+              <button class="botao botao--compacto" type="button">Oferecer como backup</button>
+            </div>
+          </div>
+          <div class="semana semana--compacta"><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div></div>
+        </div>
+      </section>
+
+      <section class="pilha pilha--2">
+        <h2 class="t-3">Urgência</h2>
+        <div class="campo">
+          <span class="campo__rotulo">Motivo</span>
+          <div class="campo__caixa"><textarea class="campo__entrada" placeholder="Explique por que a designação não pode esperar resposta da oferta"></textarea></div>
+        </div>
+        <button class="botao botao--terciario" type="button" style="align-self: flex-start">Atribuir direto</button>
+        <p class="apoio">Só coordenação atribui direto, sem esperar a oferta.</p>
+      </section>
+
+      <!-- ---------- Estados ---------- -->
+      <div class="k3-secao">
+        <div>
+          <p class="k3-secao__titulo">Sem candidata livre na janela</p>
+          <div class="vazio">
+            <svg class="icone icone--24"><use href="#i-user-check"/></svg>
+            <span class="vazio__titulo">Ninguém livre em toda a janela</span>
+            <p class="vazio__texto">Veja quem está livre na maior parte dela ou atribua direto.</p>
+          </div>
+        </div>
+
+        <div>
+          <p class="k3-secao__titulo">Oferta recusada</p>
+          <div class="fila-item">
+            <div>
+              <div class="fila-item__motivo">Rosana Vieira recusou</div>
+              <div class="fila-item__meta">Motivo: agenda. Recusada em 24/09/2026, 08:15.</div>
+            </div>
+            <button class="botao botao--compacto" type="button">Oferecer a outra enfermeira</button>
+          </div>
+        </div>
+
+        <div>
+          <p class="k3-secao__titulo">Oferta expirada</p>
+          <div class="fila-item">
+            <div>
+              <div class="fila-item__motivo">Oferta para Rosana Vieira expirou</div>
+              <div class="fila-item__meta">Prazo era 26/09/2026, 18:00</div>
+            </div>
+            <span class="prazo" data-estado="vencido"><svg class="icone"><use href="#i-clock-alert"/></svg>Vencida</span>
+          </div>
+        </div>
+
+        <div>
+          <p class="k3-secao__titulo">Atribuição direta confirmada</p>
+          <div class="aviso-efemero aviso-efemero--estatico">
+            <svg class="icone"><use href="#i-check"/></svg>
+            <span class="corpo">Priscila Andrade atribuída como titular da Família Teste Horizonte às 09:40.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <nav class="abas-inf" aria-label="Navegação principal">
+    <a class="abas-inf__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">2</span></a>
+    <a class="abas-inf__item" href="coordenacao-radar.html" aria-current="page"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+    <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
+    <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="coordenacao.html"><svg class="icone"><use href="#i-ellipsis"/></svg>Mais</a>
+  </nav>
+</div>
+</body>
+</html>

@@ -1,0 +1,517 @@
+{
+  "geradoEm": "2026-09-25T00:19:41Z",
+  "fonte": "npm pack das versões estáveis mais recentes em registry.npmjs.org, sem acesso a nenhuma instância n8n. Ver README.md para o método e as armadilhas.",
+  "pacotes": {
+    "n8n-nodes-base": "2.15.1",
+    "@n8n/n8n-nodes-langchain": "2.40.3",
+    "n8n-workflow": "2.16.0",
+    "n8n": "2.40.6",
+    "@langchain/community": "1.1.27",
+    "@n8n/ai-utilities": "0.33.1"
+  },
+  "nos": {
+    "webhook": {
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "versoes": [1, 1.1, 2, 2.1],
+      "parametros": {
+        "httpMethod": "POST",
+        "path": "isadora-entrada-SEGREDO",
+        "authentication": "none",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "conexoes": {
+        "outputs": ["main"]
+      },
+      "observacoes": "defaultVersion 2.1. responseMode aceita onReceived, lastNode, responseNode e streaming (streaming existe a partir da v2). Path com segredo entra literal na string, nunca vem de expressão em runtime. Sem credencial: authentication none, headerAuth, basicAuth ou jwtAuth."
+    },
+    "code": {
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "versoes": [1, 2],
+      "parametros": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const jid = $input.first().json.chatid;\nreturn [{ json: { jid } }];"
+      },
+      "conexoes": {
+        "inputs": ["main"],
+        "outputs": ["main"]
+      },
+      "observacoes": "defaultVersion 2. O parâmetro do código muda de nome com a linguagem: jsCode para JavaScript, pythonCode para Python (Python nativo só roda com task runner habilitado no servidor). mode runOnceForEachItem processa item a item; runOnceForAllItems recebe $input.all()."
+    },
+    "if": {
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "versoes": [1, 2, 2.1, 2.2, 2.3],
+      "parametros": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.isGroup }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "conexoes": {
+        "inputs": ["main"],
+        "outputs": ["main (true)", "main (false)"]
+      },
+      "observacoes": "defaultVersion 2.3. O objeto conditions.options.version muda de 1 (v2/2.1) para 2 (v2.2/2.3); um filtro salvo na v2 não é lido do mesmo jeito na v2.3 sem passar por esse campo. A v1 usa um formato totalmente diferente (boolean[], string[], number[] soltos), incompatível."
+    },
+    "switch": {
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "versoes": [1, 2, 3, 3.1, 3.2, 3.3, 3.4],
+      "parametros": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+                "conditions": [
+                  {
+                    "id": "r1",
+                    "leftValue": "={{ $json.tipoMensagem }}",
+                    "rightValue": "audio",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "audio"
+            }
+          ]
+        },
+        "options": { "fallbackOutput": "none" }
+      },
+      "conexoes": {
+        "inputs": ["main"],
+        "outputs": ["main (uma saída por regra, mais extra se fallbackOutput = extra)"]
+      },
+      "observacoes": "defaultVersion 3.4. options.fallbackOutput aceita 'none', 'extra' ou o índice numérico de uma saída; 'extra' cria uma saída adicional só quando configurado assim, não existe por padrão."
+    },
+    "set": {
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "versoes": [1, 2, 3, 3.1, 3.2, 3.3, 3.4],
+      "parametros": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "conversa_id",
+              "type": "string",
+              "value": "={{ $json.conversa_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "conexoes": {
+        "inputs": ["main"],
+        "outputs": ["main"]
+      },
+      "observacoes": "defaultVersion 3.4, chamado 'Edit Fields' na interface embora o type continue 'set'. O nó de versão 1/2 (Set antigo) usa parâmetros completamente diferentes (values.string, values.number etc.), não é o mesmo JSON."
+    },
+    "httpRequest": {
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "versoes": [1, 2, 3, 4, 4.1, 4.2, 4.3, 4.4],
+      "parametros": {
+        "method": "POST",
+        "url": "={{ $('Config').first().json.uazapiUrl }}/send/text",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { number: $json.jid, text: $json.texto, track_source: 'kraamzorg-agente' } }}",
+        "options": { "timeout": 10000 }
+      },
+      "conexoes": {
+        "inputs": ["main"],
+        "outputs": ["main"]
+      },
+      "observacoes": "defaultVersion 4.4. O parâmetro do corpo muda de nome conforme specifyBody: 'json' usa jsonBody, 'keypair' usa bodyParameters.parameters[]. onError e alwaysOutputData ficam fora de 'parameters', são chaves do próprio nó (ver README)."
+    },
+    "postgres": {
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "versoes": [1, 2, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6],
+      "parametros": {
+        "resource": "database",
+        "operation": "executeQuery",
+        "query": "select * from agente.registrar_mensagem($1, $2, $3, $4)",
+        "options": {
+          "queryReplacement": "={{ [$json.jid, $json.texto, 'entrada', 'cliente'] }}"
+        }
+      },
+      "conexoes": {
+        "inputs": ["main"],
+        "outputs": ["main"]
+      },
+      "observacoes": "defaultVersion 2.6. options.queryReplacement é o nome real do parâmetro (rótulo na UI: 'Query Parameters'); a descrição da UI ainda diz 'lista separada por vírgula', mas o código (executeQuery.operation.js) só faz esse split por vírgula em typeVersion < 2.5. Da 2.5 em diante ele avalia a expressão inteira e exige que o resultado seja um array (ou usa stringToArray sobre uma string). Por isso a convenção do capítulo 19 (expressão {{ [...] }}) é obrigatória na versão atual: um valor com vírgula dentro de uma string em modo antigo quebraria o parâmetro seguinte."
+    },
+    "postgresTool": {
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "versoes": [2, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6],
+      "parametros": {
+        "resource": "database",
+        "operation": "executeQuery",
+        "query": "select * from agente.planos_vigentes()",
+        "descriptionType": "manual",
+        "toolDescription": "Consulta os planos vigentes e seus valores. Use antes de citar qualquer plano ou valor para a família.",
+        "options": {}
+      },
+      "conexoes": {
+        "outputs": ["ai_tool"]
+      },
+      "observacoes": "Não é um pacote de nó separado: o n8n gera esse tipo em tempo de execução (packages/cli/dist/tool-generation/ai-tools.js, função convertNodeToAiTool) para todo nó com usableAsTool: true, como o Postgres. Ele pega a description do nó original, soma 'Tool' ao name (postgres -> postgresTool), zera inputs, força outputs = [ai_tool] e, se o nó tem resource/operation (como o Postgres tem), adiciona o campo descriptionType (auto/manual) antes de 'toolDescription'. Isso significa: a typeVersion do postgresTool sempre replica a typeVersion do Postgres normal que foi convertido (aqui, 2.6); e qualquer parâmetro de conteúdo (não o jid) pode virar $fromAI(chave, descrição, tipo, padrão) dentro da query ou do queryReplacement, mas o jid da chamada nunca deve vir de $fromAI, porque isso deixaria a família controlar de qual conversa o agente lê ou grava (ver 11.10)."
+    },
+    "redis": {
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "versoes": [1],
+      "parametros": {
+        "operation": "set",
+        "key": "=kz:pausa:{{ $json.conversa_id }}",
+        "value": "={{ $json.motivo }}",
+        "keyType": "automatic",
+        "expire": true,
+        "ttl": 172800
+      },
+      "conexoes": {
+        "inputs": ["main"],
+        "outputs": ["main"]
+      },
+      "observacoes": "Único nó da lista com version fixo em número (1), sem array nem defaultVersion: o node.json não tem histórico de versões. ttl é sempre em segundos (172800 = 48h). O nó também tem usableAsTool: true (existe um redisTool gerado), não usado no capítulo 19."
+    },
+    "wait": {
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "versoes": [1, 1.1],
+      "parametros": {
+        "resume": "timeInterval",
+        "amount": 20,
+        "unit": "seconds"
+      },
+      "conexoes": {
+        "inputs": ["main"],
+        "outputs": ["main"]
+      },
+      "observacoes": "Array de versões [1, 1.1] sem defaultVersion explícito: a convenção do n8n é assumir o maior número do array (1.1) como versão corrente para nó novo. Sem parâmetro 'resume', o nó espera por um webhook de retomada; com resume=timeInterval ele só espera o tempo indicado."
+    },
+    "splitOut": {
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "versoes": [1],
+      "parametros": {
+        "fieldToSplitOut": "blocos",
+        "include": "noOtherFields",
+        "options": { "disableDotNotation": false }
+      },
+      "conexoes": {
+        "inputs": ["main"],
+        "outputs": ["main"]
+      },
+      "observacoes": "Nome interno é 'splitOut' (Transform/SplitOut no pacote), mas o nome de exibição é 'Split Out'. Não confundir com o antigo 'Item Lists' (itemLists), que ainda existe no pacote por compatibilidade mas foi substituído por splitOut e removalist."
+    },
+    "splitInBatches": {
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "versoes": [1, 2, 3],
+      "parametros": {
+        "batchSize": 1,
+        "options": { "reset": false }
+      },
+      "conexoes": {
+        "inputs": ["main"],
+        "outputs": ["main (done)", "main (loop)"]
+      },
+      "observacoes": "defaultVersion 3. Chamado 'Loop Over Items' na interface atual. batchSize=1 processa um bloco por vez, como pede o capítulo 19 para digitar e enviar cada bloco separadamente. A ordem das saídas mudou entre versões: na v3, saída 0 é 'done' e saída 1 é 'loop' (conferir sempre pelo nome da saída no JSON, não pela posição, ao montar o build)."
+    },
+    "scheduleTrigger": {
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "versoes": [1, 1.1, 1.2, 1.3],
+      "parametros": {
+        "rule": {
+          "interval": [
+            { "field": "minutes", "minutesInterval": 30 }
+          ]
+        }
+      },
+      "conexoes": {
+        "outputs": ["main"]
+      },
+      "observacoes": "Array de versões sem defaultVersion explícito no description; a versão corrente assumida é a maior do array (1.3). rule.interval é uma lista, permite combinar mais de uma regra (ex.: 'a cada 6h' e 'a cada 30 min' são dois nós diferentes no capítulo 19, cada um com sua própria regra)."
+    },
+    "manualTrigger": {
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "versoes": [1],
+      "parametros": {},
+      "conexoes": {
+        "outputs": ["main"]
+      },
+      "observacoes": "Sem parâmetros de conteúdo. version é o único (1), fixo."
+    },
+    "executeWorkflowTrigger": {
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "versoes": [1, 1.1],
+      "parametros": {
+        "inputSource": "workflowInputs",
+        "workflowInputs": {
+          "values": [
+            { "name": "acao", "type": "string" },
+            { "name": "wa_jid", "type": "string" },
+            { "name": "conversa_id", "type": "string" },
+            { "name": "dados", "type": "object" },
+            { "name": "enviar_texto", "type": "boolean" }
+          ]
+        }
+      },
+      "conexoes": {
+        "outputs": ["main"]
+      },
+      "observacoes": "defaultVersion assumido 1.1 (maior do array, sem defaultVersion explícito). inputSource tem três modos: 'workflowInputs' (campos declarados um a um, o do capítulo 19), 'jsonExample' (schema inferido de um JSON de exemplo) e 'passthrough' (aceita tudo sem checar). Cada campo declarado em workflowInputs.values tem name + type (any, string, number, boolean, array, object); esse mesmo nome 'workflowInputs' reaparece no Tool Workflow (nó chamador) com um formato de parâmetro totalmente diferente (resourceMapper, não fixedCollection), é a mesma ideia (declarar as entradas do sub-fluxo) mas não o mesmo JSON."
+    },
+    "executeWorkflow": {
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "versoes": [1, 1.1, 1.2, 1.3],
+      "parametros": {
+        "source": "database",
+        "workflowId": { "__rl": true, "mode": "id", "value": "ID_DO_FLUXO_2" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "acao": "alerta_saude",
+            "wa_jid": "={{ $json.jid }}",
+            "conversa_id": "={{ $json.conversa_id }}"
+          }
+        },
+        "options": { "waitForSubWorkflow": true }
+      },
+      "conexoes": {
+        "inputs": ["main"],
+        "outputs": ["main"]
+      },
+      "observacoes": "defaultVersion assumido 1.3 (maior do array). Só existe depois que o fluxo 2 já foi importado e o id anotado (19.5: 'anotar o id, rebuild do fluxo 3 com esse id'), porque workflowId.value precisa do id real."
+    },
+    "toolWorkflow": {
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "versoes": [1, 1.1, 1.2, 1.3, 2, 2.1, 2.2],
+      "parametros": {
+        "description": "Chama a equipe quando a família confirma que quer contratar, pede reunião ou foge do que a Isadora sabe responder.",
+        "source": "database",
+        "workflowId": { "__rl": true, "mode": "id", "value": "ID_DO_FLUXO_2" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "acao": "transferir",
+            "wa_jid": "={{ $('Extrair Dados').item.json.jid }}",
+            "conversa_id": "={{ $('Extrair Dados').item.json.conversa_id }}",
+            "motivo": "={{ $fromAI('motivo', 'motivo do handoff, um dos valores do enum handoff_motivo', 'string') }}",
+            "resumo": "={{ $fromAI('resumo', 'resumo curto do que a família disse e do que falta', 'string') }}"
+          }
+        }
+      },
+      "conexoes": {
+        "outputs": ["ai_tool"]
+      },
+      "observacoes": "defaultVersion 2.2. workflowInputs é resourceMapper (mappingMode 'defineBelow' + 'value', não fixedCollection como no Execute Workflow Trigger). Cada campo mapeado aceita uma expressão fixa (referenciando outro nó, ex.: $('Extrair Dados').item.json.jid) OU um $fromAI(...): o nó não obriga todos os campos a vir do modelo, então o jid, que nunca deve ser preenchido pela IA, fica como expressão fixa lendo o nó determinístico, exatamente como o capítulo 19.1 exige. A partir da v1.3 (typeVersion <= 2.1 ainda usa) existe também um campo solto 'Name' para o nome da função; da v2.2 em diante esse campo desapareceu do formulário mas o parâmetro 'name' ainda é aceito por compatibilidade; o nome do tool que o modelo vê passa a vir do nome do próprio nó no canvas."
+    },
+    "agent": {
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "versoes": [1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.1, 2.2, 2.3, 3, 3.1],
+      "parametros": {
+        "promptType": "define",
+        "text": "={{ $json.texto }}",
+        "hasOutputParser": false,
+        "needsFallback": false,
+        "options": {
+          "systemMessage": "conteúdo de n8n/prompts/isadora-system.md, montado com os campos do nó 25 (Montar Contexto do Agente)",
+          "maxIterations": 10,
+          "returnIntermediateSteps": false
+        }
+      },
+      "conexoes": {
+        "inputs": ["main"],
+        "ai_languageModel": "obrigatória, 1 conexão",
+        "ai_memory": "opcional, 1 conexão",
+        "ai_tool": "opcional, várias conexões (as nove ferramentas da 11.9)",
+        "ai_outputParser": "opcional, só se hasOutputParser=true",
+        "outputs": ["main"]
+      },
+      "observacoes": "defaultVersion 3.1. options.maxIterations tem default 10 no próprio nó (bate com a 19.4: 'até 10 iterações de ferramenta', então nem precisa declarar se aceitar o padrão). options.systemMessage tem um texto padrão do n8n como default; o capítulo 19 sempre sobrescreve com o prompt do arquivo. needsFallback=true é obrigatório se for conectar um segundo modelo de linguagem (fallback); sem isso a segunda conexão ai_languageModel não existe no nó."
+    },
+    "lmChatOpenAi": {
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "versoes": [1, 1.1, 1.2, 1.3],
+      "parametros": {
+        "model": { "__rl": true, "mode": "list", "value": "gpt-5.1" },
+        "options": {
+          "temperature": 0.5
+        }
+      },
+      "conexoes": {
+        "outputs": ["ai_languageModel"]
+      },
+      "observacoes": "defaultVersion assumido 1.3 (maior do array). ARMADILHA confirmada no código (supplyData do nó): options.temperature é sempre repassado para o cliente OpenAI quando presente, o nó não detecta sozinho se o modelo é da família de raciocínio (GPT-5 com reasoning_effort) nem remove o parâmetro por conta própria. Isso confirma a nota da 19.1: para os classificadores em gpt-4.1-mini, options.temperature = 0 é seguro; para gpt-5.1 em modo de raciocínio, se a API recusar 'temperature', o campo tem que ficar de fora de 'options' no JSON gerado pelo build (o config decide, por ambiente, e o teste de fumaça do P25 confirma). options.reasoningEffort (low/medium/high) é o parâmetro certo para controlar esforço em modelos de raciocínio, e é diferente de temperature."
+    },
+    "embeddingsOpenAi": {
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "versoes": [1, 1.1, 1.2],
+      "parametros": {
+        "model": "text-embedding-3-small",
+        "options": {}
+      },
+      "conexoes": {
+        "outputs": ["ai_embedding"]
+      },
+      "observacoes": "defaultVersion assumido 1.2 (maior do array). options.dimensions é opcional e só some efeito em text-embedding-3 e mais novos; se deixado vazio, usa a dimensão nativa do modelo (1536 para text-embedding-3-small). Importante: como o nó PGVector não repassa nenhuma dimensão para a criação da tabela (ver vectorStorePGVectorInsert), fixar ou não 'dimensions' aqui não muda o tipo da coluna criada automaticamente, só o tamanho do vetor gravado; ver README para o que isso implica em índice."
+    },
+    "vectorStorePGVectorInsert": {
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "versoes": [1, 1.1, 1.2, 1.3],
+      "parametros": {
+        "mode": "insert",
+        "tableName": "agente_n8n.documentos",
+        "embeddingBatchSize": 200,
+        "options": {
+          "columnNames": {
+            "values": {
+              "idColumnName": "id",
+              "vectorColumnName": "embedding",
+              "contentColumnName": "text",
+              "metadataColumnName": "metadata"
+            }
+          },
+          "collection": {
+            "values": { "useCollection": false, "collectionName": "n8n", "collectionTableName": "n8n_vector_collections" }
+          }
+        }
+      },
+      "conexoes": {
+        "inputs": ["main", "ai_embedding (obrigatória, 1 conexão)", "ai_document (obrigatória, 1 conexão, vem do Default Data Loader)"],
+        "outputs": ["main"]
+      },
+      "observacoes": "defaultVersion assumido 1.3 (maior do array, sem defaultVersion explícito na fábrica createVectorStoreNode). Ao rodar pela primeira vez, o nó executa, nesta ordem: 'CREATE EXTENSION IF NOT EXISTS vector;' e depois 'CREATE TABLE IF NOT EXISTS agente_n8n.documentos (\"id\" uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY, \"text\" text, \"metadata\" jsonb, \"embedding\" vector);' (essa string vem literal de @langchain/community/vectorstores/pgvector, método ensureTableInDatabase). ARMADILHA: o nó nunca passa 'dimensions' para esse método (a fábrica genérica de vector store do @n8n/ai-utilities não tem esse parâmetro em nenhuma operação), então a coluna 'embedding' fica como 'vector' sem tamanho fixo, e nenhum índice HNSW/IVFFlat é criado automaticamente. Se a Kraamzorg quiser busca rápida em escala, uma migration própria (fora do n8n) precisa alterar a coluna para vector(1536) e criar o índice; o n8n sozinho só garante que a tabela existe. Exige privilégio CREATE no schema agente_n8n para o papel n8n_agente (bate com 11.10)."
+    },
+    "vectorStorePGVectorRetrieveAsTool": {
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "versoes": [1, 1.1, 1.2, 1.3],
+      "parametros": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Busca respostas na base de conhecimento aprovada: dúvidas sobre o serviço, FAQ, objeções, políticas e depoimentos. Não usar para dúvidas clínicas.",
+        "tableName": "agente_n8n.documentos",
+        "topK": 5,
+        "includeDocumentMetadata": true,
+        "useReranker": false,
+        "options": {
+          "columnNames": {
+            "values": {
+              "idColumnName": "id",
+              "vectorColumnName": "embedding",
+              "contentColumnName": "text",
+              "metadataColumnName": "metadata"
+            }
+          },
+          "distanceStrategy": "cosine"
+        }
+      },
+      "conexoes": {
+        "inputs": ["ai_embedding (obrigatória, 1 conexão)"],
+        "outputs": ["ai_tool"]
+      },
+      "observacoes": "Mesmo type do modo insert, muda só 'mode' e as propriedades visíveis. ARMADILHA: até a typeVersion 1.2 existia um campo separado 'Name' (parâmetro toolName) para o nome que o modelo vê; a partir da 1.3 esse campo some da interface e o nome da ferramenta passa a ser derivado automaticamente do nome do nó no canvas (função nodeNameToToolName, ver n8n-workflow), sanitizado. Ou seja: renomear o nó 'base_conhecimento' no canvas muda o nome da função que a Isadora chama, sem tocar em nenhum parâmetro. topK default é 4 no nó; o capítulo 19.1/11.9 pede 5, então tem que declarar explicitamente. A consulta do usuário não usa $fromAI: o framework já entrega a pergunta da Isadora como argumento único da tool automaticamente (a assinatura da função é 'query: string'), então não existe um parâmetro de texto para preencher com $fromAI aqui, diferente do postgresTool e do toolWorkflow."
+    },
+    "documentDefaultDataLoader": {
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "versoes": [1, 1.1],
+      "parametros": {
+        "dataType": "json",
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.texto }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "values": [
+              { "name": "tipo", "value": "={{ $json.tipo }}" },
+              { "name": "fonte_id", "value": "={{ $json.fonte_id }}" },
+              { "name": "titulo", "value": "={{ $json.titulo }}" },
+              { "name": "pagina_pdf", "value": "={{ $json.pagina_pdf }}" },
+              { "name": "lote_id", "value": "={{ $json.lote_id }}" }
+            ]
+          }
+        }
+      },
+      "conexoes": {
+        "inputs": ["ai_textSplitter (obrigatória só quando textSplittingMode = custom, 1 conexão)"],
+        "outputs": ["ai_document"]
+      },
+      "observacoes": "defaultVersion 1.1. ARMADILHA confirmada no código (supplyData): quando textSplittingMode = 'simple' (o padrão do formulário), o próprio nó cria um RecursiveCharacterTextSplitter interno com chunkSize 1000 e chunkOverlap 200, sem expor esses números como parâmetro, exatamente como a 19.2 descreve ('fatia a cada 1.000 caracteres'). Para usar 2.000 caracteres por pedaço (o que a 19.2 pede), é obrigatório: textSplittingMode = 'custom' e conectar um nó Recursive Character Text Splitter separado com chunkSize 2000 na entrada ai_textSplitter; só declarar chunkSize em outro lugar não tem efeito. A entrada ai_textSplitter só existe/aparece no JSON quando textSplittingMode não é 'simple'."
+    },
+    "textSplitterRecursiveCharacterTextSplitter": {
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "versoes": [1],
+      "parametros": {
+        "chunkSize": 2000,
+        "chunkOverlap": 0,
+        "options": {}
+      },
+      "conexoes": {
+        "outputs": ["ai_textSplitter"]
+      },
+      "observacoes": "Único nó da lista com version fixo (1). Só é consumido pelo Default Data Loader quando textSplittingMode = 'custom'."
+    },
+    "memoryPostgresChat": {
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.4,
+      "versoes": [1, 1.1, 1.2, 1.3, 1.4],
+      "parametros": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.conversa_id }}",
+        "tableName": "agente_n8n.chat_memoria",
+        "contextWindowLength": 30
+      },
+      "conexoes": {
+        "outputs": ["ai_memory"]
+      },
+      "observacoes": "defaultVersion assumido 1.4 (maior do array). Ao rodar pela primeira vez, o nó executa 'CREATE TABLE IF NOT EXISTS agente_n8n.chat_memoria (id SERIAL PRIMARY KEY, session_id VARCHAR(255) NOT NULL, message JSONB NOT NULL);' (string literal de @langchain/community/stores/message/postgres.cjs, método ensureTable; sem CREATE EXTENSION, essa tabela não usa pgvector). ARMADILHA de nome de parâmetro: sessionIdType='fromInput' e sessionIdType='customKey' compartilham o MESMO nome de parâmetro de valor ('sessionKey') só que declarado duas vezes na definição do nó com displayOptions diferentes; o capítulo 19 usa customKey, então sessionKey é uma expressão editável (aqui, o id da conversa), não o campo somente leitura que aparece em modo fromInput. contextWindowLength tem default 5 no nó; a 19.4/11.9 pedem janela de 30 mensagens, então precisa ser declarado explicitamente, senão a memória fica curta demais."
+    },
+    "stickyNote": {
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "versoes": [1],
+      "parametros": {
+        "content": "## Kraamzorg · Ingestão RAG\nGerado por n8n/build.mjs. Não edite na interface.",
+        "height": 160,
+        "width": 320,
+        "color": 4
+      },
+      "conexoes": {},
+      "observacoes": "Sem inputs/outputs (nó decorativo). color é number (paleta fixa do n8n, 1 a 7), não string/hex."
+    }
+  }
+}

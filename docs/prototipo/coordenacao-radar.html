@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Radar de nascimentos · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/icones.js"></script>
+<style>
+  /* Grade do radar: cabeçalho de semanas + uma faixa por família. Mesma ideia de grid
+     de semana.js, com uma coluna de rótulo maior porque o nome da família é mais longo. */
+  .radar-grade { display: grid; grid-template-columns: minmax(160px, 1fr) repeat(9, minmax(64px, 1fr)); gap: var(--e-1); align-items: center; }
+  .radar-cab { font-family: var(--fonte-dado); font-size: var(--tam-mini); color: var(--texto-2); text-align: center; padding-bottom: var(--e-2); border-bottom: var(--borda-fina); }
+  .radar-cab--hoje { color: var(--texto); font-weight: 600; }
+  .radar-familia { padding: var(--e-2) 0; }
+  .radar-trilha { grid-column: 2 / -1; position: relative; height: 32px; }
+  /* Faixa hachurada: mesmo padrão de .semana__turno[data-estado="reservada"], só com variáveis,
+     reaproveitado numa barra que cobre várias colunas em vez de uma célula única. */
+  .radar-faixa {
+    position: absolute; top: 0; bottom: 0; display: flex; align-items: center; gap: var(--e-2);
+    padding: 0 var(--e-3); border-radius: var(--raio-2); border: 1.5px solid var(--marinho-50);
+    background: repeating-linear-gradient(135deg, var(--marinho-50) 0 2px, var(--superficie) 2px 5px);
+    font-size: var(--tam-mini); white-space: nowrap; overflow: hidden;
+  }
+  .radar-faixa--sem-titular { border-color: var(--aviso-borda); background: repeating-linear-gradient(135deg, var(--aviso-borda) 0 2px, var(--aviso-lavado) 2px 5px); }
+  .radar-secao { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); border-top: var(--borda-fina); margin-top: var(--e-8); }
+  .radar-secao__titulo { font-size: var(--tam-mini); font-weight: 600; color: var(--texto-2); }
+  .radar-ocupacao { display: flex; flex-direction: column; gap: var(--e-2); }
+</style>
+</head>
+<body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<div class="app">
+
+  <nav class="lateral" aria-label="Navegação principal">
+    <div class="lateral__marca">
+      <img src="assets/simbolo-provisorio.png" alt="" width="36" height="31">
+      <span class="lateral__nome">Kraamzorg OS</span>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Operação</span>
+      <a class="lateral__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">2</span></a>
+      <a class="lateral__item" href="coordenacao-radar.html" aria-current="page"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+      <a class="lateral__item" href="coordenacao-equipe.html"><svg class="icone"><use href="#i-user-check"/></svg>Equipe</a>
+    </div>
+    <div class="lateral__pe">
+      <div class="forte">Beatriz Falcão</div>
+      <div class="mini" style="color: var(--texto-inverso-2)">Coordenação clínica · perfil fictício</div>
+    </div>
+  </nav>
+
+  <main class="app__principal" id="conteudo">
+    <header class="cab-tela">
+      <span class="cab-tela__titulo t-display">Radar de nascimentos</span>
+      <span class="sinc empurra" data-estado="sincronizado" role="status"><svg class="icone"><use href="#i-cloud-check"/></svg>Sincronizado 08:02</span>
+    </header>
+
+    <div class="pilha pilha--8" style="padding-top: var(--e-6)">
+
+      <section>
+        <p class="apoio" style="margin-bottom: var(--e-4)">21/09/2026 a 16/11/2026. A faixa mostra a janela da DPP, de 21 dias antes a 14 dias depois. Hachurada porque é provável, ainda não é fato.</p>
+        <div class="radar-grade">
+          <span></span>
+          <span class="radar-cab radar-cab--hoje">21/09</span><span class="radar-cab">28/09</span><span class="radar-cab">05/10</span>
+          <span class="radar-cab">12/10</span><span class="radar-cab">19/10</span><span class="radar-cab">26/10</span>
+          <span class="radar-cab">02/11</span><span class="radar-cab">09/11</span><span class="radar-cab">16/11</span>
+
+          <div class="radar-familia">
+            <div class="forte">Família Teste Brisa</div>
+            <span class="mini">DPP 02/10/2026</span>
+          </div>
+          <div class="radar-trilha">
+            <div class="radar-faixa" style="grid-column: 1 / 5; left: 0; right: 60%">
+              <svg class="icone icone--16"><use href="#i-user-check"/></svg>Priscila Andrade, titular
+            </div>
+          </div>
+
+          <div class="radar-familia">
+            <div class="forte">Família Teste Garoa</div>
+            <span class="mini">DPP 22/10/2026</span>
+          </div>
+          <div class="radar-trilha">
+            <div class="radar-faixa radar-faixa--sem-titular" style="left: 11.1%; right: 22.2%">
+              <span class="selo selo--aviso" style="background:transparent; padding:0"><svg class="icone icone--16"><use href="#i-triangle-alert"/></svg>Sem titular</span>
+            </div>
+          </div>
+
+          <div class="radar-familia">
+            <div class="forte">Família Teste Jasmim</div>
+            <span class="mini">DPP 03/11/2026</span>
+          </div>
+          <div class="radar-trilha">
+            <div class="radar-faixa" style="left: 33.3%; right: 0">
+              <svg class="icone icone--16"><use href="#i-user-check"/></svg>Priscila Andrade, titular
+            </div>
+          </div>
+
+          <div class="radar-familia">
+            <div class="forte">Família Teste Horizonte</div>
+            <span class="mini">DPP 12/11/2026</span>
+          </div>
+          <div class="radar-trilha">
+            <div class="radar-faixa radar-faixa--sem-titular" style="left: 44.4%; right: 0">
+              <span class="selo selo--aviso" style="background:transparent; padding:0"><svg class="icone icone--16"><use href="#i-triangle-alert"/></svg>Sem titular</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="t-3" style="margin-bottom: var(--e-4)">Ocupação por praça, semana de 26/10</h2>
+        <div class="grade">
+          <div class="radar-ocupacao cartao cartao--plano">
+            <div class="linha-flex">
+              <span class="forte">São Paulo</span>
+              <span class="dado empurra">4 de 5</span>
+            </div>
+            <div class="blocos">
+              <div class="blocos__trilha" style="--n: 5">
+                <span data-estado="feito"></span><span data-estado="feito"></span><span data-estado="feito"></span><span data-estado="feito"></span><span></span>
+              </div>
+            </div>
+          </div>
+          <div class="radar-ocupacao cartao cartao--plano">
+            <div class="linha-flex">
+              <span class="forte">Londrina</span>
+              <span class="dado empurra">1 de 3</span>
+            </div>
+            <div class="blocos">
+              <div class="blocos__trilha" style="--n: 3">
+                <span data-estado="feito"></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- Estados ---------- -->
+      <div class="radar-secao">
+        <div>
+          <p class="radar-secao__titulo">Nascimento informado, com designação urgente</p>
+          <div class="fila-item" data-prioridade="maxima">
+            <div>
+              <div class="fila-item__motivo">Família Teste Aurora: nascimento informado</div>
+              <div class="fila-item__meta">A janela hachurada virou fato. Precisa de designação agora.</div>
+            </div>
+            <a class="botao botao--alerta botao--compacto" href="coordenacao-designar.html">Designar agora</a>
+          </div>
+        </div>
+
+        <div>
+          <p class="radar-secao__titulo">Ocupação acima do limite</p>
+          <div class="radar-ocupacao cartao cartao--plano" style="max-width: 320px">
+            <div class="linha-flex">
+              <span class="forte">São Paulo</span>
+              <span class="dado empurra">5 de 5</span>
+            </div>
+            <div class="blocos">
+              <div class="blocos__trilha" style="--n: 5">
+                <span data-estado="alerta"></span><span data-estado="alerta"></span><span data-estado="alerta"></span><span data-estado="alerta"></span><span data-estado="alerta"></span>
+              </div>
+            </div>
+            <p class="apoio" style="color: var(--alerta)">100% ocupada na semana de 26/10. Sem folga para uma nova família ou um imprevisto.</p>
+          </div>
+        </div>
+
+        <div>
+          <p class="radar-secao__titulo">Praça vazia</p>
+          <div class="vazio">
+            <svg class="icone icone--24"><use href="#i-radar"/></svg>
+            <span class="vazio__titulo">Nenhuma família aguardando nascimento em Londrina</span>
+            <p class="vazio__texto">Quando uma família de Londrina confirmar o pagamento, a janela da DPP aparece aqui.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <nav class="abas-inf" aria-label="Navegação principal">
+    <a class="abas-inf__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">2</span></a>
+    <a class="abas-inf__item" href="coordenacao-radar.html" aria-current="page"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+    <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
+    <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="coordenacao.html"><svg class="icone"><use href="#i-ellipsis"/></svg>Mais</a>
+  </nav>
+</div>
+</body>
+</html>

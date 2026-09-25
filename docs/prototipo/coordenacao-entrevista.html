@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Entrevista pré-natal · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/icones.js"></script>
+<style>
+  .k4-etapas { display: flex; flex-direction: column; gap: 2px; }
+  .k4-etapa { display: flex; align-items: center; gap: var(--e-3); min-height: var(--toque); padding: 0 var(--e-3); border-radius: var(--raio-2); text-decoration: none; color: inherit; }
+  .k4-etapa:hover { background: var(--marinho-08); }
+  .k4-etapa[aria-current="step"] { background: var(--dourado-lavado); font-weight: 600; }
+  .k4-etapa__marca { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: var(--raio-pilula); border: 1.5px solid var(--marinho-50); flex: none; }
+  .k4-etapa[data-estado="completa"] .k4-etapa__marca { background: var(--marinho); border-color: var(--marinho); color: var(--texto-inverso); }
+  .k4-etapa[data-estado="andamento"] .k4-etapa__marca { border-color: var(--dourado); border-style: solid; border-width: 2px; }
+  .k4-form { display: flex; flex-direction: column; gap: var(--e-5); }
+  .k4-contador legend { font-size: var(--tam-apoio); font-weight: 600; margin-bottom: var(--e-2); }
+  .k4-secao { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); border-top: var(--borda-fina); margin-top: var(--e-8); }
+  .k4-secao__titulo { font-size: var(--tam-mini); font-weight: 600; color: var(--texto-2); }
+  /* .barra-acao já é flex por padrão (base.css); .somente-celular sozinha forçaria
+     display:block e quebraria o alinhamento dos dois botões. Escondida à parte, só
+     nesta tela, sem mexer em .barra-acao no base.css. */
+  @media (min-width: 1024px) { .k4-barra-etapa { display: none; } }
+</style>
+</head>
+<body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<div class="app">
+
+  <nav class="lateral" aria-label="Navegação principal">
+    <div class="lateral__marca">
+      <img src="assets/simbolo-provisorio.png" alt="" width="36" height="31">
+      <span class="lateral__nome">Kraamzorg OS</span>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Experiência</span>
+      <a class="lateral__item" href="#" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+      <a class="lateral__item" href="coordenacao-entrevista.html"><svg class="icone"><use href="#i-clipboard-list"/></svg>Entrevistas</a>
+    </div>
+    <div class="lateral__pe">
+      <div class="forte">Beatriz Falcão</div>
+      <div class="mini" style="color: var(--texto-inverso-2)">Coordenação clínica · perfil fictício</div>
+    </div>
+  </nav>
+
+  <main class="app__principal" id="conteudo">
+    <header class="cab-tela">
+      <a class="botao botao--terciario botao--compacto" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-arrow-left"/></svg>Início</a>
+      <span class="cab-tela__titulo t-2 empurra">Entrevista pré-natal</span>
+    </header>
+
+    <div class="pilha pilha--6" style="padding-top: var(--e-5); padding-bottom: 96px">
+
+      <div class="familia-cab">
+        <div>
+          <h1 class="familia-cab__nome">Família Teste Jasmim</h1>
+          <div class="familia-cab__linha">
+            <span class="dado">34s2d</span>
+            <span><svg class="icone icone--16"><use href="#i-map-pin"/></svg> Alphaville, Barueri</span>
+          </div>
+        </div>
+        <button class="botao-freio" type="button"><svg class="icone"><use href="#i-hand"/></svg>Freio</button>
+        <div class="familia-cab__datas">
+          <div class="data-chave"><span class="data-chave__rotulo">DPP</span><span class="data-chave__valor">03/11/2026</span><span class="data-chave__tipo">estimativa</span></div>
+          <div class="data-chave"><span class="data-chave__rotulo">Nascimento</span><span class="data-chave__valor">Ainda não</span></div>
+          <div class="data-chave"><span class="data-chave__rotulo">Alta</span><span class="data-chave__valor">Ainda não</span></div>
+          <div class="data-chave"><span class="data-chave__rotulo">Início</span><span class="data-chave__valor">Ainda não</span></div>
+        </div>
+      </div>
+
+      <div class="linha-flex">
+        <span class="sinc" data-estado="local"><svg class="icone"><use href="#i-smartphone"/></svg>Salvo no aparelho</span>
+        <span class="mini">Parou na etapa 4 de 8 em 24/09/2026, 19:40</span>
+      </div>
+
+      <!-- ---------- Computador: três colunas ---------- -->
+      <div class="somente-computador">
+        <p class="apoio" style="margin-bottom: var(--e-4)">Não existe layout de três colunas em <span class="dado">base.css</span> (só <span class="dado">.duas-colunas</span>): esta seção usa a classe nova <span class="dado">.tres-colunas</span>, adicionada com a mudança mínima descrita no retorno.</p>
+        <div class="tres-colunas">
+
+          <nav class="k4-etapas" aria-label="Etapas da entrevista">
+            <a class="k4-etapa" href="#" data-estado="completa"><span class="k4-etapa__marca"><svg class="icone icone--16"><use href="#i-check"/></svg></span>1 Abertura</a>
+            <a class="k4-etapa" href="#" data-estado="completa"><span class="k4-etapa__marca"><svg class="icone icone--16"><use href="#i-check"/></svg></span>2 Quem é a família</a>
+            <a class="k4-etapa" href="#" data-estado="completa"><span class="k4-etapa__marca"><svg class="icone icone--16"><use href="#i-check"/></svg></span>3 Esta gestação</a>
+            <a class="k4-etapa" href="#" aria-current="step" data-estado="andamento"><span class="k4-etapa__marca dado" style="font-size: 11px">4</span>4 Gestações anteriores<span class="mini empurra">3 de 5</span></a>
+            <a class="k4-etapa" href="#"><span class="k4-etapa__marca dado" style="font-size: 11px">5</span>5 Amamentação antes</a>
+            <a class="k4-etapa" href="#"><span class="k4-etapa__marca dado" style="font-size: 11px">6</span>6 Expectativas</a>
+            <a class="k4-etapa" href="#"><span class="k4-etapa__marca dado" style="font-size: 11px">7</span>7 Temas conversados</a>
+            <a class="k4-etapa" href="#"><span class="k4-etapa__marca dado" style="font-size: 11px">8</span>8 Médicos, preferências e plano</a>
+          </nav>
+
+          <form class="k4-form">
+            <h2 class="t-3">4 · Gestações anteriores</h2>
+
+            <fieldset class="k4-contador" style="border:0; padding:0">
+              <legend>Gestações anteriores</legend>
+              <div class="marcas">
+                <input type="radio" name="gest-ant" id="ga-0"><label for="ga-0">Nenhuma</label>
+                <input type="radio" name="gest-ant" id="ga-1" checked><label for="ga-1">1</label>
+                <input type="radio" name="gest-ant" id="ga-2"><label for="ga-2">2</label>
+                <input type="radio" name="gest-ant" id="ga-3"><label for="ga-3">Três ou mais</label>
+              </div>
+              <span class="campo__salvo"><svg class="icone icone--16"><use href="#i-check"/></svg>Salvo</span>
+            </fieldset>
+
+            <fieldset class="k4-contador" style="border:0; padding:0">
+              <legend>Filhos vivos</legend>
+              <div class="marcas">
+                <input type="radio" name="filhos-vivos" id="fv-0"><label for="fv-0">Nenhuma</label>
+                <input type="radio" name="filhos-vivos" id="fv-1" checked><label for="fv-1">1</label>
+                <input type="radio" name="filhos-vivos" id="fv-2"><label for="fv-2">2</label>
+                <input type="radio" name="filhos-vivos" id="fv-3"><label for="fv-3">Três ou mais</label>
+              </div>
+              <span class="campo__salvo"><svg class="icone icone--16"><use href="#i-check"/></svg>Salvo</span>
+            </fieldset>
+
+            <fieldset class="k4-contador" style="border:0; padding:0">
+              <legend>Partos vaginais</legend>
+              <div class="marcas">
+                <input type="radio" name="partos-vag" id="pv-0" checked><label for="pv-0">Nenhuma</label>
+                <input type="radio" name="partos-vag" id="pv-1"><label for="pv-1">1</label>
+                <input type="radio" name="partos-vag" id="pv-2"><label for="pv-2">2</label>
+                <input type="radio" name="partos-vag" id="pv-3"><label for="pv-3">Três ou mais</label>
+              </div>
+              <span class="campo__salvo"><svg class="icone icone--16"><use href="#i-check"/></svg>Salvo</span>
+            </fieldset>
+
+            <fieldset class="k4-contador" style="border:0; padding:0">
+              <legend>Cesáreas</legend>
+              <div class="marcas">
+                <input type="radio" name="cesareas" id="ce-0"><label for="ce-0">Nenhuma</label>
+                <input type="radio" name="cesareas" id="ce-1" checked><label for="ce-1">1</label>
+                <input type="radio" name="cesareas" id="ce-2"><label for="ce-2">2</label>
+                <input type="radio" name="cesareas" id="ce-3"><label for="ce-3">Três ou mais</label>
+              </div>
+              <span class="campo__salvo"><svg class="icone icone--16"><use href="#i-check"/></svg>Salvo</span>
+            </fieldset>
+
+            <div class="campo">
+              <span class="campo__rotulo">Consultas de pré-natal</span>
+              <div class="campo__caixa"><input class="campo__entrada" type="text" placeholder="Ainda não respondida"></div>
+            </div>
+
+            <div class="campo">
+              <span class="campo__rotulo">Intercorrências em gestações anteriores</span>
+              <div class="campo__caixa"><textarea class="campo__entrada" placeholder="Ainda não respondida"></textarea></div>
+            </div>
+
+            <div class="linha-flex">
+              <button class="botao botao--terciario" type="button"><svg class="icone"><use href="#i-chevron-left"/></svg>Etapa anterior</button>
+              <button class="botao botao--primario empurra" type="button">Próxima etapa<svg class="icone"><use href="#i-chevron-right"/></svg></button>
+            </div>
+          </form>
+
+          <aside class="pilha pilha--4">
+            <h2 class="t-3">Contexto</h2>
+            <div class="pares">
+              <dt>Idade gestacional</dt><dd class="dado">34s2d</dd>
+              <dt>DPP</dt><dd class="dado">03/11/2026</dd>
+              <dt>Maternidade</dt><dd>Maternidade Fictícia do Sul</dd>
+            </div>
+            <p class="mini">A idade gestacional é calculada da DPP e da data de hoje. Nunca é digitada.</p>
+
+            <div class="confirma-copia">
+              <span class="apoio">Cidade</span>
+              <span class="forte">Alphaville, Barueri</span>
+              <span class="mini">Veio do cadastro comercial. Confirme que continua valendo.</span>
+              <div class="confirma-copia__acoes">
+                <button class="botao botao--compacto botao--primario" type="button">Vale para hoje</button>
+                <button class="botao botao--compacto" type="button">Apagar e escrever</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- ---------- Celular: uma etapa por tela ---------- -->
+      <div class="somente-celular">
+        <div class="blocos" style="margin-bottom: var(--e-5)">
+          <div class="blocos__trilha" style="--n: 8">
+            <span data-estado="feito"></span><span data-estado="feito"></span><span data-estado="feito"></span>
+            <span data-estado="atual"></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="blocos__rotulo"><span>Etapa 4 de 8</span><span>Gestações anteriores</span></div>
+        </div>
+
+        <form class="k4-form">
+          <fieldset class="k4-contador" style="border:0; padding:0">
+            <legend>Gestações anteriores</legend>
+            <div class="marcas">
+              <input type="radio" name="m-gest-ant" id="m-ga-0"><label for="m-ga-0">Nenhuma</label>
+              <input type="radio" name="m-gest-ant" id="m-ga-1" checked><label for="m-ga-1">1</label>
+              <input type="radio" name="m-gest-ant" id="m-ga-2"><label for="m-ga-2">2</label>
+              <input type="radio" name="m-gest-ant" id="m-ga-3"><label for="m-ga-3">Três ou mais</label>
+            </div>
+          </fieldset>
+          <fieldset class="k4-contador" style="border:0; padding:0">
+            <legend>Filhos vivos</legend>
+            <div class="marcas">
+              <input type="radio" name="m-filhos" id="m-fv-0"><label for="m-fv-0">Nenhuma</label>
+              <input type="radio" name="m-filhos" id="m-fv-1" checked><label for="m-fv-1">1</label>
+              <input type="radio" name="m-filhos" id="m-fv-2"><label for="m-fv-2">2</label>
+              <input type="radio" name="m-filhos" id="m-fv-3"><label for="m-fv-3">Três ou mais</label>
+            </div>
+          </fieldset>
+          <fieldset class="k4-contador" style="border:0; padding:0">
+            <legend>Partos vaginais</legend>
+            <div class="marcas">
+              <input type="radio" name="m-vag" id="m-pv-0" checked><label for="m-pv-0">Nenhuma</label>
+              <input type="radio" name="m-vag" id="m-pv-1"><label for="m-pv-1">1</label>
+              <input type="radio" name="m-vag" id="m-pv-2"><label for="m-pv-2">2</label>
+              <input type="radio" name="m-vag" id="m-pv-3"><label for="m-pv-3">Três ou mais</label>
+            </div>
+          </fieldset>
+          <fieldset class="k4-contador" style="border:0; padding:0">
+            <legend>Cesáreas</legend>
+            <div class="marcas">
+              <input type="radio" name="m-ces" id="m-ce-0"><label for="m-ce-0">Nenhuma</label>
+              <input type="radio" name="m-ces" id="m-ce-1" checked><label for="m-ce-1">1</label>
+              <input type="radio" name="m-ces" id="m-ce-2"><label for="m-ce-2">2</label>
+              <input type="radio" name="m-ces" id="m-ce-3"><label for="m-ce-3">Três ou mais</label>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+
+      <!-- ---------- Estados ---------- -->
+      <div class="k4-secao">
+        <div>
+          <p class="k4-secao__titulo">Não iniciada</p>
+          <div class="vazio">
+            <svg class="icone icone--24"><use href="#i-clipboard-list"/></svg>
+            <span class="vazio__titulo">A entrevista acontece na consulta pré-natal, por volta de 34 semanas</span>
+            <p class="vazio__texto">Hoje a Família Teste Dália está com 32s4d.</p>
+            <button class="botao botao--primario" type="button">Começar entrevista</button>
+          </div>
+        </div>
+
+        <div>
+          <p class="k4-secao__titulo">Retomar</p>
+          <button class="botao botao--primario" type="button">Retomar da etapa 4</button>
+        </div>
+
+        <div>
+          <p class="k4-secao__titulo">Offline</p>
+          <div class="faixa faixa--info">
+            <svg class="icone"><use href="#i-wifi-off"/></svg>
+            <p class="faixa__texto">Sem sinal agora. O que você já respondeu está salvo no aparelho e sobe sozinho quando a conexão voltar.</p>
+          </div>
+        </div>
+
+        <div>
+          <p class="k4-secao__titulo">Urgente</p>
+          <div class="linha-flex">
+            <span class="forte">Família Teste Dália</span>
+            <span class="selo selo--alerta"><svg class="icone"><use href="#i-triangle-alert"/></svg>Pré-natal urgente</span>
+            <span class="apoio">32s4d, acima de 34 semanas sem entrevista</span>
+          </div>
+        </div>
+
+        <div>
+          <p class="k4-secao__titulo">Concluída</p>
+          <div class="cartao cartao--plano linha-flex">
+            <span class="forte">Entrevista concluída em 20/09/2026</span>
+            <button class="botao botao--terciario empurra" type="button">Alterar</button>
+          </div>
+        </div>
+
+        <div>
+          <p class="k4-secao__titulo">Sem permissão (comercial)</p>
+          <div class="cartao cartao--plano linha-flex">
+            <span>Entrevista feita em 24/09/2026</span>
+            <span class="selo selo--sucesso empurra">Concluída</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="barra-acao k4-barra-etapa" role="group" aria-label="Navegação da etapa">
+    <button class="botao botao--terciario" type="button"><svg class="icone"><use href="#i-chevron-left"/></svg>Etapa anterior</button>
+    <button class="botao botao--primario" type="button">Próxima etapa</button>
+  </div>
+</div>
+</body>
+</html>
