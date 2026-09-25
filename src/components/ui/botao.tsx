@@ -84,16 +84,35 @@ export const Botao = React.forwardRef<HTMLButtonElement, BotaoProps>(
     },
     ref,
   ) => {
-    const Comp = asChild ? Slot : "button";
+    const classe = cn(
+      botaoVariantes({ variante, tamanho, largaTotal }),
+      className,
+    );
+
+    // `asChild` funde as props do botão num único filho (padrão Radix Slot),
+    // por exemplo um `<a>` de navegação. O Slot exige exatamente um
+    // elemento React, então aqui não dá para envolver o filho em ícone e
+    // `<span>` como no `<button>` nativo: quem usa `asChild` controla o
+    // próprio conteúdo do filho.
+    if (asChild) {
+      return (
+        <Slot
+          ref={ref}
+          className={classe}
+          aria-busy={carregando || undefined}
+          aria-disabled={disabled || carregando || undefined}
+          {...props}
+        >
+          {children}
+        </Slot>
+      );
+    }
 
     return (
-      <Comp
+      <button
         ref={ref}
-        type={asChild ? undefined : type}
-        className={cn(
-          botaoVariantes({ variante, tamanho, largaTotal }),
-          className,
-        )}
+        type={type}
+        className={classe}
         disabled={disabled || carregando}
         aria-busy={carregando || undefined}
         {...props}
@@ -108,7 +127,7 @@ export const Botao = React.forwardRef<HTMLButtonElement, BotaoProps>(
         )}
         <span>{carregando ? (rotuloCarregando ?? children) : children}</span>
         {!carregando ? iconeDireita : null}
-      </Comp>
+      </button>
     );
   },
 );

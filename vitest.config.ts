@@ -9,6 +9,9 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
     css: true,
-    exclude: ["node_modules/**", "tests/e2e/**", "tests/e2e-offline/**"],
+    // "**/node_modules/**" (não só "node_modules/**") para não varrer
+    // node_modules aninhado, como o de n8n/referencia (n8n/build.test.mjs
+    // roda por node --test, não por Vitest).
+    exclude: ["**/node_modules/**", "tests/e2e/**", "tests/e2e-offline/**"],
   },
 });

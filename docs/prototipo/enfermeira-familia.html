@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Família · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/enfermeira.css">
+<script src="assets/icones.js"></script>
+<!--
+  E7 · Família (visão assistencial) da Família Teste Aurora, às 12:05, depois de assinar o D4.
+  Fonte: telas.md E7, fluxos.md fluxo A regra 6 (assinado não muda, adendo com motivo), PRD 9.2
+  (cabeçalho do acompanhamento e curva de peso automática), PRD 8.3 (freio).
+  Curva de peso: ganho contado a partir do menor peso, em g por dia com uma casa (PRD 9.2, [clínico]).
+  Hospital e plano de cuidado são fictícios, montados para o protótipo.
+-->
+</head>
+<body data-hora="12:05" data-sinc-inicial="sincronizado" data-sinc-hora="11:43">
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<div class="app app--enf">
+  <main class="app__principal" id="conteudo">
+    <header class="cab-tela">
+      <a class="botao botao--terciario botao--compacto" href="enfermeira-familias.html"><svg class="icone"><use href="#i-arrow-left"/></svg>Famílias</a>
+      <button class="sinc empurra" type="button" data-sinc data-abre-fila></button>
+    </header>
+
+    <div class="familia-cab" data-familia-cab data-familia="Família Teste Aurora">
+      <div>
+        <h1 class="familia-cab__nome">Família Teste Aurora</h1>
+        <div class="familia-cab__linha">
+          <span class="selo">Essencial 6 dias</span>
+          <span><span class="dado">D4</span> de 6</span>
+          <span>Moema, São Paulo</span>
+        </div>
+      </div>
+      <button class="botao-freio" type="button" data-freio-botao><svg class="icone"><use href="#i-hand"/></svg>Freio</button>
+      <p class="familia-cab__linha familia-cab__freio" data-freio-texto hidden></p>
+      <div class="familia-cab__datas">
+        <div class="data-chave"><span class="data-chave__rotulo">DPP</span><span class="data-chave__valor">25/09/2026</span><span class="data-chave__tipo">estimativa</span></div>
+        <div class="data-chave"><span class="data-chave__rotulo">Nascimento</span><span class="data-chave__valor">18/09/2026</span><span class="data-chave__tipo">fato</span></div>
+        <div class="data-chave"><span class="data-chave__rotulo">Alta</span><span class="data-chave__valor">20/09/2026</span><span class="data-chave__tipo">fato</span></div>
+        <div class="data-chave"><span class="data-chave__rotulo">Início</span><span class="data-chave__valor">21/09/2026</span><span class="data-chave__tipo">fato</span></div>
+      </div>
+    </div>
+
+    <div class="pilha pilha--8" style="padding-top: var(--e-6)">
+      <ol class="regua" style="--dias: 6" aria-label="D1 e D2 feitos, ficha do D3 pendente, D4 assinado com alerta aberto, D5 e D6 por vir">
+        <li class="regua__dia" data-estado="feito"><span class="regua__n">D1</span><span class="regua__data">21/09</span></li>
+        <li class="regua__dia" data-estado="feito"><span class="regua__n">D2</span><span class="regua__data">22/09</span></li>
+        <li class="regua__dia" data-estado="pendente"><span class="regua__n">D3</span><span class="regua__data">ficha</span></li>
+        <li class="regua__dia" data-estado="alerta" aria-current="date"><span class="regua__n">D4</span><span class="regua__data">hoje</span></li>
+        <li class="regua__dia"><span class="regua__n">D5</span><span class="regua__data">25/09</span></li>
+        <li class="regua__dia"><span class="regua__n">D6</span><span class="regua__data">26/09</span></li>
+      </ol>
+
+      <section class="enf-secao" aria-labelledby="dias-t">
+        <h2 class="t-2" id="dias-t">Dias do acompanhamento</h2>
+
+        <article class="cartao pilha" id="dia-4" aria-labelledby="d4-t">
+          <div class="cartao__topo">
+            <h3 class="t-3" id="d4-t"><span class="dado">D4</span> quinta 24/09</h3>
+            <span class="selo selo--sucesso cartao__acao"><svg class="icone"><use href="#i-pen-line"/></svg>Assinado às 11:42</span>
+          </div>
+          <p class="corpo">Puérpera <span class="dado">38,2 °C</span>, <span class="dado">118/76</span>, <span class="dado">88 bpm</span>. Nina <span class="dado">3.110 g</span>.</p>
+          <p class="linha-flex"><span class="selo selo--alerta"><svg class="icone"><use href="#i-siren"/></svg>PU-01 aberto</span><span class="apoio">Acionamento registrado às 10:14. A coordenação fecha.</span></p>
+          <div class="linha-flex">
+            <a class="botao botao--compacto" href="enfermeira-assinatura.html#etapa-1">Ver o registro</a>
+            <button class="botao botao--terciario botao--compacto" type="button" data-adendo="D4">Fazer adendo</button>
+          </div>
+        </article>
+
+        <article class="cartao pilha" id="dia-3" aria-labelledby="d3-t">
+          <div class="cartao__topo">
+            <h3 class="t-3" id="d3-t"><span class="dado">D3</span> quarta 23/09</h3>
+            <span class="selo selo--aviso cartao__acao"><svg class="icone"><use href="#i-clock-alert"/></svg>Ficha pendente</span>
+          </div>
+          <p class="corpo">Puérpera <span class="dado">36,9 °C</span>, <span class="dado">116/74</span>, <span class="dado">84 bpm</span>. Nina <span class="dado">3.080 g</span>.</p>
+          <p class="apoio">Faltam o resumo descritivo e a assinatura. Assine até hoje, 18:00.</p>
+          <a class="botao botao--primario" href="enfermeira-assinatura.html?dia=3" style="align-self: flex-start"><svg class="icone"><use href="#i-pen-line"/></svg>Terminar e assinar o D3</a>
+        </article>
+
+        <article class="cartao cartao--plano pilha" id="dia-2" aria-labelledby="d2-t">
+          <div class="cartao__topo">
+            <h3 class="t-3" id="d2-t"><span class="dado">D2</span> terça 22/09</h3>
+            <span class="selo cartao__acao">Assinado 22/09, 11:05</span>
+          </div>
+          <p class="corpo">Puérpera <span class="dado">37,1 °C</span>, <span class="dado">114/72</span>, <span class="dado">82 bpm</span>. Nina <span class="dado">3.045 g</span>. Sem alerta.</p>
+          <button class="botao botao--terciario botao--compacto" type="button" data-adendo="D2" style="align-self: flex-start">Fazer adendo</button>
+        </article>
+
+        <article class="cartao cartao--plano pilha" id="dia-1" aria-labelledby="d1-t">
+          <div class="cartao__topo">
+            <h3 class="t-3" id="d1-t"><span class="dado">D1</span> segunda 21/09</h3>
+            <span class="selo cartao__acao">Assinado 21/09, 11:18</span>
+          </div>
+          <p class="corpo">Puérpera <span class="dado">36,8 °C</span>, <span class="dado">120/78</span>, <span class="dado">86 bpm</span>. Nina <span class="dado">3.010 g</span>. Sem alerta.</p>
+          <button class="botao botao--terciario botao--compacto" type="button" data-adendo="D1" style="align-self: flex-start">Fazer adendo</button>
+        </article>
+      </section>
+
+      <section class="enf-secao" aria-labelledby="peso-t">
+        <h2 class="t-2" id="peso-t">Peso da Nina</h2>
+        <table class="tabela">
+          <thead><tr><th scope="col">Quando</th><th scope="col" class="num">Peso</th><th scope="col" class="num">Diferença</th></tr></thead>
+          <tbody>
+            <tr><td>Nascimento, 18/09</td><td class="num">3.240 g</td><td class="num">base</td></tr>
+            <tr><td>Alta, 20/09</td><td class="num">3.050 g</td><td class="num">menos 190 g</td></tr>
+            <tr><td><span class="dado">D1</span>, 21/09</td><td class="num">3.010 g</td><td class="num">menor peso</td></tr>
+            <tr><td><span class="dado">D2</span>, 22/09</td><td class="num">3.045 g</td><td class="num">mais 35 g</td></tr>
+            <tr><td><span class="dado">D3</span>, 23/09</td><td class="num">3.080 g</td><td class="num">mais 35 g</td></tr>
+            <tr><td><span class="dado">D4</span>, 24/09</td><td class="num">3.110 g</td><td class="num">mais 30 g</td></tr>
+          </tbody>
+        </table>
+        <p class="corpo">Menor peso no <span class="dado">D1</span>: perda de 7,1% do peso ao nascer. Desde então, ganho de 100 g em 3 dias, média de 33,3 g por dia.</p>
+      </section>
+
+      <section class="enf-secao" aria-labelledby="med-t">
+        <h2 class="t-2" id="med-t">Médicos</h2>
+        <div class="cartao cartao--plano pilha">
+          <div class="linha-flex">
+            <div class="linha-lista__corpo"><span class="t-3">Dr. Sérgio Fictício</span><span class="apoio">Obstetra</span><a class="dado" href="tel:+5511900000030">+55 11 90000-0030</a></div>
+            <a class="botao botao--compacto" href="tel:+5511900000030"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar</a>
+          </div>
+          <hr class="regra">
+          <div class="linha-flex">
+            <div class="linha-lista__corpo"><span class="t-3">Dra. Vera Fictícia</span><span class="apoio">Pediatra</span><a class="dado" href="tel:+5511900000031">+55 11 90000-0031</a></div>
+            <a class="botao botao--compacto" href="tel:+5511900000031"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="enf-secao" aria-labelledby="dados-t">
+        <h2 class="t-2" id="dados-t">Dados do acompanhamento</h2>
+        <dl class="pares">
+          <dt>Puérpera</dt><dd>Lívia Teste, 31 anos</dd>
+          <dt>Parceiro</dt><dd>Caio Teste</dd>
+          <dt>Hospital</dt><dd>Maternidade Fictícia de Moema</dd>
+          <dt>Tipo de parto</dt><dd>Cesárea</dd>
+          <dt>Recém-nascido</dt><dd>Nina Teste</dd>
+          <dt>Peso ao nascer</dt><dd class="dado">3.240 g</dd>
+          <dt>Peso na alta</dt><dd class="dado">3.050 g</dd>
+          <dt>Endereço</dt><dd>Rua Fictícia das Acácias, 120, Moema</dd>
+          <dt>Telefone</dt><dd><a class="dado" href="tel:+5511900000011">+55 11 90000-0011</a></dd>
+        </dl>
+      </section>
+
+      <section class="enf-secao" aria-labelledby="plano-t">
+        <h2 class="t-2" id="plano-t">Plano de cuidado</h2>
+        <ul class="pilha pilha--2 corpo">
+          <li>Visitas pela manhã, às 08:00, como a família pediu na entrevista pré-natal.</li>
+          <li>Primeiro bebê. Desejo de amamentação exclusiva; acompanhar pega e dor na mama direita.</li>
+          <li>Cesárea: observar a incisão e a dor a cada visita.</li>
+        </ul>
+      </section>
+    </div>
+
+    <!-- Folha: adendo em dia assinado -->
+    <div class="folha" id="folha-adendo" role="dialog" aria-modal="true" aria-labelledby="folha-adendo-t" hidden>
+      <div class="folha__topo"><h2 class="t-2" id="folha-adendo-t" tabindex="-1">Adendo ao <span data-adendo-dia>D2</span></h2><button class="botao botao--icone botao--terciario" type="button" data-fecha-folha aria-label="Fechar"><svg class="icone"><use href="#i-x"/></svg></button></div>
+      <div class="folha__corpo">
+        <p class="apoio">O registro assinado não muda. O adendo fica junto dele, com seu nome, a hora e o motivo.</p>
+        <fieldset class="cl-opcoes">
+          <legend class="campo__rotulo">Motivo</legend>
+          <div class="marcas">
+            <input type="radio" name="ad-mot" id="ad-m1" value="corrigir"><label for="ad-m1">Corrigir um valor</label>
+            <input type="radio" name="ad-mot" id="ad-m2" value="completar"><label for="ad-m2">Completar informação</label>
+            <input type="radio" name="ad-mot" id="ad-m3" value="outro"><label for="ad-m3">Outro</label>
+          </div>
+        </fieldset>
+        <div class="campo" data-ad-campo>
+          <label class="campo__rotulo" for="ad-txt">O que precisa constar</label>
+          <div class="campo__caixa"><textarea class="campo__entrada" id="ad-txt" rows="4" placeholder="Escreva o valor certo e onde ele entra"></textarea></div>
+          <p class="campo__ajuda" hidden></p>
+        </div>
+        <div class="folha__acoes"><button class="botao" type="button" data-fecha-folha>Cancelar</button><button class="botao botao--primario" type="button" data-salvar-adendo>Salvar adendo</button></div>
+      </div>
+    </div>
+
+    <!-- ---------- Estados ---------- -->
+    <section class="estados" aria-labelledby="estados-t">
+      <h2 class="t-2" id="estados-t">Estados da família</h2>
+      <div class="estados__grade">
+        <div class="estado">
+          <p class="estado__titulo">Freio ativo</p>
+          <div class="familia-cab" data-freio="ativo" style="margin: 0">
+            <div>
+              <p class="familia-cab__nome">Família Teste Aurora</p>
+              <div class="familia-cab__linha"><span><span class="dado">D4</span> de 6</span><span>Moema, São Paulo</span></div>
+            </div>
+            <span class="freio-ativo"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio ativo</span>
+            <p class="familia-cab__linha familia-cab__freio">Freio em bloqueio total desde 24/09/2026, 12:10. Só contato humano e nominal. O registro clínico continua liberado; as mensagens automáticas estão pausadas.</p>
+          </div>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Dia com adendo</p>
+          <article class="cartao cartao--plano pilha">
+            <div class="cartao__topo">
+              <p class="t-3"><span class="dado">D2</span> terça 22/09</p>
+              <span class="selo cartao__acao">Assinado 22/09, 11:05</span>
+            </div>
+            <p class="linha-flex"><span class="selo selo--contorno"><svg class="icone"><use href="#i-clipboard-pen"/></svg>Adendo em 23/09, 16:02</span></p>
+            <p class="apoio">Motivo: corrigir um valor. A frequência cardíaca da puérpera foi 82 bpm, e não 28 bpm. Talita Moreno.</p>
+          </article>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Carregando</p>
+          <div class="pilha" aria-busy="true" aria-label="Carregando a família">
+            <span class="esqueleto" style="height: 132px; border-radius: var(--raio-3)"></span>
+            <span class="esqueleto" style="height: 48px"></span>
+            <span class="esqueleto esqueleto--bloco"></span>
+          </div>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Sem permissão</p>
+          <div class="vazio">
+            <p class="vazio__titulo">Esta família não está atribuída a você</p>
+            <p class="vazio__texto">Você vê só as famílias em que é titular ou backup. Se precisar ajudar nesta, fale com a coordenação.</p>
+            <a class="botao" href="enfermeira-familias.html"><svg class="icone"><use href="#i-users"/></svg>Voltar para Famílias</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="abas-inf" aria-label="Navegação principal">
+    <a class="abas-inf__item" href="enfermeira-hoje.html"><svg class="icone"><use href="#i-house"/></svg>Hoje</a>
+    <a class="abas-inf__item" href="enfermeira-familias.html" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="enfermeira-alertas.html"><svg class="icone"><use href="#i-siren"/></svg>Alertas<span class="abas-inf__contador">1<span class="sr"> alerta aberto</span></span></a>
+    <a class="abas-inf__item" href="enfermeira-perfil.html"><svg class="icone"><use href="#i-user-round"/></svg>Perfil</a>
+  </nav>
+</div>
+<script src="assets/enfermeira.js"></script>
+<script>
+  (function () {
+    var f = document.getElementById('folha-adendo'), dia = 'D2';
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-adendo]');
+      if (b) { dia = b.dataset.adendo; f.querySelector('[data-adendo-dia]').textContent = dia; KZ.abrirFolha(f); return; }
+      if (e.target.closest('[data-salvar-adendo]')) {
+        var t = f.querySelector('#ad-txt'), cx = f.querySelector('[data-ad-campo]'), aj = cx.querySelector('.campo__ajuda');
+        var motivo = f.querySelector('input[name="ad-mot"]:checked');
+        if (!t.value.trim() || !motivo) {
+          cx.dataset.estado = 'erro'; aj.hidden = false;
+          aj.innerHTML = KZ.ic('circle-alert') + '<span>' + (!motivo ? 'Escolha o motivo e escreva o que precisa constar.' : 'Escreva o que precisa constar no adendo.') + '</span>';
+          return;
+        }
+        cx.removeAttribute('data-estado'); aj.hidden = true; t.value = ''; motivo.checked = false;
+        KZ.fecharFolha(f);
+        KZ.salvar('Adendo ao ' + dia + ' da Família Teste Aurora');
+        KZ.aviso('Adendo ao ' + dia + ' salvo às ' + KZ.agora() + '. O registro original continua igual.', { icone: 'clipboard-pen' });
+      }
+    });
+  })();
+</script>
+</body>
+</html>

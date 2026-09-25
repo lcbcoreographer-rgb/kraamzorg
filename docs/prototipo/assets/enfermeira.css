@@ -30,6 +30,9 @@
 .enf-topo { display: flex; align-items: flex-start; gap: var(--e-3); padding: var(--e-6) 0 var(--e-2); }
 .enf-topo__textos { display: flex; flex-direction: column; gap: var(--e-2); min-width: 0; }
 .enf-topo .sinc { margin-top: var(--e-1); }
+.enf-topo--hoje { flex-wrap: wrap; align-items: center; row-gap: var(--e-2); }
+.enf-topo--hoje .t-display, .enf-topo--hoje .t-display + .apoio { flex-basis: 100%; }
+.enf-topo--hoje .sinc { margin-top: 0; }
 .enf-secao { display: flex; flex-direction: column; gap: var(--e-3); }
 .enf-secao__titulo { display: flex; align-items: baseline; gap: var(--e-3); }
 
@@ -50,6 +53,7 @@ button.sinc:active { transform: scale(0.97); }
 .marca-hora { display: flex; flex-direction: column; gap: 2px; padding: var(--e-2) var(--e-3); border-radius: var(--raio-2); border: 1.5px dashed var(--marinho-50); }
 .marca-hora__rotulo { font-size: var(--tam-mini); color: var(--texto-2); }
 .marca-hora__valor { font-family: var(--fonte-dado); font-variant-numeric: tabular-nums; font-weight: 500; }
+.marca-hora:not([data-feito]) .marca-hora__valor { font-family: var(--fonte-ui); font-weight: 400; color: var(--texto-2); }
 .marca-hora[data-feito] { border: 1px solid var(--linha); background: var(--marinho-08); }
 .visita__pendencias { display: flex; flex-wrap: wrap; gap: var(--e-2); }
 .visita__acoes { display: flex; flex-direction: column; gap: var(--e-2); }

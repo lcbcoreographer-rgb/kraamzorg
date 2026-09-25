@@ -137,6 +137,11 @@
 <script>
   (function () {
     var d = KZ.DADOS.aurora, e = d.porEtapa;
+    // Vindo do "Cheguei, iniciar visita" (?novo=1): o checklist do dia começa em branco.
+    if (new URLSearchParams(location.search).has('novo')) {
+      KZ.checklist(KZ.juntar(d, { etapa: 1, checkin: { data: '24/09/2026', hora: '08:03' } }));
+      return;
+    }
     KZ.checklist(KZ.juntar(d, {
       etapa: 2,
       respostas: KZ.juntar(e[1], e[2], e[4]),

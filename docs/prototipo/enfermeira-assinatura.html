@@ -17,6 +17,7 @@
   Etapas 1 a 7 completas; o acionamento do PU-01 foi registrado às 10:14. Falta só o resumo descritivo,
   por isso "Assinar registro do D4" abre desabilitado com a razão escrita acima dele.
   Escreva uma linha no resumo (ou grave o áudio) para liberar a assinatura e ver a folha de confirmação.
+  Com ?dia=3 abre a ficha pendente do D3 (quarta 23/09), sem alerta.
   Com ?sinal=0 o resultado mostra "Assinado às 11:42. Sobe quando houver sinal."
 -->
 </head>
@@ -191,6 +192,20 @@
 <script>
   (function () {
     var d = KZ.DADOS.aurora, e = d.porEtapa;
+    if (new URLSearchParams(location.search).get('dia') === '3') {
+      // Ficha pendente do D3 (quarta 23/09): mesmo fechamento, com os valores daquele dia e sem alerta.
+      document.querySelector('.cl-cab__familia .mini').innerHTML = '<span class="dado">D3</span> de 6, quarta 23/09';
+      var t = KZ.juntar(d.textosDia); delete t['co-motivo'];
+      KZ.checklist(KZ.juntar(d, {
+        dia: 3, etapa: 8, saida: '11:25',
+        checkin: { data: '23/09/2026', hora: '08:02' },
+        anterior: { 'pu-temp': '37,1', 'pu-pa': '114/72', 'pu-fc': '82', 'rn-nina-temp': '36,8', 'rn-nina-fc': '138', 'rn-nina-fr': '44', 'rn-nina-peso': '3.045' },
+        respostas: KZ.juntar(e[1], e[2], e['2b'], { 'pu-temp': '36,9', 'pu-pa': ['116', '74'], 'pu-fc': '84' }, e[4], e['4b'], e[5],
+          { 'rn-nina-temp': '36,7', 'rn-nina-fc': '140', 'rn-nina-fr': '46', 'rn-nina-peso': '3.080' }, e[6], e[7], { 'co-med': 'nao' }),
+        textos: t
+      }));
+      return;
+    }
     KZ.checklist(KZ.juntar(d, {
       etapa: 8, saida: '11:30',
       respostas: KZ.juntar(e[1], e[2], e['2b'], e[3], e[4], e['4b'], e[5], e[6], e[7]),

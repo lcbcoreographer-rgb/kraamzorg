@@ -38,13 +38,17 @@ function listarArquivos(diretorio: string): string[] {
 }
 
 describe("nenhuma cor solta fora de globals.css", () => {
-  const arquivos = listarArquivos(RAIZ_SRC).filter((arquivo) => arquivo !== ARQUIVO_PERMITIDO);
+  const arquivos = listarArquivos(RAIZ_SRC).filter(
+    (arquivo) => arquivo !== ARQUIVO_PERMITIDO,
+  );
 
   it("encontrou arquivos para checar (a varredura não ficou vazia)", () => {
     expect(arquivos.length).toBeGreaterThan(10);
   });
 
-  it.each(arquivos.map((arquivo) => [relative(RAIZ_SRC, arquivo), arquivo] as const))(
+  it.each(
+    arquivos.map((arquivo) => [relative(RAIZ_SRC, arquivo), arquivo] as const),
+  )(
     "%s não declara cor em hexadecimal, rgb() ou hsl()",
     (_nomeRelativo, caminho) => {
       const conteudo = readFileSync(caminho, "utf-8");

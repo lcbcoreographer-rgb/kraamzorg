@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Famílias · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/enfermeira.css">
+<script src="assets/icones.js"></script>
+<!--
+  E6 · Famílias atribuídas à enfermeira Talita Moreno.
+  Fonte: telas.md E6. Só a Família Teste Aurora tem a tela de família (E7) neste protótipo;
+  o cartão da Família Teste Cedro abre a visita de hoje (E4).
+  Família Teste Horizonte aparece como reservada, seguindo telas.md E6 (na coordenação, K3, a oferta
+  de titular está com Rosana Vieira: conferir com o cliente qual das duas vale).
+-->
+</head>
+<body data-hora="12:05" data-sinc-inicial="sincronizado" data-sinc-hora="12:04">
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<div class="app app--enf">
+  <main class="app__principal" id="conteudo">
+    <header class="enf-topo enf-topo--hoje">
+      <p class="apoio">Talita Moreno</p>
+      <button class="sinc empurra" type="button" data-sinc data-abre-fila></button>
+      <h1 class="t-display">Famílias</h1>
+      <p class="apoio">Três famílias atribuídas a você: duas em acompanhamento e uma reservada.</p>
+    </header>
+
+    <div class="pilha pilha--6">
+      <section class="faixa faixa--info" role="status" data-sem-sinal hidden>
+        <svg class="icone"><use href="#i-wifi-off"/></svg>
+        <div><p class="faixa__titulo">Sem sinal agora</p><p class="faixa__texto">Esta lista está salva no aparelho desde 12:04.</p></div>
+      </section>
+
+      <section class="enf-secao" aria-labelledby="acomp-t">
+        <h2 class="t-2" id="acomp-t">Em acompanhamento</h2>
+        <a class="cartao cartao--tocavel pilha" href="enfermeira-familia.html">
+          <div class="cartao__topo">
+            <div class="pilha pilha--2">
+              <span class="t-3">Família Teste Aurora</span>
+              <span class="apoio">Moema. Manhã, 08:00. Essencial 6 dias.</span>
+            </div>
+            <span class="selo selo--marinho cartao__acao"><span class="dado">D4</span>de 6</span>
+          </div>
+          <ol class="regua regua--fina" style="--dias: 6" aria-label="D1 e D2 feitos, D3 com ficha pendente, D4 hoje com alerta, D5 e D6 por vir">
+            <li class="regua__dia" data-estado="feito"></li><li class="regua__dia" data-estado="feito"></li><li class="regua__dia" data-estado="pendente"></li>
+            <li class="regua__dia" data-estado="alerta"></li><li class="regua__dia"></li><li class="regua__dia"></li>
+          </ol>
+          <div class="linha-flex">
+            <span class="selo selo--alerta"><svg class="icone"><use href="#i-siren"/></svg>PU-01 aberto</span>
+            <span class="selo selo--aviso"><svg class="icone"><use href="#i-clock-alert"/></svg>Ficha do D3 pendente</span>
+          </div>
+        </a>
+
+        <a class="cartao cartao--tocavel pilha" href="enfermeira-checklist-bebe.html">
+          <div class="cartao__topo">
+            <div class="pilha pilha--2">
+              <span class="t-3">Família Teste Cedro</span>
+              <span class="apoio">Vila Mariana. Tarde, 14:00. Gêmeos, Gemelar Continuado 12 dias.</span>
+            </div>
+            <span class="selo selo--marinho cartao__acao"><span class="dado">D7</span>de 12</span>
+          </div>
+          <ol class="regua regua--fina" style="--dias: 12" aria-label="D1 a D6 feitos, D5 com alerta fechado, D7 hoje">
+            <li class="regua__dia" data-estado="feito"></li><li class="regua__dia" data-estado="feito"></li><li class="regua__dia" data-estado="feito"></li>
+            <li class="regua__dia" data-estado="feito"></li><li class="regua__dia" data-estado="alerta"></li><li class="regua__dia" data-estado="feito"></li>
+            <li class="regua__dia" data-estado="hoje"></li><li class="regua__dia"></li><li class="regua__dia"></li>
+            <li class="regua__dia"></li><li class="regua__dia"></li><li class="regua__dia"></li>
+          </ol>
+          <span class="apoio">Visita de hoje às 14:00, ainda não começou.</span>
+        </a>
+      </section>
+
+      <section class="enf-secao" aria-labelledby="res-t">
+        <h2 class="t-2" id="res-t">Reservada, aguardando o nascimento</h2>
+        <div class="cartao cartao--plano pilha">
+          <div class="cartao__topo">
+            <div class="pilha pilha--2">
+              <span class="t-3">Família Teste Horizonte</span>
+              <span class="apoio">Moema. Manhã. Essencial 6 dias.</span>
+            </div>
+            <span class="selo selo--contorno cartao__acao">Reservada</span>
+          </div>
+          <ol class="regua regua--fina" style="--dias: 6" aria-label="Ainda não começou">
+            <li class="regua__dia"></li><li class="regua__dia"></li><li class="regua__dia"></li><li class="regua__dia"></li><li class="regua__dia"></li><li class="regua__dia"></li>
+          </ol>
+          <p class="apoio">Ainda não começou. DPP <span class="dado">12/11/2026</span> (estimativa); janela de 22/10 a 26/11. O D1 só existe depois da alta.</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- ---------- Estados ---------- -->
+    <section class="estados" aria-labelledby="estados-t">
+      <h2 class="t-2" id="estados-t">Estados de Famílias</h2>
+      <div class="estados__grade">
+        <div class="estado">
+          <p class="estado__titulo">Família com freio</p>
+          <div class="cartao pilha">
+            <div class="cartao__topo">
+              <div class="pilha pilha--2">
+                <span class="t-3">Família Teste Aurora</span>
+                <span class="apoio">Moema. Manhã, 08:00.</span>
+              </div>
+              <span class="selo selo--sensivel cartao__acao"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio ativo</span>
+            </div>
+            <p class="apoio">Mensagens automáticas pausadas. O registro clínico continua liberado; ao abrir, o cabeçalho da família fica ameixa.</p>
+          </div>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Nenhuma família atribuída</p>
+          <div class="vazio">
+            <p class="vazio__titulo">Você ainda não tem famílias atribuídas</p>
+            <p class="vazio__texto">Quando você aceitar uma oferta da coordenação, a família aparece aqui com os dias do acompanhamento.</p>
+            <a class="botao" href="enfermeira-hoje.html"><svg class="icone"><use href="#i-house"/></svg>Voltar para Hoje</a>
+          </div>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Carregando</p>
+          <div class="pilha" aria-busy="true" aria-label="Carregando as famílias">
+            <div class="cartao pilha"><span class="esqueleto esqueleto--titulo"></span><span class="esqueleto esqueleto--linha" style="width: 70%"></span><span class="esqueleto" style="height: 10px"></span></div>
+            <div class="cartao pilha"><span class="esqueleto esqueleto--titulo"></span><span class="esqueleto esqueleto--linha" style="width: 55%"></span><span class="esqueleto" style="height: 10px"></span></div>
+          </div>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Sem sinal</p>
+          <section class="faixa faixa--info" aria-label="Sem sinal">
+            <svg class="icone"><use href="#i-wifi-off"/></svg>
+            <div><p class="faixa__titulo">Sem sinal agora</p><p class="faixa__texto">Esta lista está salva no aparelho desde 07:38. Só as famílias de hoje ficam guardadas; a Família Teste Horizonte aparece quando a conexão voltar.</p></div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="abas-inf" aria-label="Navegação principal">
+    <a class="abas-inf__item" href="enfermeira-hoje.html"><svg class="icone"><use href="#i-house"/></svg>Hoje</a>
+    <a class="abas-inf__item" href="enfermeira-familias.html" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="enfermeira-alertas.html"><svg class="icone"><use href="#i-siren"/></svg>Alertas<span class="abas-inf__contador">1<span class="sr"> alerta aberto</span></span></a>
+    <a class="abas-inf__item" href="enfermeira-perfil.html"><svg class="icone"><use href="#i-user-round"/></svg>Perfil</a>
+  </nav>
+</div>
+<script src="assets/enfermeira.js"></script>
+</body>
+</html>

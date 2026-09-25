@@ -71,7 +71,11 @@ export function ReguaDias({ dias, rotulo, fina, className }: ReguaDiasProps) {
                 D{dia.numero}
               </span>
               {dia.rotuloData ? (
-                <span className="text-[11px] leading-tight opacity-90">
+                // Sem opacidade reduzida (o protótipo estático usava 0.9): em
+                // "alerta" e "sensivel" o texto já fica sobre um fundo lavado
+                // mais claro, e a opacidade empurrava o contraste do rótulo de
+                // 11 px para abaixo de 4,5:1 AA (achado do axe no P10).
+                <span className="text-[11px] leading-tight">
                   {dia.rotuloData}
                 </span>
               ) : null}
