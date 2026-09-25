@@ -7,6 +7,12 @@
 // Uso:
 //   node n8n/build.mjs --env hml
 //   node n8n/build.mjs --env prod
+//   node n8n/build.mjs --env hml --config /caminho/fora/do/repo/config.hml.json --saida /caminho/temporario
+//
+// `--config` lê o config de fora do repositório (o arquivo do cofre, ou uma
+// cópia temporária) e `--saida` grava os JSON numa pasta própria em vez de
+// `n8n/dist/`; sem os dois, vale o padrão do PRD 19.5 (`n8n/config.{env}.json`
+// e `n8n/dist/`, ambos fora do git).
 //
 // Este arquivo também é importável como módulo (os testes de
 // `build.test.mjs` chamam `gerarFluxos`, `nomeArquivoDist` etc. diretamente,
@@ -69,16 +75,24 @@ export function gerarFluxos(config, env) {
   };
 }
 
-function parseArgsEnv(argv) {
-  const indice = argv.indexOf('--env');
-  if (indice === -1 || indice === argv.length - 1) {
-    throw new Error('uso: node n8n/build.mjs --env <hml|prod>');
-  }
-  return argv[indice + 1];
+const USO = 'uso: node n8n/build.mjs --env <hml|prod> [--config <arquivo>] [--saida <pasta>]';
+
+export function lerArgumentos(argv) {
+  const valorDe = (opcao, obrigatoria) => {
+    const indice = argv.indexOf(opcao);
+    if (indice === -1) {
+      if (obrigatoria) throw new Error(USO);
+      return null;
+    }
+    const valor = argv[indice + 1];
+    if (!valor || valor.startsWith('--')) throw new Error(USO);
+    return valor;
+  };
+  return { env: valorDe('--env', true), caminhoConfig: valorDe('--config', false), dirSaida: valorDe('--saida', false) };
 }
 
-export async function gravarDist({ raizN8n, fluxos, env, log = console.log }) {
-  const dirDist = path.join(raizN8n, 'dist');
+export async function gravarDist({ raizN8n, fluxos, env, log = console.log, dirSaida = null }) {
+  const dirDist = dirSaida ? path.resolve(dirSaida) : path.join(raizN8n, 'dist');
   await mkdir(dirDist, { recursive: true });
 
   const gravados = [];
@@ -93,17 +107,17 @@ export async function gravarDist({ raizN8n, fluxos, env, log = console.log }) {
   return gravados;
 }
 
-export async function build({ env, raizN8n = AQUI, log = console.log, logAviso = console.error }) {
-  const { config, origem, usouExample } = await carregarConfig(env, raizN8n, { log: logAviso });
+export async function build({ env, raizN8n = AQUI, log = console.log, logAviso = console.error, caminhoConfig = null, dirSaida = null }) {
+  const { config, origem, usouExample } = await carregarConfig(env, raizN8n, { log: logAviso, caminho: caminhoConfig });
   log(`config: ${origem}${usouExample ? ' (exemplo)' : ''}`);
 
   const fluxos = gerarFluxos(config, env);
-  return gravarDist({ raizN8n, fluxos, env, log });
+  return gravarDist({ raizN8n, fluxos, env, log, dirSaida });
 }
 
 async function main() {
-  const env = parseArgsEnv(process.argv.slice(2));
-  await build({ env });
+  const { env, caminhoConfig, dirSaida } = lerArgumentos(process.argv.slice(2));
+  await build({ env, caminhoConfig, dirSaida });
 }
 
 const ehExecucaoDireta = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;

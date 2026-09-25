@@ -123,6 +123,7 @@ function corpo({
   id = 'msg-1',
   timestamp = 1000,
   instancia,
+  chatlid,
 } = {}) {
   return {
     EventType: 'messages',
@@ -130,6 +131,7 @@ function corpo({
     token: 'token-do-corpo-nunca-lido',
     message: {
       chatid,
+      chatlid,
       sender_pn: chatid,
       text: texto,
       messageType: tipo,
@@ -1150,6 +1152,28 @@ describe('fluxo 3 · cenários do P25 (JSON gerado no simulador)', () => {
     assert.deepEqual(humana.chamadas('pausar')[0].argumentos, [CONVERSA, null, 'humano_digitou']);
     assert.deepEqual(humana.chamadas('sincronizar_memoria')[0].argumentos, [CONVERSA, 'equipe', 'Oi Ana, aqui é o Leonardo']);
     assert.equal(humana.estado.redis.get(`kz:pausa:${CONVERSA}`), 'humano_digitou');
+  });
+
+  test('registrar_mensagem recebe nome do WhatsApp, telefone, LID e nome salvo (Apêndice A, 19.4 nó 10)', async () => {
+    const familia = criarAmbiente();
+    await rodar(familia, corpo({ texto: 'oi', chatlid: '000000000000009@lid' }));
+    const entrada = familia.chamadas('registrar_mensagem')[0].argumentos;
+    assert.deepEqual(entrada.slice(0, 3), [JID, 'entrada', 'cliente']);
+    assert.equal(entrada[6], 'Ana', 'nome_whatsapp');
+    assert.match(entrada[7], /^\+\d+$/, 'telefone');
+    assert.equal(entrada[8], '000000000000009@lid', 'lid');
+    assert.equal(entrada[9], 'Ana paciente potencial', 'nome_contato');
+
+    const humana = criarAmbiente();
+    await rodar(humana, corpo({ fromMe: true, texto: 'Oi Ana', chatlid: '000000000000009@lid' }));
+    const saida = humana.chamadas('registrar_mensagem')[0].argumentos;
+    assert.equal(saida[6], null, 'senderName da mensagem da equipe é o da Kraamzorg, não vai como nome da família');
+    assert.equal(saida[8], '000000000000009@lid');
+    assert.equal(saida[9], 'Ana paciente potencial');
+
+    const semLid = criarAmbiente();
+    await rodar(semLid, corpo({ texto: 'oi' }));
+    assert.equal(semLid.chamadas('registrar_mensagem')[0].argumentos[8], null, 'sem LID vai nulo, nunca texto vazio');
   });
 
   test('grupo e instância diferente são ignorados', async () => {

@@ -21,6 +21,7 @@ const CHAVES_NIVEL_NO = [
   'disabled',
   'webhookId',
   'credentials',
+  'executeOnce',
 ];
 
 export function versaoDoNo(config, tipoCurto) {

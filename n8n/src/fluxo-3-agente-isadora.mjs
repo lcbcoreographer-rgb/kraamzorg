@@ -406,11 +406,31 @@ export function montarFluxo(config) {
       onError: 'continueRegularOutput',
     });
 
-  const registrarMensagem = (nome, jid, direcao, enviadoPor, conteudo, tipo, messageId, posicao) =>
+  // Apêndice A: registrar_mensagem(jid, direcao, enviado_por, conteudo, tipo,
+  // wa_message_id, nome_whatsapp, telefone, lid, nome_contato). O banco
+  // resolve a conversa por LID, telefone e jid, nessa ordem, então o LID vai
+  // em todo registro. `nome_whatsapp` (senderName) só é da família na
+  // mensagem que ela mandou: na mensagem que a equipe digitou no celular o
+  // senderName é o da própria Kraamzorg, e vai nulo. `nome_contato` (nome
+  // salvo no celular da Kraamzorg, com a convenção "paciente potencial" e
+  // "paciente fechada") vale nas duas entradas; nos envios do sistema vai
+  // nulo, para não reescrever o nome com um valor velho.
+  const registrarMensagem = (nome, jid, direcao, enviadoPor, conteudo, tipo, messageId, posicao, { nomeWhatsapp = false, nomeContato = false } = {}) =>
     postgres(
       nome,
       'select agente.registrar_mensagem($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) as resultado',
-      [jid, `'${direcao}'`, `'${enviadoPor}'`, conteudo, tipo, messageId, 'null', `${EXPR_DADOS('telefone')} || null`, 'null', 'null'],
+      [
+        jid,
+        `'${direcao}'`,
+        `'${enviadoPor}'`,
+        conteudo,
+        tipo,
+        messageId,
+        nomeWhatsapp ? `${EXPR_DADOS('nome_whatsapp')} || null` : 'null',
+        `${EXPR_DADOS('telefone')} || null`,
+        `${EXPR_DADOS('lid')} || null`,
+        nomeContato ? `${EXPR_DADOS('nome_contato_salvo')} || null` : 'null',
+      ],
       posicao,
     );
 
@@ -445,7 +465,9 @@ export function montarFluxo(config) {
   se(NOS.ehGrupo, '$json.eh_grupo === true', [-1340, 0]);
   se(NOS.filtroFromMe, '$json.from_me === true', [-1120, 0]);
   se(NOS.ecoDoAgente, '$json.eh_eco === true', [-900, -400]);
-  registrarMensagem(NOS.registrarMsgHumana, '$json.jid', 'saida', 'humano', '$json.texto', '$json.tipo', '$json.message_id', [-680, -400]);
+  registrarMensagem(NOS.registrarMsgHumana, '$json.jid', 'saida', 'humano', '$json.texto', '$json.tipo', '$json.message_id', [-680, -400], {
+    nomeContato: true,
+  });
   postgres(NOS.pausarPorHumano, 'select agente.pausar($1, $2, $3) as resultado', [EXPR_CONVERSA_HUMANA, 'null', "'humano_digitou'"], [-460, -400]);
   code(NOS.lerPausaHumana, 'entrada-mensagem.js', 'return { json: lerPausa($json) };', [-240, -400]);
   se(NOS.pausaHumanaComPrazo, '$json.pausa_ok === true', [-20, -400]);
@@ -468,7 +490,10 @@ export function montarFluxo(config) {
     [420, -400],
   );
 
-  registrarMensagem(NOS.registrarMsgFamilia, '$json.jid', 'entrada', 'cliente', '$json.texto', '$json.tipo', '$json.message_id', [-900, 200]);
+  registrarMensagem(NOS.registrarMsgFamilia, '$json.jid', 'entrada', 'cliente', '$json.texto', '$json.tipo', '$json.message_id', [-900, 200], {
+    nomeWhatsapp: true,
+    nomeContato: true,
+  });
   code(
     NOS.estadoMensagem,
     'entrada-mensagem.js',

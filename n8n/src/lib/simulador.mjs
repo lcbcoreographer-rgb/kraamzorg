@@ -37,11 +37,18 @@ const TIPO = {
   redis: 'n8n-nodes-base.redis',
   subFluxo: 'n8n-nodes-base.executeWorkflow',
   agente: '@n8n/n8n-nodes-langchain.agent',
+  vectorStore: '@n8n/n8n-nodes-langchain.vectorStorePGVector',
   nota: 'n8n-nodes-base.stickyNote',
 };
 
 const GATILHOS = new Set([TIPO.gatilhoSubFluxo, TIPO.webhook, TIPO.agenda, TIPO.manual]);
-const EXTERNOS = new Set([TIPO.postgres, TIPO.http, TIPO.redis, TIPO.subFluxo, TIPO.agente]);
+// [P26] O nó vectorStorePGVector em modo "insert" (fluxo 1, nó 8) fica na
+// cadeia `main`, como uma chamada externa comum: os sub-nós de IA que ele
+// também consome (ai_embedding, ai_document) não rodam no simulador, igual
+// às ferramentas do agente (limite conhecido, ver cabeçalho). Em modo
+// "retrieve-as-tool" (fluxo 3) o nó só é alcançado por conexão `ai_tool`,
+// que o simulador nunca percorre, então entrar aqui não muda esse caminho.
+const EXTERNOS = new Set([TIPO.postgres, TIPO.http, TIPO.redis, TIPO.subFluxo, TIPO.agente, TIPO.vectorStore]);
 
 function copiar(valor) {
   return valor === undefined ? undefined : JSON.parse(JSON.stringify(valor));
@@ -79,7 +86,6 @@ function fromAiAusente() {
 }
 
 function avaliarExpressao(codigo, escopo) {
-  // eslint-disable-next-line no-new-func
   const funcao = new Function('$json', '$', '$input', '$fromAI', `return (${codigo});`);
   return funcao(escopo.$json, escopo.$, escopo.$input, escopo.$fromAI ?? fromAiAusente);
 }
@@ -129,7 +135,6 @@ export function escopoDeFerramenta(contexto, fromAi = () => undefined) {
 
 function rodarCode(no, itens, contexto) {
   const { jsCode, mode } = no.parameters;
-  // eslint-disable-next-line no-new-func
   const funcao = new Function('$json', '$', '$input', jsCode);
   if (mode === 'runOnceForAllItems') {
     const escopo = escopoDoItem(contexto, itens, 0);

@@ -343,7 +343,6 @@ export function codeCompila(fluxo) {
     const codigo = no.parameters?.jsCode ?? '';
     if (/^\s*import\s*\{[^}]*\bas\b/m.test(codigo)) problemas.push(`nó Code "${no.name}" com import renomeado (as)`);
     try {
-      // eslint-disable-next-line no-new-func
       new Function('$json', '$', '$input', codigo);
     } catch (erro) {
       problemas.push(`nó Code "${no.name}" não compila: ${erro.message}`);

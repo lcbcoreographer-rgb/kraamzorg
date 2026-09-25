@@ -4,19 +4,20 @@
 // ferramentas com descrição, tratamento de erro, track_source, credencial
 // proibida), o carregador de prompt, o embutidor de código e as seis funções
 // puras iniciais (P23 item 4), com a comparação de `mascararDocumentos`
-// contra `privado.mascarar_documentos` quando o banco local responder na
-// porta 54342.
+// contra `privado.mascarar_documentos` quando o banco local responder
+// (portas 54329 e 54342, ou `KZ_PG_PORTA`).
 
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile, readdir, rm } from 'node:fs/promises';
+import { readFile, readdir, rm, mkdtemp, writeFile } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import net from 'node:net';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 
-import { build, gerarFluxos, nomeArquivoDist, nomeFluxoComAmbiente, ARQUIVOS_DIST } from './build.mjs';
+import { build, gerarFluxos, nomeArquivoDist, nomeFluxoComAmbiente, lerArgumentos, ARQUIVOS_DIST } from './build.mjs';
 import { carregarConfig, AMBIENTES_VALIDOS } from './src/lib/config.mjs';
 import { idEstavel } from './src/lib/id-estavel.mjs';
 import {
@@ -133,6 +134,39 @@ describe('aceite do P23: build gera os três JSON de esqueleto', () => {
       () => build({ env: 'prod', raizN8n: RAIZ_N8N, log: () => {}, logAviso: () => {} }),
       /config\.prod\.json não encontrado|nao encontrado/,
     );
+  });
+
+  test('--config e --saida: lê o config de fora do repositório e grava fora de n8n/dist', async () => {
+    const temporaria = await mkdtemp(path.join(os.tmpdir(), 'kz-build-'));
+    try {
+      const configProd = { ...(await lerConfigExample()), homologacao: { envioSimulado: false, transcricaoSimulada: false } };
+      const caminhoProd = path.join(temporaria, 'config.prod.json');
+      await writeFile(caminhoProd, JSON.stringify(configProd));
+      const saida = path.join(temporaria, 'dist');
+      const gravados = await build({ env: 'prod', raizN8n: RAIZ_N8N, caminhoConfig: caminhoProd, dirSaida: saida, log: () => {}, logAviso: () => {} });
+      assert.equal(gravados.length, 3);
+      for (const caminho of gravados) {
+        assert.ok(caminho.startsWith(saida), caminho);
+        assert.ok(!caminho.includes('(HML)'), caminho);
+      }
+      await assert.rejects(
+        () => build({ env: 'prod', raizN8n: RAIZ_N8N, caminhoConfig: path.join(RAIZ_N8N, 'config.example.json'), dirSaida: saida, log: () => {}, logAviso: () => {} }),
+        /config\.example\.json/,
+      );
+    } finally {
+      await rm(temporaria, { recursive: true, force: true });
+    }
+  });
+
+  test('lerArgumentos: --env obrigatório, --config e --saida opcionais', () => {
+    assert.deepEqual(lerArgumentos(['--env', 'hml']), { env: 'hml', caminhoConfig: null, dirSaida: null });
+    assert.deepEqual(lerArgumentos(['--env', 'prod', '--config', '/x/c.json', '--saida', '/y']), {
+      env: 'prod',
+      caminhoConfig: '/x/c.json',
+      dirSaida: '/y',
+    });
+    assert.throws(() => lerArgumentos(['--config', '/x/c.json']), /uso:/);
+    assert.throws(() => lerArgumentos(['--env', 'hml', '--config']), /uso:/);
   });
 
   test('ambiente desconhecido é recusado', async () => {
@@ -967,7 +1001,7 @@ describe('lerClassificacaoPedido', () => {
 
 // ---------------------------------------------------------------------------
 // mascararDocumentos: os 16 casos do P05 v2, mais a comparação contra
-// privado.mascarar_documentos quando o banco local responder na porta 54342.
+// privado.mascarar_documentos quando o banco local responder.
 // ---------------------------------------------------------------------------
 
 const CASOS_MASCARAR_DOCUMENTOS = [
@@ -1082,15 +1116,18 @@ describe('mascararDocumentos (P05 v2, 16 casos)', () => {
 
 // Comparação contra a função SQL de referência `privado.mascarar_documentos`
 // (PRD, P05 item 5: "essa é a definição de referência que o n8n copia").
-// Roda só se o banco local responder na porta 54342; senão pula com aviso,
-// exatamente como o P23 pede.
-describe('mascararDocumentos contra privado.mascarar_documentos (banco local, porta 54342)', () => {
+// Roda contra o banco local quando ele responde; senão pula com aviso, como o
+// P23 pede. Portas tentadas, nesta ordem: `KZ_PG_PORTA` (se definida), 54329
+// (`supabase/sem-docker`, CLAUDE.md) e 54342; banco `KZ_PG_BANCO` (padrão
+// `kraamzorg`), usuário `postgres` sem senha (autenticação trust local).
+describe('mascararDocumentos contra privado.mascarar_documentos (banco local)', () => {
   const HOST = '127.0.0.1';
-  const PORTA = 54342;
+  const PORTAS = process.env.KZ_PG_PORTA ? [Number(process.env.KZ_PG_PORTA)] : [54329, 54342];
+  const BANCO = process.env.KZ_PG_BANCO || 'kraamzorg';
 
-  function bancoResponde(timeoutMs = 800) {
+  function bancoResponde(porta, timeoutMs = 800) {
     return new Promise((resolve) => {
-      const socket = net.createConnection({ host: HOST, port: PORTA });
+      const socket = net.createConnection({ host: HOST, port: porta });
       const finalizar = (ok) => {
         socket.destroy();
         resolve(ok);
@@ -1102,38 +1139,45 @@ describe('mascararDocumentos contra privado.mascarar_documentos (banco local, po
     });
   }
 
+  async function mascararNoBanco(porta, entrada) {
+    const { stdout } = await execFileAsync('psql', [
+      '-h', HOST,
+      '-p', String(porta),
+      '-U', 'postgres',
+      '-d', BANCO,
+      '-t',
+      '-A',
+      '-v', 'ON_ERROR_STOP=1',
+      '-c',
+      `select privado.mascarar_documentos($$${entrada.replace(/\$/g, '')}$$)`,
+    ]);
+    return stdout.trim();
+  }
+
   test('compara os 16 casos com a função SQL quando o banco responde; pula com aviso se não responder', async (t) => {
-    const respondeu = await bancoResponde();
-    if (!respondeu) {
-      t.diagnostic(`aviso: banco local nao responde em ${HOST}:${PORTA}; pulando comparação com privado.mascarar_documentos`);
-      t.skip('banco local indisponível na porta 54342');
+    let PORTA = null;
+    for (const porta of PORTAS) {
+      if (!(await bancoResponde(porta))) continue;
+      try {
+        await mascararNoBanco(porta, 'teste');
+        PORTA = porta;
+        break;
+      } catch {
+        // banco no ar, mas sem a função nesta base: tenta a próxima porta
+      }
+    }
+    if (PORTA === null) {
+      t.diagnostic(
+        `aviso: nenhum banco local com privado.mascarar_documentos em ${HOST}:${PORTAS.join(', ')} (banco ${BANCO}); ` +
+          'pulando a comparação (suba com supabase/sem-docker/scripts/iniciar.sh e resetar.sh, ou defina KZ_PG_PORTA)',
+      );
+      t.skip('banco local indisponível ou sem privado.mascarar_documentos');
       return;
     }
+    t.diagnostic(`comparando contra ${HOST}:${PORTA}/${BANCO}`);
 
     for (const caso of CASOS_MASCARAR_DOCUMENTOS) {
-      let saidaSql;
-      try {
-        const { stdout } = await execFileAsync('psql', [
-          '-h', HOST,
-          '-p', String(PORTA),
-          '-U', 'postgres',
-          '-d', 'kraamzorg',
-          '-t',
-          '-A',
-          '-v', 'ON_ERROR_STOP=1',
-          '-c',
-          `select privado.mascarar_documentos($$${caso.entrada.replace(/\$/g, '')}$$)`,
-        ]);
-        saidaSql = stdout.trim();
-      } catch (erro) {
-        t.diagnostic(
-          `aviso: banco respondeu mas a comparação com privado.mascarar_documentos falhou (${erro.message}); ` +
-            'pulando (função provavelmente ainda não existe nesta base local, P05 roda antes do P23)',
-        );
-        t.skip('privado.mascarar_documentos indisponível');
-        return;
-      }
-
+      const saidaSql = await mascararNoBanco(PORTA, caso.entrada);
       const saidaJs = mascararDocumentos(caso.entrada);
       assert.equal(saidaJs, saidaSql, `${caso.nome}: JS "${saidaJs}" x SQL "${saidaSql}"`);
     }
@@ -1148,3 +1192,8 @@ import './fluxo-2.test.mjs';
 // [P25] Fluxo 3: funções puras (validarResposta, prepararEnvio, modo, saída
 // do agente, follow-up), cenários do P25 no simulador e estrutura do JSON.
 import './fluxo-3.test.mjs';
+
+// [P26] Fluxo 1: funções puras (novoLote, montarDocumentos,
+// conferirIndexacao), os três cenários do 19.2 no simulador (documento
+// aprovado, nada a indexar, falha no meio) e estrutura do JSON.
+import './fluxo-1.test.mjs';

@@ -110,7 +110,7 @@ export function criarConstrutor({ fluxoChave, config, dirCode }) {
 
   // Postgres: `query` literal e parâmetros como expressão que devolve lista
   // (PRD 19.1, armadilha 1).
-  const postgres = (nome, query, listaParametros, posicao) =>
+  const postgres = (nome, query, listaParametros, posicao, extra = {}) =>
     no(
       'postgres',
       nome,
@@ -121,7 +121,12 @@ export function criarConstrutor({ fluxoChave, config, dirCode }) {
         options: listaParametros.length > 0 ? { queryReplacement: `={{ [ ${listaParametros.join(', ')} ] }}` } : {},
       },
       posicao,
-      { credentials: { postgres: credencialDoConfig(config, 'postgres') }, onError: 'continueRegularOutput', alwaysOutputData: true },
+      {
+        credentials: { postgres: credencialDoConfig(config, 'postgres') },
+        onError: 'continueRegularOutput',
+        alwaysOutputData: true,
+        ...extra,
+      },
     );
 
   return { nos, conexoes, adicionar, ligar, ligarIA, no, code, se, escolha, postgres };

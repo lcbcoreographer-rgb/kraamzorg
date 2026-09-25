@@ -36,13 +36,29 @@ async function existe(caminho) {
   }
 }
 
-export async function carregarConfig(env, raizN8n, { log = console.error } = {}) {
+// `caminho` (opcional, `--config` do build): lê o config de um arquivo fora
+// do repositório (o do cofre, ou uma cópia temporária), para o config real
+// nunca precisar ficar dentro de `n8n/`. Em produção, apontar para o
+// `config.example.json` é recusado do mesmo jeito.
+export async function carregarConfig(env, raizN8n, { log = console.error, caminho = null } = {}) {
   if (!AMBIENTES_VALIDOS.includes(env)) {
     throw new Error(`ambiente invalido: "${env}" (esperado um de ${AMBIENTES_VALIDOS.join(', ')})`);
   }
 
-  const caminhoReal = caminhoConfig(env, raizN8n);
   const caminhoExample = caminhoConfigExample(raizN8n);
+
+  if (caminho) {
+    const escolhido = path.resolve(caminho);
+    if (env === 'prod' && (escolhido === path.resolve(caminhoExample) || path.basename(escolhido) === 'config.example.json')) {
+      throw new Error('producao nunca usa n8n/config.example.json (segredo de exemplo), nem pelo --config');
+    }
+    if (!(await existe(escolhido))) {
+      throw new Error(`config nao encontrado: ${escolhido}`);
+    }
+    return { config: await lerJson(escolhido), origem: escolhido, usouExample: escolhido === path.resolve(caminhoExample) };
+  }
+
+  const caminhoReal = caminhoConfig(env, raizN8n);
 
   if (await existe(caminhoReal)) {
     const config = await lerJson(caminhoReal);
