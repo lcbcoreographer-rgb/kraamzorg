@@ -21,8 +21,13 @@ export type GrupoAlerta =
  * - "v4": v4.0 do PRD, citada no Apêndice B quando o DOC 3 não detalha o corte.
  * - "clinico": item marcado [clínico] no Apêndice B ou no capítulo 22.3,
  *   ainda sem validação da Edilaine. Entra no catálogo desligado.
+ * - "proposta": linha do Apêndice B sem fonte citada na coluna "Situação"
+ *   (caso do seletor SM-01 a SM-07 do bloco 7). O Apêndice B inteiro é
+ *   "proposta para validação clínica" e o P40 depende da aprovação dele
+ *   (PROMPTS.md, P-1 item 18); sem "Fonte: DOC 3", entra desligada, igual
+ *   ao seed de `regra_alerta` (supabase/seed.sql, seção 7).
  */
-export type FonteRegra = "doc3" | "v4" | "clinico";
+export type FonteRegra = "doc3" | "v4" | "clinico" | "proposta";
 
 /** Operadores de comparação de uma condição folha. */
 export type OperadorComparacao =
@@ -43,7 +48,7 @@ export type ValorPrimitivo = string | number | boolean | null;
 /**
  * Condição folha: compara um campo do registro do dia (ou de uma visita da
  * série) com um valor. `campo` é o caminho pontuado dentro do objeto de
- * registro (ex.: "2.1.temperatura_c"), no mesmo formato usado por
+ * registro (ex.: "2.1.temperatura"), no mesmo formato usado por
  * `regra_alerta.campo` (PRD 6.6).
  */
 export interface CondicaoComparacao {
@@ -112,6 +117,28 @@ export type Condicao =
   | CondicaoComposta
   | CondicaoNegacao;
 
+/** Operadores do formato curto, o que já está gravado em `regra_alerta.condicao` pelo seed. */
+export type OperadorCurto =
+  "=" | "!=" | ">" | ">=" | "<" | "<=" | "entre" | "fora_da_faixa";
+
+/**
+ * Formato curto, sem `tipo`: é o formato das linhas de `regra_alerta` que o
+ * seed já grava (ex.: `{"campo":"2.1.temperatura","operador":">=","valor":38}`
+ * e `{"campo":"3.1.temperatura","operador":"fora_da_faixa","min":36,"max":38}`).
+ * O motor aceita os dois formatos: o curto vira uma `CondicaoComparacao` (ou
+ * a composição equivalente, no caso de `fora_da_faixa`) antes de avaliar.
+ */
+export interface CondicaoCurta {
+  campo: string;
+  operador: OperadorCurto;
+  valor?: ValorPrimitivo;
+  min?: number;
+  max?: number;
+}
+
+/** O que pode estar em `regra_alerta.condicao`: formato completo ou curto. */
+export type CondicaoJson = Condicao | CondicaoCurta;
+
 /**
  * Uma visita anterior da série, para as regras que dependem de histórico
  * (PU-08, RN-13). `registro` tem o mesmo formato de caminho pontuado do
@@ -137,12 +164,12 @@ export interface DadosCondicao {
 }
 
 /**
- * Uma linha do catálogo de regras (Apêndice B ligado aos campos do DOC 2).
- * `id` identifica o vínculo campo → regra no catálogo (pode haver mais de
- * um vínculo para o mesmo `codigo` do DOC 3, como PU-04, que dispara pela
- * cesárea sem sinais de infecção — fonte DOC 3 — ou pela alteração na
- * episiotomia — [clínico], ainda desligada). `codigo` é sempre o código do
- * DOC 3 (PU-01 etc.), igual ao `regra_alerta.id` do banco (PRD 6.6).
+ * Uma regra de alerta: linha de `regra_alerta` convertida por `regraDoBanco`
+ * ou linha do catálogo de referência. `id` identifica a regra; no banco é o
+ * próprio código. No catálogo de referência pode haver mais de um vínculo
+ * para o mesmo `codigo` (PU-04 pela cesárea, fonte DOC 3, ativo; e pela
+ * episiotomia ou laceração, [clínico], desligado). `codigo` é sempre o
+ * código do DOC 3 (PU-01 etc.), igual ao `regra_alerta.id` (PRD 6.6).
  */
 export interface RegraAlerta {
   id: string;
@@ -153,10 +180,14 @@ export interface RegraAlerta {
   conduta: string;
   /** Caminho do campo do DOC 2 que aciona a regra; null quando o sinal é manual (K-07). */
   campo: string | null;
-  condicao: Condicao | null;
-  fonte: FonteRegra;
-  /** Deriva de `fonte !== "clinico"` no catálogo padrão; ver `catalogo.ts`. */
+  /** JSON de `regra_alerta.condicao`, formato completo ou curto; inválido nunca dispara. */
+  condicao: CondicaoJson | null;
+  /** Origem da regra no catálogo de referência; linha vinda do banco não tem. */
+  fonte?: FonteRegra;
+  /** No catálogo de referência deriva de `fonte === "doc3"`; do banco vem de `regra_alerta.ativa`. */
   ativa: boolean;
+  /** `regra_alerta.instrumento_versao`, para gravar `alerta_clinico` com a mesma chave. */
+  instrumentoVersao?: string;
   /** Nota curta sobre a origem/pendência, para auditoria e para a tela (não é texto de família). */
   nota?: string;
 }
@@ -171,8 +202,14 @@ export interface EntradaAvaliacaoCampo {
   serieAnterior?: VisitaSerie[];
   /** Fatos estáticos que não mudam por visita (ex.: peso ao nascer). */
   contexto?: Record<string, unknown>;
-  /** Catálogo a usar; padrão é `CATALOGO_REGRAS` (só as ativas entram na avaliação). */
-  catalogo?: RegraAlerta[];
+  /**
+   * Regras a avaliar, obrigatórias: em produção são as linhas de
+   * `regra_alerta` do cache local convertidas por `regraDoBanco` (PRD 15:
+   * "as regras vêm de regra_alerta em cache local"). Não há catálogo
+   * padrão escondido: limite clínico não mora no código (CLAUDE.md).
+   * Só as ativas entram na avaliação.
+   */
+  catalogo: RegraAlerta[];
 }
 
 /** Entrada de `avaliarRegistro`: reavaliação completa (ex.: na sincronização). */
@@ -180,7 +217,21 @@ export interface EntradaAvaliacaoRegistro {
   registro: Record<string, unknown>;
   serieAnterior?: VisitaSerie[];
   contexto?: Record<string, unknown>;
-  catalogo?: RegraAlerta[];
+  /** Mesmas regras de `EntradaAvaliacaoCampo.catalogo`, obrigatórias. */
+  catalogo: RegraAlerta[];
+}
+
+/** Linha de `regra_alerta` como o banco devolve (PRD 6.6, migration 0004). */
+export interface LinhaRegraAlerta {
+  id: string;
+  grupo: string;
+  descricao: string;
+  severidade: string;
+  conduta: string;
+  campo: string | null;
+  condicao: unknown;
+  instrumento_versao: string;
+  ativa: boolean;
 }
 
 /** Resultado de uma regra que disparou. */
@@ -195,7 +246,8 @@ export interface ResultadoAlerta {
   valorObservado: unknown;
   /** SM imediato cria ocorrência privada (PRD 9.3, "Saúde mental materna"). */
   exigeOcorrenciaPrivada: boolean;
-  fonte: FonteRegra;
+  fonte?: FonteRegra;
+  instrumentoVersao?: string;
 }
 
 /** Um sinal do DOC 3 sem campo próprio no checklist (K-07), para o seletor da enfermeira. */

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { avaliarCondicao, obterValorPorCaminho } from "./condicao";
+import {
+  avaliarCondicao,
+  camposDaCondicao,
+  normalizarCondicao,
+  obterValorPorCaminho,
+} from "./condicao";
 import type { VisitaSerie } from "./tipos";
 
 describe("obterValorPorCaminho", () => {
@@ -55,7 +60,11 @@ describe("avaliarCondicao · comparação", () => {
     expect(avaliarCondicao(condicao, { registro: { x: 37.5 } })).toBe(true);
     expect(avaliarCondicao(condicao, { registro: { x: 37.9 } })).toBe(true);
     expect(avaliarCondicao(condicao, { registro: { x: 38 } })).toBe(false);
-    expect(avaliarCondicao(condicao, { registro: { x: "37.6" } })).toBe(false);
+    // Texto numérico do formulário offline conta como número; texto livre não.
+    expect(avaliarCondicao(condicao, { registro: { x: "37,6" } })).toBe(true);
+    expect(avaliarCondicao(condicao, { registro: { x: "37.6 °C" } })).toBe(
+      false,
+    );
   });
 
   it("igual e diferente comparam primitivos", () => {
@@ -71,6 +80,17 @@ describe("avaliarCondicao · comparação", () => {
         { registro: { x: false } },
       ),
     ).toBe(true);
+  });
+
+  it("diferente não dispara em campo sem resposta", () => {
+    const condicao = {
+      tipo: "comparacao" as const,
+      campo: "x",
+      operador: "diferente" as const,
+      valor: true,
+    };
+    expect(avaliarCondicao(condicao, { registro: {} })).toBe(false);
+    expect(avaliarCondicao(condicao, { registro: { x: null } })).toBe(false);
   });
 
   it("presente e ausente tratam string vazia, null e undefined como ausentes", () => {
@@ -245,5 +265,137 @@ describe("avaliarCondicao · série (PU-08)", () => {
       ],
     };
     expect(avaliarCondicao(condicaoPu08, dados)).toBe(false);
+  });
+});
+
+describe("formato curto do banco (regra_alerta.condicao do seed)", () => {
+  it("'>=' e '=' viram comparação", () => {
+    expect(
+      avaliarCondicao(
+        { campo: "2.1.temperatura", operador: ">=", valor: 38 },
+        { registro: { "2.1": { temperatura: 38.2 } } },
+      ),
+    ).toBe(true);
+    expect(
+      avaliarCondicao(
+        { campo: "2.1.temperatura", operador: ">=", valor: 38 },
+        { registro: { "2.1": { temperatura: 36.5 } } },
+      ),
+    ).toBe(false);
+    expect(
+      avaliarCondicao(
+        { campo: "3.atividade_preservada", operador: "=", valor: false },
+        { registro: { "3": { atividade_preservada: false } } },
+      ),
+    ).toBe(true);
+  });
+
+  it("fora_da_faixa dispara abaixo do mínimo ou acima do máximo, nunca nas bordas", () => {
+    const condicao = {
+      campo: "t",
+      operador: "fora_da_faixa" as const,
+      min: 36,
+      max: 38,
+    };
+    const avaliar = (t: number) =>
+      avaliarCondicao(condicao, { registro: { t } });
+    expect([35.9, 36, 37, 38, 38.1].map(avaliar)).toEqual([
+      true,
+      false,
+      false,
+      false,
+      true,
+    ]);
+  });
+
+  it("devolve sempre boolean: forma desconhecida é false, nunca o próprio objeto", () => {
+    for (const condicao of [
+      { campo: "t", operador: "~", valor: 1 },
+      { campo: "t", operador: "fora_da_faixa", min: 38, max: 36 },
+      { tipo: "comparacao", campo: "t", operador: "maior_igual" },
+      {
+        tipo: "serie",
+        campo: "t",
+        operador: "igual",
+        valor: 1,
+        visitasConsecutivas: 0,
+      },
+      { tipo: "ou", condicoes: [] },
+      { tipo: "e", condicoes: [{ campo: "t", operador: "~" }] },
+      null,
+      undefined,
+    ]) {
+      expect(
+        avaliarCondicao(condicao as never, { registro: { t: 100 } }),
+        JSON.stringify(condicao),
+      ).toBe(false);
+    }
+  });
+});
+
+describe("normalizarCondicao e camposDaCondicao", () => {
+  it("normaliza o formato curto e lista os campos consultados", () => {
+    expect(
+      normalizarCondicao({
+        campo: "3.1.temperatura",
+        operador: "fora_da_faixa",
+        min: 36,
+        max: 38,
+      }),
+    ).toEqual({
+      tipo: "ou",
+      condicoes: [
+        {
+          tipo: "comparacao",
+          campo: "3.1.temperatura",
+          operador: "menor",
+          valor: 36,
+        },
+        {
+          tipo: "comparacao",
+          campo: "3.1.temperatura",
+          operador: "maior",
+          valor: 38,
+        },
+      ],
+    });
+    expect(
+      camposDaCondicao({
+        tipo: "e",
+        condicoes: [
+          { campo: "a", operador: "=", valor: true },
+          {
+            tipo: "curva_peso",
+            campoPeso: "b",
+            percentualPerdaMaximo: 10,
+            diaVidaLimiteRecuperacao: 14,
+          },
+        ],
+      }),
+    ).toEqual(["a", "b"]);
+    expect(camposDaCondicao({ campo: "a", operador: "~" })).toEqual([]);
+  });
+});
+
+describe("obterValorPorCaminho com a numeração do checklist", () => {
+  it("lê chave literal com ponto, aninhamento por segmento e a mistura dos dois", () => {
+    expect(
+      obterValorPorCaminho({ "2.1": { temperatura: 38 } }, "2.1.temperatura"),
+    ).toBe(38);
+    expect(
+      obterValorPorCaminho(
+        { "2": { "1": { temperatura: 38 } } },
+        "2.1.temperatura",
+      ),
+    ).toBe(38);
+    expect(
+      obterValorPorCaminho(
+        { "3.2": { coto: { sinais: true } } },
+        "3.2.coto.sinais",
+      ),
+    ).toBe(true);
+    expect(
+      obterValorPorCaminho({ "2.1.temperatura": 37 }, "2.1.temperatura"),
+    ).toBe(37);
   });
 });

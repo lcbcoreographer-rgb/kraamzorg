@@ -58,4 +58,23 @@ describe("validarFechamentoAlerta", () => {
       "acionadoEm",
     ]);
   });
+
+  it("hora do acionamento em texto livre ou sem fuso não conta como preenchida", () => {
+    for (const acionadoEm of [
+      "ontem à tarde",
+      "14h",
+      "2026-09-25",
+      "2026-09-25T14:00:00",
+      "2026-13-45T99:00:00Z",
+    ]) {
+      const resultado = validarFechamentoAlerta({
+        sinalIdentificado: "Febre 38,2 °C",
+        acionadoEm,
+        orientacaoMedica: "Encaminhar para pronto-socorro obstétrico.",
+        condutaAdotada: "Família orientada e acompanhada até a saída.",
+      });
+      expect(resultado.valido, acionadoEm).toBe(false);
+      expect(resultado.camposFaltando).toEqual(["acionadoEm"]);
+    }
+  });
 });

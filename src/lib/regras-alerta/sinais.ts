@@ -86,7 +86,7 @@ export const SINAIS_SEM_CAMPO: SinalManual[] = [
     grupo: "recem_nascido",
     descricao: "Oligúria concentrada",
     severidade: "prioritario",
-    conduta: "Comunicar supervisão médica no mesmo dia e seguir orientação.",
+    conduta: "Comunicar supervisão médica e seguir orientação.",
     exigeOcorrenciaPrivada: false,
   }),
   criarSinal({
@@ -94,7 +94,7 @@ export const SINAIS_SEM_CAMPO: SinalManual[] = [
     grupo: "recem_nascido",
     descricao: "Vômitos frequentes",
     severidade: "prioritario",
-    conduta: "Comunicar supervisão médica no mesmo dia e seguir orientação.",
+    conduta: "Comunicar supervisão médica e seguir orientação.",
     exigeOcorrenciaPrivada: false,
   }),
   criarSinal({

@@ -1,4 +1,4 @@
-import { obterValorPorCaminho } from "./condicao";
+import { comoNumero, obterValorPorCaminho } from "./caminho";
 import type { CondicaoCurvaPeso, DadosCondicao } from "./tipos";
 
 /**
@@ -20,18 +20,24 @@ export function avaliarCurvaPeso(
   condicao: CondicaoCurvaPeso,
   dados: DadosCondicao,
 ): boolean {
-  const pesoNascimentoGramas = dados.contexto?.["pesoNascimentoGramas"];
-  if (!ehNumeroFinito(pesoNascimentoGramas) || pesoNascimentoGramas <= 0) {
+  const pesoNascimentoGramas = comoNumero(
+    dados.contexto?.["pesoNascimentoGramas"],
+  );
+  if (pesoNascimentoGramas === undefined || pesoNascimentoGramas <= 0) {
     // Sem peso ao nascer não há como calcular perda nem recuperação.
     return false;
   }
 
   const pesosDaSerie: number[] = [];
-  const pesoAtual = obterValorPorCaminho(dados.registro, condicao.campoPeso);
-  if (ehNumeroFinito(pesoAtual)) pesosDaSerie.push(pesoAtual);
+  const pesoAtual = comoNumero(
+    obterValorPorCaminho(dados.registro, condicao.campoPeso),
+  );
+  if (pesoAtual !== undefined && pesoAtual > 0) pesosDaSerie.push(pesoAtual);
   for (const visita of dados.serieAnterior ?? []) {
-    const peso = obterValorPorCaminho(visita.registro, condicao.campoPeso);
-    if (ehNumeroFinito(peso)) pesosDaSerie.push(peso);
+    const peso = comoNumero(
+      obterValorPorCaminho(visita.registro, condicao.campoPeso),
+    );
+    if (peso !== undefined && peso > 0) pesosDaSerie.push(peso);
   }
   if (pesosDaSerie.length === 0) return false;
 
@@ -40,17 +46,13 @@ export function avaliarCurvaPeso(
     ((pesoNascimentoGramas - menorPeso) / pesoNascimentoGramas) * 100;
   if (percentualPerda > condicao.percentualPerdaMaximo) return true;
 
-  const diaVidaAtual = dados.contexto?.["diaVidaAtual"];
+  const diaVidaAtual = comoNumero(dados.contexto?.["diaVidaAtual"]);
   if (
-    ehNumeroFinito(diaVidaAtual) &&
+    diaVidaAtual !== undefined &&
     diaVidaAtual >= condicao.diaVidaLimiteRecuperacao
   ) {
-    return ehNumeroFinito(pesoAtual) ? pesoAtual < pesoNascimentoGramas : false;
+    return pesoAtual !== undefined ? pesoAtual < pesoNascimentoGramas : false;
   }
 
   return false;
-}
-
-function ehNumeroFinito(valor: unknown): valor is number {
-  return typeof valor === "number" && Number.isFinite(valor);
 }
