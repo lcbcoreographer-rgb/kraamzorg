@@ -1,5 +1,6 @@
 import * as React from "react";
 import {
+  CircleAlert,
   CircleCheck,
   Info,
   OctagonPause,
@@ -15,9 +16,19 @@ import { cn } from "@/lib/utils";
  * logo abaixo do campo que a disparou; `fixa` prende no topo do checklist
  * até ser registrada. `role="alert"` só na primeira aparição
  * (`anunciar={true}`, o consumidor decide quando é a primeira vez).
+ *
+ * `imediato` é reservado ao alerta clínico (ícone `siren`); uma falha
+ * operacional (envio que não saiu, ação que não deu certo) usa `erro`
+ * (ícone `circle-alert`), para não emprestar a urgência clínica a um
+ * problema técnico (crítica do CRM, P0 item 15).
  */
 export type VarianteFaixa =
-  "imediato" | "prioritario" | "sensivel" | "info" | "sucesso";
+  | "imediato"
+  | "erro"
+  | "prioritario"
+  | "sensivel"
+  | "info"
+  | "sucesso";
 
 const config: Record<
   VarianteFaixa,
@@ -31,6 +42,11 @@ const config: Record<
     classe: "bg-alerta-lavado border-alerta-borda",
     iconeClasse: "text-alerta",
     Icone: Siren,
+  },
+  erro: {
+    classe: "bg-alerta-lavado border-alerta-borda",
+    iconeClasse: "text-alerta",
+    Icone: CircleAlert,
   },
   prioritario: {
     classe: "bg-aviso-lavado border-aviso-borda",
@@ -86,6 +102,7 @@ export function FaixaAlerta({
   const { classe, iconeClasse, Icone } = config[variante];
   const risco =
     variante === "imediato" ||
+    variante === "erro" ||
     variante === "prioritario" ||
     variante === "sensivel";
   const deveAnunciar = anunciar ?? risco;
@@ -111,7 +128,12 @@ export function FaixaAlerta({
           {titulo}
         </p>
         {children ? (
-          <p className="text-corpo text-texto mt-1">{children}</p>
+          // `<div>`, não `<p>`: alguns consumidores (a faixa de justificar
+          // o freio) passam um `<form>` como filho, e um `<form>` dentro de
+          // `<p>` é HTML inválido, o navegador reordena o DOM na hidratação
+          // e o React quebra na hidratação (erro de minificação número
+          // quatrocentos e dezoito, crítica do CRM, P0 item 5).
+          <div className="text-corpo text-texto mt-1">{children}</div>
         ) : null}
         {meta ? <p className="text-apoio text-texto-2 mt-2">{meta}</p> : null}
         {acoes ? (

@@ -13,14 +13,19 @@ import { FaixaAlerta } from "@/components/ui/faixa-alerta";
  */
 export function BotaoReindexar() {
   const [estado, definirEstado] = useState<
-    { tipo: "ocioso" } | { tipo: "enviando" } | { tipo: "ok"; texto: string } | { tipo: "erro"; texto: string }
+    | { tipo: "ocioso" }
+    | { tipo: "enviando" }
+    | { tipo: "ok"; texto: string }
+    | { tipo: "erro"; texto: string }
   >({ tipo: "ocioso" });
 
   async function reindexar() {
     definirEstado({ tipo: "enviando" });
     try {
       const resposta = await fetch("/api/agente/reindexar", { method: "POST" });
-      const corpo = (await resposta.json().catch(() => null)) as { erro?: string } | null;
+      const corpo = (await resposta.json().catch(() => null)) as {
+        erro?: string;
+      } | null;
       if (!resposta.ok) {
         definirEstado({
           tipo: "erro",
@@ -30,7 +35,10 @@ export function BotaoReindexar() {
       }
       definirEstado({ tipo: "ok", texto: "Reindexação iniciada." });
     } catch {
-      definirEstado({ tipo: "erro", texto: "Sem sinal agora. Tente de novo em instantes." });
+      definirEstado({
+        tipo: "erro",
+        texto: "Sem sinal agora. Tente de novo em instantes.",
+      });
     }
   }
 
@@ -43,7 +51,13 @@ export function BotaoReindexar() {
           tamanho="compacto"
           carregando={estado.tipo === "enviando"}
           rotuloCarregando="Reindexando"
-          iconeEsquerda={<RefreshCw aria-hidden="true" className="size-4" strokeWidth={1.75} />}
+          iconeEsquerda={
+            <RefreshCw
+              aria-hidden="true"
+              className="size-4"
+              strokeWidth={1.75}
+            />
+          }
           onClick={reindexar}
         >
           Reindexar

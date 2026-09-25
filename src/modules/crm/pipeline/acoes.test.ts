@@ -16,12 +16,8 @@ import type { SessaoUsuario } from "@/lib/auth/tipos";
 import { USUARIOS } from "@/lib/dados/demonstracao/fixtures";
 import { reiniciarLoja } from "@/lib/dados/demonstracao/loja";
 import { listarPipelineTela } from "./dados";
-import {
-  acaoCriarLead,
-  acaoMarcarPerdido,
-  acaoTransicionar,
-  estadoInicialPipeline,
-} from "./acoes";
+import { acaoCriarLead, acaoMarcarPerdido, acaoTransicionar } from "./acoes";
+import { estadoInicialPipeline } from "./estado-acoes";
 
 vi.mock("@/lib/auth/sessao", () => {
   let sessaoAtual: SessaoUsuario | null = null;

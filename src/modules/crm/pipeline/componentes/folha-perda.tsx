@@ -13,7 +13,8 @@ import {
 import { EscolhaUnica } from "@/components/ui/escolha-unica";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import type { NumeroPipeline } from "@/lib/dados/tipos";
-import { acaoMarcarPerdido, estadoInicialPipeline } from "../acoes";
+import { acaoMarcarPerdido } from "../acoes";
+import { estadoInicialPipeline } from "../estado-acoes";
 import { MOTIVOS_PERDA, ROTULO_MOTIVO_PERDA } from "../estagios";
 
 /**

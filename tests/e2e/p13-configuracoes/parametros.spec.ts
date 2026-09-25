@@ -27,7 +27,7 @@ test("a diretoria edita um parâmetro inteiro e o histórico registra a troca", 
   const anterior = await dialogo.getByLabel("Valor").inputValue();
   const novo = String(Number(anterior) + 1);
   await dialogo.getByLabel("Valor").fill(novo);
-  await dialogo.getByRole("button", { name: "Salvar" }).click();
+  await dialogo.getByRole("button", { name: "Salvar", exact: true }).click();
   await expect(dialogo).toBeHidden();
 
   // A tabela mostra o valor novo.
@@ -55,7 +55,7 @@ test("recusa texto solto no lugar de um número, e nada é gravado", async ({
     .click();
   const dialogo = page.getByRole("dialog");
   await dialogo.getByLabel("Valor").fill("muito");
-  await dialogo.getByRole("button", { name: "Salvar" }).click();
+  await dialogo.getByRole("button", { name: "Salvar", exact: true }).click();
 
   await expect(dialogo.getByRole("alert")).toBeVisible();
   await expect(dialogo).toBeVisible();

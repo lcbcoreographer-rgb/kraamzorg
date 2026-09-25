@@ -71,13 +71,17 @@ describe("PaginaTarefas", () => {
     const { default: PaginaTarefas } = await import("./page");
     render(await PaginaTarefas());
 
-    expect(screen.getByRole("heading", { name: "Tarefas" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Tarefas" }),
+    ).toBeInTheDocument();
     // Tarefas do seed atribuídas ao papel comercial ou à pessoa comercial.
     expect(
       screen.getByText("Retomar a conversa com a Família Teste Cedro"),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Conferir o formulário do contrato da Família Teste Horizonte"),
+      screen.getByText(
+        "Conferir o formulário do contrato da Família Teste Horizonte",
+      ),
     ).toBeInTheDocument();
     // Tarefa da coordenação não aparece para o comercial.
     expect(

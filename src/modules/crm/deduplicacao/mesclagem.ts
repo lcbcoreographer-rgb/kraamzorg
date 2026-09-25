@@ -1,7 +1,7 @@
 import "server-only";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { criarClienteServidor } from "@/lib/db/cliente-servidor";
-import { ErroRepositorio, traduzirErroBanco } from "@/lib/dados/erros";
+import { ErroRepositorio } from "@/lib/dados/erros";
 import { modoDados } from "@/lib/dados/modo";
 import { rpcPendente } from "@/lib/dados/supabase/comum";
 import { transicionarEstagio } from "../pipeline/dados";
@@ -171,7 +171,20 @@ async function mesclarFamiliasDemonstracao(
 }
 
 /** Vínculo de nova gestação (P17 item 1, PRD 6.10 regra 12): mesmo telefone,
- * DPP muito distante. Liga por `familia_anterior_id`, nunca mescla. */
+ * DPP muito distante. Liga por `familia_anterior_id`, nunca mescla.
+ *
+ * O banco já tem `privado.vincular_nova_gestacao` (migration 0010, com as
+ * checagens de ciclo, família já mesclada, vínculo existente e ordem das
+ * datas), mas `privado` nunca é exposto pelo PostgREST (PRD 5.2) e ainda não
+ * existe o wrapper `api.*` (0012 a 0014, outra trilha). `familia.familia_anterior_id`
+ * tem grant de UPDATE direto para comercial e diretoria (0007_permissoes.sql),
+ * mas escrever nela direto pulando todas as checagens da função devolveria
+ * "sim, salvei" sem a validação: deixaria passar um autovínculo, um ciclo
+ * entre gestações ou uma família já mesclada como "anterior" que o banco
+ * recusaria, e não gravaria o evento `nova_gestacao` que a ficha (P16) lê.
+ * Por isso o caminho do Supabase usa `rpcPendente`, como
+ * `mesclarFamiliasSupabase`: até o wrapper existir, esta ação devolve
+ * `funcao_pendente`, igual à mesclagem. */
 export async function vincularNovaGestacao(
   familiaRecenteId: string,
   familiaAnteriorId: string,
@@ -179,10 +192,18 @@ export async function vincularNovaGestacao(
   const sessao = await exigirSessao("/pipeline/duplicatas");
   if (
     !sessao.papeis.includes("comercial") &&
-    !sessao.papeis.includes("coordenacao") &&
     !sessao.papeis.includes("diretoria")
   ) {
-    throw new ErroRepositorio("sem_permissao", "vínculo de nova gestação");
+    throw new ErroRepositorio(
+      "sem_permissao",
+      "vínculo de nova gestação exige comercial ou diretoria (PRD 13; privado.vincular_nova_gestacao)",
+    );
+  }
+  if (familiaRecenteId === familiaAnteriorId) {
+    throw new ErroRepositorio(
+      "recusado",
+      "vínculo de nova gestação: informe duas famílias diferentes",
+    );
   }
 
   if (modoDados() === "demonstracao") {
@@ -191,11 +212,8 @@ export async function vincularNovaGestacao(
   }
 
   const cliente = await criarClienteServidor();
-  const resposta = await cliente
-    .from("familia")
-    .update({ familia_anterior_id: familiaAnteriorId })
-    .eq("id", familiaRecenteId);
-  if (resposta.error) {
-    throw traduzirErroBanco(resposta.error, "vincular nova gestação");
-  }
+  await rpcPendente(cliente, "vincular_nova_gestacao", {
+    familia_id: familiaRecenteId,
+    familia_anterior_id: familiaAnteriorId,
+  });
 }

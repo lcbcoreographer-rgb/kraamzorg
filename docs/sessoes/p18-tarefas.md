@@ -183,3 +183,17 @@ rodei:
 - `pnpm lint` nas minhas pastas: sem erro nem aviso.
 - `gitleaks`: não rodei (não mexi em segredo nenhum; as variáveis novas citadas acima só
   existem como nome de variável, sem valor, em texto de documentação).
+
+## Atualização da verificação e da integração do CRM
+
+Este relatório é da sessão de construção. Duas afirmações acima ficaram
+desatualizadas e valem as correções abaixo:
+
+- A permissão do banco não deixa gravar `mensagem` direto: a
+  `0007_permissoes.sql` só dá leitura, e o "Enviei" passa por
+  `api.registrar_envio_tarefa` (ainda pendente), que mascara o texto antes de
+  gravar. Até a função existir, o botão falha sem gravar nada pela metade.
+- O repositório de demonstração devolve o `payload` da tarefa, e o seed tem uma
+  tarefa com mensagem (Família Teste Dália). O e2e confere o link do WhatsApp.
+
+O resto das correções está em `docs/sessoes/CRM-integracao.md`.

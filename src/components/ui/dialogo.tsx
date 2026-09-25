@@ -42,7 +42,7 @@ export function DialogoConteudo({
         className={cn(
           "rounded-t-3 bg-superficie shadow-2 fixed inset-x-0 bottom-0 z-40 max-h-[88dvh] overflow-y-auto p-4 pb-[calc(2rem+env(safe-area-inset-bottom))]",
           "data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom",
-          "lg:rounded-3 lg:top-1/2 lg:right-auto lg:bottom-auto lg:left-1/2 lg:max-h-none lg:w-[520px] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:pb-8",
+          "lg:rounded-3 lg:top-1/2 lg:right-auto lg:bottom-auto lg:left-1/2 lg:max-h-[calc(100dvh-4rem)] lg:w-[520px] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:pb-8",
           "lg:data-[state=open]:zoom-in-95 lg:data-[state=closed]:zoom-out-95 lg:data-[state=open]:slide-in-from-bottom-0",
           className,
         )}

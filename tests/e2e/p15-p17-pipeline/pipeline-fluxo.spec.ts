@@ -47,7 +47,9 @@ test.describe.serial("Pipeline 1: mudança de estágio", () => {
   }) => {
     await entrarComo(page, "Comercial");
     await page.goto("/pipeline?pipeline=1&busca=Aurora");
-    await expect(page.getByText("Família Teste Aurora")).toBeVisible();
+    await expect(
+      page.getByText("Família Teste Aurora").filter({ visible: true }),
+    ).toBeVisible();
 
     async function mover(destino: string) {
       // O botão fica desabilitado enquanto a Server Action está em
@@ -64,7 +66,9 @@ test.describe.serial("Pipeline 1: mudança de estágio", () => {
     // A "Sessão agendada" é o novo estágio dela; a lista continua mostrando
     // só a Aurora (busca ainda ativa).
     await expect(page.getByText("Sessão agendada").first()).toBeVisible();
-    await expect(page.getByText("Família Teste Aurora")).toBeVisible();
+    await expect(
+      page.getByText("Família Teste Aurora").filter({ visible: true }),
+    ).toBeVisible();
   });
 });
 
@@ -81,13 +85,17 @@ test("perda exige motivo: sem escolher, mostra o aviso e não sai do estágio", 
   await expect(
     page.getByRole("heading", { name: "Marcar como perdido" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Marcar como perdido" }).click();
+  await page
+    .getByRole("button", { name: "Marcar como perdido", exact: true })
+    .click();
   await expect(
     page.getByText("Escolha um motivo. Ele alimenta o relatório de perdas."),
   ).toBeVisible();
 
   await page.getByLabel("Preço").click();
-  await page.getByRole("button", { name: "Marcar como perdido" }).click();
+  await page
+    .getByRole("button", { name: "Marcar como perdido", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Marcar como perdido" }),
   ).toBeHidden();

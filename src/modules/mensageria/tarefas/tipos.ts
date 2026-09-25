@@ -1,5 +1,11 @@
-import type { Json } from "@/lib/db/types";
-import type { Prioridade, StatusTarefa, Tarefa, TipoTarefa } from "@/lib/dados/tipos";
+import { Constants, type Json } from "@/lib/db/types";
+import type { CategoriaAutomacao } from "@/lib/messaging";
+import type {
+  Prioridade,
+  StatusTarefa,
+  Tarefa,
+  TipoTarefa,
+} from "@/lib/dados/tipos";
 
 /**
  * Contrato do `payload` da tarefa (PRD 6.4: "texto sugerido, link wa.me,
@@ -14,7 +20,43 @@ export interface PayloadTarefaMensagem {
   telefoneE164?: string;
   /** Chave de `mensagem_modelo` que originou o texto (auditoria). */
   mensagemChave?: string;
+  /**
+   * Categoria da automação que criou a tarefa (PRD 8.2). Decide o que o
+   * freio deixa passar: `operacional` segue em `atencao`, `conteudo` e
+   * `marketing` não. Sem categoria válida, vale `conteudo`, a mais restrita
+   * das que falam com a família no dia a dia.
+   */
+  categoria?: CategoriaAutomacao;
   contexto?: string;
+}
+
+const CATEGORIAS: readonly string[] =
+  Constants.public.Enums.categoria_automacao;
+
+function lerCategoria(valor: unknown): CategoriaAutomacao | undefined {
+  return typeof valor === "string" && CATEGORIAS.includes(valor)
+    ? (valor as CategoriaAutomacao)
+    : undefined;
+}
+
+/** Categoria usada no freio para esta tarefa (padrão conservador: conteudo). */
+export function categoriaDaTarefa(
+  mensagem: PayloadTarefaMensagem,
+): CategoriaAutomacao {
+  return mensagem.categoria ?? "conteudo";
+}
+
+/**
+ * A tarefa é "Justificar o freio" (`privado.acionar_freio`, PRD 8.3)? Sem
+ * texto sugerido (é interna, tipo "outro"): a tela não pode tratá-la como
+ * as demais tarefas internas, com um "Concluir" liso, porque concluir sem
+ * escrever o motivo não é aceitável (crítica do CRM, P1 item 11).
+ */
+export function ehJustificarFreio(payload: Json): boolean {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return false;
+  }
+  return (payload as Record<string, unknown>).acao === "justificar_freio";
 }
 
 export function lerPayloadTarefa(payload: Json): PayloadTarefaMensagem {
@@ -26,12 +68,19 @@ export function lerPayloadTarefa(payload: Json): PayloadTarefaMensagem {
   const telefone = registro.telefoneE164 ?? registro.telefone_e164;
   const chave = registro.mensagemChave ?? registro.mensagem_chave;
   const contexto = registro.contexto;
-  return {
-    textoSugerido: typeof texto === "string" && texto.trim() ? texto : undefined,
-    telefoneE164: typeof telefone === "string" && telefone.trim() ? telefone : undefined,
-    mensagemChave: typeof chave === "string" && chave.trim() ? chave : undefined,
-    contexto: typeof contexto === "string" && contexto.trim() ? contexto : undefined,
+  const lido: PayloadTarefaMensagem = {
+    textoSugerido:
+      typeof texto === "string" && texto.trim() ? texto : undefined,
+    telefoneE164:
+      typeof telefone === "string" && telefone.trim() ? telefone : undefined,
+    mensagemChave:
+      typeof chave === "string" && chave.trim() ? chave : undefined,
+    contexto:
+      typeof contexto === "string" && contexto.trim() ? contexto : undefined,
   };
+  const categoria = lerCategoria(registro.categoria);
+  if (categoria) lido.categoria = categoria;
+  return lido;
 }
 
 /** Tarefa com o payload já decodificado, pronta para a tela. */
@@ -50,7 +99,8 @@ export function paraTarefaTela(tarefa: Tarefa): TarefaTela {
   };
 }
 
-export type BaldeVencimento = "vencida" | "vence_hoje" | "a_vencer" | "sem_prazo";
+export type BaldeVencimento =
+  "vencida" | "vence_hoje" | "a_vencer" | "sem_prazo";
 
 export interface GrupoTarefas {
   balde: BaldeVencimento;

@@ -189,9 +189,23 @@ export function criarRepositoriosDemonstracao(
     },
 
     async listarFamilias(filtro = {}) {
+      const l = loja();
       const busca = filtro.busca?.trim().toLowerCase();
-      return familiasVisiveis(loja())
-        .filter((f) => !busca || f.nome.toLowerCase().includes(busca))
+      const digitos = filtro.busca?.replace(/\D/g, "") ?? "";
+      // Nome da família ou telefone de alguém da família (a partir de 4
+      // dígitos, qualquer formato), como a busca do pipeline.
+      const porTelefone = (familiaId: string) =>
+        digitos.length >= 4 &&
+        l.pessoas.some(
+          (p) => p.familiaId === familiaId && p.telefoneE164.includes(digitos),
+        );
+      const ids = filtro.ids ? new Set(filtro.ids) : null;
+      return familiasVisiveis(l)
+        .filter((f) => !ids || ids.has(f.id))
+        .filter(
+          (f) =>
+            !busca || f.nome.toLowerCase().includes(busca) || porTelefone(f.id),
+        )
         .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
         .slice(0, filtro.limite ?? 200)
         .map(resumo);
@@ -343,6 +357,16 @@ export function criarRepositoriosDemonstracao(
       familia.estadoSensivelEm = new Date().toISOString();
       l.freios[familiaId] = { por: usuarioId, em: Date.now(), de };
       registrarEvento(l, familiaId, "freio", "Freio acionado", true);
+      // Como privado.acionar_freio (0009): o prazo do "Desfazer" volta na
+      // resposta (agora + parametro.freio_desfazer_segundos), porque o
+      // comercial, que é quem mais aciona, não lê `parametro`.
+      const segundosDesfazer = l.parametros.find(
+        (p) => p.chave === "freio_desfazer_segundos",
+      )?.valor;
+      const desfazerAte =
+        typeof segundosDesfazer === "number" && segundosDesfazer > 0
+          ? new Date(Date.now() + segundosDesfazer * 1000).toISOString()
+          : null;
       if (!motivo) {
         l.tarefas.push({
           id: crypto.randomUUID(),
@@ -354,6 +378,7 @@ export function criarRepositoriosDemonstracao(
           familiaId,
           responsavelId: usuarioId,
           papelResponsavel: null,
+          payload: { acao: "justificar_freio", estado },
           criadoEm: new Date().toISOString(),
         });
       }
@@ -362,6 +387,7 @@ export function criarRepositoriosDemonstracao(
         de,
         para: estado,
         alterado: true,
+        desfazer_ate: desfazerAte,
       });
     },
 
@@ -427,6 +453,14 @@ export function criarRepositoriosDemonstracao(
           "demonstração: reverter exige coordenação ou diretoria",
         );
       }
+      // privado.reverter_freio (0009) exige AAL2 mesmo de quem já passou
+      // pela RLS, e só desce o freio: subir é acionar.
+      if (contexto.aal !== "aal2") {
+        throw new ErroRepositorio(
+          "sem_permissao",
+          "demonstração: a reversão exige MFA (AAL2)",
+        );
+      }
       if (!justificativa.trim())
         throw new ErroRepositorio(
           "recusado",
@@ -437,6 +471,12 @@ export function criarRepositoriosDemonstracao(
       if (!familia)
         throw new ErroRepositorio("nao_encontrado", "demonstração: família");
       const de = familia.estadoSensivel;
+      if (ORDEM_ESTADO.indexOf(estado) >= ORDEM_ESTADO.indexOf(de)) {
+        throw new ErroRepositorio(
+          "recusado",
+          `demonstração: reverter só desce o freio (${de} para ${estado})`,
+        );
+      }
       familia.estadoSensivel = estado;
       familia.estadoSensivelEm =
         estado === "normal" ? null : new Date().toISOString();
@@ -481,7 +521,6 @@ export function criarRepositoriosDemonstracao(
         )
         .map((t) => ({
           ...t,
-          payload: {},
           nomeFamilia:
             l.familias.find((f) => f.id === t.familiaId)?.nome ?? null,
         }));
@@ -567,6 +606,7 @@ export function criarRepositoriosDemonstracao(
       const ehLead = (c: (typeof l.conversas)[number]) =>
         ["lead", "cliente", "nao_classificado"].includes(c.classificacao);
       return l.conversas
+        .filter((c) => !filtro.familiaId || c.familiaId === filtro.familiaId)
         .filter((c) => {
           switch (filtro.situacao) {
             case "isadora":

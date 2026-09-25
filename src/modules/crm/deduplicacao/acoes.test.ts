@@ -28,11 +28,8 @@ import { FAMILIAS, USUARIOS } from "@/lib/dados/demonstracao/fixtures";
 import { reiniciarLoja } from "@/lib/dados/demonstracao/loja";
 import { criarLeadManual } from "../pipeline/dados";
 import { reiniciarMesclagemDemoParaTestes } from "./mesclagem";
-import {
-  acaoMesclar,
-  acaoVincularNovaGestacao,
-  estadoInicialMesclagem,
-} from "./acoes";
+import { acaoMesclar, acaoVincularNovaGestacao } from "./acoes";
+import { estadoInicialMesclagem } from "./estado-acoes";
 
 vi.mock("@/lib/auth/sessao", () => {
   let sessaoAtual: SessaoUsuario | null = null;
@@ -137,5 +134,39 @@ describe("acaoVincularNovaGestacao", () => {
     await expect(
       acaoVincularNovaGestacao(estadoInicialMesclagem, formulario),
     ).rejects.toMatchObject({ para: "/pipeline/duplicatas?vinculada=1" });
+  });
+
+  it("recusa vincular uma família com ela mesma, sem chamar o repositório", async () => {
+    const formulario = new FormData();
+    formulario.set("familiaRecenteId", auroraId());
+    formulario.set("familiaAnteriorId", auroraId());
+
+    const resultado = await acaoVincularNovaGestacao(
+      estadoInicialMesclagem,
+      formulario,
+    );
+    expect(resultado.erro).toMatch(/mesma/);
+  });
+
+  it("exige comercial ou diretoria, como privado.vincular_nova_gestacao (PRD 13)", async () => {
+    const nova = await criarLeadManual({
+      nomeFamilia: "Família Teste Aurora Gestação Nova",
+      nomeContato: "Marina",
+      papelContato: "mae",
+      telefoneE164: "11900000301",
+      dpp: "2028-06-01",
+      origem: "outro",
+    });
+    await logarComo("Perfil Teste Coordenacao", "aal2");
+
+    const formulario = new FormData();
+    formulario.set("familiaRecenteId", nova.familiaId);
+    formulario.set("familiaAnteriorId", auroraId());
+
+    const resultado = await acaoVincularNovaGestacao(
+      estadoInicialMesclagem,
+      formulario,
+    );
+    expect(resultado.erro).toBeTruthy();
   });
 });

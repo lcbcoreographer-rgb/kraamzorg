@@ -4,7 +4,8 @@ import { obterRegraRetomada } from "../repositorio";
 import type { MensagemModelo } from "@/lib/dados/tipos";
 
 export interface RegraRetomadaTela {
-  horas: number;
+  /** null quando o papel não lê `parametro` (RLS: só a diretoria). */
+  horas: number | null;
   atualizadoEm: string | null;
   textoPosPdf: MensagemModelo | null;
   textoPosAbertura: MensagemModelo | null;

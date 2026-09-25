@@ -39,7 +39,10 @@ describe("POST /api/interno/notificar", () => {
 
   it("com segredo errado, recusa com 401, mesmo com o prefixo certo", async () => {
     const resposta = await POST(
-      requisicao({ titulo: "x", canais: ["email"] }, "segredo-de-teste-bem-comprid0"),
+      requisicao(
+        { titulo: "x", canais: ["email"] },
+        "segredo-de-teste-bem-comprid0",
+      ),
     );
     expect(resposta.status).toBe(401);
   });
@@ -60,7 +63,10 @@ describe("POST /api/interno/notificar", () => {
   });
 
   it("com segredo certo e corpo válido, despacha e devolve 200 com os resultados", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 200 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("{}", { status: 200 })),
+    );
     process.env.RESEND_API_KEY = "re_teste";
     process.env.RESEND_FROM_EMAIL = "central@kraamzorg.example";
 
@@ -79,7 +85,12 @@ describe("POST /api/interno/notificar", () => {
     expect(resposta.status).toBe(200);
     const corpo = (await resposta.json()) as { resultados: unknown[] };
     expect(corpo.resultados).toEqual([
-      { canal: "email", destino: "equipe@kraamzorg.example", ok: true, motivo: undefined },
+      {
+        canal: "email",
+        destino: "equipe@kraamzorg.example",
+        ok: true,
+        motivo: undefined,
+      },
     ]);
   });
 });

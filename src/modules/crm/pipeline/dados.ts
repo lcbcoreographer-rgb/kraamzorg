@@ -71,9 +71,9 @@ export async function listarPipelineTela(
     .filter((c) => {
       if (filtro.semanasMin === undefined && filtro.semanasMax === undefined)
         return true;
-      const ig = textoIdadeGestacional(c.dpp, hoje);
-      const semanas = ig ? Number(ig.split("s")[0]) : null;
-      if (semanas === null) return false;
+      const ig = textoIdadeGestacional(c.dpp, hoje, c.dataNascimento);
+      const semanas = ig ? Number(ig.split("s")[0]) : NaN;
+      if (!Number.isFinite(semanas)) return false;
       if (filtro.semanasMin !== undefined && semanas < filtro.semanasMin)
         return false;
       if (filtro.semanasMax !== undefined && semanas > filtro.semanasMax)
@@ -89,7 +89,11 @@ function paraCartaoTela(
 ): CartaoPipelineTela {
   return {
     ...cartao,
-    idadeGestacional: textoIdadeGestacional(cartao.dpp, hoje),
+    idadeGestacional: textoIdadeGestacional(
+      cartao.dpp,
+      hoje,
+      cartao.dataNascimento,
+    ),
     tempoNoEstagio: haQuantoTempo(cartao.atualizadoEm),
   };
 }

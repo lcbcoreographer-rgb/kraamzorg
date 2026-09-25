@@ -11,14 +11,18 @@ import { expect, type Page } from "@playwright/test";
 export const CODIGO_MFA = "123456";
 
 /**
- * Entra como a pessoa de teste do seed com esse papel ("Comercial" abre
- * "Perfil Teste Comercial") e passa pelo MFA se precisar. Pessoas criadas
+ * Entra como a pessoa de teste do seed com esse papel, escrito como o
+ * botão mostra ("Comercial" abre "Perfil Teste Comercial"; "Coordenação",
+ * com acento) e passa pelo MFA se precisar. Pessoas criadas
  * por convite durante o teste não entram no filtro.
  */
 export async function entrarComo(
   page: Page,
   rotulo: string | RegExp,
 ): Promise<void> {
+  // Quem já entrou e abre /entrar vai direto para o início: para trocar de
+  // pessoa na mesma página, a sessão anterior sai antes.
+  await page.context().clearCookies();
   await page.goto("/entrar");
   await page
     .getByRole("button", {

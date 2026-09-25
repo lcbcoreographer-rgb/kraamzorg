@@ -41,6 +41,41 @@ describe("destinosPermitidos: espelha privado.transicao_permitida (PRD 7.1 e 7.2
     expect(destinos.every((d) => d.papelMinimo === "coordenacao")).toBe(true);
   });
 
+  it("qualquer estágio ativo do P2 pode ir para intercorrencia, sem papel mínimo (0006: 'qualquer pessoa com papel, ou o sistema')", () => {
+    const destino = destinosPermitidos(2, "pagamento_confirmado").find(
+      (d) => d.estagio === "intercorrencia",
+    );
+    expect(destino).toBeTruthy();
+    expect(destino?.papelMinimo).toBeNull();
+  });
+
+  it("bebe_nasceu chega de qualquer estágio depois de pagamento_confirmado (PRD 7.2, protótipo comercial-pipeline.html)", () => {
+    for (const de of [
+      "pagamento_confirmado",
+      "nota_fiscal_emitida",
+      "consulta_prenatal_agendada",
+      "consulta_realizada",
+      "enfermeira_designada",
+      "aguardando_nascimento",
+    ] as const) {
+      const destinos = destinosPermitidos(2, de).map((d) => d.estagio);
+      expect(destinos).toContain("bebe_nasceu");
+    }
+  });
+
+  it("a linha principal automática do P2 (ganho até atendimento_liberado) continua no menu, com o papel de quem confirma", () => {
+    expect(destinosPermitidos(2, "ganho").map((d) => d.estagio)).toContain(
+      "contrato_gerado",
+    );
+    const paraCobranca = destinosPermitidos(2, "assinado").find(
+      (d) => d.estagio === "cobranca_gerada",
+    );
+    expect(paraCobranca?.papelMinimo).toBe("financeiro");
+    expect(
+      destinosPermitidos(2, "aguardando_alta").map((d) => d.estagio),
+    ).toContain("atendimento_liberado");
+  });
+
   it("rótulo de cada destino já vem pronto para o menu", () => {
     const destino = destinosPermitidos(1, "novo").find(
       (d) => d.estagio === "perdido",

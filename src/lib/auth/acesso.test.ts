@@ -86,6 +86,15 @@ describe("decidirAcesso: MFA (AAL2) para os papéis que exigem (PRD 13 e 21.2)",
     },
   );
 
+  it("comercial sem MFA pode abrir o cadastro por vontade própria, mas não o desafio", () => {
+    const s = sessao(["comercial"], { aal: "aal1", aalPossivel: "aal1" });
+    expect(decidirAcesso("/mfa/cadastro", s)).toEqual(seguir);
+    expect(decidirAcesso("/mfa/desafio", s)).toEqual(para("/inicio"));
+    expect(decidirAcesso("/mfa/cadastro", sessao(["comercial"]))).toEqual(
+      para("/inicio"),
+    );
+  });
+
   it("quem cadastrou o MFA sempre passa pelo desafio, mesmo o comercial", () => {
     const s = sessao(["comercial"], { aal: "aal1", aalPossivel: "aal2" });
     expect(decidirAcesso("/pipeline", s)).toEqual(

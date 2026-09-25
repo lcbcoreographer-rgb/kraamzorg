@@ -168,4 +168,25 @@ describe("vincularNovaGestacao: liga por familia_anterior_id, não mescla (PRD 6
     ).toHaveLength(1);
     expect(familiasJaMescladas().has(nova.familiaId)).toBe(false);
   });
+
+  it("recusa vincular uma família com ela mesma", async () => {
+    await expect(
+      vincularNovaGestacao(auroraId(), auroraId()),
+    ).rejects.toMatchObject({ codigo: "recusado" });
+  });
+
+  it("exige comercial ou diretoria, não coordenação (privado.vincular_nova_gestacao, PRD 13)", async () => {
+    const nova = await criarLeadManual({
+      nomeFamilia: "Família Teste Aurora Gestação Nova",
+      nomeContato: "Marina",
+      papelContato: "mae",
+      telefoneE164: "11900000301",
+      dpp: "2028-06-01",
+      origem: "outro",
+    });
+    await logarComo("Perfil Teste Coordenacao", "aal2");
+    await expect(
+      vincularNovaGestacao(nova.familiaId, auroraId()),
+    ).rejects.toMatchObject({ codigo: "sem_permissao" });
+  });
 });

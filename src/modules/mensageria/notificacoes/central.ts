@@ -8,7 +8,7 @@ import type { CanalNotificacao, NotificacaoInterna } from "./tipos";
 /**
  * Central de notificação (PRD 6.7 e item 3 do P18). A tabela `notificacao`
  * já tem RLS pronta desde 0007_permissoes.sql (usuário dono, papel sem
- * dono definido, ou diretoria; update só de `lida_em`) — lê e marca como
+ * dono definido, ou diretoria; update só de `lida_em`), lê e marca como
  * lida direto pelo cliente de servidor, sem RPC. Quem cria a notificação é
  * o sistema (comentário da própria migration): as automações do banco
  * (P20) ou a rota `POST /api/interno/notificar` (item 4 deste prompt),
@@ -25,10 +25,13 @@ export async function listarNotificacoes(): Promise<NotificacaoInterna[]> {
   const cliente = await criarClienteServidor();
   const resposta = await cliente
     .from("notificacao")
-    .select("id, usuario_id, papel, prioridade, titulo, corpo, link, canais, lida_em, criado_em")
+    .select(
+      "id, usuario_id, papel, prioridade, titulo, corpo, link, canais, lida_em, criado_em",
+    )
     .order("criado_em", { ascending: false })
     .limit(50);
-  if (resposta.error) throw traduzirErroBanco(resposta.error, "listar notificações");
+  if (resposta.error)
+    throw traduzirErroBanco(resposta.error, "listar notificações");
   return resposta.data.map((n) => ({
     id: n.id,
     usuarioId: n.usuario_id,
@@ -52,7 +55,8 @@ export async function marcarNotificacaoLida(id: string): Promise<void> {
     .from("notificacao")
     .update({ lida_em: new Date().toISOString() })
     .eq("id", id);
-  if (resposta.error) throw traduzirErroBanco(resposta.error, "marcar notificação como lida");
+  if (resposta.error)
+    throw traduzirErroBanco(resposta.error, "marcar notificação como lida");
 }
 
 // --- Demonstração: sem tabela na loja da fundação (LojaDemonstracao não tem
@@ -85,12 +89,17 @@ async function listarNotificacoesDemonstracao(): Promise<NotificacaoInterna[]> {
   return notificacoesDemo.filter(
     (n) =>
       n.usuarioId === sessao.usuarioId ||
-      (n.usuarioId === null && n.papel !== null && sessao.papeis.includes(n.papel)) ||
+      (n.usuarioId === null &&
+        n.papel !== null &&
+        sessao.papeis.includes(n.papel)) ||
       sessao.papeis.includes("diretoria"),
   );
 }
 
 async function marcarNotificacaoLidaDemonstracao(id: string): Promise<void> {
-  const notificacao = notificacoesDemo.find((n) => n.id === id);
+  // Mesma regra da política `alterar` de 0007: só marca a notificação que a
+  // pessoa pode ler (dela, do papel dela sem dono, ou qualquer uma na diretoria).
+  const visiveis = await listarNotificacoesDemonstracao();
+  const notificacao = visiveis.find((n) => n.id === id);
   if (notificacao) notificacao.lidaEm = new Date().toISOString();
 }

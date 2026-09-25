@@ -4,7 +4,10 @@ import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { obterBaseConhecimentoTela } from "@/modules/agente/base-conhecimento/dados";
 import { PainelBaseConhecimento } from "@/modules/agente/base-conhecimento/componentes/painel-base-conhecimento";
-import { obterMetricasTela, periodoPadrao } from "@/modules/agente/metricas/dados";
+import {
+  obterMetricasTela,
+  periodoPadrao,
+} from "@/modules/agente/metricas/dados";
 import { PainelMetricas } from "@/modules/agente/metricas/componentes/painel-metricas";
 import { obterModoAgenteTela } from "@/modules/agente/modo/dados";
 import { PainelModo } from "@/modules/agente/modo/componentes/painel-modo";
@@ -43,28 +46,36 @@ export default async function PaginaAgente() {
   const sessao = await exigirSessao("/agente");
   const ehDiretoria = sessao.papeis.includes("diretoria");
 
-  let carregouTudo = true;
-  const [regra, configuracao, base, metricas] = await Promise.all([
-    obterRegraRetomadaTela().catch(() => {
-      carregouTudo = false;
-      return null;
-    }),
-    obterModoAgenteTela().catch(() => {
-      carregouTudo = false;
-      return null;
-    }),
-    obterBaseConhecimentoTela().catch(() => {
-      carregouTudo = false;
-      return null;
-    }),
+  const [regraR, configuracaoR, baseR, metricasR] = await Promise.all([
+    obterRegraRetomadaTela().then(
+      (v) => ({ ok: true as const, v }),
+      () => ({ ok: false as const, v: null }),
+    ),
+    // `parametro` só é lido pela diretoria (RLS, PRD 13): para os demais
+    // papéis o modo nem é pedido, e a tela diz de quem é a decisão em vez
+    // de mostrar um valor que o banco não entregou.
+    (ehDiretoria ? obterModoAgenteTela() : Promise.resolve(null)).then(
+      (v) => ({ ok: true as const, v }),
+      () => ({ ok: false as const, v: null }),
+    ),
+    obterBaseConhecimentoTela().then(
+      (v) => ({ ok: true as const, v }),
+      () => ({ ok: false as const, v: null }),
+    ),
     (async () => {
       const { desde, ate } = periodoPadrao();
       return obterMetricasTela(desde, ate);
-    })().catch(() => {
-      carregouTudo = false;
-      return null;
-    }),
+    })().then(
+      (v) => ({ ok: true as const, v }),
+      () => ({ ok: false as const, v: null }),
+    ),
   ]);
+  const regra = regraR.v;
+  const configuracao = configuracaoR.v;
+  const base = baseR.v;
+  const metricas = metricasR.v;
+  const carregouTudo =
+    regraR.ok && configuracaoR.ok && baseR.ok && metricasR.ok;
 
   return (
     <>
@@ -74,8 +85,12 @@ export default async function PaginaAgente() {
       />
       <div className="flex flex-col gap-8 pt-6">
         {!carregouTudo ? (
-          <FaixaAlerta variante="imediato" titulo="Alguma parte não carregou agora">
-            Confira a conexão e recarregue a página. Se continuar, avise a equipe técnica.
+          <FaixaAlerta
+            variante="imediato"
+            titulo="Alguma parte não carregou agora"
+          >
+            Confira a conexão e recarregue a página. Se continuar, avise a
+            equipe técnica.
           </FaixaAlerta>
         ) : null}
 
@@ -86,7 +101,9 @@ export default async function PaginaAgente() {
           {regra ? (
             <PainelRegraRetomada regra={regra} podeEditar={ehDiretoria} />
           ) : (
-            <p className="text-apoio text-texto-2">Não foi possível carregar esta regra agora.</p>
+            <p className="text-apoio text-texto-2">
+              Não foi possível carregar esta regra agora.
+            </p>
           )}
         </Secao>
 
@@ -94,10 +111,14 @@ export default async function PaginaAgente() {
           titulo="Modo da Isadora"
           texto="Desligada, em teste (só responde à lista) ou em produção."
         >
-          {configuracao ? (
-            <PainelModo configuracao={configuracao} podeEditar={ehDiretoria} />
+          {!ehDiretoria ? (
+            <PainelModo configuracao={null} podeEditar={false} />
+          ) : configuracao ? (
+            <PainelModo configuracao={configuracao} podeEditar />
           ) : (
-            <p className="text-apoio text-texto-2">Não foi possível carregar o modo agora.</p>
+            <p className="text-apoio text-texto-2">
+              Não foi possível carregar o modo agora.
+            </p>
           )}
         </Secao>
 
@@ -108,15 +129,22 @@ export default async function PaginaAgente() {
           {base ? (
             <PainelBaseConhecimento base={base} podeAprovar={ehDiretoria} />
           ) : (
-            <p className="text-apoio text-texto-2">Não foi possível carregar a base agora.</p>
+            <p className="text-apoio text-texto-2">
+              Não foi possível carregar a base agora.
+            </p>
           )}
         </Secao>
 
-        <Secao titulo="Números do mês" texto="PRD 11.12, com as consultas documentadas em código.">
+        <Secao
+          titulo="Números do mês"
+          texto="Últimos 30 dias, cada número ao lado da meta combinada para os primeiros 60 dias."
+        >
           {metricas ? (
             <PainelMetricas metricas={metricas} />
           ) : (
-            <p className="text-apoio text-texto-2">Não foi possível carregar as métricas agora.</p>
+            <p className="text-apoio text-texto-2">
+              Não foi possível carregar as métricas agora.
+            </p>
           )}
         </Secao>
       </div>

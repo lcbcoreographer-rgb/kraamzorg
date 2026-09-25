@@ -12,7 +12,10 @@ describe("criarMensageiroCloudApi", () => {
       telefoneOuJid: "+5511999998888",
       texto: "Oi",
     };
-    const verificar: VerificadorFreio = vi.fn(async () => ({ pode: true, motivo: "" }));
+    const verificar: VerificadorFreio = vi.fn(async () => ({
+      pode: true,
+      motivo: "",
+    }));
 
     expect(() => criarMensageiroCloudApi().enviar(pedido, verificar)).toThrow(
       ErroMensageiro,

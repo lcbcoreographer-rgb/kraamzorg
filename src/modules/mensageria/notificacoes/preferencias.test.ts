@@ -70,7 +70,12 @@ describe("preferências de notificação, Supabase (sem tabela ainda)", () => {
   it("salvar recusa com funcao_pendente", async () => {
     const repo = obterPreferenciasRepositorio();
     await expect(
-      repo.salvar({ usuarioId: "usuario-1", push: false, whatsappInterno: false, email: false }),
+      repo.salvar({
+        usuarioId: "usuario-1",
+        push: false,
+        whatsappInterno: false,
+        email: false,
+      }),
     ).rejects.toMatchObject({ codigo: "funcao_pendente" });
   });
 });

@@ -10,10 +10,41 @@ vi.mock("next/headers", () => ({
 }));
 vi.mock("next/cache", () => ({ revalidatePath: () => {} }));
 
+/**
+ * O repositório de demonstração da fundação ainda devolve `payload: {}`
+ * (pendência registrada). Este dublê embrulha o repositório de verdade e só
+ * acrescenta o payload das tarefas que o teste semear, como o P20 gravaria.
+ */
+const payloads = vi.hoisted(() => new Map<string, Record<string, unknown>>());
+vi.mock("@/lib/dados/fabrica", async (importOriginal) => {
+  const real = await importOriginal<typeof import("@/lib/dados/fabrica")>();
+  return {
+    ...real,
+    obterRepositorios: async () => {
+      const repositorios = await real.obterRepositorios();
+      return {
+        ...repositorios,
+        tarefas: {
+          ...repositorios.tarefas,
+          listarTarefas: async (
+            filtro?: Parameters<typeof repositorios.tarefas.listarTarefas>[0],
+          ) =>
+            (await repositorios.tarefas.listarTarefas(filtro)).map((t) => ({
+              ...t,
+              payload: (payloads.get(t.id) ?? t.payload) as typeof t.payload,
+            })),
+        },
+      };
+    },
+  };
+});
+
 import type { SessaoUsuario } from "@/lib/auth/tipos";
 import { TAREFAS, USUARIOS } from "@/lib/dados/demonstracao/fixtures";
 import { obterLoja, reiniciarLoja } from "@/lib/dados/demonstracao/loja";
-import { concluirTarefaSemMensagem, enviarTarefa, estadoInicialTarefa } from "./acoes";
+import { familiaPorNome } from "@/lib/dados/demonstracao/fixtures";
+import { concluirTarefaSemMensagem, enviarTarefa } from "./acoes";
+import { estadoInicialTarefa } from "./estado-acoes";
 
 vi.mock("@/lib/auth/sessao", () => {
   let sessaoAtual: SessaoUsuario | null = null;
@@ -59,6 +90,7 @@ beforeEach(async () => {
   process.env.KZ_DADOS = "demonstracao";
   process.env.NEXT_PUBLIC_APP_ENV = "desenvolvimento";
   reiniciarLoja();
+  payloads.clear();
   await logarComo("Perfil Teste Comercial");
 });
 
@@ -69,23 +101,48 @@ afterEach(() => {
 
 function formularioEnvio(campos: Record<string, string>) {
   const formulario = new FormData();
-  for (const [chave, valor] of Object.entries(campos)) formulario.set(chave, valor);
+  for (const [chave, valor] of Object.entries(campos))
+    formulario.set(chave, valor);
   return formulario;
 }
 
 describe("enviarTarefa (Enviei, PRD 23.2)", () => {
-  it("com o freio liberado, grava a mensagem, conclui a tarefa e some da lista", async () => {
-    const { familiaPorNome } = await import("@/lib/dados/demonstracao/fixtures");
-    const cedro = familiaPorNome("Cedro"); // normal, tem conversa no seed
+  /** Tarefa de régua aberta para o papel comercial, com o payload que o P20 grava. */
+  function semearTarefaRegua(
+    id: string,
+    nomeFamilia: string,
+    payload: Record<string, unknown> = {},
+  ) {
+    obterLoja().tarefas.push({
+      id,
+      tipo: "nutricao_contato",
+      titulo: `Régua da Família Teste ${nomeFamilia}`,
+      prioridade: "normal",
+      status: "aberta",
+      venceEm: null,
+      familiaId: familiaPorNome(nomeFamilia).id,
+      responsavelId: null,
+      papelResponsavel: "comercial",
+      payload: {},
+      criadoEm: new Date().toISOString(),
+    });
+    payloads.set(id, {
+      textoSugerido: "Oi! Como está a gestação?",
+      telefoneE164: "+5511900000001",
+      mensagemChave: "regua_ate_20",
+      ...payload,
+    });
+  }
+
+  it("com o freio liberado, grava a mensagem como humano, conclui a tarefa e confirma", async () => {
+    semearTarefaRegua("regua-cedro", "Cedro"); // normal, tem conversa no seed
     const loja = obterLoja();
     const antes = loja.mensagens.length;
 
     const resultado = await enviarTarefa(
       estadoInicialTarefa,
       formularioEnvio({
-        tarefaId: TAREFAS[1]!.id, // responsável: papel comercial
-        familiaId: cedro.id,
-        telefoneE164: "+5511999998888",
+        tarefaId: "regua-cedro",
         texto: "Oi, Beatriz! Como você está?",
       }),
     );
@@ -93,42 +150,106 @@ describe("enviarTarefa (Enviei, PRD 23.2)", () => {
     expect(resultado.erro).toBeUndefined();
     expect(resultado.sucesso).toBeTruthy();
     expect(loja.mensagens.length).toBe(antes + 1);
-    expect(loja.tarefas.find((t) => t.id === TAREFAS[1]!.id)?.status).toBe("concluida");
+    const nova = loja.mensagens.at(-1)!;
+    expect(nova.enviadoPor).toBe("humano");
+    expect(nova.direcao).toBe("saida");
+    expect(nova.conteudo).toBe("Oi, Beatriz! Como você está?");
+    expect(loja.tarefas.find((t) => t.id === "regua-cedro")?.status).toBe(
+      "concluida",
+    );
   });
 
   it("família em bloqueio_total: recusa, não grava mensagem nem conclui a tarefa", async () => {
-    const { familiaPorNome } = await import("@/lib/dados/demonstracao/fixtures");
-    const bruma = familiaPorNome("Bruma"); // bloqueio_total
+    semearTarefaRegua("regua-bruma", "Bruma"); // bloqueio_total
     const loja = obterLoja();
     const antes = loja.mensagens.length;
 
     const resultado = await enviarTarefa(
       estadoInicialTarefa,
+      formularioEnvio({ tarefaId: "regua-bruma", texto: "Oi!" }),
+    );
+
+    expect(resultado.sucesso).toBeUndefined();
+    expect(resultado.erro).toMatch(/bloqueio total/);
+    expect(loja.mensagens.length).toBe(antes);
+    expect(loja.tarefas.find((t) => t.id === "regua-bruma")?.status).toBe(
+      "aberta",
+    );
+  });
+
+  it("família e telefone do formulário são ignorados: vale o que está na tarefa", async () => {
+    semearTarefaRegua("regua-bruma", "Bruma");
+    const cedro = familiaPorNome("Cedro");
+
+    const resultado = await enviarTarefa(
+      estadoInicialTarefa,
       formularioEnvio({
-        tarefaId: TAREFAS[1]!.id,
-        familiaId: bruma.id,
+        tarefaId: "regua-bruma",
+        familiaId: cedro.id, // tentativa de trocar a família para escapar do freio
         telefoneE164: "+5511999998888",
         texto: "Oi!",
       }),
     );
 
     expect(resultado.sucesso).toBeUndefined();
+    expect(
+      obterLoja().tarefas.find((t) => t.id === "regua-bruma")?.status,
+    ).toBe("aberta");
+  });
+
+  it("categoria operacional passa em atenção; conteúdo não (PRD 8.2)", async () => {
+    semearTarefaRegua("conteudo-estrela", "Estrela"); // atencao, sem categoria: conteudo
+    semearTarefaRegua("operacional-estrela", "Estrela", {
+      categoria: "operacional",
+    });
+
+    const conteudo = await enviarTarefa(
+      estadoInicialTarefa,
+      formularioEnvio({ tarefaId: "conteudo-estrela", texto: "Oi!" }),
+    );
+    expect(conteudo.erro).toMatch(/atenção/);
+
+    const operacional = await enviarTarefa(
+      estadoInicialTarefa,
+      formularioEnvio({ tarefaId: "operacional-estrela", texto: "Oi!" }),
+    );
+    expect(operacional.erro).toBeUndefined();
+  });
+
+  it("tarefa sem mensagem (interna) não passa pelo Enviei", async () => {
+    const resultado = await enviarTarefa(
+      estadoInicialTarefa,
+      formularioEnvio({ tarefaId: TAREFAS[1]!.id, texto: "Oi!" }),
+    );
+    expect(resultado.erro).toMatch(/Concluir/);
+    expect(
+      obterLoja().tarefas.find((t) => t.id === TAREFAS[1]!.id)?.status,
+    ).toBe("aberta");
+  });
+
+  it("tarefa de outra pessoa ou de outro papel não é encontrada", async () => {
+    semearTarefaRegua("regua-cedro", "Cedro");
+    await logarComo("Perfil Teste Coordenacao");
+    const resultado = await enviarTarefa(
+      estadoInicialTarefa,
+      formularioEnvio({ tarefaId: "regua-cedro", texto: "Oi!" }),
+    );
     expect(resultado.erro).toBeTruthy();
-    expect(loja.mensagens.length).toBe(antes);
-    expect(loja.tarefas.find((t) => t.id === TAREFAS[1]!.id)?.status).toBe("aberta");
+    expect(
+      obterLoja().tarefas.find((t) => t.id === "regua-cedro")?.status,
+    ).toBe("aberta");
   });
 
   it("texto vazio é recusado sem chamar o mensageiro", async () => {
+    semearTarefaRegua("regua-cedro", "Cedro");
     const resultado = await enviarTarefa(
       estadoInicialTarefa,
-      formularioEnvio({
-        tarefaId: TAREFAS[1]!.id,
-        familiaId: "qualquer",
-        telefoneE164: "+5511999998888",
-        texto: "   ",
-      }),
+      formularioEnvio({ tarefaId: "regua-cedro", texto: "   " }),
     );
     expect(resultado.erro).toBeTruthy();
+    expect(
+      obterLoja().tarefas.find((t) => t.id === "regua-cedro")?.status,
+    ).toBe("aberta");
   });
 });
 
@@ -140,7 +261,9 @@ describe("concluirTarefaSemMensagem", () => {
       formularioEnvio({ tarefaId: TAREFAS[0]!.id }),
     );
     expect(resultado.sucesso).toBeTruthy();
-    expect(loja.tarefas.find((t) => t.id === TAREFAS[0]!.id)?.status).toBe("concluida");
+    expect(loja.tarefas.find((t) => t.id === TAREFAS[0]!.id)?.status).toBe(
+      "concluida",
+    );
   });
 
   it("tarefa de outra pessoa é recusada", async () => {

@@ -27,6 +27,9 @@ export function criarAgenteSupabase({
         .order("ultima_entrada_em", { ascending: false, nullsFirst: false })
         .limit(filtro.limite ?? 100);
 
+      if (filtro.familiaId)
+        consulta = consulta.eq("familia_id", filtro.familiaId);
+
       switch (filtro.situacao) {
         case "isadora":
           consulta = consulta

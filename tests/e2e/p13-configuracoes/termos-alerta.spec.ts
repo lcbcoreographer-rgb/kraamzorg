@@ -11,14 +11,14 @@ test("a coordenação cria um termo de alerta e desativa em seguida", async ({
   page,
 }, info) => {
   const termo = `teste tontura ${info.project.name} ${Date.now()}`;
-  await entrarComo(page, "Coordenacao");
+  await entrarComo(page, "Coordenação");
   await page.goto("/configuracoes");
   await semViolacaoGrave(page);
 
   await page.getByRole("button", { name: "Novo termo" }).click();
   const dialogo = page.getByRole("dialog");
-  await dialogo.getByLabel("Termo").fill(termo);
-  await dialogo.getByRole("button", { name: "Salvar" }).click();
+  await dialogo.getByLabel("Termo", { exact: true }).fill(termo);
+  await dialogo.getByRole("button", { name: "Salvar", exact: true }).click();
   await expect(dialogo).toBeHidden();
 
   const linha = page.locator("tr", { hasText: termo });
@@ -35,8 +35,8 @@ test("a diretoria também gerencia termos de alerta", async ({ page }, info) => 
 
   await page.getByRole("button", { name: "Novo termo" }).click();
   const dialogo = page.getByRole("dialog");
-  await dialogo.getByLabel("Termo").fill(termo);
-  await dialogo.getByRole("button", { name: "Salvar" }).click();
+  await dialogo.getByLabel("Termo", { exact: true }).fill(termo);
+  await dialogo.getByRole("button", { name: "Salvar", exact: true }).click();
   await expect(dialogo).toBeHidden();
 
   await expect(page.locator("tr", { hasText: termo })).toBeVisible();

@@ -5,14 +5,11 @@ import { z } from "zod";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { ErroRepositorio } from "@/lib/dados/erros";
 import { obterRepositorios } from "@/lib/dados/fabrica";
-import { confirmarEnvioTarefa, prepararEnvioTarefa } from "./enviar-tarefa";
-
-export interface EstadoAcaoTarefa {
-  erro?: string;
-  sucesso?: string;
-}
-
-export const estadoInicialTarefa: EstadoAcaoTarefa = {};
+import { obterTarefaAberta } from "./dados";
+import { prepararEnvioTarefa } from "./enviar-tarefa";
+import type { EstadoAcaoTarefa } from "./estado-acoes";
+import { registrarEnvioTarefa } from "./registrar-envio";
+import { categoriaDaTarefa } from "./tipos";
 
 function mensagemErro(erro: unknown): string {
   if (erro instanceof ErroRepositorio) {
@@ -23,7 +20,7 @@ function mensagemErro(erro: unknown): string {
       return "Essa tarefa não existe mais. Atualize a tela.";
     }
     if (erro.codigo === "funcao_pendente") {
-      return "O banco ainda não tem essa função. Avise a equipe técnica; nada foi alterado.";
+      return "O registro do envio ainda não está pronto no banco. Nada foi alterado; avise a equipe técnica.";
     }
   }
   return "Não foi possível agora. Tente de novo em instantes.";
@@ -32,10 +29,13 @@ function mensagemErro(erro: unknown): string {
 const campoTarefaId = z.string().min(1, "Falta saber qual tarefa é essa.");
 
 /**
- * "Enviei" (PRD 23.2, item 2 do P18): confere o freio de novo (pode ter
- * mudado desde que a tela carregou), grava a mensagem com `enviado_por =
- * humano` e conclui a tarefa. Recusa se o freio bloquear agora, mesmo que
- * o botão tenha aparecido habilitado na renderização anterior.
+ * "Enviei" (PRD 23.2, item 2 do P18). Do formulário só vêm o id da tarefa
+ * e o texto que a pessoa editou; família, telefone e categoria são lidos de
+ * novo da tarefa no servidor (`obterTarefaAberta`, com RLS). Confere o
+ * freio outra vez (pode ter mudado desde que a tela carregou), grava a
+ * mensagem com `enviado_por = humano` e conclui a tarefa. Recusa se o freio
+ * bloquear agora, mesmo que o botão tenha aparecido na renderização
+ * anterior.
  */
 export async function enviarTarefa(
   _anterior: EstadoAcaoTarefa,
@@ -46,44 +46,58 @@ export async function enviarTarefa(
   const dados = z
     .object({
       tarefaId: campoTarefaId,
-      familiaId: z.string().min(1).nullable(),
-      telefoneE164: z.string().min(1),
-      texto: z.string().trim().min(1, "Escreva alguma coisa antes de enviar."),
+      texto: z
+        .string()
+        .trim()
+        .min(1, "Escreva o texto antes de marcar como enviado."),
     })
     .safeParse({
       tarefaId: formulario.get("tarefaId"),
-      familiaId: formulario.get("familiaId") || null,
-      telefoneE164: formulario.get("telefoneE164"),
       texto: formulario.get("texto"),
     });
   if (!dados.success) {
-    return { erro: dados.error.issues[0]?.message ?? "Confira os dados e tente de novo." };
+    return {
+      erro:
+        dados.error.issues[0]?.message ?? "Confira os dados e tente de novo.",
+    };
   }
 
   try {
+    const tarefa = await obterTarefaAberta(dados.data.tarefaId);
+    if (!tarefa) {
+      return {
+        erro: "Essa tarefa não está mais aberta para você. Atualize a tela.",
+      };
+    }
+    if (!tarefa.temAcaoWhatsApp || !tarefa.mensagem.telefoneE164) {
+      return {
+        erro: "Essa tarefa não tem mensagem para a família. Use Concluir.",
+      };
+    }
+
     const resultado = await prepararEnvioTarefa({
-      familiaId: dados.data.familiaId,
-      telefoneE164: dados.data.telefoneE164,
+      familiaId: tarefa.familiaId,
+      telefoneE164: tarefa.mensagem.telefoneE164,
       texto: dados.data.texto,
+      categoria: categoriaDaTarefa(tarefa.mensagem),
     });
     if (!resultado.ok) {
       return { erro: resultado.motivo };
     }
-    await confirmarEnvioTarefa({
-      tarefaId: dados.data.tarefaId,
-      familiaId: dados.data.familiaId,
-      telefoneE164: dados.data.telefoneE164,
-      texto: dados.data.texto,
+    await registrarEnvioTarefa({
+      tarefaId: tarefa.id,
+      familiaId: tarefa.familiaId,
+      textoEnviado: dados.data.texto,
     });
   } catch (erro) {
     return { erro: mensagemErro(erro) };
   }
 
   revalidatePath("/tarefas");
-  return { sucesso: "Enviado. A tarefa saiu da sua lista." };
+  return { sucesso: "Envio registrado. A tarefa saiu da sua lista." };
 }
 
-/** Concluir sem WhatsApp (tarefa interna, ex.: "Justificar o freio" já resolvida por outro caminho). */
+/** Concluir sem WhatsApp (tarefa interna, como "Justificar o freio" já resolvida por outro caminho). */
 export async function concluirTarefaSemMensagem(
   _anterior: EstadoAcaoTarefa,
   formulario: FormData,

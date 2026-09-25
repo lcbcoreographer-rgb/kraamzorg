@@ -2,9 +2,14 @@ import type { Metadata } from "next";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
-import { listarFilaTela } from "@/modules/agente/transferencias/dados";
+import {
+  listarFilaTela,
+  obterTelefonePlantao,
+} from "@/modules/agente/transferencias/dados";
 import { FilaTransferencias } from "@/modules/agente/transferencias/componentes/fila-transferencias";
+import { DESTINO_DO_PAPEL } from "@/modules/agente/tipos";
 import type { TransferenciaTela } from "@/modules/agente/tipos";
+import { papelPrincipal } from "@/lib/navegacao";
 
 export const metadata: Metadata = { title: "Transferências · Kraamzorg OS" };
 
@@ -14,7 +19,7 @@ export const metadata: Metadata = { title: "Transferências · Kraamzorg OS" };
  * `comercial-inicio.html`). Dono: P27.
  */
 export default async function PaginaTransferencias() {
-  await exigirSessao("/transferencias");
+  const sessao = await exigirSessao("/transferencias");
 
   let fila: TransferenciaTela[] | null = null;
   try {
@@ -22,6 +27,9 @@ export default async function PaginaTransferencias() {
   } catch {
     fila = null;
   }
+  const principal = papelPrincipal(sessao.papeis);
+  const destinoDoPapel = principal ? DESTINO_DO_PAPEL[principal] : undefined;
+  const telefonePlantao = fila ? await obterTelefonePlantao() : null;
 
   return (
     <>
@@ -31,10 +39,19 @@ export default async function PaginaTransferencias() {
       />
       <div className="pt-6">
         {fila ? (
-          <FilaTransferencias fila={fila} />
+          <FilaTransferencias
+            fila={fila}
+            usuarioId={sessao.usuarioId}
+            destinoDoPapel={destinoDoPapel}
+            telefonePlantao={telefonePlantao}
+          />
         ) : (
-          <FaixaAlerta variante="imediato" titulo="Não foi possível carregar a fila agora">
-            Confira a conexão e recarregue a página. Se continuar, avise a equipe técnica.
+          <FaixaAlerta
+            variante="imediato"
+            titulo="Não foi possível carregar a fila agora"
+          >
+            Confira a conexão e recarregue a página. Se continuar, avise a
+            equipe técnica.
           </FaixaAlerta>
         )}
       </div>

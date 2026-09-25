@@ -12,7 +12,9 @@ import {
   DialogoRodape,
 } from "@/components/ui/dialogo";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
-import { acaoRegistrarDataFato, estadoInicialFicha } from "../acoes";
+import { formatarData } from "@/lib/formatacao";
+import { acaoRegistrarDataFato } from "../acoes";
+import { estadoInicialFicha } from "../estado-acoes";
 import type { CampoDataFato } from "../dados";
 
 /**
@@ -25,11 +27,14 @@ export function ControleDataFato({
   campo,
   rotulo,
   valorAtual,
+  hoje,
 }: {
   familiaId: string;
   campo: CampoDataFato;
   rotulo: string;
   valorAtual: string | null;
+  /** "aaaa-mm-dd" em Brasília: fato não fica no futuro. */
+  hoje: string;
 }) {
   const [aberto, definirAberto] = React.useState(false);
   const [estado, acao, enviando] = useActionState(
@@ -58,7 +63,10 @@ export function ControleDataFato({
         descricao="Vira fato a partir de agora. Nenhuma automação dispara por esta data sozinha."
         rotuloFechar="Fechar sem registrar"
       >
-        <form action={acao} className="flex flex-col gap-4">
+        {/* noValidate: o seletor nativo já não oferece dia depois de hoje
+            (max), e quem digita uma data impossível recebe a explicação
+            do servidor, em vez do balão genérico do navegador. */}
+        <form action={acao} noValidate className="flex flex-col gap-4">
           <input type="hidden" name="familiaId" value={familiaId} />
           <input type="hidden" name="campo" value={campo} />
           <CampoTexto
@@ -66,6 +74,8 @@ export function ControleDataFato({
             name="valor"
             type="date"
             defaultValue={valorAtual ?? undefined}
+            max={hoje}
+            descricao={`Até hoje, ${formatarData(hoje)}.`}
             required
           />
           {estado.erro ? (

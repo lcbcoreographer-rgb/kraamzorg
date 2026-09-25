@@ -21,3 +21,10 @@ docs/aprovacao/
 docs/design/
 n8n/prompts/
 n8n/referencia/
+
+# Pastas das trilhas de banco e n8n, escritas em paralelo e fora do alcance
+# das sessões de tela (o n8n tem estilo próprio, com aspas simples). A
+# integração do CRM não reformata o que não é dela.
+n8n/
+supabase/
+docs/adr/

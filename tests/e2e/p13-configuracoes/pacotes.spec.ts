@@ -12,9 +12,13 @@ import { porProjeto } from "./apoio";
  * com a mesma escrita rodando em paralelo no outro projeto.
  */
 function localizarCartao(page: import("@playwright/test").Page, nome: string) {
+  // Nome exato ("Essencial" não pode casar com "Gemelar Essencial") e a
+  // classe p-5 como palavra inteira (gap-5 também contém "p-5").
   return page
-    .getByRole("heading", { name: nome })
-    .locator("xpath=ancestor::*[contains(@class,'p-5')][1]");
+    .getByRole("heading", { name: nome, exact: true })
+    .locator(
+      "xpath=ancestor::*[contains(concat(' ', normalize-space(@class), ' '), ' p-5 ')][1]",
+    );
 }
 
 test("a diretoria cria uma nova versão de preço e a anterior continua visível", async ({

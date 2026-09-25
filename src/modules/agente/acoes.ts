@@ -1,11 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
+import type { EstadoAcaoAgente } from "./estado-acoes";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { ErroRepositorio } from "@/lib/dados/erros";
 import { obterRepositorios } from "@/lib/dados/fabrica";
 import {
+  estadoAgentePorConversa,
   marcarNaoLead,
   pausarConversa,
   reenviarNotificacaoHandoff,
@@ -23,13 +26,6 @@ import { CLASSIFICACOES_NAO_LEAD } from "./loja-extra";
  * `transferencias` e a rota `[id]`), porque a mesma ação nasce em mais de
  * um lugar (por exemplo "Assumir conversa" está na fila e na lista).
  */
-
-export interface EstadoAcaoAgente {
-  erro?: string;
-  sucesso?: string;
-}
-
-export const estadoInicialAgente: EstadoAcaoAgente = {};
 
 function mensagemErro(erro: unknown, contexto: string): string {
   if (erro instanceof ErroRepositorio) {
@@ -56,10 +52,18 @@ function revalidarTelas(conversaId?: string) {
   if (conversaId) revalidatePath(`/conversas/${conversaId}`);
 }
 
-const campoTransferenciaId = z.string().min(1, "Falta saber qual transferência é essa.");
+const campoTransferenciaId = z
+  .string()
+  .min(1, "Falta saber qual transferência é essa.");
 const campoConversaId = z.string().min(1, "Falta saber qual conversa é essa.");
 
-/** "Assumir conversa" na fila de transferências (P22, já com handoff aberto). */
+/**
+ * "Assumir conversa" na fila de transferências (fluxos.md, fluxo E, item
+ * 3): grava quem assumiu e a hora, mantém a Isadora pausada nessa conversa
+ * e abre a conversa. Em `humano_comercial` a Isadora já não responde, então
+ * não há pausa a gravar. Com `abrirConversa=1` (vindo da fila), leva direto
+ * para a conversa.
+ */
 export async function acaoAssumirTransferencia(
   _anterior: EstadoAcaoAgente,
   formulario: FormData,
@@ -67,6 +71,7 @@ export async function acaoAssumirTransferencia(
   await exigirSessao("/transferencias");
   const id = campoTransferenciaId.safeParse(formulario.get("transferenciaId"));
   if (!id.success) return { erro: id.error.issues[0]?.message };
+  const conversaId = String(formulario.get("conversaId") ?? "");
 
   try {
     const { agente } = await obterRepositorios();
@@ -75,8 +80,30 @@ export async function acaoAssumirTransferencia(
     return { erro: mensagemErro(erro, "assumir a conversa") };
   }
 
-  revalidarTelas(String(formulario.get("conversaId") ?? ""));
-  return { sucesso: "Você assumiu a conversa. A Isadora não volta a responder aqui." };
+  let humanoComercial = false;
+  if (conversaId) {
+    try {
+      const estado = (await estadoAgentePorConversa([conversaId]))[conversaId];
+      humanoComercial = Boolean(estado?.agenteEncerradoEm);
+      if (estado && !humanoComercial)
+        await pausarConversa(conversaId, "assumir");
+    } catch {
+      revalidarTelas(conversaId);
+      return {
+        erro: "Você assumiu a transferência, mas a pausa da Isadora não foi gravada. Abra a conversa e toque em Assumir conversa de novo; se continuar, avise a equipe técnica.",
+      };
+    }
+  }
+
+  revalidarTelas(conversaId);
+  if (conversaId && formulario.get("abrirConversa") === "1") {
+    redirect(`/conversas/${conversaId}`);
+  }
+  return {
+    sucesso: humanoComercial
+      ? "Você assumiu a conversa. A Isadora não volta a responder aqui."
+      : "Você assumiu a conversa. A Isadora fica pausada aqui.",
+  };
 }
 
 const esquemaPausar = z.object({
@@ -105,7 +132,9 @@ export async function acaoPausarConversa(
     return {
       erro: mensagemErro(
         erro,
-        dados.data.origem === "assumir" ? "assumir a conversa" : "pausar a Isadora",
+        dados.data.origem === "assumir"
+          ? "assumir a conversa"
+          : "pausar a Isadora",
       ),
     };
   }
@@ -160,13 +189,16 @@ export async function acaoRetomarAgenteComercial(
 
   revalidarTelas(id.data);
   return {
-    sucesso: "A Isadora volta a responder a partir da próxima mensagem da família.",
+    sucesso:
+      "A Isadora volta a responder a partir da próxima mensagem da família.",
   };
 }
 
 const esquemaNaoLead = z.object({
   conversaId: campoConversaId,
-  classificacao: z.enum(CLASSIFICACOES_NAO_LEAD as unknown as [string, ...string[]]),
+  classificacao: z.enum(
+    CLASSIFICACOES_NAO_LEAD as unknown as [string, ...string[]],
+  ),
 });
 
 /** "Marcar como não lead" (P27 item 1). */
@@ -230,7 +262,10 @@ export async function acaoResolverTransferencia(
   }
 
   try {
-    await resolverTransferencia(dados.data.transferenciaId, dados.data.desfecho);
+    await resolverTransferencia(
+      dados.data.transferenciaId,
+      dados.data.desfecho,
+    );
   } catch (erro) {
     return { erro: mensagemErro(erro, "marcar como resolvida") };
   }

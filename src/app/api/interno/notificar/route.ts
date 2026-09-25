@@ -2,6 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { despacharNotificacao } from "@/modules/mensageria/notificacoes/despachar";
+import { obterPreferenciasRepositorio } from "@/modules/mensageria/notificacoes/preferencias";
 
 export const runtime = "nodejs";
 
@@ -9,7 +10,7 @@ export const runtime = "nodejs";
  * Rota interna de notificação (P18 item 4; PRD 6.7 e 23.3): o banco chama
  * por `pg_net` depois de gravar a linha em `notificacao` (RLS de
  * `0007_permissoes.sql` já cobre o canal "app": a tela lê e marca como
- * lida direto pela tabela, sem passar por aqui — `src/modules/mensageria/
+ * lida direto pela tabela, sem passar por aqui, `src/modules/mensageria/
  * notificacoes/central.ts`). Esta rota só cuida dos canais que só o
  * servidor do app alcança: "whatsapp_interno" (grupos e plantão pela
  * UAZAPI, categoria "interna", nunca passa pelo freio), "email" (Resend,
@@ -23,11 +24,19 @@ export const runtime = "nodejs";
  * nem o comprimento do segredo escapa pela comparação.
  */
 const corpoSchema = z.object({
-  titulo: z.string().trim().min(1),
-  corpo: z.string().trim().optional(),
-  canais: z.array(z.enum(["whatsapp_interno", "email", "push"])).min(1),
-  whatsappInterno: z.array(z.object({ telefoneOuJid: z.string().trim().min(1) })).optional(),
-  emails: z.array(z.email()).optional(),
+  titulo: z.string().trim().min(1).max(200),
+  corpo: z.string().trim().max(4000).optional(),
+  canais: z
+    .array(z.enum(["whatsapp_interno", "email", "push"]))
+    .min(1)
+    .max(3),
+  whatsappInterno: z
+    .array(z.object({ telefoneOuJid: z.string().trim().min(1).max(120) }))
+    .max(20)
+    .optional(),
+  emails: z.array(z.email()).max(20).optional(),
+  /** Notificação de uma pessoa só: aplica as preferências dela (P18 item 3). */
+  usuarioId: z.uuid().optional(),
 });
 
 function segredoValido(recebido: string | null): boolean {
@@ -52,12 +61,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
+  const preferencias = corpo.data.usuarioId
+    ? await obterPreferenciasRepositorio().obter(corpo.data.usuarioId)
+    : undefined;
+
   const resultados = await despacharNotificacao({
     titulo: corpo.data.titulo,
     corpo: corpo.data.corpo ?? null,
     canais: corpo.data.canais,
     whatsappInterno: corpo.data.whatsappInterno,
     emails: corpo.data.emails,
+    preferencias,
   });
 
   return NextResponse.json({ resultados });

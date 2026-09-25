@@ -1,5 +1,6 @@
 "use client";
 
+import { estadoInicialAdmin } from "../../estado-acoes";
 import * as React from "react";
 import { useActionState, useState } from "react";
 import { CheckCheck, Plus } from "lucide-react";
@@ -14,20 +15,28 @@ import { formatarDataHora } from "@/lib/formatacao";
 import {
   acaoAprovarItemBaseConhecimento,
   acaoSalvarItemBaseConhecimento,
-  estadoInicialAdmin,
 } from "../../admin-acoes";
 import { ROTULO_TIPO_CONTEUDO } from "../../tipos";
 import type { ItemBaseConhecimento, TipoConteudoBase } from "../../tipos";
 import type { BaseConhecimentoTela } from "../dados";
 import { BotaoReindexar } from "./botao-reindexar";
 
-const seloStatus: Record<ItemBaseConhecimento["status"], { variante: "sucesso" | "aviso" | "neutro"; rotulo: string }> = {
+const seloStatus: Record<
+  ItemBaseConhecimento["status"],
+  { variante: "sucesso" | "aviso" | "neutro"; rotulo: string }
+> = {
   aprovado: { variante: "sucesso", rotulo: "Aprovado" },
   rascunho: { variante: "aviso", rotulo: "Rascunho" },
   arquivado: { variante: "neutro", rotulo: "Arquivado" },
 };
 
-function CartaoItem({ item, podeAprovar }: { item: ItemBaseConhecimento; podeAprovar: boolean }) {
+function CartaoItem({
+  item,
+  podeAprovar,
+}: {
+  item: ItemBaseConhecimento;
+  podeAprovar: boolean;
+}) {
   const [estado, acao, aprovando] = useActionState(
     acaoAprovarItemBaseConhecimento,
     estadoInicialAdmin,
@@ -38,13 +47,17 @@ function CartaoItem({ item, podeAprovar }: { item: ItemBaseConhecimento; podeApr
     <Cartao variante="plano" className="flex flex-col gap-2">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="text-mini text-texto-2">{ROTULO_TIPO_CONTEUDO[item.tipo]}</p>
+          <p className="text-mini text-texto-2">
+            {ROTULO_TIPO_CONTEUDO[item.tipo]}
+          </p>
           <h3 className="text-3 text-texto font-semibold">{item.titulo}</h3>
         </div>
         <Selo variante={status.variante}>{status.rotulo}</Selo>
       </div>
       <p className="text-corpo text-texto whitespace-pre-wrap">{item.texto}</p>
-      {item.fonte ? <p className="text-mini text-texto-2">Fonte: {item.fonte}</p> : null}
+      {item.fonte ? (
+        <p className="text-mini text-texto-2">Fonte: {item.fonte}</p>
+      ) : null}
       {item.status === "rascunho" && podeAprovar ? (
         <form action={acao} className="pt-1">
           <input type="hidden" name="id" value={item.id} />
@@ -58,7 +71,13 @@ function CartaoItem({ item, podeAprovar }: { item: ItemBaseConhecimento; podeApr
             tamanho="compacto"
             carregando={aprovando}
             rotuloCarregando="Aprovando"
-            iconeEsquerda={<CheckCheck aria-hidden="true" className="size-4" strokeWidth={1.75} />}
+            iconeEsquerda={
+              <CheckCheck
+                aria-hidden="true"
+                className="size-4"
+                strokeWidth={1.75}
+              />
+            }
           >
             Aprovar
           </Botao>
@@ -86,7 +105,9 @@ function FormularioNovoItem() {
         type="button"
         variante="secundario"
         tamanho="compacto"
-        iconeEsquerda={<Plus aria-hidden="true" className="size-4" strokeWidth={1.75} />}
+        iconeEsquerda={
+          <Plus aria-hidden="true" className="size-4" strokeWidth={1.75} />
+        }
         onClick={() => definirAberto(true)}
       >
         Novo item
@@ -94,7 +115,9 @@ function FormularioNovoItem() {
     );
   }
 
-  const tipos: TipoConteudoBase[] = Object.keys(ROTULO_TIPO_CONTEUDO) as TipoConteudoBase[];
+  const tipos: TipoConteudoBase[] = Object.keys(
+    ROTULO_TIPO_CONTEUDO,
+  ) as TipoConteudoBase[];
 
   return (
     <Cartao variante="plano" className="flex flex-col gap-3">
@@ -103,18 +126,39 @@ function FormularioNovoItem() {
           rotulo="Tipo"
           name="tipo"
           valorPadrao="faq"
-          opcoes={tipos.map((tipo) => ({ valor: tipo, rotulo: ROTULO_TIPO_CONTEUDO[tipo] }))}
+          opcoes={tipos.map((tipo) => ({
+            valor: tipo,
+            rotulo: ROTULO_TIPO_CONTEUDO[tipo],
+          }))}
         />
         <CampoTexto id="bc-titulo" name="titulo" rotulo="Título" />
-        <CampoTexto id="bc-texto" name="texto" rotulo="Texto" multilinha linhas={5} maxLength={1500} />
+        <CampoTexto
+          id="bc-texto"
+          name="texto"
+          rotulo="Texto"
+          multilinha
+          linhas={5}
+          maxLength={1500}
+          descricao="Um assunto por item, até 1.500 caracteres. Nada clínico: orientação de saúde é da coordenação."
+        />
         <CampoTexto id="bc-fonte" name="fonte" rotulo="Fonte" opcional />
         {estado.erro ? (
           <FaixaAlerta variante="imediato" titulo="Não deu para salvar">
             {estado.erro}
           </FaixaAlerta>
         ) : null}
+        {estado.sucesso ? (
+          <p className="text-sucesso text-apoio" role="status">
+            {estado.sucesso}
+          </p>
+        ) : null}
         <div className="flex gap-2">
-          <Botao type="submit" tamanho="compacto" carregando={salvando} rotuloCarregando="Salvando">
+          <Botao
+            type="submit"
+            tamanho="compacto"
+            carregando={salvando}
+            rotuloCarregando="Salvando"
+          >
             Salvar em rascunho
           </Botao>
           <Botao

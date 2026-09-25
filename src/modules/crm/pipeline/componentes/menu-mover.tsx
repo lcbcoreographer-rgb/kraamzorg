@@ -12,9 +12,11 @@ import {
   papelProvavelmenteConfirma,
   rotuloEstagio,
 } from "../estagios";
-import { acaoTransicionar, estadoInicialPipeline } from "../acoes";
+import { acaoTransicionar } from "../acoes";
+import { estadoInicialPipeline } from "../estado-acoes";
 import type { CartaoPipelineTela } from "../tipos";
 import { FolhaPerda } from "./folha-perda";
+import { FolhaSaidaIntercorrencia } from "./folha-saida-intercorrencia";
 
 /**
  * "Mover para" (P15 item 2, protótipo `comercial-pipeline.html`). Só lista
@@ -34,6 +36,9 @@ export function MenuMover({
 }) {
   const [aberto, definirAberto] = React.useState(false);
   const [perdaAberta, definirPerdaAberta] = React.useState(false);
+  const [saidaIntercorrencia, definirSaidaIntercorrencia] = React.useState<
+    string | null
+  >(null);
   const [pendente, iniciarTransicao] = React.useTransition();
   const [erro, definirErro] = React.useState<string | null>(null);
 
@@ -46,6 +51,13 @@ export function MenuMover({
     if (para === "perdido") {
       definirAberto(false);
       definirPerdaAberta(true);
+      return;
+    }
+    // Sair de intercorrência exige motivo (PRD 7.2, 0006_maquinas_estado.sql):
+    // sem ele o banco recusa a transição em vez de aplicá-la.
+    if (estagioAtual === "intercorrencia") {
+      definirAberto(false);
+      definirSaidaIntercorrencia(para);
       return;
     }
     definirErro(null);
@@ -125,6 +137,17 @@ export function MenuMover({
         pipeline={pipeline}
         nomeFamilia={cartao.nomeFamilia}
       />
+      {saidaIntercorrencia ? (
+        <FolhaSaidaIntercorrencia
+          aberta
+          aoFechar={() => definirSaidaIntercorrencia(null)}
+          oportunidadeId={cartao.oportunidadeId}
+          pipeline={pipeline}
+          destinoEstagio={saidaIntercorrencia}
+          destinoRotulo={rotuloEstagio(pipeline, saidaIntercorrencia as never)}
+          nomeFamilia={cartao.nomeFamilia}
+        />
+      ) : null}
     </>
   );
 }

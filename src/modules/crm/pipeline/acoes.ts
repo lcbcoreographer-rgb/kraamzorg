@@ -4,16 +4,10 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { ErroRepositorio } from "@/lib/dados/erros";
+import type { EstadoAcaoPipeline } from "./estado-acoes";
 import type { MotivoPerda, NumeroPipeline } from "@/lib/dados/tipos";
 import { criarLeadManual, marcarPerdido, transicionarEstagio } from "./dados";
 import { MOTIVOS_PERDA, ORIGENS_LEAD, PAPEIS_PESSOA } from "./estagios";
-
-export interface EstadoAcaoPipeline {
-  erro?: string;
-  sucesso?: string;
-}
-
-export const estadoInicialPipeline: EstadoAcaoPipeline = {};
 
 function mensagemErro(erro: unknown, contexto: string): string {
   if (erro instanceof ErroRepositorio) {
@@ -48,11 +42,13 @@ export async function acaoTransicionar(
       oportunidadeId: z.uuid(),
       pipeline: pipelineSchema,
       para: z.string().min(1),
+      motivo: z.string().trim().max(500).optional(),
     })
     .safeParse({
       oportunidadeId: formulario.get("oportunidadeId"),
       pipeline: formulario.get("pipeline"),
       para: formulario.get("para"),
+      motivo: formulario.get("motivo") || undefined,
     });
   if (!dados.success) {
     return {
@@ -65,6 +61,7 @@ export async function acaoTransicionar(
       oportunidadeId: dados.data.oportunidadeId,
       pipeline: Number(dados.data.pipeline) as NumeroPipeline,
       para: dados.data.para,
+      motivo: dados.data.motivo,
     });
   } catch (erro) {
     return { erro: mensagemErro(erro, "mover a oportunidade") };

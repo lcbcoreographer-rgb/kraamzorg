@@ -36,7 +36,7 @@ export interface CabecalhoFamiliaProps {
    * Ação do selo "Freio ativo" (ex: abre a folha de reversão, que exige
    * coordenação ou diretoria). Sem esta prop, o selo é só informativo, do
    * mesmo tamanho de um `Selo` comum (28 px), não um alvo de toque de 44 px
-   * sem função.
+   * sem função. Com ela, vira botão com a área de toque de 44 px.
    */
   acaoFreioAtivo?: () => void;
   /** Título da seção (`h1` na ficha da família, `h3` num cartão de lista). */
@@ -92,15 +92,27 @@ export function CabecalhoFamilia({
         <Titulo className="font-titulo text-1 leading-tight font-medium tracking-[-0.015em]">
           {nome}
         </Titulo>
-        <div
-          role="status"
-          className={cn(
-            "text-apoio mt-2 flex flex-wrap items-center gap-2",
-            freioAtivo ? undefined : "text-marinho-72",
-          )}
-        >
-          {freioAtivo ? textoFreioAtivo : meta}
-        </div>
+        {freioAtivo ? (
+          // Estágio, IG e cidade continuam visíveis com o freio puxado
+          // (PRD 20.4: "sempre visíveis na ficha"); a frase de bloqueio
+          // vem numa linha própria, sem escondê-los (crítica do CRM, P1
+          // item 12).
+          <div className="mt-2 flex flex-col gap-1.5">
+            <div className="text-apoio flex flex-wrap items-center gap-2">
+              {meta}
+            </div>
+            <p role="status" className="text-apoio">
+              {textoFreioAtivo}
+            </p>
+          </div>
+        ) : (
+          <div
+            role="status"
+            className="text-apoio text-marinho-72 mt-2 flex flex-wrap items-center gap-2"
+          >
+            {meta}
+          </div>
+        )}
       </div>
 
       {freioAtivo ? (
@@ -109,7 +121,7 @@ export function CabecalhoFamilia({
             ref={refSelo as React.Ref<HTMLButtonElement>}
             type="button"
             onClick={acaoFreioAtivo}
-            className="rounded-pilula bg-superficie text-mini text-sensivel inline-flex min-h-[28px] items-center gap-1.5 px-3 font-semibold whitespace-nowrap"
+            className="rounded-pilula bg-superficie text-mini text-sensivel min-h-toque inline-flex items-center gap-1.5 px-3 font-semibold whitespace-nowrap"
           >
             <OctagonPause className="size-4" aria-hidden="true" />
             {rotuloFreioAtivo}
@@ -139,21 +151,40 @@ export function CabecalhoFamilia({
             >
               {data.rotulo}
             </dt>
-            <dd
-              className={cn(
-                "text-corpo font-mono font-medium tabular-nums",
-                freioAtivo ? "text-texto-inverso" : "text-texto",
-                data.tipo === "ausente" &&
-                  !freioAtivo &&
-                  "border-marinho-50 text-texto-2 border-b border-dashed",
-              )}
-            >
-              {data.valor}
-            </dd>
-            {/* Sem <dd> vazio no tipo "ausente": não há rótulo de
-                "estimativa"/"fato" para mostrar (achado da auditoria da
-                P10 parcial). */}
-            {data.tipo === "ausente" ? null : (
+            {data.tipo === "ausente" ? (
+              // "ainda não" é frase, não dado: pílula tracejada em Inter,
+              // não em mono, que é reservado a valor (crítica do CRM, P1
+              // item 12).
+              <dd
+                className={cn(
+                  "rounded-pilula border border-dashed px-2 py-0.5 text-mini w-fit font-medium",
+                  freioAtivo
+                    ? "border-texto-inverso-2 text-texto-inverso"
+                    : "border-marinho-50 text-texto-2",
+                )}
+              >
+                {data.valor}
+              </dd>
+            ) : (
+              <dd
+                className={cn(
+                  "text-corpo font-mono font-medium tabular-nums",
+                  freioAtivo ? "text-texto-inverso" : "text-texto",
+                )}
+              >
+                {data.valor}
+              </dd>
+            )}
+            {data.tipo === "ausente" ? (
+              <dd
+                className={cn(
+                  "text-mini italic",
+                  freioAtivo ? "text-texto-inverso" : "text-marinho-72",
+                )}
+              >
+                vira fato quando acontecer
+              </dd>
+            ) : (
               <dd
                 className={cn(
                   "text-mini italic",

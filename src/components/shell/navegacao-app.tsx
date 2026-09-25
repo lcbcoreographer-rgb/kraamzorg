@@ -8,14 +8,25 @@ import { ativo, type GrupoLateral, type ItemNavegacao } from "@/lib/navegacao";
 import { IconeNavegacao } from "./icones-navegacao";
 
 /**
+ * Item de navegação com o contador opcional da aba Início (P0 item 1):
+ * transferências vencendo ou de prioridade máxima, só para o comercial.
+ * `ItemNavegacao` (src/lib/navegacao) fica sem o campo porque o proxy lê
+ * esse tipo sem montar o contador.
+ */
+export type ItemNavegacaoComContador = ItemNavegacao & {
+  contador?: number;
+  rotuloContador?: string;
+};
+
+/**
  * Navegação da casca, ligada ao caminho atual (item ativo). Recebe os
  * itens já filtrados pelo papel (src/lib/navegacao, no servidor): a barra
  * lateral aparece só no computador (1024 px ou mais) e as abas inferiores
  * só abaixo disso (DESIGN.md, seção 3).
  */
 export interface NavegacaoAppProps {
-  grupos: { titulo: GrupoLateral; itens: ItemNavegacao[] }[];
-  abas: ItemNavegacao[];
+  grupos: { titulo: GrupoLateral; itens: ItemNavegacaoComContador[] }[];
+  abas: ItemNavegacaoComContador[];
   nome: string;
   papeis: string;
 }
@@ -39,6 +50,9 @@ export function NavegacaoLateral({
           href: item.caminho,
           icone: <IconeNavegacao nome={item.icone} />,
           ativo: ativo(item, caminho),
+          contador: item.contador,
+          contadorAlerta: Boolean(item.contador),
+          rotuloContador: item.rotuloContador,
         })),
       }))}
       rodape={
@@ -80,6 +94,8 @@ export function NavegacaoInferior({
         href: item.caminho,
         icone: <IconeNavegacao nome={item.icone} />,
         ativo: ativo(item, caminho),
+        contador: item.contador,
+        rotuloContador: item.rotuloContador,
       }))}
     />
   );

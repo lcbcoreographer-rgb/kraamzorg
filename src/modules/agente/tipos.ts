@@ -1,8 +1,12 @@
+import type { Papel } from "@/lib/auth/papeis";
 import type {
   ClassificacaoContato,
   DestinoHandoff,
+  EstadoSensivel,
   MotivoHandoff,
+  Prioridade,
   ResumoConversa,
+  StatusHandoff,
   Transferencia,
 } from "@/lib/dados/tipos";
 
@@ -24,12 +28,39 @@ export interface PreviaMensagem {
   enviadoPor: "cliente" | "ia" | "humano" | "sistema";
 }
 
+/** O que a lista mostra da transferência aberta de uma conversa. */
+export interface ResumoTransferenciaAberta {
+  motivo: MotivoHandoff;
+  motivoRotulo: string;
+  prioridade: Prioridade;
+  status: StatusHandoff;
+}
+
+/**
+ * Perda gestacional e estado sensível nunca em vermelho (DESIGN.md, seção
+ * 8: "nunca vermelho para luto"). Usado onde a prioridade máxima decide
+ * cor (fila de transferências, selo na lista de conversas).
+ */
+export const MOTIVOS_SENSIVEIS: readonly MotivoHandoff[] = [
+  "perda",
+  "estado_sensivel_escreveu",
+];
+
 /** Conversa com o texto de pausa (não exposto por `ResumoConversa`). */
 export interface ConversaComPausa extends ResumoConversa {
   /** "Assumida por Otávio Lemos às 15:26." ou pausa manual; null sem pausa. */
   pausaMotivo: string | null;
   situacao: SituacaoConversa;
   ultimaMensagem: PreviaMensagem | null;
+  /** Transferência aberta ou assumida desta conversa, se houver. */
+  transferenciaAberta: ResumoTransferenciaAberta | null;
+  /**
+   * O freio da família dona da conversa (PRD 8.3). A lista de conversas
+   * precisa saber disso para não convidar ninguém a "assumir" ou "pausar
+   * a Isadora" numa família em bloqueio total (crítica do CRM, P0 item 3);
+   * `"normal"` quando a conversa não tem família (contato solto).
+   */
+  estadoSensivel: EstadoSensivel;
 }
 
 /** Desfecho de "Marcar como resolvida" (fluxos.md, fluxo E). */
@@ -85,15 +116,33 @@ export const ROTULO_MOTIVO_HANDOFF: Record<MotivoHandoff, string> = {
   outro: "Outra situação",
 };
 
-export const ROTULO_DESTINO_HANDOFF: Record<DestinoHandoff, string> = {
+/** De quem é a transferência, em frase ("É do comercial"). */
+export const FRASE_DESTINO_HANDOFF: Record<DestinoHandoff, string> = {
+  comercial: "É do comercial",
+  coordenacao_clinica: "É da coordenação clínica",
+  operacao: "É da operação",
+};
+
+/**
+ * De qual destino é cada papel, para o cartão de transferência saber se
+ * quem está vendo pode assumir ou só ligar para quem pode (crítica do
+ * CRM, P0 item 4). Papel sem destino próprio (financeiro, marketing,
+ * diretoria) não entra: `undefined` deixa o cartão sempre oferecer
+ * "Assumir conversa", como hoje.
+ */
+export const DESTINO_DO_PAPEL: Partial<Record<Papel, DestinoHandoff>> = {
   comercial: "comercial",
-  coordenacao_clinica: "coordenação clínica",
-  operacao: "operação",
+  coordenacao: "coordenacao_clinica",
 };
 
 /** Transferência com a hora de abertura, para desenhar a régua de SLA. */
 export interface TransferenciaTela extends Transferencia {
   motivoRotulo: string;
+  /**
+   * PRD 11.7: a pausa da conversa venceu com a transferência ainda aberta,
+   * e a Isadora voltou a responder. A fila mostra em vermelho.
+   */
+  pausaVenceu?: boolean;
 }
 
 // --- Modo do agente e regra de retomada (item 3, item 1 do P27) -----------
@@ -117,7 +166,8 @@ export const JANELAS_RETOMADA_HORAS = [24, 36, 48, 72] as const;
 export type JanelaRetomadaHoras = (typeof JANELAS_RETOMADA_HORAS)[number];
 
 export interface RegraRetomada {
-  horas: number;
+  /** null quando o papel não lê `parametro` (RLS: só a diretoria). */
+  horas: number | null;
   atualizadoEm: string | null;
 }
 

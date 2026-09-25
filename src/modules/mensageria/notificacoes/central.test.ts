@@ -101,7 +101,10 @@ describe("central de notificação (demonstração)", () => {
     });
 
     const lista = await listarNotificacoes();
-    expect(lista.map((n) => n.titulo).sort()).toEqual(["Para mim", "Para o papel comercial"]);
+    expect(lista.map((n) => n.titulo).sort()).toEqual([
+      "Para mim",
+      "Para o papel comercial",
+    ]);
     expect(lista.find((n) => n.id === minha.id)?.lidaEm).toBeNull();
   });
 
@@ -118,5 +121,19 @@ describe("central de notificação (demonstração)", () => {
     await marcarNotificacaoLida(notificacao.id);
     const lista = await listarNotificacoes();
     expect(lista.find((n) => n.id === notificacao.id)?.lidaEm).not.toBeNull();
+  });
+
+  it("marcarNotificacaoLida não mexe na notificação de outra pessoa", async () => {
+    const alheia = registrarNotificacaoDemo({
+      usuarioId: sessaoDe("Perfil Teste Coordenacao").usuarioId,
+      papel: null,
+      prioridade: "normal",
+      titulo: "Só da coordenação",
+      corpo: null,
+      link: null,
+      canais: ["app"],
+    });
+    await marcarNotificacaoLida(alheia.id);
+    expect(alheia.lidaEm).toBeNull();
   });
 });

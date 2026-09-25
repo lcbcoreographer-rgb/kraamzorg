@@ -4,13 +4,20 @@ import { apenasAbertas, lerPayloadTarefa, paraTarefaTela } from "./tipos";
 
 describe("lerPayloadTarefa", () => {
   it("lê camelCase e snake_case, ignorando campo vazio", () => {
-    expect(lerPayloadTarefa({ textoSugerido: "Oi", telefoneE164: "+5511999998888" })).toEqual({
+    expect(
+      lerPayloadTarefa({ textoSugerido: "Oi", telefoneE164: "+5511999998888" }),
+    ).toEqual({
       textoSugerido: "Oi",
       telefoneE164: "+5511999998888",
       mensagemChave: undefined,
       contexto: undefined,
     });
-    expect(lerPayloadTarefa({ texto_sugerido: "Oi", telefone_e164: "+5511999998888" })).toEqual({
+    expect(
+      lerPayloadTarefa({
+        texto_sugerido: "Oi",
+        telefone_e164: "+5511999998888",
+      }),
+    ).toEqual({
       textoSugerido: "Oi",
       telefoneE164: "+5511999998888",
       mensagemChave: undefined,
@@ -51,29 +58,33 @@ describe("paraTarefaTela", () => {
       }).temAcaoWhatsApp,
     ).toBe(true);
     expect(
-      paraTarefaTela({ ...base, payload: { textoSugerido: "Oi" } }).temAcaoWhatsApp,
+      paraTarefaTela({ ...base, payload: { textoSugerido: "Oi" } })
+        .temAcaoWhatsApp,
     ).toBe(false);
   });
 });
 
 describe("apenasAbertas", () => {
   it("mantém só aberta e em_andamento", () => {
-    const tarefas: Tarefa[] = (["aberta", "em_andamento", "concluida", "cancelada"] as const).map(
-      (status, i) => ({
-        id: `t${i}`,
-        tipo: "outro",
-        titulo: "t",
-        prioridade: "normal",
-        status,
-        venceEm: null,
-        familiaId: null,
-        nomeFamilia: null,
-        responsavelId: null,
-        papelResponsavel: null,
-        payload: {},
-        criadoEm: "2026-09-24T10:00:00-03:00",
-      }),
-    );
-    expect(apenasAbertas(tarefas).map((t) => t.status)).toEqual(["aberta", "em_andamento"]);
+    const tarefas: Tarefa[] = (
+      ["aberta", "em_andamento", "concluida", "cancelada"] as const
+    ).map((status, i) => ({
+      id: `t${i}`,
+      tipo: "outro",
+      titulo: "t",
+      prioridade: "normal",
+      status,
+      venceEm: null,
+      familiaId: null,
+      nomeFamilia: null,
+      responsavelId: null,
+      papelResponsavel: null,
+      payload: {},
+      criadoEm: "2026-09-24T10:00:00-03:00",
+    }));
+    expect(apenasAbertas(tarefas).map((t) => t.status)).toEqual([
+      "aberta",
+      "em_andamento",
+    ]);
   });
 });

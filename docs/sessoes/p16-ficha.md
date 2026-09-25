@@ -237,7 +237,63 @@ feita por outro agente). O que rodou, escopado às minhas pastas:
 - `npx prettier --check` nas minhas pastas: sem pendência (formatado com
   `--write` antes de terminar).
 - `gitleaks detect --no-banner --no-git --source <cada uma das minhas
-  pastas>`: **nenhum vazamento.**
+pastas>`: **nenhum vazamento.**
 - `pnpm e2e` (`tests/e2e/p16-ficha/`): não rodado nesta sessão (proibido
   pela tarefa; "não rode pnpm build nem pnpm e2e, a integração roda no
   fim"); specs revisados por leitura contra os componentes e as ações.
+
+## Verificação (segunda passada, 25/09/2026)
+
+Revisão contra o PRD (8.3, 13), o PROMPTS (aceite do P16), o protótipo
+`comercial-ficha.html`, o `fluxos.md` (D) e o `telas.md` (C4, K7), com a
+ficha rodando de verdade (`next dev` numa cópia isolada, modo
+demonstração, Playwright no celular e no computador, axe sem violação séria
+ou crítica, sem rolagem lateral em 390 px).
+
+Corrigido:
+
+1. **A ficha quebrava inteira ao acionar o freio**: `acoes.ts` ("use
+   server") exportava objetos de estado inicial; o Next recusa ("A use
+   server file can only export async functions, found object"). O estado
+   foi para `estado-acoes.ts`.
+2. **Componente de cliente importava módulo server-only**: a folha de
+   reversão lia rótulos de `dados.ts` (`import "server-only"`). Os rótulos
+   foram para `rotulos.ts`.
+3. **Coordenação não abria a ficha**: a página pedia `api.dados_contrato`
+   para todo papel da aba Comercial, e a coordenação não tem acesso (PRD
+   13); o erro derrubava a página. Agora os dados de contrato são só para
+   comercial, financeiro e diretoria, e falha de leitura vira aviso no
+   cartão. O financeiro passou a ler a aba Comercial (PRD 13, leitura).
+4. **"Desfazer" nunca aparecia para o comercial**: o prazo vinha de
+   `parametro`, que só a diretoria lê. Agora vem de `desfazer_ate`, que
+   `api.acionar_freio` devolve.
+5. **Faixa "Justificar o freio" para todos, para sempre**: aparecia para
+   qualquer papel enquanto o freio estava ativo, mesmo justificado. Agora
+   só para quem tem a tarefa de justificativa aberta.
+6. **Folha de reversão**: oferecia o estado atual e mandava tudo para
+   `api.reverter_freio`, que só desce; subir para encerrado sensível dava
+   erro genérico. Agora o estado atual não é opção, subir usa
+   `api.acionar_freio` com a justificativa como motivo.
+7. **Escrita direta em `evento_familia`** (sem grant de insert): o update
+   dava certo e a tela mostrava erro. O app não grava mais o evento direto.
+8. **Título de evento em código** ("normal → bloqueio_total",
+   "justificativa"): a linha do tempo monta a frase a partir de `dados`.
+9. **Datas de fato no futuro ou inexistentes** (2026-02-31) eram aceitas.
+10. Erro e carregando da ficha (`error.tsx`, `loading.tsx`), link "Abrir
+    em Conversas" para `/conversas/[id]`, mensagem do "Desfazer" fora do
+    prazo, mensagem do MFA para quem não tem MFA, temporizador do aviso
+    efêmero estável.
+11. Testes: 39 no Vitest (eram 27); e2e ajustados (a aba "Conversas"
+    colidia com a navegação principal, "Início" com o menu, e o seletor de
+    entrada diz "Coordenação", não "Coordenacao") e ampliados (evento
+    restrito visível só para a coordenação, faixa persistente depois de
+    recarregar, coordenação sem dados de contrato, data futura recusada).
+
+Resultado: `vitest run src/modules/crm/ficha` com 39 testes verdes; os
+specs de `tests/e2e/p16-ficha` rodados com o Playwright contra `next dev
+--webpack` numa cópia isolada do repositório (sem `pnpm build`, sem
+`pnpm e2e`), celular e computador: 22 passaram. O `pnpm e2e` de verdade
+continua com a integração.
+
+Pendências para a integração: ver o relatório da verificação e o README do
+módulo ("O que ficou fora").

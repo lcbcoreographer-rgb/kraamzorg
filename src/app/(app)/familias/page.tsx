@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { OctagonPause, Search } from "lucide-react";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { Cartao } from "@/components/ui/cartao";
 import { CampoTexto } from "@/components/ui/campo-texto";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
-import { formatarData } from "@/lib/formatacao";
 import { exigirSessao } from "@/lib/auth/sessao";
+import { localidade } from "@/lib/formatacao";
 import { listarFamiliasTela } from "@/modules/crm/ficha/dados";
 
 export const metadata: Metadata = { title: "Famílias · Kraamzorg OS" };
@@ -95,48 +95,46 @@ export default async function PaginaFamilias({
           <ul className="flex flex-col gap-2">
             {familias.map((familia) => (
               <li key={familia.id}>
+                {/* Selo de freio abaixo do bairro e da cidade, nunca ao
+                    lado do nome (o nome ficava espremido, crítica do CRM,
+                    P1 item 17). */}
                 <Cartao
                   tocavel
                   href={`/familias/${familia.id}`}
-                  className="flex items-center justify-between gap-3"
+                  className="flex flex-col gap-1.5"
                 >
-                  <div className="flex flex-col gap-1">
-                    <span className="text-corpo font-semibold">
-                      {familia.nome}
-                    </span>
-                    <span className="text-apoio text-texto-2 flex flex-wrap gap-x-3 gap-y-0.5">
-                      {familia.idadeGestacional ? (
-                        <span className="font-mono">
-                          {familia.idadeGestacional}
-                        </span>
-                      ) : familia.dataNascimento ? (
-                        <span>
-                          Nascida em {formatarData(familia.dataNascimento)}
-                        </span>
-                      ) : null}
-                      {familia.bairro || familia.cidade ? (
-                        <span>
-                          {[familia.bairro, familia.cidade]
-                            .filter(Boolean)
-                            .join(", ")}
-                        </span>
-                      ) : null}
-                    </span>
-                  </div>
-                  <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
-                    {familia.naoContatar ? (
-                      <Selo variante="aviso">Não contatar</Selo>
+                  <span className="text-corpo font-semibold">
+                    {familia.nome}
+                  </span>
+                  <span className="text-apoio text-texto-2 flex flex-wrap gap-x-3 gap-y-0.5">
+                    {familia.idadeGestacional ? (
+                      <span className="font-mono">
+                        {familia.idadeGestacional}
+                      </span>
                     ) : null}
-                    {familia.estadoSensivel !== "normal" ? (
-                      <Selo variante="sensivel">
-                        {familia.estadoSensivel === "bloqueio_total"
-                          ? "Freio em bloqueio total"
-                          : familia.estadoSensivel === "atencao"
-                            ? "Freio em atenção"
-                            : "Encerrado sensível"}
-                      </Selo>
+                    {localidade(familia.bairro, familia.cidade) ? (
+                      <span>{localidade(familia.bairro, familia.cidade)}</span>
                     ) : null}
-                  </div>
+                  </span>
+                  {familia.naoContatar || familia.estadoSensivel !== "normal" ? (
+                    <div className="flex flex-wrap gap-1.5 pt-0.5">
+                      {familia.naoContatar ? (
+                        <Selo variante="aviso">Não contatar</Selo>
+                      ) : null}
+                      {familia.estadoSensivel !== "normal" ? (
+                        <Selo
+                          variante="sensivel"
+                          icone={<OctagonPause aria-hidden="true" />}
+                        >
+                          {familia.estadoSensivel === "bloqueio_total"
+                            ? "Freio em bloqueio total"
+                            : familia.estadoSensivel === "atencao"
+                              ? "Freio em atenção"
+                              : "Encerrado sensível"}
+                        </Selo>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </Cartao>
               </li>
             ))}

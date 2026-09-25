@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/dialogo";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { CampoSelecao } from "./campo-selecao";
-import { acaoCriarLead, estadoInicialPipeline } from "../acoes";
+import { acaoCriarLead } from "../acoes";
+import { estadoInicialPipeline } from "../estado-acoes";
 import {
   ORIGENS_LEAD,
   PAPEIS_PESSOA,
@@ -71,7 +72,7 @@ export function FormularioLead() {
             name="telefoneE164"
             type="tel"
             placeholder="(11) 90000-0000"
-            descricao="Com DDD. Grava em E.164."
+            descricao="Com DDD, por exemplo (11) 90000-0000."
             required
           />
           <CampoTexto

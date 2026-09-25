@@ -1,6 +1,7 @@
 import { Lock } from "lucide-react";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { formatarDataHora } from "@/lib/formatacao";
+import { cn } from "@/lib/utils";
 import type { EventoTela } from "../tipos";
 import { rotuloTipoEvento } from "../rotulos";
 
@@ -8,8 +9,8 @@ import { rotuloTipoEvento } from "../rotulos";
  * Linha do tempo da ficha (P16 item 1; DESIGN.md seção 6, protótipo
  * `comercial-ficha.html`, classe `c4-linha`): a régua como espinha, marcos
  * na vertical. Os eventos restritos já chegam filtrados por quem pode ver
- * (RLS no Supabase; `tem("coordenacao","diretoria")` na demonstração) —
- * este componente só desenha o que recebeu.
+ * (o repositório da fundação decide); este componente só desenha o que
+ * recebeu, com o título já em frase (`tituloEvento`, em `dados.ts`).
  */
 export function LinhaDoTempo({ eventos }: { eventos: EventoTela[] }) {
   if (eventos.length === 0) {
@@ -30,10 +31,10 @@ export function LinhaDoTempo({ eventos }: { eventos: EventoTela[] }) {
         >
           <span
             aria-hidden="true"
-            className={
-              "bg-marinho rounded-pilula my-1 " +
-              (i === 0 ? "bg-dourado" : "bg-marinho")
-            }
+            className={cn(
+              "rounded-pilula my-1",
+              i === 0 ? "bg-dourado" : "bg-marinho",
+            )}
           />
           <div className="flex flex-col gap-0.5 pb-4">
             <span className="text-mini text-texto-2 font-mono font-medium tabular-nums">
@@ -50,7 +51,7 @@ export function LinhaDoTempo({ eventos }: { eventos: EventoTela[] }) {
             </span>
             {evento.restrito ? (
               <span className="text-mini text-texto-2">
-                Evento assistencial ou sensível, visível para quem pode ver.
+                Evento restrito, visível só para a coordenação e a diretoria.
               </span>
             ) : null}
           </div>

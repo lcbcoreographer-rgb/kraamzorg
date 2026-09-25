@@ -72,3 +72,37 @@ export function formatarDataHora(valor: string | Date): string | null {
   const minuto = parte(partes, "minute");
   return `${dia}/${mes}/${ano}, ${hora}:${minuto}`;
 }
+
+const DIAS_SEMANA = [
+  "Domingo",
+  "Segunda",
+  "Terça",
+  "Quarta",
+  "Quinta",
+  "Sexta",
+  "Sábado",
+] as const;
+
+/**
+ * "Quinta, 24/09" (protótipo `comercial-inicio.html`, frase-resumo do
+ * Início). O dia da semana é o de Brasília (CLAUDE.md), não o do fuso do
+ * servidor. Devolve `null` para instante inválido, pelo mesmo motivo de
+ * `formatarData`.
+ */
+export function formatarDiaSemanaEData(valor: string | Date): string | null {
+  const data = paraDate(valor);
+  if (Number.isNaN(data.getTime())) {
+    return null;
+  }
+  const diaSemana = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Sao_Paulo",
+    weekday: "short",
+  }).format(data);
+  const indice = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(
+    diaSemana,
+  );
+  const partes = partesEmBrasilia(data, false);
+  const dia = parte(partes, "day");
+  const mes = parte(partes, "month");
+  return indice >= 0 ? `${DIAS_SEMANA[indice]}, ${dia}/${mes}` : null;
+}

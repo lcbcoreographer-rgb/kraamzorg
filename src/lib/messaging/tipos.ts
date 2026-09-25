@@ -30,6 +30,12 @@ export interface VerificacaoFreio {
   pode: boolean;
   /** Frase pronta para a tela quando `pode` é falso (PRD 20.3, sem jargão). */
   motivo: string;
+  /**
+   * Código de `privado.pode_enviar_mensagem` quando `pode` é falso
+   * ("freio_bloqueio_total", "nao_contatar", "fora_da_janela"...). Serve para
+   * a tela escolher o tom (ameixa para freio, PRD 8.3), nunca para mostrar.
+   */
+  codigo?: string;
 }
 
 /**
@@ -41,7 +47,10 @@ export interface VerificacaoFreio {
  * este módulo não conhece `src/lib/dados`).
  */
 export type VerificadorFreio = (
-  pedido: Pick<PedidoEnvio, "familiaId" | "categoria">,
+  pedido: Pick<PedidoEnvio, "familiaId" | "categoria"> & {
+    /** Canal que vai enviar: o banco só dispensa "conversa iniciada pela família" no cloud_api (0009). */
+    canal?: CanalMensageria;
+  },
 ) => Promise<VerificacaoFreio>;
 
 export type ResultadoEnvio =
@@ -64,5 +73,8 @@ export type ResultadoEnvio =
 
 export interface Mensageiro {
   readonly canal: CanalMensageria;
-  enviar(pedido: PedidoEnvio, verificar: VerificadorFreio): Promise<ResultadoEnvio>;
+  enviar(
+    pedido: PedidoEnvio,
+    verificar: VerificadorFreio,
+  ): Promise<ResultadoEnvio>;
 }

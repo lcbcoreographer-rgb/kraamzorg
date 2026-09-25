@@ -16,7 +16,10 @@ describe("criarMensageiroManual", () => {
       pode: true,
       motivo: "",
     }));
-    const resultado = await criarMensageiroManual().enviar(pedidoBase, verificar);
+    const resultado = await criarMensageiroManual().enviar(
+      pedidoBase,
+      verificar,
+    );
 
     expect(resultado.ok).toBe(true);
     if (!resultado.ok) throw new Error("esperava sucesso");
@@ -26,6 +29,7 @@ describe("criarMensageiroManual", () => {
     expect(verificar).toHaveBeenCalledWith({
       familiaId: "familia-1",
       categoria: "conteudo",
+      canal: "manual",
     });
   });
 
@@ -34,7 +38,10 @@ describe("criarMensageiroManual", () => {
       pode: false,
       motivo: "Essa família está com o freio acionado. Nada sai por aqui.",
     }));
-    const resultado = await criarMensageiroManual().enviar(pedidoBase, verificar);
+    const resultado = await criarMensageiroManual().enviar(
+      pedidoBase,
+      verificar,
+    );
 
     expect(resultado.ok).toBe(false);
     if (resultado.ok) throw new Error("esperava recusa");

@@ -3,7 +3,10 @@ import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { ListaTarefas } from "@/modules/mensageria/tarefas/componentes/lista-tarefas";
-import { listarTarefasTela, type TarefasTela } from "@/modules/mensageria/tarefas/dados";
+import {
+  listarTarefasTela,
+  type TarefasTela,
+} from "@/modules/mensageria/tarefas/dados";
 
 export const metadata: Metadata = { title: "Tarefas · Kraamzorg OS" };
 
@@ -33,8 +36,12 @@ export default async function PaginaTarefas() {
         {tela ? (
           <ListaTarefas grupos={tela.grupos} />
         ) : (
-          <FaixaAlerta variante="imediato" titulo="Não foi possível carregar as tarefas agora">
-            Confira a conexão e recarregue a página. Se continuar, avise a equipe técnica.
+          <FaixaAlerta
+            variante="prioritario"
+            titulo="Não foi possível carregar as tarefas agora"
+          >
+            Confira a conexão e recarregue a página. Se continuar, avise a
+            equipe técnica.
           </FaixaAlerta>
         )}
       </div>

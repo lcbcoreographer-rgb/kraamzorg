@@ -1,5 +1,10 @@
 import { ErroMensageiro } from "./erros";
-import type { Mensageiro, PedidoEnvio, ResultadoEnvio, VerificadorFreio } from "./tipos";
+import type {
+  Mensageiro,
+  PedidoEnvio,
+  ResultadoEnvio,
+  VerificadorFreio,
+} from "./tipos";
 
 /**
  * Canal `uazapi` (PRD 4.1 D-08, 1966 e 2115; P18 item 1): só para conversa
@@ -50,6 +55,7 @@ export function criarMensageiroUazapi(
         const verificacao = await verificar({
           familiaId: pedido.familiaId,
           categoria: pedido.categoria,
+          canal: "uazapi",
         });
         if (!verificacao.pode) {
           return { ok: false, motivo: verificacao.motivo };
@@ -74,7 +80,8 @@ export function criarMensageiroUazapi(
       } catch {
         return {
           ok: false,
-          motivo: "Não deu para falar com o WhatsApp agora. Tente de novo em instantes.",
+          motivo:
+            "Não deu para falar com o WhatsApp agora. Tente de novo em instantes.",
         };
       }
 
@@ -85,9 +92,10 @@ export function criarMensageiroUazapi(
         };
       }
 
-      const corpo = (await resposta.json().catch(() => null)) as
-        | { id?: string; messageid?: string }
-        | null;
+      const corpo = (await resposta.json().catch(() => null)) as {
+        id?: string;
+        messageid?: string;
+      } | null;
 
       return {
         ok: true,

@@ -9,7 +9,8 @@ import { Selo } from "@/components/ui/selo";
 import { formatarData } from "@/lib/formatacao";
 import { rotuloEstagio } from "@/modules/crm/pipeline/estagios";
 import type { CartaoOportunidade, ResumoFamilia } from "@/lib/dados/tipos";
-import { acaoMesclar, estadoInicialMesclagem } from "../acoes";
+import { acaoMesclar } from "../acoes";
+import { estadoInicialMesclagem } from "../estado-acoes";
 
 export interface LadoMesclagem {
   familia: ResumoFamilia;
@@ -75,8 +76,8 @@ function LadoCartao({
 /**
  * Mesclagem lado a lado (P17 item 2, protótipo `comercial-ficha.html`
  * como referência de tom): escolha de qual família fica, escolha de qual
- * oportunidade fica quando as duas têm uma aberta, e confirmação clara —
- * não há desfazer.
+ * oportunidade fica quando as duas têm uma aberta, e confirmação clara,
+ * pois não há desfazer.
  */
 export function MesclagemForm({
   a,

@@ -14,7 +14,9 @@ function Estatistica({
   return (
     <Cartao variante="plano" className="flex flex-col gap-1">
       <p className="text-apoio text-texto-2">{titulo}</p>
-      <p className="font-mono text-2 text-texto font-medium tabular-nums">{valor}</p>
+      <p className="text-2 text-texto font-mono font-medium tabular-nums">
+        {valor}
+      </p>
       {meta ? <p className="text-mini text-texto-2">{meta}</p> : null}
     </Cartao>
   );
@@ -33,7 +35,8 @@ export function PainelMetricas({ metricas }: { metricas: MetricasAgente }) {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-apoio text-texto-2">
-        {formatarData(metricas.periodoDesde)} a {formatarData(metricas.periodoAte)}, {metricas.leadsTotal} leads
+        {formatarData(metricas.periodoDesde)} a{" "}
+        {formatarData(metricas.periodoAte)}, {metricas.leadsTotal} leads
       </p>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <Estatistica

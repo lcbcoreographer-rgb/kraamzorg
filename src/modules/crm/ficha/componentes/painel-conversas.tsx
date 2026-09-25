@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Bot, MessageCircle, User } from "lucide-react";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { formatarDataHora } from "@/lib/formatacao";
@@ -59,13 +60,13 @@ export function PainelConversas({
           );
         })}
       </div>
-      <a
-        href={`/conversas?conversaId=${conversa.conversaId}`}
+      <Link
+        href={`/conversas/${conversa.conversaId}`}
         className="text-apoio min-h-toque inline-flex items-center gap-1.5 self-start font-semibold underline underline-offset-2"
       >
         <MessageCircle aria-hidden="true" className="size-4" />
         Abrir em Conversas
-      </a>
+      </Link>
     </div>
   );
 }

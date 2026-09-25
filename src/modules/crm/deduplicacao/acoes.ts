@@ -5,30 +5,31 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { ErroRepositorio } from "@/lib/dados/erros";
+import type { EstadoAcaoMesclagem } from "./estado-acoes";
 import { mesclarFamilias, vincularNovaGestacao } from "./mesclagem";
 
-export interface EstadoAcaoMesclagem {
-  erro?: string;
-}
-
-export const estadoInicialMesclagem: EstadoAcaoMesclagem = {};
-
-function mensagemErro(erro: unknown): string {
+function mensagemErro(erro: unknown, contexto: "mesclar" | "vincular"): string {
   if (erro instanceof ErroRepositorio) {
     if (erro.codigo === "funcao_pendente") {
-      return "O banco ainda não tem a função de mesclagem. Avise a equipe técnica; nada foi alterado.";
+      return contexto === "mesclar"
+        ? "O banco ainda não tem a função de mesclagem. Avise a equipe técnica; nada foi alterado."
+        : "O banco ainda não tem a função de vínculo de nova gestação. Avise a equipe técnica; nada foi alterado.";
     }
     if (erro.codigo === "sem_permissao") {
       return "O banco recusou: confirme o papel e tente de novo.";
     }
     if (erro.codigo === "recusado") {
-      return "Não deu para fechar a oportunidade que não ficou (o estágio atual dela não vai direto para perdido). Avise a coordenação antes de mesclar.";
+      return contexto === "mesclar"
+        ? "Não deu para fechar a oportunidade que não ficou (o estágio atual dela não vai direto para perdido). Avise a coordenação antes de mesclar."
+        : "Não deu para vincular: confira se as famílias e as datas fazem sentido (a anterior precisa vir antes) e tente de novo.";
     }
     if (erro.codigo === "nao_encontrado") {
       return "Uma das duas famílias não existe mais. Atualize a lista de duplicatas.";
     }
   }
-  return "Não foi possível mesclar agora. Tente de novo em instantes.";
+  return contexto === "mesclar"
+    ? "Não foi possível mesclar agora. Tente de novo em instantes."
+    : "Não foi possível vincular agora. Tente de novo em instantes.";
 }
 
 /** Mescla as duas famílias (P17 item 2). Sem desfazer: por isso a
@@ -58,7 +59,7 @@ export async function acaoMesclar(
   try {
     await mesclarFamilias(dados.data);
   } catch (erro) {
-    return { erro: mensagemErro(erro) };
+    return { erro: mensagemErro(erro, "mesclar") };
   }
 
   revalidatePath("/pipeline/duplicatas");
@@ -78,13 +79,18 @@ export async function acaoVincularNovaGestacao(
       familiaRecenteId: z.uuid(),
       familiaAnteriorId: z.uuid(),
     })
+    .refine((v) => v.familiaRecenteId !== v.familiaAnteriorId, {
+      message: "As duas famílias do vínculo não podem ser a mesma.",
+    })
     .safeParse({
       familiaRecenteId: formulario.get("familiaRecenteId"),
       familiaAnteriorId: formulario.get("familiaAnteriorId"),
     });
   if (!dados.success) {
     return {
-      erro: "Não deu para saber quais famílias vincular. Volte e tente de novo.",
+      erro:
+        dados.error.issues[0]?.message ||
+        "Não deu para saber quais famílias vincular. Volte e tente de novo.",
     };
   }
 
@@ -94,7 +100,7 @@ export async function acaoVincularNovaGestacao(
       dados.data.familiaAnteriorId,
     );
   } catch (erro) {
-    return { erro: mensagemErro(erro) };
+    return { erro: mensagemErro(erro, "vincular") };
   }
 
   revalidatePath("/pipeline/duplicatas");

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { z } from "zod";
-import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { Selo } from "@/components/ui/selo";
+import type { Papel } from "@/lib/auth/papeis";
 import { exigirSessao } from "@/lib/auth/sessao";
 import {
   AbasFicha,
@@ -19,8 +21,10 @@ import {
   obterFichaTela,
   obterFreioDesfazerSegundos,
   listarLinhaDoTempoTela,
+  temJustificativaPendente,
 } from "@/modules/crm/ficha/dados";
-import { formatarData } from "@/lib/formatacao";
+import { hojeBrasilia } from "@/modules/crm/pipeline/idade-gestacional";
+import { formatarData, localidade } from "@/lib/formatacao";
 
 // Título sem nome de família (DESIGN.md, microcopy 11).
 export const metadata: Metadata = { title: "Ficha da família · Kraamzorg OS" };
@@ -52,33 +56,48 @@ export default async function PaginaFicha({
   const ficha = await obterFichaTela(id);
   if (!ficha) notFound();
 
-  const vePainelComercial =
-    sessao.papeis.includes("comercial") ||
-    sessao.papeis.includes("coordenacao") ||
-    sessao.papeis.includes("diretoria");
-  const veConversas =
-    sessao.papeis.includes("comercial") ||
-    sessao.papeis.includes("coordenacao") ||
-    sessao.papeis.includes("diretoria");
-  const podeEditarComercial =
-    sessao.papeis.includes("comercial") || sessao.papeis.includes("diretoria");
-  const podeReverterFreio =
-    sessao.papeis.includes("coordenacao") ||
-    sessao.papeis.includes("diretoria");
+  const tem = (...papeis: Papel[]) =>
+    papeis.some((papel) => sessao.papeis.includes(papel));
+  // PRD 13: ficha comercial total para comercial e diretoria, leitura para
+  // coordenação e financeiro; dados de contrato para comercial, financeiro
+  // e diretoria (a coordenação não tem acesso); conversas para comercial,
+  // coordenação e diretoria. O banco barra de verdade; aqui só não oferece
+  // o que o papel não pode ver.
+  const vePainelComercial = tem(
+    "comercial",
+    "coordenacao",
+    "financeiro",
+    "diretoria",
+  );
+  const veDadosContrato = tem("comercial", "financeiro", "diretoria");
+  const veConversas = tem("comercial", "coordenacao", "diretoria");
+  const podeEditarComercial = tem("comercial", "diretoria");
+  const podeReverterFreio = tem("coordenacao", "diretoria");
+  const contato =
+    ficha.pessoas.find((p) => p.contatoPrincipal) ?? ficha.pessoas[0];
 
-  const [eventos, conversa, freioDesfazerSegundos, dadosContrato] =
-    await Promise.all([
-      listarLinhaDoTempoTela(id),
-      veConversas ? obterConversaDaFamilia(id) : Promise.resolve(null),
-      obterFreioDesfazerSegundos(),
-      (() => {
-        const contato =
-          ficha.pessoas.find((p) => p.contatoPrincipal) ?? ficha.pessoas[0];
-        return vePainelComercial && contato
-          ? obterDadosContratoTela(contato.id, false)
-          : Promise.resolve(null);
-      })(),
-    ]);
+  const [
+    eventos,
+    conversa,
+    freioDesfazerSegundos,
+    contrato,
+    justificativa,
+  ] = await Promise.all([
+    listarLinhaDoTempoTela(id),
+    veConversas
+      ? obterConversaDaFamilia(id).catch(() => null)
+      : Promise.resolve(null),
+    obterFreioDesfazerSegundos(),
+    veDadosContrato && contato
+      ? obterDadosContratoTela(contato.id, false).then(
+          (dados) => ({ dados, indisponivel: false }),
+          () => ({ dados: null, indisponivel: true }),
+        )
+      : Promise.resolve({ dados: null, indisponivel: false }),
+    ficha.estadoSensivel !== "normal"
+      ? temJustificativaPendente(id)
+      : Promise.resolve({ pendente: false, venceEm: null }),
+  ]);
 
   const abas: AbaFicha[] = [{ chave: "tempo", rotulo: "Linha do tempo" }];
   if (vePainelComercial) abas.push({ chave: "comercial", rotulo: "Comercial" });
@@ -91,9 +110,23 @@ export default async function PaginaFicha({
     tipo: d.valor ? d.tipo : ("ausente" as const),
   }));
 
+  // Sem título genérico "Ficha da família": o nome já é o h1 do cabeçalho
+  // da família logo abaixo, e um segundo h1 confunde o leitor de tela
+  // (crítica do CRM, P1 item 12). No lugar, o link de volta, como no
+  // protótipo.
+  const voltarParaPipeline = tem("comercial", "diretoria");
+  const backHref = voltarParaPipeline ? "/pipeline" : "/familias";
+  const backRotulo = voltarParaPipeline ? "Pipeline" : "Famílias";
+
   return (
     <>
-      <CabecalhoTela titulo="Ficha da família" />
+      <Link
+        href={backHref}
+        className="text-apoio text-texto-2 hover:text-texto min-h-toque -ml-1 inline-flex items-center gap-1.5 pt-2 font-medium no-underline"
+      >
+        <ArrowLeft aria-hidden="true" className="size-4" strokeWidth={1.75} />
+        {backRotulo}
+      </Link>
 
       <div className="flex flex-col gap-4 pt-2">
         <CabecalhoFicha
@@ -116,10 +149,8 @@ export default async function PaginaFicha({
                   {ficha.idadeGestacional}
                 </span>
               ) : null}
-              {ficha.bairro || ficha.cidade ? (
-                <span>
-                  {[ficha.bairro, ficha.cidade].filter(Boolean).join(", ")}
-                </span>
+              {localidade(ficha.bairro, ficha.cidade) ? (
+                <span>{localidade(ficha.bairro, ficha.cidade)}</span>
               ) : null}
             </>
           }
@@ -128,6 +159,8 @@ export default async function PaginaFicha({
           estadoSensivelEmInicial={ficha.estadoSensivelEm}
           podeReverter={podeReverterFreio}
           freioDesfazerSegundos={freioDesfazerSegundos}
+          justificativaPendente={justificativa.pendente}
+          justificativaVenceEm={justificativa.venceEm}
         />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -140,11 +173,14 @@ export default async function PaginaFicha({
                   familiaId={ficha.familiaId}
                   oportunidade={ficha.oportunidade}
                   pessoas={ficha.pessoas}
-                  dadosContrato={dadosContrato}
+                  dadosContrato={contrato.dados}
+                  dadosContratoIndisponiveis={contrato.indisponivel}
+                  veDadosContrato={veDadosContrato}
                   naoContatar={ficha.naoContatar}
                   dataNascimento={ficha.datas[1]?.valor ?? null}
                   dataAlta={ficha.datas[2]?.valor ?? null}
                   podeEditar={podeEditarComercial}
+                  hoje={hojeBrasilia()}
                 />
               ) : null}
               {aba === "conversas" && veConversas ? (

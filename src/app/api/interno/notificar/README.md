@@ -7,3 +7,7 @@ reserva) e `push` (pendente do P11).
 Segredo no cabeçalho `x-kz-interno-secret`, comparado com `INTERNAL_ROUTES_SECRET` (já em
 `.env.example`) em tempo constante: os dois lados viram hash SHA-256 antes de
 `timingSafeEqual`, para nem o tamanho do segredo vazar pelo tempo de resposta.
+
+Corpo com limites (título, corpo e listas de destino), `usuarioId` opcional para aplicar
+as preferências da pessoa, e o e-mail sai com assunto fixo e neutro: nome de família nunca
+vai em assunto de e-mail (CLAUDE.md).

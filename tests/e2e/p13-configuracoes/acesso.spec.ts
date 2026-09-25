@@ -35,7 +35,7 @@ test("diretoria vê todas as seções; coordenação só termos de alerta", asyn
 });
 
 test("coordenação só vê termos de alerta, nunca preço", async ({ page }) => {
-  await entrarComo(page, "Coordenacao");
+  await entrarComo(page, "Coordenação");
   await page.goto("/configuracoes");
   await expect(
     page.getByRole("heading", { level: 1, name: "Configurações" }),

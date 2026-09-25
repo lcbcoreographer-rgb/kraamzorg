@@ -17,7 +17,7 @@ test("a diretoria edita o objetivo de uma faixa da régua", async ({
     .click();
   const dialogo = page.getByRole("dialog");
   await dialogo.getByLabel("Objetivo").fill(objetivo);
-  await dialogo.getByRole("button", { name: "Salvar" }).click();
+  await dialogo.getByRole("button", { name: "Salvar", exact: true }).click();
   await expect(dialogo).toBeHidden();
 
   await expect(page.getByText(objetivo)).toBeVisible();

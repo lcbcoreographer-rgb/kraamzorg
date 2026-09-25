@@ -1,5 +1,5 @@
 import type { Papel } from "@/lib/auth/papeis";
-import type { Json } from "@/lib/db/types";
+import type { Enums, Json } from "@/lib/db/types";
 import type {
   ClassificacaoContato,
   ClassificacaoLead,
@@ -856,6 +856,13 @@ export interface TarefaDemonstracao {
   familiaId: string | null;
   responsavelId: string | null;
   papelResponsavel: Papel | null;
+  /** Tarefa de justificativa do freio (payload `acao`, como a 0009 grava). */
+  justificarFreio?: boolean;
+  /**
+   * Tarefa com mensagem para a família (régua e follow-up, P20): a loja
+   * monta o texto sugerido a partir desta chave de `mensagem_modelo`.
+   */
+  mensagem?: { chave: string; categoria: Enums<"categoria_automacao"> };
 }
 
 export const TAREFAS: TarefaDemonstracao[] = [
@@ -869,6 +876,7 @@ export const TAREFAS: TarefaDemonstracao[] = [
     familiaId: familiaPorNome("Bruma").id,
     responsavelId: ID_COMERCIAL,
     papelResponsavel: null,
+    justificarFreio: true,
   },
   {
     id: id(11, 2),
@@ -902,6 +910,18 @@ export const TAREFAS: TarefaDemonstracao[] = [
     familiaId: familiaPorNome("Íris").id,
     responsavelId: null,
     papelResponsavel: "coordenacao",
+  },
+  {
+    id: id(11, 5),
+    tipo: "followup_comercial",
+    titulo: "Retomar o contato com a Família Teste Dália",
+    prioridade: "normal",
+    status: "aberta",
+    venceMinutos: 180,
+    familiaId: familiaPorNome("Dália").id,
+    responsavelId: ID_COMERCIAL,
+    papelResponsavel: null,
+    mensagem: { chave: "followup_d3", categoria: "conteudo" },
   },
 ];
 

@@ -6,28 +6,21 @@ import { exigirSessao } from "@/lib/auth/sessao";
 import { ErroRepositorio } from "@/lib/dados/erros";
 import { obterRepositorios } from "@/lib/dados/fabrica";
 import type { EstadoSensivel } from "@/lib/dados/tipos";
+import { hojeBrasilia } from "../pipeline/idade-gestacional";
 import {
+  dataValida,
   marcarNaoContatar,
   desmarcarNaoContatar,
   obterDadosContratoTela,
+  prazoDesfazerSegundos,
   registrarDataFato,
   type CampoDataFato,
 } from "./dados";
-import type { DadosContratoTela } from "./tipos";
+import type { EstadoAcaoFicha, EstadoDadosContrato } from "./estado-acoes";
+import { ROTULO_ESTADO_SENSIVEL } from "./rotulos";
 
-export interface EstadoAcaoFicha {
-  erro?: string;
-  sucesso?: string;
-}
-
-export const estadoInicialFicha: EstadoAcaoFicha = {};
-
-export interface EstadoDadosContrato {
-  erro?: string;
-  dados?: DadosContratoTela;
-}
-
-export const estadoInicialDadosContrato: EstadoDadosContrato = {};
+// Só funções assíncronas saem deste arquivo ("use server"); o estado
+// inicial e os tipos de estado moram em `estado-acoes.ts`.
 
 function mensagemErro(erro: unknown, contexto: string): string {
   if (erro instanceof ErroRepositorio) {
@@ -70,15 +63,20 @@ export async function acaoAcionarFreio(
     return { erro: "Não deu para saber qual família. Atualize a tela." };
   }
 
+  let desfazerSegundos = 0;
   try {
     const { ficha } = await obterRepositorios();
-    await ficha.acionarFreio(dados.data.familiaId, "bloqueio_total");
+    const resultado = await ficha.acionarFreio(
+      dados.data.familiaId,
+      "bloqueio_total",
+    );
+    desfazerSegundos = await prazoDesfazerSegundos(resultado.resposta);
   } catch (erro) {
     return { erro: mensagemErro(erro, "acionar o freio") };
   }
 
   revalidatePath(`/familias/${dados.data.familiaId}`);
-  return { sucesso: "Freio acionado." };
+  return { sucesso: "Freio acionado.", desfazerSegundos };
 }
 
 /** "Desfazer" de quem acionou, dentro de `freio_desfazer_segundos`
@@ -99,6 +97,17 @@ export async function acaoDesfazerFreio(
     const { ficha } = await obterRepositorios();
     await ficha.desfazerFreio(dados.data.familiaId);
   } catch (erro) {
+    // O banco recusa o "Desfazer" fora do prazo, de outra pessoa ou depois
+    // de outra mudança do freio (privado.desfazer_freio). Em qualquer um
+    // desses casos o caminho agora é o mesmo.
+    if (
+      erro instanceof ErroRepositorio &&
+      (erro.codigo === "sem_permissao" || erro.codigo === "recusado")
+    ) {
+      return {
+        erro: "O prazo para desfazer passou. O freio continua ativo; a reversão agora é com a coordenação ou a diretoria.",
+      };
+    }
     return { erro: mensagemErro(erro, "desfazer o freio") };
   }
 
@@ -143,14 +152,25 @@ const esquemaReverter = z.object({
   justificativa: z.string().trim().min(1, "Escreva a justificativa."),
 });
 
+const ORDEM_ESTADO: readonly EstadoSensivel[] = [
+  "normal",
+  "atencao",
+  "bloqueio_total",
+  "encerrado_sensivel",
+];
+
 /** Reversão ou ajuste do freio, só coordenação ou diretoria com AAL2
- * (PRD 8.3, telas.md K7). O banco é a defesa de verdade; aqui só traduz o
- * erro se o papel ou o AAL não bastarem. */
+ * (PRD 8.3, telas.md K7). A folha oferece os quatro estados, mas o banco
+ * separa as duas portas: descer é `api.reverter_freio` (coordenação ou
+ * diretoria, AAL2, justificativa) e subir, por exemplo de bloqueio total
+ * para encerrado sensível, é `api.acionar_freio` com a justificativa como
+ * motivo (assim não nasce tarefa de justificativa). Aqui só escolhe a porta
+ * pelo estado atual; quem barra de verdade é o banco. */
 export async function acaoReverterFreio(
   _anterior: EstadoAcaoFicha,
   formulario: FormData,
 ): Promise<EstadoAcaoFicha> {
-  await exigirSessao("/familias");
+  const sessao = await exigirSessao("/familias");
   const dados = esquemaReverter.safeParse({
     familiaId: formulario.get("familiaId"),
     estado: formulario.get("estado"),
@@ -163,19 +183,41 @@ export async function acaoReverterFreio(
         "Escolha uma opção e escreva a justificativa antes de salvar.",
     };
   }
-
-  try {
-    const { ficha } = await obterRepositorios();
-    await ficha.reverterFreio(
-      dados.data.familiaId,
-      dados.data.estado as EstadoSensivel,
-      dados.data.justificativa,
-    );
-  } catch (erro) {
-    return { erro: mensagemErro(erro, "reverter o freio") };
+  if (
+    !sessao.papeis.includes("coordenacao") &&
+    !sessao.papeis.includes("diretoria")
+  ) {
+    return {
+      erro: "Reverter ou ajustar o freio é com a coordenação ou a diretoria.",
+    };
   }
 
-  revalidatePath(`/familias/${dados.data.familiaId}`);
+  const { familiaId, justificativa } = dados.data;
+  const estado = dados.data.estado as EstadoSensivel;
+  try {
+    const { ficha } = await obterRepositorios();
+    const atual = await ficha.obterFicha(familiaId);
+    if (!atual) {
+      return {
+        erro: "Essa família não está mais disponível. Atualize a tela.",
+      };
+    }
+    const de = atual.familia.estadoSensivel;
+    if (estado === de) {
+      return {
+        erro: `A família já está em ${ROTULO_ESTADO_SENSIVEL[estado].toLowerCase()}. Escolha outra opção.`,
+      };
+    }
+    if (ORDEM_ESTADO.indexOf(estado) > ORDEM_ESTADO.indexOf(de)) {
+      await ficha.acionarFreio(familiaId, estado, justificativa);
+    } else {
+      await ficha.reverterFreio(familiaId, estado, justificativa);
+    }
+  } catch (erro) {
+    return { erro: mensagemErro(erro, "salvar a mudança do freio") };
+  }
+
+  revalidatePath(`/familias/${familiaId}`);
   return { sucesso: "Mudança salva." };
 }
 
@@ -231,7 +273,13 @@ export async function acaoDesmarcarNaoContatar(
 const esquemaDataFato = z.object({
   familiaId: z.uuid(),
   campo: z.enum(["data_nascimento", "data_alta"]),
-  valor: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Escolha uma data válida."),
+  valor: z
+    .string()
+    .refine(dataValida, "Escolha uma data válida.")
+    .refine(
+      (valor) => valor <= hojeBrasilia(),
+      "A data não pode ser depois de hoje. Nascimento e alta entram como fato, quando acontecem.",
+    ),
 });
 
 /** Registro das datas de nascimento e alta (P16 item 4). */
@@ -294,7 +342,7 @@ export async function acaoVerDadosContratoCompletos(
   } catch (erro) {
     if (erro instanceof ErroRepositorio && erro.codigo === "sem_permissao") {
       return {
-        erro: "Confirme o código do aplicativo (MFA) para ver os dados completos.",
+        erro: "Ver os dados completos exige entrar com o código do aplicativo autenticador (MFA). Se o seu acesso ainda não tem MFA, peça à diretoria para ativar e entre de novo.",
       };
     }
     return { erro: mensagemErro(erro, "ver os dados completos") };

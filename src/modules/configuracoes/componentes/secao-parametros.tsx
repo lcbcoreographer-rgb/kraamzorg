@@ -66,7 +66,7 @@ export async function SecaoParametros() {
         valores: {
           chave: (
             <span className="flex flex-col">
-              <span className="text-texto font-mono font-semibold">
+              <span className="text-texto font-mono font-semibold wrap-anywhere">
                 {parametro.chave}
               </span>
               {parametro.descricao ? (
@@ -78,7 +78,9 @@ export async function SecaoParametros() {
           ),
           tipo: <Selo variante="neutro">{ROTULO_TIPO[parametro.tipo]}</Selo>,
           valor: (
-            <span className="text-apoio font-mono">
+            // wrap-anywhere: valor em JSON não tem espaço para quebrar e
+            // empurrava a página para o lado (390 px e 1280 px).
+            <span className="text-apoio font-mono wrap-anywhere">
               {resumoValor(parametro.valor)}
             </span>
           ),

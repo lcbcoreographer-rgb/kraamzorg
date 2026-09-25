@@ -76,7 +76,14 @@ for (const papel of PAPEIS) {
 
     const celular = info.project.name === "celular";
     if (celular || papel.portal) {
-      await expect(navegacao.getByRole("link")).toHaveText(papel.abas);
+      // O comercial pode ter o contador de transferências pedindo atenção
+      // na aba Início (crítica do CRM, P0 item 1): o texto some por baixo
+      // do rótulo, então aceita "Início" com ou sem o resto.
+      const esperado =
+        papel.rotulo === "Comercial"
+          ? papel.abas.map((rotulo, i) => (i === 0 ? /^Início/ : rotulo))
+          : papel.abas;
+      await expect(navegacao.getByRole("link")).toHaveText(esperado);
       await expect(
         navegacao.getByRole("link", { name: papel.abas[0] }),
       ).toHaveAttribute("aria-current", "page");
@@ -118,7 +125,9 @@ test("todas as rotas do comercial abrem com o estado vazio", async ({
   for (const [caminho, titulo] of [
     ["/pipeline", "Pipeline"],
     ["/familias", "Famílias"],
-    ["/familias/00000000-0000-4000-8006-000000000001", "Ficha da família"],
+    // Sem título genérico "Ficha da família": o h1 é o nome da família,
+    // como no protótipo (crítica do CRM, P1 item 12).
+    ["/familias/00000000-0000-4000-8006-000000000001", "Família Teste Aurora"],
     ["/conversas", "Conversas"],
     ["/transferencias", "Transferências"],
     ["/agente", "Isadora"],

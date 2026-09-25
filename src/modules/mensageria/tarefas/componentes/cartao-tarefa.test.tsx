@@ -10,6 +10,31 @@ vi.mock("next/headers", () => ({
 }));
 vi.mock("next/cache", () => ({ revalidatePath: () => {} }));
 
+/** Payload que o P20 gravaria; o repositório de demonstração ainda devolve `{}`. */
+const payloads = vi.hoisted(() => new Map<string, Record<string, unknown>>());
+vi.mock("@/lib/dados/fabrica", async (importOriginal) => {
+  const real = await importOriginal<typeof import("@/lib/dados/fabrica")>();
+  return {
+    ...real,
+    obterRepositorios: async () => {
+      const repositorios = await real.obterRepositorios();
+      return {
+        ...repositorios,
+        tarefas: {
+          ...repositorios.tarefas,
+          listarTarefas: async (
+            filtro?: Parameters<typeof repositorios.tarefas.listarTarefas>[0],
+          ) =>
+            (await repositorios.tarefas.listarTarefas(filtro)).map((t) => ({
+              ...t,
+              payload: (payloads.get(t.id) ?? t.payload) as typeof t.payload,
+            })),
+        },
+      };
+    },
+  };
+});
+
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { SessaoUsuario } from "@/lib/auth/tipos";
@@ -17,6 +42,7 @@ import { USUARIOS } from "@/lib/dados/demonstracao/fixtures";
 import { obterLoja, reiniciarLoja } from "@/lib/dados/demonstracao/loja";
 import type { TarefaComFreio } from "../dados";
 import { CartaoTarefa } from "./cartao-tarefa";
+import { ListaTarefas } from "./lista-tarefas";
 
 vi.mock("@/lib/auth/sessao", () => {
   let sessaoAtual: SessaoUsuario | null = null;
@@ -62,6 +88,7 @@ beforeEach(async () => {
   process.env.KZ_DADOS = "demonstracao";
   process.env.NEXT_PUBLIC_APP_ENV = "desenvolvimento";
   reiniciarLoja();
+  payloads.clear();
   await logarComo("Perfil Teste Comercial");
 });
 
@@ -70,7 +97,9 @@ afterEach(() => {
   process.env.NEXT_PUBLIC_APP_ENV = ORIGINAL.NEXT_PUBLIC_APP_ENV;
 });
 
-function tarefaComWhatsApp(sobrepor: Partial<TarefaComFreio> = {}): TarefaComFreio {
+function tarefaComWhatsApp(
+  sobrepor: Partial<TarefaComFreio> = {},
+): TarefaComFreio {
   return {
     id: "tarefa-1",
     tipo: "nutricao_contato",
@@ -84,10 +113,15 @@ function tarefaComWhatsApp(sobrepor: Partial<TarefaComFreio> = {}): TarefaComFre
     papelResponsavel: "comercial",
     payload: {},
     criadoEm: new Date().toISOString(),
-    mensagem: { textoSugerido: "Oi, Carla! Tudo bem?", telefoneE164: "+5511999998888" },
+    mensagem: {
+      textoSugerido: "Oi, Carla! Tudo bem?",
+      telefoneE164: "+5511999998888",
+    },
     temAcaoWhatsApp: true,
     podeEnviarMensagem: true,
     motivoBloqueio: null,
+    bloqueioSensivel: false,
+    prazo: "até 24/09/2026, 17:00",
     ...sobrepor,
   };
 }
@@ -96,7 +130,9 @@ describe("CartaoTarefa", () => {
   it("mostra o texto sugerido e monta o link do wa.me a partir dele", () => {
     render(<CartaoTarefa tarefa={tarefaComWhatsApp()} />);
 
-    expect(screen.getByLabelText("Texto sugerido")).toHaveValue("Oi, Carla! Tudo bem?");
+    expect(screen.getByLabelText("Texto sugerido")).toHaveValue(
+      "Oi, Carla! Tudo bem?",
+    );
     const link = screen.getByRole("link", { name: /Abrir no WhatsApp/i });
     expect(link).toHaveAttribute(
       "href",
@@ -114,14 +150,32 @@ describe("CartaoTarefa", () => {
     await usuario.type(campo, "Novo texto");
 
     const link = screen.getByRole("link", { name: /Abrir no WhatsApp/i });
-    expect(link).toHaveAttribute("href", "https://wa.me/5511999998888?text=Novo%20texto");
+    expect(link).toHaveAttribute(
+      "href",
+      "https://wa.me/5511999998888?text=Novo%20texto",
+    );
   });
 
-  it('"Enviei" grava a mensagem, conclui a tarefa e mostra a confirmação', async () => {
-    const { familiaPorNome } = await import("@/lib/dados/demonstracao/fixtures");
+  it('"Voltar ao texto sugerido" só aparece depois de editar e restaura o texto', async () => {
+    const usuario = userEvent.setup();
+    render(<CartaoTarefa tarefa={tarefaComWhatsApp()} />);
+    expect(
+      screen.queryByRole("button", { name: "Voltar ao texto sugerido" }),
+    ).not.toBeInTheDocument();
+
+    const campo = screen.getByLabelText("Texto sugerido");
+    await usuario.type(campo, " Extra");
+    await usuario.click(
+      screen.getByRole("button", { name: "Voltar ao texto sugerido" }),
+    );
+    expect(campo).toHaveValue("Oi, Carla! Tudo bem?");
+  });
+
+  it('"Enviei" grava a mensagem, conclui a tarefa e a confirmação fica em "Feitas agora"', async () => {
+    const { familiaPorNome } =
+      await import("@/lib/dados/demonstracao/fixtures");
     const cedro = familiaPorNome("Cedro");
     const loja = obterLoja();
-    // Sem conflito com TAREFAS do seed: usa um id próprio, já aberto na loja.
     loja.tarefas.push({
       id: "tarefa-teste-envio",
       tipo: "nutricao_contato",
@@ -132,24 +186,50 @@ describe("CartaoTarefa", () => {
       familiaId: cedro.id,
       responsavelId: sessaoDe("Perfil Teste Comercial").usuarioId,
       papelResponsavel: null,
+      payload: {},
       criadoEm: new Date().toISOString(),
+    });
+    payloads.set("tarefa-teste-envio", {
+      textoSugerido: "Oi, Carla! Tudo bem?",
+      telefoneE164: "+5511999998888",
     });
     const antesMensagens = loja.mensagens.length;
 
     const usuario = userEvent.setup();
     render(
-      <CartaoTarefa
-        tarefa={tarefaComWhatsApp({ id: "tarefa-teste-envio", familiaId: cedro.id })}
+      <ListaTarefas
+        grupos={[
+          {
+            balde: "sem_prazo",
+            titulo: "Sem prazo",
+            tarefas: [
+              tarefaComWhatsApp({
+                id: "tarefa-teste-envio",
+                titulo: "Follow-up de teste",
+                familiaId: cedro.id,
+              }),
+            ],
+          },
+        ]}
       />,
     );
 
     await usuario.click(screen.getByRole("button", { name: "Enviei" }));
 
     await waitFor(() => {
-      expect(screen.getByText(/Enviado\. A tarefa saiu da sua lista\./)).toBeInTheDocument();
+      expect(
+        screen.getByRole("status", { name: "Feitas agora" }),
+      ).toHaveTextContent(
+        /Contato da régua de nutrição da Família Teste Estrela.*Envio registrado\. A tarefa saiu da sua lista\./,
+      );
     });
+    // O título do cartão não volta em "Feitas agora" (o e2e confere que ele some).
+    expect(screen.queryByText(/Follow-up de teste/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Texto sugerido")).not.toBeInTheDocument();
     expect(loja.mensagens.length).toBe(antesMensagens + 1);
-    expect(loja.tarefas.find((t) => t.id === "tarefa-teste-envio")?.status).toBe("concluida");
+    expect(
+      loja.tarefas.find((t) => t.id === "tarefa-teste-envio")?.status,
+    ).toBe("concluida");
   });
 
   it("família em bloqueio_total: sem link nem campo de texto, só o aviso", () => {
@@ -157,15 +237,28 @@ describe("CartaoTarefa", () => {
       <CartaoTarefa
         tarefa={tarefaComWhatsApp({
           podeEnviarMensagem: false,
-          motivoBloqueio: "O freio está acionado para essa família. Só contato humano e nominal.",
+          bloqueioSensivel: true,
+          motivoBloqueio:
+            "O freio está acionado para essa família. Só contato humano e nominal.",
         })}
       />,
     );
 
-    expect(screen.queryByLabelText("Texto sugerido")).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /Abrir no WhatsApp/i })).not.toBeInTheDocument();
+    // Aviso fixo da lista, não anúncio: uma lista com várias famílias em freio
+    // não pode disparar um alerta por cartão ao abrir a tela.
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(
-      screen.getByText(/O freio está acionado para essa família\. Só contato humano e nominal\./),
+      screen.getByText("Mensagem pausada para esta família"),
+    ).toBeInTheDocument();
+
+    expect(screen.queryByLabelText("Texto sugerido")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /Abrir no WhatsApp/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /O freio está acionado para essa família\. Só contato humano e nominal\./,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -181,6 +274,7 @@ describe("CartaoTarefa", () => {
       familiaId: null,
       responsavelId: sessaoDe("Perfil Teste Comercial").usuarioId,
       papelResponsavel: null,
+      payload: {},
       criadoEm: new Date().toISOString(),
     });
 
@@ -199,9 +293,9 @@ describe("CartaoTarefa", () => {
     await usuario.click(screen.getByRole("button", { name: "Concluir" }));
 
     await waitFor(() => {
-      expect(loja.tarefas.find((t) => t.id === "tarefa-interna-teste")?.status).toBe(
-        "concluida",
-      );
+      expect(
+        loja.tarefas.find((t) => t.id === "tarefa-interna-teste")?.status,
+      ).toBe("concluida");
     });
   });
 });

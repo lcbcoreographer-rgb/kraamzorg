@@ -89,9 +89,20 @@ export function decidirAcesso(
 
   const mfa = precisaMfa(sessao);
   if (SO_SESSAO.some((base) => casa(caminho, base))) {
-    // Já está em AAL2: desafio e cadastro não fazem mais sentido.
-    if (!mfa && casa(caminho, "/mfa"))
+    if (!mfa && casa(caminho, "/mfa")) {
+      // Comercial ou marketing sem MFA cadastrado (não é obrigatório para
+      // eles) pode cadastrar por vontade própria: é o caminho para ver os
+      // dados completos de contrato, que exigem AAL2 (PRD 13; achado da
+      // verificação do P16).
+      if (
+        sessao.aal === "aal1" &&
+        sessao.aalPossivel === "aal1" &&
+        casa(caminho, "/mfa/cadastro")
+      )
+        return seguir;
+      // Já está em AAL2: desafio e cadastro não fazem mais sentido.
       return para(caminhoInicial(sessao.papeis));
+    }
     // Tem MFA cadastrado e abriu o cadastro: vai para o desafio.
     if (mfa === "/mfa/desafio" && casa(caminho, "/mfa/cadastro"))
       return para(mfa);

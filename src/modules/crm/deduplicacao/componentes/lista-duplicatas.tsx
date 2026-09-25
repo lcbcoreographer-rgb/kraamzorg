@@ -75,6 +75,7 @@ export function ListaDuplicatas({
   if (semNada) {
     return (
       <EstadoVazio
+        nivelTitulo="h2"
         titulo="Nenhuma duplicata encontrada"
         texto="Quando duas famílias tiverem o mesmo telefone ou nomes parecidos com DPP próxima, elas aparecem aqui."
       />

@@ -23,9 +23,11 @@ import {
   obterFichaTela,
   obterFreioDesfazerSegundos,
   paraFichaTela,
+  prazoDesfazerSegundos,
   registrarDataFato,
-  ROTULO_ESTADO_SENSIVEL,
+  temJustificativaPendente,
 } from "./dados";
+import { ROTULO_ESTADO_SENSIVEL, tituloEvento } from "./rotulos";
 
 vi.mock("@/lib/auth/sessao", () => {
   let sessaoAtual: SessaoUsuario | null = null;
@@ -175,10 +177,26 @@ describe("marcarNaoContatar / desmarcarNaoContatar", () => {
 describe("registrarDataFato", () => {
   it("registra o nascimento como fato", async () => {
     const id = await idDaFamilia("Aurora");
-    await registrarDataFato(id, "data_nascimento", "2027-05-10");
+    await registrarDataFato(id, "data_nascimento", "2026-09-10");
     const ficha = await obterFichaTela(id);
-    expect(ficha!.datas[1]!.valor).toBe("2027-05-10");
+    expect(ficha!.datas[1]!.valor).toBe("2026-09-10");
     expect(ficha!.datas[1]!.tipo).toBe("fato");
+  });
+
+  it("data no futuro é recusada: fato só existe quando acontece", async () => {
+    const id = await idDaFamilia("Aurora");
+    await expect(
+      registrarDataFato(id, "data_nascimento", "2999-01-01"),
+    ).rejects.toBeInstanceOf(ErroRepositorio);
+    const ficha = await obterFichaTela(id);
+    expect(ficha!.datas[1]!.valor).toBeNull();
+  });
+
+  it("data que não existe no calendário é recusada", async () => {
+    const id = await idDaFamilia("Aurora");
+    await expect(
+      registrarDataFato(id, "data_alta", "2026-02-31"),
+    ).rejects.toBeInstanceOf(ErroRepositorio);
   });
 
   it("data fora do formato é recusada", async () => {
@@ -186,6 +204,108 @@ describe("registrarDataFato", () => {
     await expect(
       registrarDataFato(id, "data_alta", "10/05/2027"),
     ).rejects.toBeInstanceOf(ErroRepositorio);
+  });
+});
+
+describe("temJustificativaPendente", () => {
+  it("quem acionou sem motivo tem a tarefa; outra pessoa não", async () => {
+    const id = await idDaFamilia("Aurora");
+    expect((await temJustificativaPendente(id)).pendente).toBe(false);
+    const { obterRepositorios } = await import("@/lib/dados/fabrica");
+    const { ficha } = await obterRepositorios();
+    await ficha.acionarFreio(id, "bloqueio_total");
+    expect((await temJustificativaPendente(id)).pendente).toBe(true);
+
+    await logarComo("Perfil Teste Coordenacao");
+    expect((await temJustificativaPendente(id)).pendente).toBe(false);
+  });
+
+  it("some depois da justificativa", async () => {
+    const id = await idDaFamilia("Aurora");
+    const { obterRepositorios } = await import("@/lib/dados/fabrica");
+    const { ficha } = await obterRepositorios();
+    await ficha.acionarFreio(id, "bloqueio_total");
+    await ficha.justificarFreio(id, "Relato de intercorrência.");
+    expect((await temJustificativaPendente(id)).pendente).toBe(false);
+  });
+});
+
+describe("tituloEvento", () => {
+  it("título gravado como código pelo banco vira frase, sem seta nem código", () => {
+    expect(
+      tituloEvento({
+        tipo: "freio",
+        titulo: "normal → bloqueio_total",
+        dados: { acao: "acionar", de: "normal", para: "bloqueio_total" },
+      }),
+    ).toBe("Freio acionado: bloqueio total");
+    expect(
+      tituloEvento({
+        tipo: "freio",
+        titulo: "bloqueio_total → normal",
+        dados: { acao: "reverter", de: "bloqueio_total", para: "normal" },
+      }),
+    ).toBe("Freio ajustado para normal");
+    expect(
+      tituloEvento({
+        tipo: "freio",
+        titulo: "justificativa",
+        dados: { acao: "justificar" },
+      }),
+    ).toBe("Freio justificado");
+    expect(
+      tituloEvento({
+        tipo: "estagio",
+        titulo: "qualificado → sessao_venda_agendada",
+        dados: {
+          maquina: "p1",
+          de: "qualificado",
+          para: "sessao_venda_agendada",
+        },
+      }),
+    ).not.toMatch(/_|→/);
+    expect(
+      tituloEvento({
+        tipo: "nova_gestacao",
+        titulo: "vinculo_nova_gestacao",
+        dados: {},
+      }),
+    ).toBe("Vínculo com a gestação anterior");
+  });
+
+  it("título que já é frase aparece como veio; tipo desconhecido não quebra", () => {
+    expect(
+      tituloEvento({
+        tipo: "marco",
+        titulo: "Apresentação enviada",
+        dados: {},
+      }),
+    ).toBe("Apresentação enviada");
+    expect(tituloEvento({ tipo: "tipo_novo", titulo: "", dados: null })).toBe(
+      "Evento",
+    );
+  });
+});
+
+describe("prazoDesfazerSegundos", () => {
+  it("usa o desfazer_ate que o banco devolve no acionamento", async () => {
+    const agora = Date.parse("2026-09-24T12:00:00Z");
+    expect(
+      await prazoDesfazerSegundos(
+        { ok: true, desfazer_ate: "2026-09-24T12:00:10Z" },
+        agora,
+      ),
+    ).toBe(10);
+    expect(
+      await prazoDesfazerSegundos(
+        { ok: true, desfazer_ate: "2026-09-24T11:59:00Z" },
+        agora,
+      ),
+    ).toBe(0);
+  });
+
+  it("sem desfazer_ate na resposta, não há Desfazer (nunca um prazo fixo)", async () => {
+    expect(await prazoDesfazerSegundos({ ok: true })).toBe(0);
   });
 });
 

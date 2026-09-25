@@ -18,7 +18,11 @@ const pedidoGrupo: PedidoEnvio = {
 };
 
 function config(fetchImpl: typeof fetch): ConfigUazapi {
-  return { baseUrl: "https://uazapi.exemplo.com", token: "token-teste", fetchImpl };
+  return {
+    baseUrl: "https://uazapi.exemplo.com",
+    token: "token-teste",
+    fetchImpl,
+  };
 }
 
 describe("criarMensageiroUazapi", () => {
@@ -30,7 +34,10 @@ describe("criarMensageiroUazapi", () => {
 
   it("sem configuração, devolve falha sem tentar a rede", async () => {
     const buscar = vi.fn();
-    const resultado = await criarMensageiroUazapi(null).enviar(pedidoFamilia, verificar);
+    const resultado = await criarMensageiroUazapi(null).enviar(
+      pedidoFamilia,
+      verificar,
+    );
     expect(resultado.ok).toBe(false);
     expect(buscar).not.toHaveBeenCalled();
   });
@@ -50,8 +57,9 @@ describe("criarMensageiroUazapi", () => {
   });
 
   it("envia para a família com a URL, o cabeçalho e o track_source certos", async () => {
-    const buscar = vi.fn(async () =>
-      new Response(JSON.stringify({ id: "abc123" }), { status: 200 }),
+    const buscar = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ id: "abc123" }), { status: 200 }),
     );
     const resultado = await criarMensageiroUazapi(config(buscar)).enviar(
       pedidoFamilia,
@@ -65,7 +73,10 @@ describe("criarMensageiroUazapi", () => {
     expect(verificar).toHaveBeenCalledOnce();
 
     expect(buscar).toHaveBeenCalledOnce();
-    const [url, init] = buscar.mock.calls[0] as unknown as [string, RequestInit];
+    const [url, init] = buscar.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
     expect(url).toBe("https://uazapi.exemplo.com/send/text");
     expect((init.headers as Record<string, string>).token).toBe("token-teste");
     const corpo = JSON.parse(init.body as string) as Record<string, unknown>;
@@ -74,7 +85,10 @@ describe("criarMensageiroUazapi", () => {
   });
 
   it("grupo interno nunca checa o freio, mesmo em bloqueio_total", async () => {
-    verificar = vi.fn(async () => ({ pode: false, motivo: "não importa aqui" }));
+    verificar = vi.fn(async () => ({
+      pode: false,
+      motivo: "não importa aqui",
+    }));
     const buscar = vi.fn(async () => new Response("{}", { status: 200 }));
     const resultado = await criarMensageiroUazapi(config(buscar)).enviar(
       pedidoGrupo,

@@ -1,8 +1,8 @@
 import "server-only";
 import { criarClienteServidor } from "@/lib/db/cliente-servidor";
-import { ErroRepositorio } from "@/lib/dados/erros";
 import { obterRepositorios } from "@/lib/dados/fabrica";
 import { modoDados } from "@/lib/dados/modo";
+import { rpcPendente } from "@/lib/dados/supabase/comum";
 
 export interface PedidoRegistrarEnvio {
   tarefaId: string;
@@ -12,36 +12,45 @@ export interface PedidoRegistrarEnvio {
 
 /**
  * "Enviei" (P18 item 2, PRD 23.2): grava `mensagem` com `enviado_por =
- * humano` e conclui a tarefa. A régua (`regua_faixa`) e as cadências
- * avançam sozinhas a partir da próxima vez que a automação de nutrição
- * (P20, motor de automações, ainda não construído) rodar e vir esta
- * tarefa concluída; este módulo não é dono da máquina de estado da régua,
- * só do registro de que uma pessoa mandou a mensagem.
+ * humano` e conclui a tarefa.
  *
- * Sem `familia_id` (tarefa interna, como "Justificar o freio") isto nunca
- * é chamado: essas tarefas usam só `concluirTarefa`, direto pela tela.
+ * Supabase: `mensagem` não tem INSERT para `authenticated` de propósito
+ * (0007_permissoes.sql: "o texto passa por privado.mascarar_documentos
+ * antes de gravar, então o registro do 'enviei' é função (P18)"). Por isso
+ * a escrita é uma função só, `api.registrar_envio_tarefa(tarefa_id, texto)`,
+ * que precisa: conferir que a tarefa é de quem chama e está aberta;
+ * reconsultar `privado.pode_enviar_mensagem(familia, categoria, 'manual')`;
+ * mascarar o texto com `privado.mascarar_documentos`; gravar a mensagem
+ * (`direcao = 'saida'`, `enviado_por = 'humano'`) na conversa da família;
+ * concluir a tarefa; e deixar a régua ou a cadência seguir (P20). Tudo numa
+ * transação: nunca mensagem gravada com tarefa aberta, nem o contrário.
+ * A função ainda não existe (0012 a 0014 são de outra trilha): até lá,
+ * `rpcPendente` lança `funcao_pendente` e nada muda no banco.
  *
- * Não existe ainda uma função `api.*` para isto (0012 a 0014 são de outra
- * trilha) nem uma coluna que ligue `tarefa` a `conversa`: a mensagem é
- * gravada na conversa já existente da família (resolvida por
- * `familia_id`, como o resto do app resolve conversa por família). Uma
- * família sem conversa registrada ainda (por exemplo, um lead cadastrado
- * na mão, sem nunca ter escrito) não tem onde gravar a mensagem; a tarefa
- * ainda assim é concluída, e fica pendência para quando existir
- * `api.registrar_envio_tarefa` (RPC dedicada) or uma automação garanta a
- * conversa antes de criar a tarefa.
+ * Demonstração: grava na loja em memória da fundação (sem editar aquele
+ * arquivo) e conclui pelo repositório, que confere a permissão. Família sem
+ * conversa registrada não tem onde gravar a mensagem; a tarefa é concluída
+ * mesmo assim.
  */
-export async function registrarEnvioTarefa(pedido: PedidoRegistrarEnvio): Promise<void> {
-  if (pedido.familiaId) {
-    if (modoDados() === "demonstracao") {
-      await registrarNaDemonstracao(pedido.familiaId, pedido.textoEnviado);
-    } else {
-      await registrarNoSupabase(pedido.familiaId, pedido.textoEnviado);
-    }
+export async function registrarEnvioTarefa(
+  pedido: PedidoRegistrarEnvio,
+): Promise<void> {
+  if (modoDados() !== "demonstracao") {
+    const cliente = await criarClienteServidor();
+    await rpcPendente(cliente, "registrar_envio_tarefa", {
+      tarefa_id: pedido.tarefaId,
+      texto: pedido.textoEnviado,
+    });
+    return;
   }
 
+  // Conclui primeiro: se a tarefa não for de quem pediu, o repositório
+  // recusa antes de qualquer mensagem entrar na loja.
   const { tarefas } = await obterRepositorios();
   await tarefas.concluirTarefa(pedido.tarefaId);
+  if (pedido.familiaId) {
+    await registrarNaDemonstracao(pedido.familiaId, pedido.textoEnviado);
+  }
 }
 
 async function registrarNaDemonstracao(
@@ -51,7 +60,7 @@ async function registrarNaDemonstracao(
   const { obterLoja } = await import("@/lib/dados/demonstracao/loja");
   const loja = obterLoja();
   const conversa = loja.conversas.find((c) => c.familiaId === familiaId);
-  if (!conversa) return; // Sem conversa: nada para gravar (ver docstring acima).
+  if (!conversa) return; // Sem conversa: nada para gravar (ver acima).
 
   loja.mensagens.push({
     id: crypto.randomUUID(),
@@ -62,36 +71,4 @@ async function registrarNaDemonstracao(
     conteudo: textoEnviado,
     enviadaEm: new Date().toISOString(),
   });
-}
-
-async function registrarNoSupabase(familiaId: string, textoEnviado: string): Promise<void> {
-  const cliente = await criarClienteServidor();
-
-  const conversa = await cliente
-    .from("conversa")
-    .select("id")
-    .eq("familia_id", familiaId)
-    .limit(1)
-    .maybeSingle();
-  if (conversa.error) {
-    throw new ErroRepositorio(
-      "indisponivel",
-      `registrar envio: localizar conversa (${conversa.error.message})`,
-    );
-  }
-  if (!conversa.data) return; // Sem conversa: nada para gravar (ver docstring acima).
-
-  const insercao = await cliente.from("mensagem").insert({
-    conversa_id: conversa.data.id,
-    direcao: "saida",
-    enviado_por: "humano",
-    tipo: "texto",
-    conteudo: textoEnviado,
-  });
-  if (insercao.error) {
-    throw new ErroRepositorio(
-      "indisponivel",
-      `registrar envio: gravar mensagem (${insercao.error.message})`,
-    );
-  }
 }

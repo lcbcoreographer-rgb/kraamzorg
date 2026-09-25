@@ -34,22 +34,40 @@ export default async function PaginaConversa({
   const tela = await obterConversaTela(id);
   if (!tela) notFound();
 
-  const { conversa, mensagens, transferenciaAberta, ficha, textoFormularioContrato, comercialRespondeNoApp } =
-    tela;
-  const nome = conversa.nomeFamilia ?? conversa.nomeContato ?? conversa.telefoneE164 ?? "Contato";
+  const {
+    conversa,
+    mensagens,
+    transferenciaAberta,
+    ficha,
+    formularioContrato,
+    comercialRespondeNoApp,
+    horasPausaHumano,
+    textoNaoLead,
+  } = tela;
+  const nome =
+    conversa.nomeFamilia ??
+    conversa.nomeContato ??
+    conversa.telefoneE164 ??
+    "Contato";
   const podeReverterFreio =
-    sessao.papeis.includes("coordenacao") || sessao.papeis.includes("diretoria");
-  const nomeQuemAssumiu = conversa.agenteEncerradoEm ? sessao.nome : null;
+    sessao.papeis.includes("coordenacao") ||
+    sessao.papeis.includes("diretoria");
 
   return (
     <>
       <header className="flex items-center gap-2 pb-2">
         <Botao asChild variante="icone" aria-label="Voltar para as conversas">
           <Link href="/conversas">
-            <ArrowLeft aria-hidden="true" className="size-5" strokeWidth={1.75} />
+            <ArrowLeft
+              aria-hidden="true"
+              className="size-5"
+              strokeWidth={1.75}
+            />
           </Link>
         </Botao>
-        {!ficha ? <h1 className="font-titulo text-2 text-texto">{nome}</h1> : null}
+        {!ficha ? (
+          <h1 className="font-titulo text-2 text-texto">{nome}</h1>
+        ) : null}
       </header>
 
       {ficha ? (
@@ -58,18 +76,26 @@ export default async function PaginaConversa({
           nome={ficha.nome}
           meta={
             <>
-              {ficha.estagioRotulo ? <Selo variante="marinho">{ficha.estagioRotulo}</Selo> : null}
+              {ficha.estagioRotulo ? (
+                <Selo variante="marinho">{ficha.estagioRotulo}</Selo>
+              ) : null}
               {ficha.idadeGestacional ? (
-                <span className="text-corpo font-mono">{ficha.idadeGestacional}</span>
+                <span className="text-corpo font-mono">
+                  {ficha.idadeGestacional}
+                </span>
               ) : null}
               {ficha.bairro || ficha.cidade ? (
-                <span>{[ficha.bairro, ficha.cidade].filter(Boolean).join(", ")}</span>
+                <span>
+                  {[ficha.bairro, ficha.cidade].filter(Boolean).join(", ")}
+                </span>
               ) : null}
             </>
           }
           datas={ficha.datas.map((d) => ({
             rotulo: d.rotulo,
-            valor: d.valor ? (formatarData(d.valor) ?? "ainda não") : "ainda não",
+            valor: d.valor
+              ? (formatarData(d.valor) ?? "ainda não")
+              : "ainda não",
             tipo: d.valor ? d.tipo : ("ausente" as const),
           }))}
           estadoSensivelInicial={ficha.estadoSensivel}
@@ -79,21 +105,37 @@ export default async function PaginaConversa({
         />
       ) : null}
 
+      {/* Celular: resumo e ações acima das mensagens (fluxos.md, fluxo E,
+          "A conversa", item 2). Computador: painel ao lado, à direita. A
+          ordem no DOM segue a do celular, para o foco do teclado bater com
+          o que se vê. */}
       <div className="grid grid-cols-1 gap-6 pt-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
-        <section aria-label={`Conversa no WhatsApp com ${nome}`} className="flex flex-col gap-4">
-          <FioMensagens mensagens={mensagens} nomeQuemAssumiu={nomeQuemAssumiu} />
+        <div className="lg:col-start-2 lg:row-start-1">
+          <PainelResumo
+            conversa={conversa}
+            ficha={ficha}
+            transferenciaAberta={transferenciaAberta}
+            horasPausaHumano={horasPausaHumano}
+            textoNaoLead={textoNaoLead}
+          />
+        </div>
+
+        <section
+          aria-label={`Conversa no WhatsApp com ${nome}`}
+          className="flex flex-col gap-4 lg:col-start-1 lg:row-start-1"
+        >
+          <FioMensagens mensagens={mensagens} />
           <Compositor
             conversaId={conversa.id}
             familiaId={conversa.familiaId}
             telefoneE164={conversa.telefoneE164}
-            nomeContato={nome}
-            textoFormularioContrato={textoFormularioContrato}
+            nomeContato={conversa.nomeContato ?? nome}
+            formularioContrato={formularioContrato}
             comercialRespondeNoApp={comercialRespondeNoApp}
             freioAtivo={Boolean(ficha && ficha.estadoSensivel !== "normal")}
+            ofereceTextoComercial={conversa.situacao !== "nao_lead"}
           />
         </section>
-
-        <PainelResumo conversa={conversa} ficha={ficha} transferenciaAberta={transferenciaAberta} />
       </div>
     </>
   );

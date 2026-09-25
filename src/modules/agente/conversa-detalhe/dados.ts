@@ -8,17 +8,30 @@ import type { Mensagem } from "@/lib/dados/tipos";
 import { obterFichaTela } from "@/modules/crm/ficha/dados";
 import type { FichaTela } from "@/modules/crm/ficha/tipos";
 import { paraConversaComPausa } from "../formatacao";
-import { pausaMotivoDemonstracao, pausaMotivosReais } from "../repositorio";
-import type { ConversaComPausa, TransferenciaTela } from "../tipos";
-import { ROTULO_MOTIVO_HANDOFF } from "../tipos";
+import {
+  obterHorasPausaHumano,
+  pausaMotivoDemonstracao,
+  pausaMotivosReais,
+} from "../repositorio";
+import type {
+  ClassificacaoNaoLead,
+  ConversaComPausa,
+  TransferenciaTela,
+} from "../tipos";
+import { CHAVE_MENSAGEM_NAO_LEAD, ROTULO_MOTIVO_HANDOFF } from "../tipos";
 
 export interface ConversaDetalheTela {
   conversa: ConversaComPausa;
   mensagens: Mensagem[];
   transferenciaAberta: TransferenciaTela | null;
   ficha: FichaTela | null;
-  textoFormularioContrato: string | null;
+  /** `mensagem_modelo.formulario_contrato`, com o status para a tela avisar rascunho. */
+  formularioContrato: { texto: string; aprovado: boolean } | null;
   comercialRespondeNoApp: boolean;
+  /** `agente_pausa_humano_horas`; null quando o papel não lê `parametro`. */
+  horasPausaHumano: number | null;
+  /** Texto de encaminhamento de não lead (`mensagem_modelo.nao_lead_*`). */
+  textoNaoLead: string | null;
 }
 
 async function obterConversaPorId(id: string) {
@@ -28,10 +41,13 @@ async function obterConversaPorId(id: string) {
     if (!conversa) return null;
     return {
       ...conversa,
-      nomeFamilia: l.familias.find((f) => f.id === conversa.familiaId)?.nome ?? null,
+      nomeFamilia:
+        l.familias.find((f) => f.id === conversa.familiaId)?.nome ?? null,
       transferenciaAbertaId:
         l.transferencias.find(
-          (t) => t.conversaId === id && (t.status === "aberto" || t.status === "assumido"),
+          (t) =>
+            t.conversaId === id &&
+            (t.status === "aberto" || t.status === "assumido"),
         )?.id ?? null,
     };
   }
@@ -74,34 +90,83 @@ export async function obterConversaTela(
 ): Promise<ConversaDetalheTela | null> {
   const { agente, configuracoes } = await obterRepositorios();
 
-  const [conversaBase, mensagens, transferencias, mensagemFormulario, parametroResposta] =
-    await Promise.all([
-      obterConversaPorId(conversaId),
-      agente.mensagensDaConversa(conversaId),
-      agente.listarTransferencias({ status: ["aberto", "assumido"] }),
-      configuracoes.obterMensagemModelo("formulario_contrato"),
-      configuracoes.lerParametro("comercial_resposta_no_app"),
-    ]);
+  const [
+    conversaBase,
+    mensagens,
+    transferencias,
+    mensagemFormulario,
+    parametroResposta,
+    horasPausaHumano,
+  ] = await Promise.all([
+    obterConversaPorId(conversaId),
+    agente.mensagensDaConversa(conversaId),
+    agente.listarTransferencias({ status: ["aberto", "assumido"] }),
+    configuracoes.obterMensagemModelo("formulario_contrato"),
+    configuracoes.lerParametro("comercial_resposta_no_app"),
+    obterHorasPausaHumano(),
+  ]);
 
   if (!conversaBase) return null;
 
-  const transferenciaAberta = transferencias.find((t) => t.conversaId === conversaId) ?? null;
+  const chaveNaoLead =
+    conversaBase.classificacao in CHAVE_MENSAGEM_NAO_LEAD
+      ? CHAVE_MENSAGEM_NAO_LEAD[
+          conversaBase.classificacao as ClassificacaoNaoLead
+        ]
+      : null;
+  const modeloNaoLead = chaveNaoLead
+    ? await configuracoes.obterMensagemModelo(chaveNaoLead)
+    : null;
+
+  const transferenciaAberta =
+    transferencias.find((t) => t.conversaId === conversaId) ?? null;
 
   const pausaMotivo =
     modoDados() === "demonstracao"
       ? pausaMotivoDemonstracao(conversaId)
       : ((await pausaMotivosReais([conversaId]))[conversaId] ?? null);
 
-  const fichaFamilia = conversaBase.familiaId ? await obterFichaTela(conversaBase.familiaId) : null;
+  const fichaFamilia = conversaBase.familiaId
+    ? await obterFichaTela(conversaBase.familiaId)
+    : null;
+
+  const aberta = transferenciaAberta
+    ? {
+        ...transferenciaAberta,
+        motivoRotulo: ROTULO_MOTIVO_HANDOFF[transferenciaAberta.motivo],
+      }
+    : null;
 
   return {
-    conversa: paraConversaComPausa(conversaBase, pausaMotivo, null),
+    conversa: paraConversaComPausa(
+      { ...conversaBase, transferenciaAbertaId: aberta?.id ?? null },
+      pausaMotivo,
+      null,
+      new Date(),
+      aberta
+        ? {
+            motivo: aberta.motivo,
+            motivoRotulo: aberta.motivoRotulo,
+            prioridade: aberta.prioridade,
+            status: aberta.status,
+          }
+        : null,
+      fichaFamilia?.estadoSensivel ?? "normal",
+    ),
     mensagens,
-    transferenciaAberta: transferenciaAberta
-      ? { ...transferenciaAberta, motivoRotulo: ROTULO_MOTIVO_HANDOFF[transferenciaAberta.motivo] }
-      : null,
+    transferenciaAberta: aberta,
     ficha: fichaFamilia,
-    textoFormularioContrato: mensagemFormulario?.texto ?? null,
+    formularioContrato: mensagemFormulario
+      ? {
+          texto: mensagemFormulario.texto,
+          aprovado: mensagemFormulario.status === "aprovado",
+        }
+      : null,
+    // Hoje a RLS de `parametro` só deixa a diretoria ler; para o comercial
+    // vem null e a tela fica no padrão seguro ("Abrir no WhatsApp"), o
+    // mesmo do seed (pendência registrada no relatório da sessão).
     comercialRespondeNoApp: parametroResposta?.valor === true,
+    horasPausaHumano,
+    textoNaoLead: modeloNaoLead?.texto ?? null,
   };
 }

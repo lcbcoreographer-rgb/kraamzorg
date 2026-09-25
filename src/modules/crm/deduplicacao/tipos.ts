@@ -29,7 +29,7 @@ export interface ResultadoDuplicatas {
   certas: ParDuplicataCerta[];
   provaveis: ParDuplicataProvavel[];
   /** true quando o banco ainda não tem a função de detecção (0012 a 0014
-   * são de outra trilha) — diferente de "nenhuma duplicata encontrada". */
+   * são de outra trilha), diferente de "nenhuma duplicata encontrada". */
   indisponivelNoBanco: boolean;
 }
 

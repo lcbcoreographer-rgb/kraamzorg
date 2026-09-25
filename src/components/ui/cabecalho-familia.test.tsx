@@ -54,7 +54,7 @@ describe("CabecalhoFamilia", () => {
     expect(screen.getByText("25/09/2026")).toBeInTheDocument();
   });
 
-  it("não renderiza dd vazio para uma data do tipo ausente", () => {
+  it("mostra a data ausente como pílula tracejada, com a legenda de quando vira fato (P1 item 12)", () => {
     render(
       <CabecalhoFamilia
         nome="Família Teste Cedro"
@@ -66,10 +66,11 @@ describe("CabecalhoFamilia", () => {
     );
 
     const definicoes = screen.getAllByRole("definition");
-    // Só a definição com o valor "Ainda não há": nenhuma segunda <dd> vazia
-    // de "estimativa"/"fato" para o tipo ausente.
-    expect(definicoes).toHaveLength(1);
+    // O valor ("Ainda não há") e a legenda ("vira fato quando acontecer"),
+    // nunca a legenda "estimativa"/"fato" de uma data que já aconteceu.
+    expect(definicoes).toHaveLength(2);
     expect(definicoes[0]).toHaveTextContent("Ainda não há");
+    expect(definicoes[1]).toHaveTextContent("vira fato quando acontecer");
   });
 
   it("leva o foco para o selo Freio ativo quando o botão de freio some do DOM", async () => {

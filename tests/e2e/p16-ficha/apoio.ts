@@ -1,4 +1,4 @@
-import type { TestInfo } from "@playwright/test";
+import type { Locator, Page, TestInfo } from "@playwright/test";
 
 /**
  * Mesmo padrão de `tests/e2e/p13-configuracoes/apoio.ts` (lido como
@@ -10,4 +10,12 @@ import type { TestInfo } from "@playwright/test";
  */
 export function porProjeto<T>(info: TestInfo, celular: T, computador: T): T {
   return info.project.name === "celular" ? celular : computador;
+}
+
+/**
+ * Abas da ficha. "Conversas" também é item da navegação principal, então
+ * procurar o link na página inteira acha dois.
+ */
+export function abas(page: Page): Locator {
+  return page.getByRole("navigation", { name: "Seções da ficha" });
 }

@@ -1,5 +1,5 @@
 import type { Tarefa } from "@/lib/dados/tipos";
-import { formatarDataHora } from "@/lib/formatacao";
+import { formatarData, formatarDataHora } from "@/lib/formatacao";
 import {
   ORDEM_PRIORIDADE,
   paraTarefaTela,
@@ -15,21 +15,26 @@ const TITULO_BALDE: Record<BaldeVencimento, string> = {
   sem_prazo: "Sem prazo",
 };
 
-const ORDEM_BALDE: BaldeVencimento[] = ["vencida", "vence_hoje", "a_vencer", "sem_prazo"];
+const ORDEM_BALDE: BaldeVencimento[] = [
+  "vencida",
+  "vence_hoje",
+  "a_vencer",
+  "sem_prazo",
+];
 
 function balde(venceEm: string | null, agora: Date): BaldeVencimento {
   if (!venceEm) return "sem_prazo";
   const data = new Date(venceEm);
   if (Number.isNaN(data.getTime())) return "sem_prazo";
   if (data.getTime() < agora.getTime()) return "vencida";
-
-  const fimDoDia = new Date(agora);
-  fimDoDia.setHours(23, 59, 59, 999);
-  return data.getTime() <= fimDoDia.getTime() ? "vence_hoje" : "a_vencer";
+  // "Hoje" é o dia em Brasília (CLAUDE.md), não o do fuso do servidor, que
+  // na Vercel é UTC e viraria o dia às 21h.
+  return formatarData(data) === formatarData(agora) ? "vence_hoje" : "a_vencer";
 }
 
 function compararTarefas(a: TarefaTela, b: TarefaTela): number {
-  const prioridade = ORDEM_PRIORIDADE[b.prioridade] - ORDEM_PRIORIDADE[a.prioridade];
+  const prioridade =
+    ORDEM_PRIORIDADE[b.prioridade] - ORDEM_PRIORIDADE[a.prioridade];
   if (prioridade !== 0) return prioridade;
   const venceA = a.venceEm ?? "9999";
   const venceB = b.venceEm ?? "9999";
@@ -42,7 +47,10 @@ function compararTarefas(a: TarefaTela, b: TarefaTela): number {
  * normal), depois por quem vence mais cedo, agrupadas em vencidas / vencem
  * hoje / a vencer / sem prazo.
  */
-export function agruparTarefas(tarefas: Tarefa[], agora: Date = new Date()): GrupoTarefas[] {
+export function agruparTarefas(
+  tarefas: Tarefa[],
+  agora: Date = new Date(),
+): GrupoTarefas[] {
   const telas = tarefas.map(paraTarefaTela);
   const grupos = new Map<BaldeVencimento, TarefaTela[]>();
 
@@ -61,7 +69,10 @@ export function agruparTarefas(tarefas: Tarefa[], agora: Date = new Date()): Gru
 }
 
 /** "venceu há 8 min" / "vence em 22 min" / "até 17:00" (protótipo C1, `.prazo`). */
-export function textoPrazo(venceEm: string | null, agora: Date = new Date()): string | null {
+export function textoPrazo(
+  venceEm: string | null,
+  agora: Date = new Date(),
+): string | null {
   if (!venceEm) return null;
   const data = new Date(venceEm);
   if (Number.isNaN(data.getTime())) return null;

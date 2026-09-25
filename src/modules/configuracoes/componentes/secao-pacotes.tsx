@@ -30,16 +30,16 @@ export async function SecaoPacotes() {
           <Cartao key={pacote.id} variante="plano">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
+                {/* "gemelar" fica na linha de apoio, não dentro do título:
+                    no h3 ele colava no nome ("Gemelar Essencialgemelar") e
+                    virava o nome acessível do cartão. */}
                 <h3 className="text-3 text-texto font-semibold">
                   {pacote.nome}
-                  {pacote.gemelar ? (
-                    <span className="text-apoio text-texto-2 ml-2 font-normal">
-                      gemelar
-                    </span>
-                  ) : null}
                 </h3>
                 <p className="text-apoio text-texto-2">
-                  {pacote.dias} dias · {pacote.linha ?? "sem linha definida"}
+                  {pacote.dias} dias
+                  {pacote.gemelar ? " · gemelar" : ""} ·{" "}
+                  {pacote.linha ?? "sem linha definida"}
                 </p>
               </div>
               <div className="flex items-center gap-2">

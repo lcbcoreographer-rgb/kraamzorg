@@ -6,7 +6,7 @@ import { ErroRepositorio, traduzirErroBanco } from "@/lib/dados/erros";
 import { obterRepositorios } from "@/lib/dados/fabrica";
 import { modoDados } from "@/lib/dados/modo";
 import { rpcPendente } from "@/lib/dados/supabase/comum";
-import type { ClassificacaoContato } from "@/lib/dados/tipos";
+import type { ClassificacaoContato, EnviadoPor } from "@/lib/dados/tipos";
 import { obterLoja } from "@/lib/dados/demonstracao/loja";
 import { obterLojaExtra, configuracaoDaLoja } from "./loja-extra";
 import type {
@@ -59,12 +59,20 @@ import type {
 /** Diretoria exige AAL2 nas políticas do banco (PRD 13, 21.2); confere os
  * dois aqui, para a tela dar a mensagem certa em vez do banco recusar sem
  * explicação. */
-function exigirDiretoria(sessao: { papeis: readonly string[]; aal: string } | null): void {
+function exigirDiretoria(
+  sessao: { papeis: readonly string[]; aal: string } | null,
+): void {
   if (!sessao || !sessao.papeis.includes("diretoria")) {
-    throw new ErroRepositorio("sem_permissao", "só a diretoria altera esta regra");
+    throw new ErroRepositorio(
+      "sem_permissao",
+      "só a diretoria altera esta regra",
+    );
   }
   if (exigeMfa(sessao.papeis as never) && sessao.aal !== "aal2") {
-    throw new ErroRepositorio("sem_permissao", "confirme o código do aplicativo (MFA)");
+    throw new ErroRepositorio(
+      "sem_permissao",
+      "confirme o código do aplicativo (MFA)",
+    );
   }
 }
 
@@ -93,9 +101,12 @@ export async function obterConfiguracaoAgente(): Promise<ConfiguracaoAgente> {
     configuracoes.lerParametro("agente_modo"),
     configuracoes.lerParametro("agente_whitelist"),
   ]);
-  const modoValor = typeof modo?.valor === "string" ? (modo.valor as ModoAgente) : "desligado";
+  const modoValor =
+    typeof modo?.valor === "string" ? (modo.valor as ModoAgente) : "desligado";
   const numeros = Array.isArray(whitelist?.valor)
-    ? (whitelist.valor as unknown[]).filter((v): v is string => typeof v === "string")
+    ? (whitelist.valor as unknown[]).filter(
+        (v): v is string => typeof v === "string",
+      )
     : [];
   return {
     modo: modoValor,
@@ -142,7 +153,11 @@ export async function salvarConfiguracaoAgente(
     salvarParametro("agente_modo", pedido.modo),
     salvarParametro("agente_whitelist", pedido.numerosTeste),
   ]);
-  return { modo: pedido.modo, numerosTeste: pedido.numerosTeste, atualizadoEm: em };
+  return {
+    modo: pedido.modo,
+    numerosTeste: pedido.numerosTeste,
+    atualizadoEm: em,
+  };
 }
 
 // --- Regra de retomada (item 1, PRD 11.3, telas.md C6) ----------------------
@@ -154,16 +169,24 @@ export async function obterRegraRetomada(): Promise<RegraRetomada> {
   }
   const { configuracoes } = await obterRepositorios();
   const parametro = await configuracoes.lerParametro("agente_followup_horas");
-  const horas = typeof parametro?.valor === "number" ? parametro.valor : 48;
+  // Sem valor inventado: fora da diretoria a RLS de `parametro` devolve
+  // nada, e a tela diz que a janela é da diretoria em vez de mostrar um
+  // número que pode não ser o do banco.
+  const horas = typeof parametro?.valor === "number" ? parametro.valor : null;
   return { horas, atualizadoEm: parametro?.atualizadoEm ?? null };
 }
 
 /** Só a diretoria (protótipo `comercial-agente-regras.html`). Mínimo 24h (PRD 11.3). */
-export async function salvarRegraRetomada(horas: number): Promise<RegraRetomada> {
+export async function salvarRegraRetomada(
+  horas: number,
+): Promise<RegraRetomada> {
   const sessao = await obterSessao();
   exigirDiretoria(sessao);
   if (!Number.isFinite(horas) || horas < 24) {
-    throw new ErroRepositorio("recusado", "a janela mínima de retomada é 24 horas");
+    throw new ErroRepositorio(
+      "recusado",
+      "a janela mínima de retomada é 24 horas",
+    );
   }
 
   if (modoDados() === "demonstracao") {
@@ -209,6 +232,22 @@ export async function marcarNaoLead(
 
 // --- Pausa e retomada do agente numa conversa (pendente, ver cabeçalho) ----
 
+/**
+ * `agente_pausa_humano_horas` (PRD 11.3, 6.8): por quanto tempo a Isadora
+ * fica calada depois que alguém da equipe assume ou pausa. Só a diretoria
+ * lê `parametro` pela RLS; para os demais papéis devolve null e a tela fala
+ * da pausa sem citar horas.
+ */
+export async function obterHorasPausaHumano(): Promise<number | null> {
+  const { configuracoes } = await obterRepositorios();
+  const parametro = await configuracoes.lerParametro(
+    "agente_pausa_humano_horas",
+  );
+  return typeof parametro?.valor === "number" && parametro.valor > 0
+    ? parametro.valor
+    : null;
+}
+
 export async function pausarConversa(
   conversaId: string,
   origem: "assumir" | "pausar",
@@ -223,14 +262,34 @@ export async function pausarConversa(
   if (modoDados() === "demonstracao") {
     const l = obterLoja();
     const conversa = l.conversas.find((c) => c.id === conversaId);
-    if (!conversa) throw new ErroRepositorio("nao_encontrado", "demonstração: conversa");
-    conversa.agentePausadoAte = new Date(agora.getTime() + 48 * 60 * 60_000).toISOString();
+    if (!conversa)
+      throw new ErroRepositorio("nao_encontrado", "demonstração: conversa");
+    // Duração da pausa vem de `parametro` (PRD 11.3), nunca do código. No
+    // banco real quem decide é a função `api.pausar_conversa` (security
+    // definer, lê o parâmetro seja qual for o papel); a demonstração faz o
+    // mesmo lendo da loja, sem a RLS de leitura de `parametro`.
+    const valor = l.parametros.find(
+      (p) => p.chave === "agente_pausa_humano_horas",
+    )?.valor;
+    const horas = typeof valor === "number" && valor > 0 ? valor : null;
+    if (horas === null) {
+      throw new ErroRepositorio(
+        "indisponivel",
+        "demonstração: agente_pausa_humano_horas ausente",
+      );
+    }
+    conversa.agentePausadoAte = new Date(
+      agora.getTime() + horas * 60 * 60_000,
+    ).toISOString();
     obterLojaExtra().pausaMotivo[conversaId] = motivo;
     return;
   }
 
   const cliente = await criarClienteServidor();
-  await rpcPendente(cliente, "pausar_conversa", { conversa_id: conversaId, motivo });
+  await rpcPendente(cliente, "pausar_conversa", {
+    conversa_id: conversaId,
+    motivo,
+  });
 }
 
 /** "Devolver agora" de uma pausa manual (lead ainda não qualificado). */
@@ -238,13 +297,16 @@ export async function retomarPausaManual(conversaId: string): Promise<void> {
   if (modoDados() === "demonstracao") {
     const l = obterLoja();
     const conversa = l.conversas.find((c) => c.id === conversaId);
-    if (!conversa) throw new ErroRepositorio("nao_encontrado", "demonstração: conversa");
+    if (!conversa)
+      throw new ErroRepositorio("nao_encontrado", "demonstração: conversa");
     conversa.agentePausadoAte = null;
     delete obterLojaExtra().pausaMotivo[conversaId];
     return;
   }
   const cliente = await criarClienteServidor();
-  await rpcPendente(cliente, "retomar_pausa_conversa", { conversa_id: conversaId });
+  await rpcPendente(cliente, "retomar_pausa_conversa", {
+    conversa_id: conversaId,
+  });
 }
 
 /**
@@ -252,13 +314,53 @@ export async function retomarPausaManual(conversaId: string): Promise<void> {
  * `humano_comercial` (`agenteEncerradoEm` preenchido). Chama
  * `privado.retomar_agente` por `api.retomar_agente`.
  */
-export async function retomarAgenteComercial(conversaId: string): Promise<void> {
+export async function retomarAgenteComercial(
+  conversaId: string,
+): Promise<void> {
+  const sessao = await obterSessao();
+  if (!sessao) throw new ErroRepositorio("sem_permissao", "sem sessão");
+
   if (modoDados() === "demonstracao") {
     const l = obterLoja();
     const conversa = l.conversas.find((c) => c.id === conversaId);
-    if (!conversa) throw new ErroRepositorio("nao_encontrado", "demonstração: conversa");
+    if (!conversa)
+      throw new ErroRepositorio("nao_encontrado", "demonstração: conversa");
+    if (!conversa.agenteEncerradoEm) {
+      // Mesma recusa que `privado.retomar_agente` faz: só sai de
+      // `humano_comercial` quem está nele.
+      throw new ErroRepositorio(
+        "recusado",
+        "demonstração: conversa não está em humano_comercial",
+      );
+    }
+    const agora = new Date();
     conversa.agenteEncerradoEm = null;
     conversa.agenteEncerradoMotivo = null;
+    // "grava no log" (PROMPTS.md P27, aceite): na demonstração, o evento da
+    // linha do tempo da família e o aviso do sistema no meio da conversa
+    // (fluxos.md, fluxo E, "eventos do sistema no meio"). No banco real,
+    // quem grava é `privado.retomar_agente`.
+    const texto = `${sessao.nome} devolveu a conversa à Isadora às ${horaCurta(agora)}.`;
+    l.mensagens.push({
+      id: crypto.randomUUID(),
+      conversaId,
+      direcao: "saida",
+      enviadoPor: "sistema",
+      tipo: "sistema",
+      conteudo: texto,
+      enviadaEm: agora.toISOString(),
+    });
+    if (conversa.familiaId) {
+      l.eventos.push({
+        id: l.proximoEvento++,
+        familiaId: conversa.familiaId,
+        tipo: "agente_retomado",
+        titulo: "Conversa devolvida à Isadora",
+        restrito: false,
+        criadoEm: agora.toISOString(),
+        dados: {},
+      });
+    }
     return;
   }
   const cliente = await criarClienteServidor();
@@ -293,6 +395,98 @@ export async function pausaMotivosReais(
   );
 }
 
+/**
+ * Motivo da pausa e última mensagem de várias conversas numa consulta só
+ * (lista `/conversas`), em vez de ler o histórico inteiro de cada conversa:
+ * o PostgREST limita a mensagem embutida a uma por conversa
+ * (`referencedTable`). Só no Supabase real; a demonstração lê da loja.
+ */
+export async function resumoConversasReais(conversaIds: string[]): Promise<
+  Record<
+    string,
+    {
+      pausaMotivo: string | null;
+      ultima: { conteudo: string | null; enviadoPor: EnviadoPor } | null;
+    }
+  >
+> {
+  if (conversaIds.length === 0) return {};
+  const cliente = await criarClienteServidor();
+  const resposta = await cliente
+    .from("conversa")
+    .select(
+      "id, agente_pausa_motivo, mensagem ( conteudo, enviado_por, enviada_em )",
+    )
+    .in("id", conversaIds)
+    .order("enviada_em", { referencedTable: "mensagem", ascending: false })
+    .limit(1, { referencedTable: "mensagem" });
+  if (resposta.error) {
+    throw traduzirErroBanco(resposta.error, "resumo das conversas");
+  }
+  return Object.fromEntries(
+    resposta.data.map((linha) => {
+      const ultima = linha.mensagem?.[0] ?? null;
+      return [
+        linha.id,
+        {
+          pausaMotivo: linha.agente_pausa_motivo,
+          ultima: ultima
+            ? { conteudo: ultima.conteudo, enviadoPor: ultima.enviado_por }
+            : null,
+        },
+      ];
+    }),
+  );
+}
+
+export interface EstadoAgenteConversa {
+  agentePausadoAte: string | null;
+  agenteEncerradoEm: string | null;
+}
+
+/**
+ * Pausa e modo de cada conversa com transferência na fila, para a fila
+ * mostrar em vermelho a transferência aberta cuja pausa já venceu (PRD
+ * 11.7, modo `pausado`: "o CRM mostra em vermelho e a Isadora volta a
+ * responder").
+ */
+export async function estadoAgentePorConversa(
+  conversaIds: string[],
+): Promise<Record<string, EstadoAgenteConversa>> {
+  if (conversaIds.length === 0) return {};
+  if (modoDados() === "demonstracao") {
+    const l = obterLoja();
+    return Object.fromEntries(
+      l.conversas
+        .filter((c) => conversaIds.includes(c.id))
+        .map((c) => [
+          c.id,
+          {
+            agentePausadoAte: c.agentePausadoAte,
+            agenteEncerradoEm: c.agenteEncerradoEm,
+          },
+        ]),
+    );
+  }
+  const cliente = await criarClienteServidor();
+  const resposta = await cliente
+    .from("conversa")
+    .select("id, agente_pausado_ate, agente_encerrado_em")
+    .in("id", conversaIds);
+  if (resposta.error) {
+    throw traduzirErroBanco(resposta.error, "estado do agente nas conversas");
+  }
+  return Object.fromEntries(
+    resposta.data.map((linha) => [
+      linha.id,
+      {
+        agentePausadoAte: linha.agente_pausado_ate,
+        agenteEncerradoEm: linha.agente_encerrado_em,
+      },
+    ]),
+  );
+}
+
 // --- Resolver transferência com desfecho (pendente, ver cabeçalho) ---------
 
 export async function resolverTransferencia(
@@ -304,9 +498,14 @@ export async function resolverTransferencia(
 
   if (modoDados() === "demonstracao") {
     const l = obterLoja();
-    const transferencia = l.transferencias.find((t) => t.id === transferenciaId);
+    const transferencia = l.transferencias.find(
+      (t) => t.id === transferenciaId,
+    );
     if (!transferencia) {
-      throw new ErroRepositorio("nao_encontrado", "demonstração: transferência");
+      throw new ErroRepositorio(
+        "nao_encontrado",
+        "demonstração: transferência",
+      );
     }
     if (transferencia.status === "resolvido") {
       throw new ErroRepositorio("recusado", "demonstração: já resolvida");
@@ -328,14 +527,18 @@ export function desfechoDemonstracao(transferenciaId: string): string | null {
   return obterLojaExtra().desfecho[transferenciaId] ?? null;
 }
 
-export function notificacaoOkDemonstracao(transferenciaId: string): boolean | null {
+export function notificacaoOkDemonstracao(
+  transferenciaId: string,
+): boolean | null {
   if (modoDados() !== "demonstracao") return null;
   const registrada = obterLojaExtra().notificacaoOk[transferenciaId];
   return registrada === undefined ? null : registrada;
 }
 
 /** "Reenviar aviso" quando a faixa vermelha aparece (PRD 22.2, protótipo C1). */
-export async function reenviarNotificacaoHandoff(transferenciaId: string): Promise<void> {
+export async function reenviarNotificacaoHandoff(
+  transferenciaId: string,
+): Promise<void> {
   if (modoDados() === "demonstracao") {
     obterLojaExtra().notificacaoOk[transferenciaId] = true;
     return;
@@ -348,12 +551,18 @@ export async function reenviarNotificacaoHandoff(transferenciaId: string): Promi
 
 // --- Base de conhecimento (item 4, pendente, ver cabeçalho) -----------------
 
-export async function listarBaseConhecimento(): Promise<ItemBaseConhecimento[]> {
+export async function listarBaseConhecimento(): Promise<
+  ItemBaseConhecimento[]
+> {
   if (modoDados() === "demonstracao") {
     return obterLojaExtra().baseConhecimento.map((item) => ({ ...item }));
   }
   const cliente = await criarClienteServidor();
-  const resposta = (await rpcPendente(cliente, "base_conhecimento_listar", {})) as unknown;
+  const resposta = (await rpcPendente(
+    cliente,
+    "base_conhecimento_listar",
+    {},
+  )) as unknown;
   return Array.isArray(resposta) ? (resposta as ItemBaseConhecimento[]) : [];
 }
 
@@ -368,7 +577,8 @@ export async function salvarItemBaseConhecimento(
     const agora = new Date().toISOString();
     if (pedido.id) {
       const item = l.baseConhecimento.find((i) => i.id === pedido.id);
-      if (!item) throw new ErroRepositorio("nao_encontrado", "demonstração: item");
+      if (!item)
+        throw new ErroRepositorio("nao_encontrado", "demonstração: item");
       item.tipo = pedido.tipo;
       item.titulo = pedido.titulo;
       item.texto = pedido.texto;
@@ -410,7 +620,8 @@ export async function aprovarItemBaseConhecimento(id: string): Promise<void> {
   if (modoDados() === "demonstracao") {
     const l = obterLojaExtra();
     const item = l.baseConhecimento.find((i) => i.id === id);
-    if (!item) throw new ErroRepositorio("nao_encontrado", "demonstração: item");
+    if (!item)
+      throw new ErroRepositorio("nao_encontrado", "demonstração: item");
     item.status = "aprovado";
     item.aprovadoPor = sessao?.nome ?? null;
     item.aprovadoEm = new Date().toISOString();
@@ -426,17 +637,25 @@ export async function obterUltimaIngestao(): Promise<UltimaIngestao | null> {
   }
   try {
     const cliente = await criarClienteServidor();
-    const resposta = (await rpcPendente(cliente, "ultima_ingestao_base", {})) as unknown;
+    const resposta = (await rpcPendente(
+      cliente,
+      "ultima_ingestao_base",
+      {},
+    )) as unknown;
     return (resposta as UltimaIngestao) ?? null;
   } catch (erro) {
-    if (erro instanceof ErroRepositorio && erro.codigo === "funcao_pendente") return null;
+    if (erro instanceof ErroRepositorio && erro.codigo === "funcao_pendente")
+      return null;
     throw erro;
   }
 }
 
 // --- Métricas (item 5, PRD 11.12, pendente, ver cabeçalho e metricas/dados.ts) --
 
-export async function obterMetricas(desde: string, ate: string): Promise<MetricasAgente> {
+export async function obterMetricas(
+  desde: string,
+  ate: string,
+): Promise<MetricasAgente> {
   if (modoDados() === "demonstracao") {
     return metricasDemonstracao(desde, ate);
   }
@@ -460,8 +679,12 @@ function metricasDemonstracao(desde: string, ate: string): MetricasAgente {
     (o) => o.estagioP1 && o.estagioP1 !== "novo",
   );
   const comPdf = oportunidadesQualificadas.filter((o) => o.pdfEnviadoEm);
-  const sessoesRealizadas = l.oportunidades.filter((o) => o.estagioP1 === "sessao_venda_realizada");
-  const ganhos = l.oportunidades.filter((o) => o.estagioP2 && o.estagioP2 !== "perdido");
+  const sessoesRealizadas = l.oportunidades.filter(
+    (o) => o.estagioP1 === "sessao_venda_realizada",
+  );
+  const ganhos = l.oportunidades.filter(
+    (o) => o.estagioP2 && o.estagioP2 !== "perdido",
+  );
 
   const pct = (parte: number, total: number): number | null =>
     total === 0 ? null : Math.round((parte / total) * 1000) / 10;
@@ -471,10 +694,16 @@ function metricasDemonstracao(desde: string, ate: string): MetricasAgente {
     periodoAte: ate,
     tempoPrimeiraRespostaMinutos: 3,
     leadsQueRespondemPct: pct(comMensagemDaFamilia.length, leads.length),
-    qualificadosComValorEPdfPct: pct(comPdf.length, oportunidadesQualificadas.length || 1),
-    conversasComEdilaineRegistradasPct: pct(sessoesRealizadas.length, oportunidadesQualificadas.length || 1),
-    followupAposPdfPct: pct(1, comPdf.length || 1),
-    conversaoLeadsPct: pct(ganhos.length, l.oportunidades.length || 1),
+    qualificadosComValorEPdfPct: pct(
+      comPdf.length,
+      oportunidadesQualificadas.length,
+    ),
+    conversasComEdilaineRegistradasPct: pct(
+      sessoesRealizadas.length,
+      oportunidadesQualificadas.length,
+    ),
+    followupAposPdfPct: pct(Math.min(1, comPdf.length), comPdf.length),
+    conversaoLeadsPct: pct(ganhos.length, l.oportunidades.length),
     condicoesForaDaTabela: 0,
     leadsTotal: leads.length,
   };

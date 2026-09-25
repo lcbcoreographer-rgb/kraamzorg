@@ -32,8 +32,12 @@ export default async function PaginaConversas() {
         {conversas ? (
           <ListaConversas conversas={conversas} />
         ) : (
-          <FaixaAlerta variante="imediato" titulo="Não foi possível carregar as conversas agora">
-            Confira a conexão e recarregue a página. Se continuar, avise a equipe técnica.
+          <FaixaAlerta
+            variante="imediato"
+            titulo="Não foi possível carregar as conversas agora"
+          >
+            Confira a conexão e recarregue a página. Se continuar, avise a
+            equipe técnica.
           </FaixaAlerta>
         )}
       </div>

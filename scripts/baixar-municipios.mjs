@@ -41,19 +41,19 @@
 // (mesmas colunas e nomes da tabela `municipio`, PRD 6.1).
 // =============================================================================
 
-import { writeFile, mkdir } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { writeFile, mkdir } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
-const RAIZ = join(AQUI, '..');
-const CSV_SAIDA = join(RAIZ, 'supabase', 'dados', 'municipios_ibge.csv');
+const RAIZ = join(AQUI, "..");
+const CSV_SAIDA = join(RAIZ, "supabase", "dados", "municipios_ibge.csv");
 
 // Endpoint oficial: devolve todos os municípios do Brasil já com a árvore de
 // região imediata → região intermediária (mesoregião antiga, substituída em
 // 2017). Um único GET grande (~5570 linhas), por isso um timeout generoso.
 const URL_IBGE =
-  'https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome';
+  "https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome";
 
 const TIMEOUT_MS = 15_000;
 
@@ -70,42 +70,42 @@ const TIMEOUT_MS = 15_000;
 // -----------------------------------------------------------------------------
 const FALLBACK = [
   // --- Região Geográfica Intermediária de São Paulo -------------------------
-  [3534401, 'Osasco', 'SP'],
-  [3552205, 'Taboão da Serra', 'SP'],
-  [3518800, 'Guarulhos', 'SP'],
-  [3513801, 'Diadema', 'SP'],
-  [3529401, 'Mauá', 'SP'],
-  [3510609, 'Carapicuíba', 'SP'],
-  [3522208, 'Itapevi', 'SP'],
-  [3524303, 'Jandira', 'SP'],
-  [3515004, 'Embu das Artes', 'SP'],
-  [3509502, 'Cajamar', 'SP'],
-  [3552502, 'Suzano', 'SP'],
-  [3530607, 'Mogi das Cruzes', 'SP'],
-  [3523107, 'Itaquaquecetuba', 'SP'],
-  [3538907, 'Poá', 'SP'],
-  [3515103, 'Ferraz de Vasconcelos', 'SP'],
-  [3503208, 'Arujá', 'SP'],
-  [3516309, 'Franco da Rocha', 'SP'],
-  [3509007, 'Caieiras', 'SP'],
-  [3516408, 'Francisco Morato', 'SP'],
-  [3527801, 'Mairiporã', 'SP'],
-  [3543303, 'Ribeirão Pires', 'SP'],
-  [3543832, 'Rio Grande da Serra', 'SP'],
+  [3534401, "Osasco", "SP"],
+  [3552205, "Taboão da Serra", "SP"],
+  [3518800, "Guarulhos", "SP"],
+  [3513801, "Diadema", "SP"],
+  [3529401, "Mauá", "SP"],
+  [3510609, "Carapicuíba", "SP"],
+  [3522208, "Itapevi", "SP"],
+  [3524303, "Jandira", "SP"],
+  [3515004, "Embu das Artes", "SP"],
+  [3509502, "Cajamar", "SP"],
+  [3552502, "Suzano", "SP"],
+  [3530607, "Mogi das Cruzes", "SP"],
+  [3523107, "Itaquaquecetuba", "SP"],
+  [3538907, "Poá", "SP"],
+  [3515103, "Ferraz de Vasconcelos", "SP"],
+  [3503208, "Arujá", "SP"],
+  [3516309, "Franco da Rocha", "SP"],
+  [3509007, "Caieiras", "SP"],
+  [3516408, "Francisco Morato", "SP"],
+  [3527801, "Mairiporã", "SP"],
+  [3543303, "Ribeirão Pires", "SP"],
+  [3543832, "Rio Grande da Serra", "SP"],
   // --- Região Geográfica Intermediária de Londrina ---------------------------
-  [4104808, 'Cambé', 'PR'],
-  [4111506, 'Ibiporã', 'PR'],
-  [4121901, 'Rolândia', 'PR'],
-  [4112108, 'Jataizinho', 'PR'],
-  [4127882, 'Tamarana', 'PR'],
-  [4124400, 'Sertanópolis', 'PR'],
-  [4102554, 'Bela Vista do Paraíso', 'PR'],
-  [4101408, 'Assaí', 'PR'],
+  [4104808, "Cambé", "PR"],
+  [4111506, "Ibiporã", "PR"],
+  [4121901, "Rolândia", "PR"],
+  [4112108, "Jataizinho", "PR"],
+  [4127882, "Tamarana", "PR"],
+  [4124400, "Sertanópolis", "PR"],
+  [4102554, "Bela Vista do Paraíso", "PR"],
+  [4101408, "Assaí", "PR"],
 ].map(([codigo_ibge, nome, uf]) => ({
   codigo_ibge,
   nome,
   uf,
-  regiao_intermediaria: uf === 'SP' ? 'São Paulo' : 'Londrina',
+  regiao_intermediaria: uf === "SP" ? "São Paulo" : "Londrina",
 }));
 
 function csvEscapar(valor) {
@@ -119,24 +119,30 @@ function csvEscapar(valor) {
 function paraCsv(linhas, origem) {
   const cabecalho = [
     `# origem: ${origem}`,
-    '# colunas: codigo_ibge,nome,uf,regiao_intermediaria (PRD 6.1, tabela municipio)',
+    "# colunas: codigo_ibge,nome,uf,regiao_intermediaria (PRD 6.1, tabela municipio)",
   ];
   const corpo = linhas.map((l) =>
-    [l.codigo_ibge, l.nome, l.uf, l.regiao_intermediaria].map(csvEscapar).join(','),
+    [l.codigo_ibge, l.nome, l.uf, l.regiao_intermediaria]
+      .map(csvEscapar)
+      .join(","),
   );
-  return [...cabecalho, 'codigo_ibge,nome,uf,regiao_intermediaria', ...corpo].join('\n') + '\n';
+  return (
+    [...cabecalho, "codigo_ibge,nome,uf,regiao_intermediaria", ...corpo].join(
+      "\n",
+    ) + "\n"
+  );
 }
 
 // Extrai a região geográfica intermediária de um item da API de localidades
 // do IBGE (regiao-imediata.regiao-intermediaria.nome). Município sem essa
 // árvore preenchida (nunca deveria acontecer na API real) é descartado.
 function extrairRegiaoIntermediaria(municipio) {
-  return municipio?.['regiao-imediata']?.['regiao-intermediaria']?.nome ?? null;
+  return municipio?.["regiao-imediata"]?.["regiao-intermediaria"]?.nome ?? null;
 }
 
 function extrairUf(municipio) {
   return (
-    municipio?.['regiao-imediata']?.['regiao-intermediaria']?.UF?.sigla ??
+    municipio?.["regiao-imediata"]?.["regiao-intermediaria"]?.UF?.sigla ??
     municipio?.microrregiao?.mesorregiao?.UF?.sigla ??
     null
   );
@@ -152,7 +158,9 @@ async function tentarIbge() {
     }
     const dados = await resposta.json();
     if (!Array.isArray(dados) || dados.length < 5000) {
-      throw new Error(`resposta do IBGE com ${dados?.length ?? 0} município(s), esperado ~5570`);
+      throw new Error(
+        `resposta do IBGE com ${dados?.length ?? 0} município(s), esperado ~5570`,
+      );
     }
     const linhas = dados
       .map((m) => ({
@@ -163,7 +171,9 @@ async function tentarIbge() {
       }))
       .filter((l) => l.codigo_ibge && l.nome && l.uf && l.regiao_intermediaria);
     if (linhas.length < 5000) {
-      throw new Error(`só ${linhas.length} município(s) com região intermediária preenchida`);
+      throw new Error(
+        `só ${linhas.length} município(s) com região intermediária preenchida`,
+      );
     }
     return linhas;
   } finally {
@@ -182,28 +192,38 @@ async function main() {
     origem =
       `API de localidades do IBGE (servicodados.ibge.gov.br), baixada em ` +
       `${new Date().toISOString()} por scripts/baixar-municipios.mjs`;
-    console.log(`baixar-municipios: ${linhas.length} municípios baixados da API do IBGE.`);
+    console.log(
+      `baixar-municipios: ${linhas.length} municípios baixados da API do IBGE.`,
+    );
   } catch (erro) {
-    console.warn(`baixar-municipios: não deu para baixar da API do IBGE (${erro.message}).`);
     console.warn(
-      'baixar-municipios: usando o subconjunto compilado à mão (Grande São Paulo e ' +
-        'região de Londrina, PRD 3.3) — NÃO é a lista completa do IBGE. Rode este ' +
-        'script de novo numa rede que alcance servicodados.ibge.gov.br para substituir ' +
-        'por download real antes de produção.',
+      `baixar-municipios: não deu para baixar da API do IBGE (${erro.message}).`,
+    );
+    console.warn(
+      "baixar-municipios: usando o subconjunto compilado à mão (Grande São Paulo e " +
+        "região de Londrina, PRD 3.3) — NÃO é a lista completa do IBGE. Rode este " +
+        "script de novo numa rede que alcance servicodados.ibge.gov.br para substituir " +
+        "por download real antes de produção.",
     );
     linhas = FALLBACK;
     origem =
-      'Subconjunto compilado à mão nesta sessão (API do IBGE bloqueada nesta rede em ' +
-      '25/09/2026), cobrindo só a Grande São Paulo e a região de Londrina citadas no ' +
-      'PRD 3.3. Não confirmado por download. Ver comentário no topo de scripts/baixar-municipios.mjs.';
+      "Subconjunto compilado à mão nesta sessão (API do IBGE bloqueada nesta rede em " +
+      "25/09/2026), cobrindo só a Grande São Paulo e a região de Londrina citadas no " +
+      "PRD 3.3. Não confirmado por download. Ver comentário no topo de scripts/baixar-municipios.mjs.";
   }
 
-  linhas.sort((a, b) => (a.uf === b.uf ? a.nome.localeCompare(b.nome, 'pt-BR') : a.uf.localeCompare(b.uf)));
-  await writeFile(CSV_SAIDA, paraCsv(linhas, origem), 'utf8');
-  console.log(`baixar-municipios: gravado ${CSV_SAIDA} (${linhas.length} linhas).`);
+  linhas.sort((a, b) =>
+    a.uf === b.uf
+      ? a.nome.localeCompare(b.nome, "pt-BR")
+      : a.uf.localeCompare(b.uf),
+  );
+  await writeFile(CSV_SAIDA, paraCsv(linhas, origem), "utf8");
+  console.log(
+    `baixar-municipios: gravado ${CSV_SAIDA} (${linhas.length} linhas).`,
+  );
 }
 
 main().catch((erro) => {
-  console.error('baixar-municipios: falhou.', erro);
+  console.error("baixar-municipios: falhou.", erro);
   process.exitCode = 1;
 });

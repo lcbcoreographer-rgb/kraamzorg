@@ -276,6 +276,81 @@ describe("repositórios de demonstração (as mesmas interfaces, dados do seed)"
     ).toBe("normal");
   });
 
+  it("freio: o acionamento devolve desfazer_ate e a reversão só desce, com AAL2 (como a 0009)", async () => {
+    const aurora = FAMILIAS.find((f) => f.nome.endsWith("Aurora"))!;
+    const comercial = await criarRepositorios(
+      "demonstracao",
+      sessaoDe("Perfil Teste Comercial", "aal1"),
+    );
+    const antes = Date.now();
+    const { resposta } = await comercial.ficha.acionarFreio(
+      aurora.id,
+      "atencao",
+    );
+    const desfazerAte = (resposta as { desfazer_ate?: string }).desfazer_ate;
+    expect(typeof desfazerAte).toBe("string");
+    expect(Date.parse(desfazerAte!)).toBeGreaterThan(antes);
+
+    const coordenacao = await criarRepositorios(
+      "demonstracao",
+      sessaoDe("Perfil Teste Coordenacao"),
+    );
+    await expect(
+      coordenacao.ficha.reverterFreio(aurora.id, "bloqueio_total", "subir"),
+    ).rejects.toMatchObject({ codigo: "recusado" });
+    const coordenacaoAal1 = await criarRepositorios(
+      "demonstracao",
+      sessaoDe("Perfil Teste Coordenacao", "aal1"),
+    );
+    await expect(
+      coordenacaoAal1.ficha.reverterFreio(aurora.id, "normal", "engano"),
+    ).rejects.toMatchObject({ codigo: "sem_permissao" });
+  });
+
+  it("tarefas trazem o payload; a de régua tem texto do modelo e telefone da família", async () => {
+    const comercial = await criarRepositorios(
+      "demonstracao",
+      sessaoDe("Perfil Teste Comercial", "aal1"),
+    );
+    const tarefas = await comercial.tarefas.listarTarefas();
+    const dalia = tarefas.find((t) => t.nomeFamilia?.endsWith("Dália"));
+    const payload = dalia?.payload as Record<string, string> | undefined;
+    const modelo = obterLoja().mensagensModelo.find(
+      (m) => m.chave === payload?.mensagemChave,
+    );
+    expect(modelo).toBeDefined();
+    expect(payload?.textoSugerido).toBe(
+      modelo!.texto.replaceAll("{nome}", "Fernanda"),
+    );
+    expect(payload?.telefoneE164).toMatch(/^\+5511900000\d{3}$/);
+  });
+
+  it("famílias: busca por nome ou por telefone em qualquer formato", async () => {
+    const comercial = await criarRepositorios(
+      "demonstracao",
+      sessaoDe("Perfil Teste Comercial", "aal1"),
+    );
+    const porTelefone = await comercial.familias.listarFamilias({
+      busca: "(11) 90000-0308",
+    });
+    expect(porTelefone.map((f) => f.nome)).toEqual(["Família Teste Gruta"]);
+    const porNome = await comercial.familias.listarFamilias({ busca: "gruta" });
+    expect(porNome.map((f) => f.nome)).toEqual(["Família Teste Gruta"]);
+  });
+
+  it("conversas: filtro por família", async () => {
+    const comercial = await criarRepositorios(
+      "demonstracao",
+      sessaoDe("Perfil Teste Comercial", "aal1"),
+    );
+    const aurora = FAMILIAS.find((f) => f.nome.endsWith("Aurora"))!;
+    const conversas = await comercial.agente.listarConversas({
+      familiaId: aurora.id,
+    });
+    expect(conversas.length).toBeGreaterThan(0);
+    expect(conversas.every((c) => c.familiaId === aurora.id)).toBe(true);
+  });
+
   it("revogar sessões é da diretoria e fica registrado para derrubar o cookie", async () => {
     const comercial = sessaoDe("Perfil Teste Comercial", "aal1");
     const repos = await criarRepositorios(

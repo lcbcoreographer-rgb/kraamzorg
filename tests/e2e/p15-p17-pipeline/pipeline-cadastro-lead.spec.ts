@@ -22,12 +22,15 @@ test("comercial cadastra um lead manual, que nasce em Novo", async ({
   await page.getByLabel("Nome do contato").fill("Patrícia");
   await page.getByLabel("Telefone do contato").fill("11 91234-5678");
   await page.getByLabel("Origem").selectOption("indicacao_amigo");
-  await page.getByRole("button", { name: "Cadastrar" }).click();
+  await page.getByRole("button", { name: "Cadastrar", exact: true }).click();
 
   await expect(
     page.getByRole("heading", { name: "Cadastrar lead" }),
   ).toBeHidden();
-  await expect(page.getByText("Família Teste E2E Cadastro")).toBeVisible();
+  // Lista (celular) e quadro (computador) coexistem no DOM; só um aparece.
+  await expect(
+    page.getByText("Família Teste E2E Cadastro").filter({ visible: true }),
+  ).toBeVisible();
 });
 
 test("sem preencher o nome da família, o navegador não deixa enviar", async ({
@@ -39,7 +42,7 @@ test("sem preencher o nome da família, o navegador não deixa enviar", async ({
   await page.getByRole("button", { name: "Cadastrar lead" }).click();
   await page.getByLabel("Nome do contato").fill("Patrícia");
   await page.getByLabel("Telefone do contato").fill("11912345678");
-  await page.getByRole("button", { name: "Cadastrar" }).click();
+  await page.getByRole("button", { name: "Cadastrar", exact: true }).click();
 
   // O diálogo continua aberto: o campo obrigatório barrou o envio.
   await expect(

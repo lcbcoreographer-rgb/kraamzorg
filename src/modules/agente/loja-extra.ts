@@ -91,7 +91,10 @@ function itensIniciais(agora: number): ItemBaseConhecimento[] {
       aprovadoEm: null,
     },
   ];
-  return base.map((item) => ({ ...item, atualizadoEm: isoDaqui(agora, -30 * 24 * 60) }));
+  return base.map((item) => ({
+    ...item,
+    atualizadoEm: isoDaqui(agora, -30 * 24 * 60),
+  }));
 }
 
 function criarLojaExtra(agora = Date.now()): LojaAgenteExtra {
@@ -115,7 +118,9 @@ function criarLojaExtra(agora = Date.now()): LojaAgenteExtra {
     // protótipo `comercial-inicio.html`), para o estado ter exemplo na
     // demonstração. As demais seguem "notificacaoOk: true" (loja.ts).
     notificacaoOk: Object.fromEntries(
-      TRANSFERENCIAS.filter((t) => t.motivo === "condicao_comercial").map((t) => [t.id, false]),
+      TRANSFERENCIAS.filter((t) => t.motivo === "condicao_comercial").map(
+        (t) => [t.id, false],
+      ),
     ),
   };
 }
@@ -123,14 +128,20 @@ function criarLojaExtra(agora = Date.now()): LojaAgenteExtra {
 /** A loja do processo. Lança erro fora de desenvolvimento (`modo.ts`). */
 export function obterLojaExtra(): LojaAgenteExtra {
   garantirDemonstracaoPermitida();
-  const global = globalThis as unknown as Record<string, LojaAgenteExtra | undefined>;
+  const global = globalThis as unknown as Record<
+    string,
+    LojaAgenteExtra | undefined
+  >;
   global[CHAVE_GLOBAL] ??= criarLojaExtra();
   return global[CHAVE_GLOBAL];
 }
 
 /** Só para testes: volta a loja ao estado inicial. */
 export function reiniciarLojaExtra(agora?: number): LojaAgenteExtra {
-  const global = globalThis as unknown as Record<string, LojaAgenteExtra | undefined>;
+  const global = globalThis as unknown as Record<
+    string,
+    LojaAgenteExtra | undefined
+  >;
   global[CHAVE_GLOBAL] = criarLojaExtra(agora);
   return global[CHAVE_GLOBAL];
 }

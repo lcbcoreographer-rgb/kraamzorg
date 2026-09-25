@@ -4,6 +4,7 @@ import {
   semRolagemLateral,
   semViolacaoGrave,
 } from "../apoio/entrar";
+import { abas } from "./apoio";
 
 /**
  * P16 item 1: resumo com as quatro datas (estimativa e fato), linha do
@@ -22,11 +23,13 @@ test("comercial abre a ficha pela lista de famílias e vê o resumo, a linha do 
     page.getByRole("heading", { level: 1, name: "Família Teste Dália" }),
   ).toBeVisible();
 
-  // As quatro datas, sempre visíveis, com "estimativa" ou "fato".
-  await expect(page.getByText("DPP")).toBeVisible();
-  await expect(page.getByText("Nascimento")).toBeVisible();
-  await expect(page.getByText("Alta")).toBeVisible();
-  await expect(page.getByText("Início")).toBeVisible();
+  // As quatro datas, sempre visíveis, com "estimativa" ou "fato". Busca
+  // pelo <dt> do cabeçalho: "Início" também é item da navegação.
+  for (const rotulo of ["DPP", "Nascimento", "Alta", "Início"]) {
+    await expect(
+      page.locator("dt", { hasText: new RegExp(`^${rotulo}$`) }),
+    ).toBeVisible();
+  }
   await expect(page.getByText("estimativa")).toBeVisible();
 
   // O título da aba nunca leva o nome da família (DESIGN.md, microcopy 11).
@@ -52,7 +55,7 @@ test("aba Comercial mostra os dados do contrato mascarados, e Mostrar exige o c�
   await page.getByRole("link", { name: /Família Teste Dália/ }).click();
   await page.waitForURL(/\/familias\/[0-9a-f-]+$/);
 
-  await page.getByRole("link", { name: "Comercial" }).click();
+  await abas(page).getByRole("link", { name: "Comercial" }).click();
   await expect(page.getByText("Dados do contrato")).toBeVisible();
 
   const botaoMostrar = page.getByRole("button", {
@@ -75,6 +78,6 @@ test("aba Conversas está em leitura, sem campo de enviar mensagem", async ({
   await page.getByRole("link", { name: /Família Teste Dália/ }).click();
   await page.waitForURL(/\/familias\/[0-9a-f-]+$/);
 
-  await page.getByRole("link", { name: "Conversas" }).click();
+  await abas(page).getByRole("link", { name: "Conversas" }).click();
   await expect(page.getByRole("textbox", { name: /mensagem/i })).toHaveCount(0);
 });

@@ -25,7 +25,9 @@ export interface PreferenciasNotificacao {
   email: boolean;
 }
 
-export const PREFERENCIAS_PADRAO = (usuarioId: string): PreferenciasNotificacao => ({
+export const PREFERENCIAS_PADRAO = (
+  usuarioId: string,
+): PreferenciasNotificacao => ({
   usuarioId,
   push: true,
   whatsappInterno: true,

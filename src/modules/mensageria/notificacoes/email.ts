@@ -7,7 +7,7 @@ import "server-only";
  *
  * `RESEND_API_KEY` já está em `.env.example` (raiz, fora das pastas deste
  * módulo). Falta lá `RESEND_FROM_EMAIL` (o remetente verificado no
- * domínio da Kraamzorg) — sem ela, `enviarEmail` devolve falha sem tentar
+ * domínio da Kraamzorg), sem ela, `enviarEmail` devolve falha sem tentar
  * a rede, do mesmo jeito que `src/lib/messaging/uazapi.ts` faz sem
  * configuração.
  */
@@ -27,7 +27,8 @@ export async function enviarEmail(
   if (!chave || !remetente) {
     return {
       ok: false,
-      motivo: "O e-mail de reserva não está configurado (RESEND_API_KEY, RESEND_FROM_EMAIL).",
+      motivo:
+        "O e-mail de reserva não está configurado (RESEND_API_KEY, RESEND_FROM_EMAIL).",
     };
   }
 
@@ -51,7 +52,10 @@ export async function enviarEmail(
   }
 
   if (!resposta.ok) {
-    return { ok: false, motivo: `O Resend recusou o envio (HTTP ${resposta.status}).` };
+    return {
+      ok: false,
+      motivo: `O Resend recusou o envio (HTTP ${resposta.status}).`,
+    };
   }
   return { ok: true };
 }

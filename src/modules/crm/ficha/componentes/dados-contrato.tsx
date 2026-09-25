@@ -7,10 +7,8 @@ import { Botao } from "@/components/ui/botao";
 import { Cartao } from "@/components/ui/cartao";
 import { Selo } from "@/components/ui/selo";
 import { formatarData } from "@/lib/formatacao";
-import {
-  acaoVerDadosContratoCompletos,
-  estadoInicialDadosContrato,
-} from "../acoes";
+import { acaoVerDadosContratoCompletos } from "../acoes";
+import { estadoInicialDadosContrato } from "../estado-acoes";
 import type { DadosContratoTela } from "../tipos";
 
 /**
@@ -21,9 +19,12 @@ import type { DadosContratoTela } from "../tipos";
 export function DadosContrato({
   pessoaId,
   mascarado,
+  indisponivel = false,
 }: {
   pessoaId: string;
   mascarado: DadosContratoTela | null;
+  /** A leitura mascarada falhou: diz o que fazer, nunca "aguardando". */
+  indisponivel?: boolean;
 }) {
   const [estado, acao, carregando] = useActionState(
     acaoVerDadosContratoCompletos,
@@ -45,7 +46,13 @@ export function DadosContrato({
         ) : null}
       </div>
 
-      {!mascarado ? (
+      {indisponivel ? (
+        <p className="text-apoio text-texto-2">
+          Não foi possível carregar os dados do contrato agora. Se o seu acesso
+          pede o código do aplicativo autenticador, entre de novo com ele; se
+          não, recarregue a página em instantes.
+        </p>
+      ) : !mascarado ? (
         <p className="text-apoio text-texto-2">
           Chegam pelo formulário seguro e ficam mascarados aqui. Ninguém pede
           CPF pela conversa.

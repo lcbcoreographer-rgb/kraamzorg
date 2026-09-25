@@ -23,9 +23,8 @@ import {
   acaoRegistrarDataFato,
   acaoReverterFreio,
   acaoVerDadosContratoCompletos,
-  estadoInicialDadosContrato,
-  estadoInicialFicha,
 } from "./acoes";
+import { estadoInicialDadosContrato, estadoInicialFicha } from "./estado-acoes";
 import {
   listarFamiliasTela,
   obterFichaTela,
@@ -99,6 +98,9 @@ describe("acaoAcionarFreio", () => {
     const resultado = await acaoAcionarFreio(estadoInicialFicha, formulario);
     expect(resultado.erro).toBeUndefined();
     expect(resultado.sucesso).toBeTruthy();
+    // O comercial não lê `parametro` (só a diretoria), e mesmo assim recebe
+    // o prazo do "Desfazer" deste acionamento.
+    expect(resultado.desfazerSegundos).toBeGreaterThan(0);
 
     const ficha = await obterFichaTela(id);
     expect(ficha!.estadoSensivel).toBe("bloqueio_total");
@@ -114,6 +116,19 @@ describe("acaoAcionarFreio", () => {
 });
 
 describe("acaoDesfazerFreio", () => {
+  it("outra pessoa não desfaz: a tela diz que agora é com a coordenação", async () => {
+    const id = await idDaFamilia("Aurora");
+    const formulario = new FormData();
+    formulario.set("familiaId", id);
+    await acaoAcionarFreio(estadoInicialFicha, formulario);
+
+    await logarComo("Perfil Teste Coordenacao");
+    const resultado = await acaoDesfazerFreio(estadoInicialFicha, formulario);
+    expect(resultado.erro).toMatch(/coordenação ou a diretoria/);
+    const ficha = await obterFichaTela(id);
+    expect(ficha!.estadoSensivel).toBe("bloqueio_total");
+  });
+
   it("quem acionou desfaz dentro do prazo e volta ao estado anterior", async () => {
     const id = await idDaFamilia("Aurora");
     const formulario = new FormData();
@@ -176,6 +191,31 @@ describe("acaoReverterFreio", () => {
     expect(ficha!.estadoSensivel).toBe("normal");
   });
 
+  it("coordenação sobe de bloqueio total para encerrado sensível pela mesma folha", async () => {
+    await logarComo("Perfil Teste Coordenacao");
+    const id = await idDaFamilia("Bruma");
+    const formulario = new FormData();
+    formulario.set("familiaId", id);
+    formulario.set("estado", "encerrado_sensivel");
+    formulario.set("justificativa", "Perda confirmada com a família.");
+    const resultado = await acaoReverterFreio(estadoInicialFicha, formulario);
+    expect(resultado.erro).toBeUndefined();
+
+    const ficha = await obterFichaTela(id);
+    expect(ficha!.estadoSensivel).toBe("encerrado_sensivel");
+  });
+
+  it("escolher o estado atual não é mudança: explica e não grava", async () => {
+    await logarComo("Perfil Teste Coordenacao");
+    const id = await idDaFamilia("Bruma");
+    const formulario = new FormData();
+    formulario.set("familiaId", id);
+    formulario.set("estado", "bloqueio_total");
+    formulario.set("justificativa", "Sem mudança.");
+    const resultado = await acaoReverterFreio(estadoInicialFicha, formulario);
+    expect(resultado.erro).toMatch(/já está em bloqueio total/);
+  });
+
   it("sem justificativa, recusa mesmo com o papel certo", async () => {
     await logarComo("Perfil Teste Diretoria");
     const id = await idDaFamilia("Bruma");
@@ -213,7 +253,7 @@ describe("acaoRegistrarDataFato", () => {
     const formulario = new FormData();
     formulario.set("familiaId", id);
     formulario.set("campo", "data_alta");
-    formulario.set("valor", "2027-05-20");
+    formulario.set("valor", "2026-09-20");
     const resultado = await acaoRegistrarDataFato(
       estadoInicialFicha,
       formulario,
@@ -221,7 +261,22 @@ describe("acaoRegistrarDataFato", () => {
     expect(resultado.sucesso).toBeTruthy();
 
     const ficha = await obterFichaTela(id);
-    expect(ficha!.datas[2]!.valor).toBe("2027-05-20");
+    expect(ficha!.datas[2]!.valor).toBe("2026-09-20");
+  });
+
+  it("data no futuro volta com a explicação, sem gravar", async () => {
+    const id = await idDaFamilia("Aurora");
+    const formulario = new FormData();
+    formulario.set("familiaId", id);
+    formulario.set("campo", "data_nascimento");
+    formulario.set("valor", "2999-01-01");
+    const resultado = await acaoRegistrarDataFato(
+      estadoInicialFicha,
+      formulario,
+    );
+    expect(resultado.erro).toMatch(/depois de hoje/);
+    const ficha = await obterFichaTela(id);
+    expect(ficha!.datas[1]!.valor).toBeNull();
   });
 });
 

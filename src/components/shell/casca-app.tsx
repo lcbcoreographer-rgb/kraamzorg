@@ -1,8 +1,37 @@
 import type { ReactNode } from "react";
 import { descreverPapeis } from "@/lib/auth/papeis";
 import type { SessaoUsuario } from "@/lib/auth/tipos";
-import { abasDe, gruposDe } from "@/lib/navegacao";
-import { NavegacaoInferior, NavegacaoLateral } from "./navegacao-app";
+import { abasDe, gruposDe, papelPrincipal } from "@/lib/navegacao";
+import type { ItemNavegacao } from "@/lib/navegacao";
+import { contarTransferenciasCriticas } from "@/modules/agente/transferencias/dados";
+import {
+  NavegacaoInferior,
+  NavegacaoLateral,
+  type ItemNavegacaoComContador,
+} from "./navegacao-app";
+
+/**
+ * Acrescenta o contador da aba Início ("N transferências vencendo ou de
+ * prioridade máxima"), só para o comercial (crítica do CRM, P0 item 1).
+ * Falha de leitura não derruba a navegação: a aba fica sem contador.
+ */
+async function comContadorInicio(
+  itens: ItemNavegacao[],
+  papeis: SessaoUsuario["papeis"],
+): Promise<ItemNavegacaoComContador[]> {
+  if (papelPrincipal(papeis) !== "comercial") return itens;
+  const contador = await contarTransferenciasCriticas().catch(() => 0);
+  if (!contador) return itens;
+  return itens.map((item) =>
+    item.id === "inicio"
+      ? {
+          ...item,
+          contador,
+          rotuloContador: `${contador} ${contador === 1 ? "transferência" : "transferências"} pedindo atenção`,
+        }
+      : item,
+  );
+}
 
 /**
  * Casca do painel (P10 item 3; DESIGN.md seções 3 e 6; protótipo
@@ -14,13 +43,21 @@ import { NavegacaoInferior, NavegacaoLateral } from "./navegacao-app";
  * A casca não sabe de que módulo é a tela: cada rota preenche só o próprio
  * conteúdo (src/app/(app)/<rota>/page.tsx).
  */
-export function CascaApp({
+export async function CascaApp({
   sessao,
   children,
 }: {
   sessao: SessaoUsuario;
   children: ReactNode;
 }) {
+  const grupos = await Promise.all(
+    gruposDe(sessao.papeis).map(async (grupo) => ({
+      titulo: grupo.titulo,
+      itens: await comContadorInicio(grupo.itens, sessao.papeis),
+    })),
+  );
+  const abas = await comContadorInicio(abasDe(sessao.papeis), sessao.papeis);
+
   return (
     <>
       <a
@@ -31,7 +68,7 @@ export function CascaApp({
       </a>
       <div className="lg:grid lg:min-h-dvh lg:grid-cols-[var(--container-lateral)_minmax(0,1fr)]">
         <NavegacaoLateral
-          grupos={gruposDe(sessao.papeis)}
+          grupos={grupos}
           nome={sessao.nome}
           papeis={descreverPapeis(sessao.papeis)}
         />
@@ -43,7 +80,7 @@ export function CascaApp({
           {children}
         </main>
       </div>
-      <NavegacaoInferior abas={abasDe(sessao.papeis)} />
+      <NavegacaoInferior abas={abas} />
     </>
   );
 }

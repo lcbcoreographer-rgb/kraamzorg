@@ -2,10 +2,11 @@
 
 import { useActionState } from "react";
 import { Botao } from "@/components/ui/botao";
-import { acaoVincularNovaGestacao, estadoInicialMesclagem } from "../acoes";
+import { acaoVincularNovaGestacao } from "../acoes";
+import { estadoInicialMesclagem } from "../estado-acoes";
 
 /** Vínculo de nova gestação (P17 item 1): um botão só, sem folha de
- * confirmação — não mescla nada, só liga as duas famílias. */
+ * confirmação, pois não mescla nada, só liga as duas famílias. */
 export function VincularNovaGestacao({
   familiaRecenteId,
   familiaAnteriorId,

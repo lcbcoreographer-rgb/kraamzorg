@@ -187,7 +187,30 @@ export function criarFamiliasSupabase(
         .is("mesclada_em_id", null)
         .order("nome_exibicao")
         .limit(filtro.limite ?? 200);
-      if (filtro.busca && limparBusca(filtro.busca)) {
+      if (filtro.ids) {
+        if (filtro.ids.length === 0) return [];
+        consulta = consulta.in("id", filtro.ids);
+      }
+      const digitos = filtro.busca?.replace(/\D/g, "") ?? "";
+      const soTelefone =
+        digitos.length >= 4 && !/\p{L}/u.test(filtro.busca ?? "");
+      if (soTelefone) {
+        // Busca por telefone (qualquer formato, a partir de 4 dígitos):
+        // acha as pessoas pelo E.164 e lista as famílias delas. A RLS de
+        // `pessoa` é a mesma de `familia`, então ninguém acha por aqui uma
+        // família que não poderia ver.
+        const pessoas = exigir(
+          await cliente
+            .from("pessoa")
+            .select("familia_id")
+            .ilike("telefone_e164", `%${digitos}%`)
+            .limit(200),
+          "busca por telefone",
+        );
+        const ids = [...new Set(pessoas.map((p) => p.familia_id))];
+        if (ids.length === 0) return [];
+        consulta = consulta.in("id", ids);
+      } else if (filtro.busca && limparBusca(filtro.busca)) {
         consulta = consulta.ilike(
           "nome_exibicao",
           `%${limparBusca(filtro.busca)}%`,

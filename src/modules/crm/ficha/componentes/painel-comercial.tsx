@@ -3,6 +3,7 @@ import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { Selo } from "@/components/ui/selo";
 import { formatarData } from "@/lib/formatacao";
 import type { CartaoOportunidade, PessoaFicha } from "@/lib/dados/tipos";
+import type { DadosContratoTela } from "../tipos";
 import { rotuloEstagio } from "../../pipeline/estagios";
 import { ControleDataFato } from "./controle-data-fato";
 import { ControleNaoContatar } from "./controle-nao-contatar";
@@ -17,7 +18,9 @@ const ROTULO_CLASSIFICACAO = {
 /**
  * Aba Comercial da ficha (P16 item 1 e 5; protótipo `comercial-ficha.html`,
  * `p-com`): estágio, classificação, próximo passo, dados de contrato
- * mascarados, "não contatar" e as datas de nascimento e alta.
+ * mascarados, "não contatar" e as datas de nascimento e alta. Leitura para
+ * coordenação e financeiro (PRD 13); os dados de contrato ficam fora para a
+ * coordenação, que não tem acesso a eles.
  */
 export function PainelComercial({
   familiaId,
@@ -28,15 +31,24 @@ export function PainelComercial({
   dataNascimento,
   dataAlta,
   podeEditar,
+  veDadosContrato,
+  dadosContratoIndisponiveis,
+  hoje,
 }: {
   familiaId: string;
   oportunidade: CartaoOportunidade | null;
   pessoas: PessoaFicha[];
-  dadosContrato: import("../tipos").DadosContratoTela | null;
+  dadosContrato: DadosContratoTela | null;
   naoContatar: boolean;
   dataNascimento: string | null;
   dataAlta: string | null;
+  /** Comercial e diretoria: não contatar e datas de fato. */
   podeEditar: boolean;
+  /** Comercial, financeiro e diretoria (PRD 13, "Dados de contrato"). */
+  veDadosContrato: boolean;
+  /** A leitura mascarada falhou (MFA pendente, rede): explica, não esconde. */
+  dadosContratoIndisponiveis: boolean;
+  hoje: string;
 }) {
   const contatoPrincipal =
     pessoas.find((p) => p.contatoPrincipal) ?? pessoas[0];
@@ -95,10 +107,11 @@ export function PainelComercial({
         />
       )}
 
-      {contatoPrincipal ? (
+      {veDadosContrato && contatoPrincipal ? (
         <DadosContrato
           pessoaId={contatoPrincipal.id}
           mascarado={dadosContrato}
+          indisponivel={dadosContratoIndisponiveis}
         />
       ) : null}
 
@@ -115,12 +128,14 @@ export function PainelComercial({
               campo="data_nascimento"
               rotulo="Nascimento"
               valorAtual={dataNascimento}
+              hoje={hoje}
             />
             <ControleDataFato
               familiaId={familiaId}
               campo="data_alta"
               rotulo="Alta"
               valorAtual={dataAlta}
+              hoje={hoje}
             />
           </>
         ) : null}

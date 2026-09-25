@@ -31,14 +31,22 @@ describe("despacharNotificacao", () => {
       canais: ["push"],
     });
     expect(resultados).toEqual([
-      { canal: "push", destino: "-", ok: false, motivo: expect.stringMatching(/P11/) },
+      {
+        canal: "push",
+        destino: "-",
+        ok: false,
+        motivo: expect.stringMatching(/P11/),
+      },
     ]);
   });
 
   it("whatsapp_interno envia para cada destino, sem checar o freio (categoria interna)", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => new Response(JSON.stringify({ id: "wa-1" }), { status: 200 })),
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({ id: "wa-1" }), { status: 200 }),
+      ),
     );
 
     const resultados = await despacharNotificacao({
@@ -49,12 +57,20 @@ describe("despacharNotificacao", () => {
     });
 
     expect(resultados).toEqual([
-      { canal: "whatsapp_interno", destino: "12036@g.us", ok: true, motivo: undefined },
+      {
+        canal: "whatsapp_interno",
+        destino: "12036@g.us",
+        ok: true,
+        motivo: undefined,
+      },
     ]);
   });
 
   it("email envia para cada destinatário pelo Resend", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 200 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("{}", { status: 200 })),
+    );
 
     const resultados = await despacharNotificacao({
       titulo: "Aviso",
@@ -63,8 +79,52 @@ describe("despacharNotificacao", () => {
     });
 
     expect(resultados).toEqual([
-      { canal: "email", destino: "equipe@kraamzorg.example", ok: true, motivo: undefined },
+      {
+        canal: "email",
+        destino: "equipe@kraamzorg.example",
+        ok: true,
+        motivo: undefined,
+      },
     ]);
+  });
+
+  it("o assunto do e-mail é neutro: título com nome de família fica só no corpo", async () => {
+    const buscar = vi.fn(async () => new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", buscar);
+
+    await despacharNotificacao({
+      titulo: "Família Teste Aurora quer contratar",
+      canais: ["email"],
+      emails: ["equipe@kraamzorg.example"],
+    });
+
+    const [, init] = buscar.mock.calls[0] as unknown as [string, RequestInit];
+    const corpo = JSON.parse(String(init.body)) as {
+      subject: string;
+      text: string;
+    };
+    expect(corpo.subject).not.toMatch(/Aurora/);
+    expect(corpo.text).toMatch(/Aurora/);
+  });
+
+  it("preferências da pessoa desligam o canal que ela escolheu", async () => {
+    const buscar = vi.fn(async () => new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", buscar);
+
+    const resultados = await despacharNotificacao({
+      titulo: "Aviso",
+      canais: ["email", "push"],
+      emails: ["equipe@kraamzorg.example"],
+      preferencias: {
+        usuarioId: "u1",
+        push: true,
+        whatsappInterno: true,
+        email: false,
+      },
+    });
+
+    expect(resultados.map((r) => r.canal)).toEqual(["push"]);
+    expect(buscar).not.toHaveBeenCalled();
   });
 
   it("sem canal nenhum, devolve lista vazia", async () => {

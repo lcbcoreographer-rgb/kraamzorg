@@ -18,5 +18,5 @@ não bug. Só lança `ErroMensageiro` quando o canal está mal configurado por p
 
 `uazapi` lê `UAZAPI_BASE_URL` e `UAZAPI_TOKEN` do ambiente; sem as duas, `enviar()` devolve
 falha em vez de tentar a rede. Essas duas variáveis ainda não estão em `.env.example`
-(arquivo da raiz, fora da pasta deste módulo) — precisam ser acrescentadas lá por quem
+(arquivo da raiz, fora da pasta deste módulo), precisam ser acrescentadas lá por quem
 mantém esse arquivo.

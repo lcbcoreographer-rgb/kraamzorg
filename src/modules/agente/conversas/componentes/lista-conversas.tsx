@@ -19,7 +19,8 @@ const VAZIO: Record<Filtro, { titulo: string; texto: string }> = {
   },
   isadora: {
     titulo: "Nenhuma conversa com a Isadora agora",
-    texto: "Quando uma família nova escrever, a Isadora abre a conversa e ela aparece aqui.",
+    texto:
+      "Quando uma família nova escrever, a Isadora abre a conversa e ela aparece aqui.",
   },
   equipe: {
     titulo: "Nenhuma conversa com a equipe",
@@ -33,7 +34,8 @@ const VAZIO: Record<Filtro, { titulo: string; texto: string }> = {
   },
   nao_lead: {
     titulo: "Nenhuma conversa de não lead",
-    texto: "Candidatas, fornecedores e consultórios recebem um encaminhamento e aparecem aqui.",
+    texto:
+      "Candidatas, fornecedores e consultórios recebem um encaminhamento e aparecem aqui.",
   },
 };
 
@@ -43,11 +45,21 @@ const VAZIO: Record<Filtro, { titulo: string; texto: string }> = {
  * chegou do servidor, e trocar de aba só troca o que aparece, sem recarregar
  * a tela (mesmo comportamento do protótipo).
  */
-export function ListaConversas({ conversas }: { conversas: ConversaComPausa[] }) {
+export function ListaConversas({
+  conversas,
+}: {
+  conversas: ConversaComPausa[];
+}) {
   const [filtro, definirFiltro] = useState<Filtro>("todas");
 
   const contagem = useMemo(() => {
-    const n: Record<Filtro, number> = { todas: 0, isadora: 0, equipe: 0, pausada: 0, nao_lead: 0 };
+    const n: Record<Filtro, number> = {
+      todas: 0,
+      isadora: 0,
+      equipe: 0,
+      pausada: 0,
+      nao_lead: 0,
+    };
     for (const c of conversas) {
       n.todas++;
       n[c.situacao]++;
@@ -56,23 +68,28 @@ export function ListaConversas({ conversas }: { conversas: ConversaComPausa[] })
   }, [conversas]);
 
   const visiveis = useMemo(
-    () => (filtro === "todas" ? conversas : conversas.filter((c) => c.situacao === filtro)),
+    () =>
+      filtro === "todas"
+        ? conversas
+        : conversas.filter((c) => c.situacao === filtro),
     [conversas, filtro],
   );
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Botões de alternância (aria-pressed), não abas: o filtro só troca o
+          que a lista mostra, sem painéis separados, e cada botão é um tab
+          stop comum, sem exigir a navegação por setas do padrão de abas. */}
       <div
-        role="tablist"
-        aria-label="Mostrar"
-        className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]"
+        role="group"
+        aria-label="Mostrar conversas"
+        className="flex [scrollbar-width:none] gap-2 overflow-x-auto pb-1"
       >
         {FILTROS.map((item) => (
           <button
             key={item}
             type="button"
-            role="tab"
-            aria-selected={filtro === item}
+            aria-pressed={filtro === item}
             onClick={() => definirFiltro(item)}
             className={`min-h-toque rounded-pilula border-borda-campo text-apoio inline-flex shrink-0 items-center gap-2 border-[1.5px] px-4 font-medium whitespace-nowrap ${
               filtro === item
@@ -81,15 +98,19 @@ export function ListaConversas({ conversas }: { conversas: ConversaComPausa[] })
             }`}
           >
             {TITULO_FILTRO[item]}
-            <span className="font-mono opacity-80">{contagem[item]}</span>
+            <span className="font-mono tabular-nums">{contagem[item]}</span>
           </button>
         ))}
       </div>
 
       {visiveis.length === 0 ? (
-        <EstadoVazio nivelTitulo="h2" titulo={VAZIO[filtro].titulo} texto={VAZIO[filtro].texto} />
+        <EstadoVazio
+          nivelTitulo="h2"
+          titulo={VAZIO[filtro].titulo}
+          texto={VAZIO[filtro].texto}
+        />
       ) : (
-        <div className="flex flex-col gap-3" aria-live="polite">
+        <div className="flex flex-col gap-3">
           {visiveis.map((conversa) => (
             <CartaoConversa key={conversa.id} conversa={conversa} />
           ))}

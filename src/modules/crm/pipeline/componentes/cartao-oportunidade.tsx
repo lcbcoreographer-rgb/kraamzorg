@@ -3,7 +3,7 @@ import { Clock, FileText, Hourglass, OctagonPause } from "lucide-react";
 import type { Papel } from "@/lib/auth/papeis";
 import { Cartao } from "@/components/ui/cartao";
 import { Selo } from "@/components/ui/selo";
-import { formatarData } from "@/lib/formatacao";
+import { formatarData, localidade } from "@/lib/formatacao";
 import type { NumeroPipeline } from "@/lib/dados/tipos";
 import type { CartaoPipelineTela } from "../tipos";
 import { MenuMover } from "./menu-mover";
@@ -33,8 +33,12 @@ export function CartaoOportunidadePipeline({
 
   return (
     <Cartao
-      variante={emFreio ? "areia" : "padrao"}
-      className={emFreio ? "border-sensivel-borda border" : undefined}
+      // `areia` é a cor da família e da Isadora (cabeçalho, selo da
+      // conversa): o cartão com freio usa o ameixa lavado, como o
+      // protótipo, não areia (crítica do CRM, P1 item 9).
+      className={
+        emFreio ? "bg-sensivel-lavado border-sensivel-borda border" : undefined
+      }
     >
       <div className="flex flex-col gap-2">
         <Link
@@ -56,10 +60,8 @@ export function CartaoOportunidadePipeline({
               {cartao.idadeGestacional}
             </span>
           ) : null}
-          {cartao.bairro || cartao.cidade ? (
-            <span>
-              {[cartao.bairro, cartao.cidade].filter(Boolean).join(", ")}
-            </span>
+          {localidade(cartao.bairro, cartao.cidade) ? (
+            <span>{localidade(cartao.bairro, cartao.cidade)}</span>
           ) : null}
         </p>
         <p className="text-mini text-texto-2">

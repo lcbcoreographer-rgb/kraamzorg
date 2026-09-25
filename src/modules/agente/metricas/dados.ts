@@ -41,54 +41,63 @@ import type { MetricasAgente } from "../tipos";
  *     and c.criado_em between :desde and :ate
  * ) base;
  *
- * -- Qualificados que recebem valor e PDF: % de oportunidades que saem de
- * -- 'novo' com pdf_enviado_em preenchido.
+ * -- Atenção ao modelo (0003): `oportunidade` tem uma linha por família
+ * -- (índice único parcial) que muda de pipeline 1 para 2 na mesma linha;
+ * -- quem já foi para o pipeline 2 não aparece mais com pipeline = 1.
+ *
+ * -- Qualificados que recebem valor e PDF: % das oportunidades que
+ * -- chegaram a qualificado (ou já passaram ao pipeline 2) com
+ * -- pdf_enviado_em preenchido.
  * select
  *   count(*) filter (where pdf_enviado_em is not null) * 100.0 / nullif(count(*), 0)
  * from oportunidade
- * where pipeline = 1 and estagio_p1 is distinct from 'novo'
+ * where (pipeline = 2 or estagio_p1 in
+ *         ('qualificado','sessao_venda_agendada','sessao_venda_realizada'))
  *   and criado_em between :desde and :ate;
  *
- * -- Conversas com a Edilaine registradas: % de oportunidades qualificadas
- * -- com pelo menos uma sessao_venda registrada (agendada ou realizada).
+ * -- Conversas com a Edilaine registradas: % das oportunidades
+ * -- qualificadas (mesmo recorte acima) com sessao_venda registrada e com
+ * -- data (agendada_para ou realizada_em).
  * select
- *   count(distinct sv.familia_id) * 100.0 / nullif(count(distinct o.familia_id), 0)
+ *   count(*) filter (where exists (
+ *     select 1 from sessao_venda sv
+ *     where sv.familia_id = o.familia_id
+ *       and coalesce(sv.realizada_em, sv.agendada_para) is not null
+ *   )) * 100.0 / nullif(count(*), 0)
  * from oportunidade o
- * left join sessao_venda sv on sv.familia_id = o.familia_id
- * where o.pipeline = 1 and o.estagio_p1 in
- *   ('qualificado','sessao_venda_agendada','sessao_venda_realizada')
+ * where (o.pipeline = 2 or o.estagio_p1 in
+ *         ('qualificado','sessao_venda_agendada','sessao_venda_realizada'))
  *   and o.criado_em between :desde and :ate;
  *
- * -- Follow-up após o PDF: % de oportunidades com pdf_enviado_em que têm
- * -- handoff ou mensagem de saída depois do envio (a régua rodou).
+ * -- Follow-up após o PDF: % das oportunidades com pdf_enviado_em em que a
+ * -- família não respondeu e houve saída depois do silêncio (retomada da
+ * -- Isadora ou tarefa D+3/D+14 cumprida). Aproximação por mensagem de
+ * -- saída posterior ao PDF; a medida exata da "cadência completa" pede o
+ * -- histórico de automacao_execucao (followup_d1) e de tarefa
+ * -- (followup_comercial), a combinar com a trilha do banco.
  * select
  *   count(*) filter (where existe_followup) * 100.0 / nullif(count(*), 0)
  * from (
- *   select o.id, o.pdf_enviado_em,
+ *   select o.id,
  *     exists (
  *       select 1 from mensagem m
  *       join conversa c on c.id = m.conversa_id
  *       where c.familia_id = o.familia_id and m.direcao = 'saida'
- *         and m.enviada_em > o.pdf_enviado_em
+ *         and m.enviada_em > o.pdf_enviado_em + interval '1 hour'
  *     ) as existe_followup
  *   from oportunidade o
  *   where o.pdf_enviado_em is not null
  *     and o.criado_em between :desde and :ate
  * ) base;
  *
- * -- Conversão de leads: % de oportunidades do pipeline 1 que chegam a
- * -- pipeline 2 (qualquer estagio_p2 preenchido).
+ * -- Conversão de leads: % das oportunidades do período que chegaram a
+ * -- ganho ou adiante no pipeline 2 (sem perdido, cancelado, distrato).
  * select
- *   count(*) filter (where existe_p2) * 100.0 / nullif(count(*), 0)
- * from (
- *   select o.id,
- *     exists (
- *       select 1 from oportunidade o2
- *       where o2.familia_id = o.familia_id and o2.pipeline = 2
- *     ) as existe_p2
- *   from oportunidade o
- *   where o.pipeline = 1 and o.criado_em between :desde and :ate
- * ) base;
+ *   count(*) filter (where pipeline = 2 and estagio_p2 not in
+ *     ('proposta_enviada','em_negociacao','perdido','cancelado','distrato'))
+ *   * 100.0 / nullif(count(*), 0)
+ * from oportunidade
+ * where criado_em between :desde and :ate;
  *
  * -- Condições fora da tabela: contratos com desconto_pct diferente do que
  * -- condicao_comercial permite sem aprovação, ou sem desconto_aprovado_por.
@@ -106,9 +115,17 @@ export async function obterMetricasTela(
 }
 
 /** Últimos 30 dias, no fuso de Brasília (padrão da tela). */
-export function periodoPadrao(agora: Date = new Date()): { desde: string; ate: string } {
-  const ate = agora.toISOString().slice(0, 10);
-  const desdeData = new Date(agora);
-  desdeData.setDate(desdeData.getDate() - 30);
-  return { desde: desdeData.toISOString().slice(0, 10), ate };
+export function periodoPadrao(agora: Date = new Date()): {
+  desde: string;
+  ate: string;
+} {
+  const diaBrasilia = (d: Date) =>
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Sao_Paulo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(d);
+  const desdeData = new Date(agora.getTime() - 30 * 24 * 60 * 60_000);
+  return { desde: diaBrasilia(desdeData), ate: diaBrasilia(agora) };
 }

@@ -12,7 +12,7 @@ vi.mock("next/headers", () => ({
 import type { SessaoUsuario } from "@/lib/auth/tipos";
 import { USUARIOS } from "@/lib/dados/demonstracao/fixtures";
 import { reiniciarLoja } from "@/lib/dados/demonstracao/loja";
-import { criarVerificadorFreio } from "./verificador-freio";
+import { codigoSensivel, criarVerificadorFreio } from "./verificador-freio";
 
 vi.mock("@/lib/auth/sessao", () => {
   let sessaoAtual: SessaoUsuario | null = null;
@@ -72,10 +72,12 @@ async function idFamilia(nome: string): Promise<string> {
 }
 
 describe("criarVerificadorFreio (aproximação de demonstração, PRD 8.2)", () => {
-  it("categoria interna sempre passa, mesmo sem familiaId", async () => {
+  it("categoria interna nunca fala com a família (igual a 0009: categoria_interna)", async () => {
     const verificar = criarVerificadorFreio();
-    const resultado = await verificar({ categoria: "interna" });
-    expect(resultado.pode).toBe(true);
+    const familiaId = await idFamilia("Cedro");
+    const resultado = await verificar({ familiaId, categoria: "interna" });
+    expect(resultado.pode).toBe(false);
+    expect(resultado.codigo).toBe("categoria_interna");
   });
 
   it("sem familiaId (fora de 'interna'), recusa", async () => {
@@ -87,8 +89,21 @@ describe("criarVerificadorFreio (aproximação de demonstração, PRD 8.2)", () 
   it("família em bloqueio_total (Bruma) recusa conteúdo, mesmo o operacional", async () => {
     const verificar = criarVerificadorFreio();
     const familiaId = await idFamilia("Bruma");
-    expect((await verificar({ familiaId, categoria: "conteudo" })).pode).toBe(false);
-    expect((await verificar({ familiaId, categoria: "operacional" })).pode).toBe(false);
+    expect((await verificar({ familiaId, categoria: "conteudo" })).pode).toBe(
+      false,
+    );
+    expect(
+      (await verificar({ familiaId, categoria: "operacional" })).pode,
+    ).toBe(false);
+  });
+
+  it("bloqueio_total devolve frase de gente e código de freio (tom ameixa), nunca o código na frase", async () => {
+    const verificar = criarVerificadorFreio();
+    const familiaId = await idFamilia("Bruma");
+    const resultado = await verificar({ familiaId, categoria: "conteudo" });
+    expect(resultado.codigo).toBe("freio_bloqueio_total");
+    expect(codigoSensivel(resultado.codigo)).toBe(true);
+    expect(resultado.motivo).not.toMatch(/_/);
   });
 
   it("família normal (Cedro) deixa passar conteúdo", async () => {

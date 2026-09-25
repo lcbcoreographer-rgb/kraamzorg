@@ -14,11 +14,8 @@ import {
 } from "@/components/ui/dialogo";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
-import {
-  acaoDesmarcarNaoContatar,
-  acaoMarcarNaoContatar,
-  estadoInicialFicha,
-} from "../acoes";
+import { acaoDesmarcarNaoContatar, acaoMarcarNaoContatar } from "../acoes";
+import { estadoInicialFicha } from "../estado-acoes";
 
 /**
  * "Não contatar" com motivo (P16 item 3). Marcar exige motivo, na mesma

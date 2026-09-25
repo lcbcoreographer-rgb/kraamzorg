@@ -1,4 +1,4 @@
-import { formatarIdadeGestacional } from "@/lib/formatacao";
+import { formatarData, formatarIdadeGestacional } from "@/lib/formatacao";
 
 /**
  * Idade gestacional nunca é gravada (PRD 6.10 regra 7): o banco calcula com
@@ -42,13 +42,39 @@ export function calcularIdadeGestacional(
   };
 }
 
-/** "38s2d" pronto para o cartão, ou null quando não dá para calcular. */
+/**
+ * "38s2d" pronto para o cartão, ou o texto certo quando a conta de
+ * semanas não faz mais sentido (crítica do CRM, P1 item 6): depois do
+ * nascimento, "Nasceu em 16/08"; sem nascimento e com a DPP já passada
+ * (a conta de `calcularIdadeGestacional` some depois de 40 semanas),
+ * "DPP passou há N dias". `null` só quando não há DPP nem nascimento.
+ */
 export function textoIdadeGestacional(
   dpp: string | null,
   referencia: string,
+  dataNascimento: string | null = null,
 ): string | null {
+  if (dataNascimento) {
+    const data = formatarData(dataNascimento);
+    return data ? `Nasceu em ${data.slice(0, 5)}` : null;
+  }
+
   const ig = calcularIdadeGestacional(dpp, referencia);
-  return ig ? formatarIdadeGestacional(ig.semanas, ig.dias) : null;
+  // Além de 42 semanas sem nascimento registrado, a semana deixa de dizer
+  // algo real (a gestação não continua contando para sempre): o prazo
+  // passou, e é isso que a tela mostra.
+  if (ig && ig.semanas <= 42) return formatarIdadeGestacional(ig.semanas, ig.dias);
+
+  if (dpp) {
+    const diasDpp = paraDiasEpoch(dpp);
+    const diasReferencia = paraDiasEpoch(referencia);
+    if (diasDpp !== null && diasReferencia !== null && diasReferencia > diasDpp) {
+      const diasPassados = diasReferencia - diasDpp;
+      return `DPP passou há ${diasPassados} ${diasPassados === 1 ? "dia" : "dias"}`;
+    }
+  }
+
+  return null;
 }
 
 /** Data de calendário de hoje em Brasília ("aaaa-mm-dd"), sem hora. */

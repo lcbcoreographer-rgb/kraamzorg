@@ -66,6 +66,8 @@ export interface CartaoOportunidade {
 export interface FiltroFamilias {
   busca?: string;
   limite?: number;
+  /** Só estas famílias (ex: as donas das conversas de uma lista). */
+  ids?: string[];
 }
 
 export interface ResumoFamilia {
@@ -193,6 +195,8 @@ export interface Regiao {
 export interface FiltroConversas {
   /** Isadora conduzindo, com a equipe, pausadas ou não lead (C5). */
   situacao?: "isadora" | "equipe" | "pausada" | "nao_lead";
+  /** Só as conversas desta família (aba Conversas da ficha, P16). */
+  familiaId?: string;
   limite?: number;
 }
 

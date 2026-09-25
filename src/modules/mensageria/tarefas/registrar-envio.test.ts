@@ -69,7 +69,8 @@ afterEach(() => {
 
 describe("registrarEnvioTarefa (demonstração)", () => {
   it("com conversa existente para a família, grava a mensagem como enviado_por humano", async () => {
-    const { familiaPorNome } = await import("@/lib/dados/demonstracao/fixtures");
+    const { familiaPorNome } =
+      await import("@/lib/dados/demonstracao/fixtures");
     const aurora = familiaPorNome("Aurora"); // tem conversa em CONVERSAS (id 9,1)
     const loja = obterLoja();
     const antes = loja.mensagens.length;
@@ -97,7 +98,8 @@ describe("registrarEnvioTarefa (demonstração)", () => {
     const familiaSemConversa = loja.familias.find(
       (f) => !loja.conversas.some((c) => c.familiaId === f.id),
     );
-    if (!familiaSemConversa) throw new Error("fixture precisa de uma família sem conversa");
+    if (!familiaSemConversa)
+      throw new Error("fixture precisa de uma família sem conversa");
 
     await registrarEnvioTarefa({
       tarefaId: TAREFAS[1]!.id,

@@ -144,6 +144,7 @@ const TRANSICOES_P1: readonly Transicao[] = [
 ];
 
 const TRANSICOES_P2: readonly Transicao[] = [
+  // entrada vinda do P1
   {
     de: "sessao_venda_realizada",
     para: "proposta_enviada",
@@ -151,13 +152,102 @@ const TRANSICOES_P2: readonly Transicao[] = [
   },
   { de: "qualificado", para: "proposta_enviada", papelMinimo: "comercial" },
   { de: "nutricao", para: "proposta_enviada", papelMinimo: "comercial" },
+  // linha principal (0006: "automatica" só isenta o usuário quando a
+  // chamada vem do sistema; com sessão, continua exigindo o papel_minimo,
+  // então entra aqui também, ver docs/sessoes/p15-p17-pipeline.md item 1)
   { de: "proposta_enviada", para: "em_negociacao", papelMinimo: "comercial" },
-  { de: "proposta_enviada", para: "perdido", papelMinimo: "comercial" },
   { de: "em_negociacao", para: "ganho", papelMinimo: "comercial" },
+  { de: "ganho", para: "contrato_gerado", papelMinimo: "comercial" },
+  {
+    de: "contrato_gerado",
+    para: "aguardando_assinatura",
+    papelMinimo: "comercial",
+  },
+  { de: "aguardando_assinatura", para: "assinado", papelMinimo: "comercial" },
+  { de: "assinado", para: "cobranca_gerada", papelMinimo: "financeiro" },
+  {
+    de: "cobranca_gerada",
+    para: "pagamento_confirmado",
+    papelMinimo: "financeiro",
+  },
+  {
+    de: "pagamento_confirmado",
+    para: "nota_fiscal_emitida",
+    papelMinimo: "financeiro",
+  },
+  {
+    de: "nota_fiscal_emitida",
+    para: "consulta_prenatal_agendada",
+    papelMinimo: "coordenacao",
+  },
+  {
+    de: "consulta_prenatal_agendada",
+    para: "consulta_realizada",
+    papelMinimo: "coordenacao",
+  },
+  {
+    de: "consulta_realizada",
+    para: "enfermeira_designada",
+    papelMinimo: "coordenacao",
+  },
+  {
+    de: "enfermeira_designada",
+    para: "aguardando_nascimento",
+    papelMinimo: "coordenacao",
+  },
+  {
+    de: "aguardando_nascimento",
+    para: "bebe_nasceu",
+    papelMinimo: "coordenacao",
+  },
+  { de: "bebe_nasceu", para: "aguardando_alta", papelMinimo: "coordenacao" },
+  {
+    de: "aguardando_alta",
+    para: "atendimento_liberado",
+    papelMinimo: "coordenacao",
+  },
+  // nota fiscal em paralelo
+  {
+    de: "pagamento_confirmado",
+    para: "consulta_prenatal_agendada",
+    papelMinimo: "coordenacao",
+  },
+  // bebe_nasceu a partir de qualquer estágio depois do pagamento (PRD 7.2:
+  // "o nascimento pode chegar em qualquer estágio depois de
+  // pagamento_confirmado"; protótipo comercial-pipeline.html, PODE.pagamento)
+  {
+    de: "pagamento_confirmado",
+    para: "bebe_nasceu",
+    papelMinimo: "coordenacao",
+  },
+  {
+    de: "nota_fiscal_emitida",
+    para: "bebe_nasceu",
+    papelMinimo: "coordenacao",
+  },
+  {
+    de: "consulta_prenatal_agendada",
+    para: "bebe_nasceu",
+    papelMinimo: "coordenacao",
+  },
+  {
+    de: "consulta_realizada",
+    para: "bebe_nasceu",
+    papelMinimo: "coordenacao",
+  },
+  {
+    de: "enfermeira_designada",
+    para: "bebe_nasceu",
+    papelMinimo: "coordenacao",
+  },
+  // desvio perdido: venda perdida antes do ganho
+  { de: "proposta_enviada", para: "perdido", papelMinimo: "comercial" },
   { de: "em_negociacao", para: "perdido", papelMinimo: "comercial" },
+  // desvio cancelado: fechamento desfeito antes da assinatura
   { de: "ganho", para: "cancelado", papelMinimo: "comercial" },
   { de: "contrato_gerado", para: "cancelado", papelMinimo: "comercial" },
   { de: "aguardando_assinatura", para: "cancelado", papelMinimo: "comercial" },
+  // desvio distrato: contrato assinado desfeito, decisão da diretoria
   { de: "assinado", para: "distrato", papelMinimo: "diretoria" },
   { de: "cobranca_gerada", para: "distrato", papelMinimo: "diretoria" },
   { de: "pagamento_confirmado", para: "distrato", papelMinimo: "diretoria" },
@@ -172,16 +262,56 @@ const TRANSICOES_P2: readonly Transicao[] = [
   { de: "aguardando_nascimento", para: "distrato", papelMinimo: "diretoria" },
   { de: "bebe_nasceu", para: "distrato", papelMinimo: "diretoria" },
   { de: "aguardando_alta", para: "distrato", papelMinimo: "diretoria" },
+  // desvio intercorrencia: entra de qualquer estágio ativo, qualquer papel
+  // (0006: "qualquer pessoa com papel, ou o sistema"; papel_minimo nulo)
   {
-    de: "nota_fiscal_emitida",
-    para: "consulta_prenatal_agendada",
-    papelMinimo: "coordenacao",
+    de: "proposta_enviada",
+    para: "intercorrencia",
+    papelMinimo: null,
   },
+  { de: "em_negociacao", para: "intercorrencia", papelMinimo: null },
+  { de: "ganho", para: "intercorrencia", papelMinimo: null },
+  { de: "contrato_gerado", para: "intercorrencia", papelMinimo: null },
+  {
+    de: "aguardando_assinatura",
+    para: "intercorrencia",
+    papelMinimo: null,
+  },
+  { de: "assinado", para: "intercorrencia", papelMinimo: null },
+  { de: "cobranca_gerada", para: "intercorrencia", papelMinimo: null },
   {
     de: "pagamento_confirmado",
-    para: "consulta_prenatal_agendada",
-    papelMinimo: "coordenacao",
+    para: "intercorrencia",
+    papelMinimo: null,
   },
+  {
+    de: "nota_fiscal_emitida",
+    para: "intercorrencia",
+    papelMinimo: null,
+  },
+  {
+    de: "consulta_prenatal_agendada",
+    para: "intercorrencia",
+    papelMinimo: null,
+  },
+  {
+    de: "consulta_realizada",
+    para: "intercorrencia",
+    papelMinimo: null,
+  },
+  {
+    de: "enfermeira_designada",
+    para: "intercorrencia",
+    papelMinimo: null,
+  },
+  {
+    de: "aguardando_nascimento",
+    para: "intercorrencia",
+    papelMinimo: null,
+  },
+  { de: "bebe_nasceu", para: "intercorrencia", papelMinimo: null },
+  { de: "aguardando_alta", para: "intercorrencia", papelMinimo: null },
+  // saída de intercorrencia: só de volta ao que existia antes, só coordenação
   {
     de: "intercorrencia",
     para: "proposta_enviada",

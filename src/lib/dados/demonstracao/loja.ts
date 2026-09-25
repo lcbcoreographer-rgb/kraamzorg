@@ -26,6 +26,7 @@ import {
   type FamiliaDemonstracao,
   type OportunidadeDemonstracao,
   type PessoaDemonstracao,
+  type TarefaDemonstracao,
   type UsuarioDemonstracao,
 } from "./fixtures";
 
@@ -44,7 +45,7 @@ export interface LojaDemonstracao {
   conversas: Omit<ResumoConversa, "nomeFamilia" | "transferenciaAbertaId">[];
   mensagens: (Mensagem & { conversaId: string })[];
   transferencias: Omit<Transferencia, "nomeFamilia">[];
-  tarefas: Omit<Tarefa, "nomeFamilia" | "payload">[];
+  tarefas: Omit<Tarefa, "nomeFamilia">[];
   eventos: (EventoLinhaDoTempo & { familiaId: string })[];
   parametros: Parametro[];
   mensagensModelo: MensagemModelo[];
@@ -59,6 +60,31 @@ export interface LojaDemonstracao {
 }
 
 const CHAVE_GLOBAL = "__kraamzorgLojaDemonstracao";
+
+/**
+ * Payload da tarefa como o banco guarda (PRD 6.4). A tarefa de régua ganha
+ * o texto sugerido como a automação faria (P20): o texto vem sempre de
+ * `mensagem_modelo` (aqui, a fixture), com as variáveis preenchidas, e o
+ * telefone do contato principal da família. Nenhuma frase para a família
+ * mora no código (CLAUDE.md).
+ */
+function payloadDaTarefa(tarefa: TarefaDemonstracao): Json {
+  if (tarefa.justificarFreio) return { acao: "justificar_freio" };
+  if (!tarefa.mensagem || !tarefa.familiaId) return {};
+  const { chave, categoria } = tarefa.mensagem;
+  const modelo = MENSAGENS_MODELO.find((m) => m.chave === chave);
+  const contato = PESSOAS.find(
+    (p) => p.familiaId === tarefa.familiaId && p.contatoPrincipal,
+  );
+  if (!modelo || !contato) return {};
+  const primeiroNome = contato.nome.split(" ")[0] ?? contato.nome;
+  return {
+    mensagemChave: chave,
+    categoria,
+    telefoneE164: contato.telefoneE164,
+    textoSugerido: modelo.texto.replaceAll("{nome}", primeiroNome),
+  };
+}
 
 function isoDaqui(agora: number, minutos: number): string {
   return new Date(agora + minutos * 60_000).toISOString();
@@ -134,6 +160,7 @@ export function criarLoja(agora = Date.now()): LojaDemonstracao {
       familiaId: t.familiaId,
       responsavelId: t.responsavelId,
       papelResponsavel: t.papelResponsavel,
+      payload: payloadDaTarefa(t),
       criadoEm: isoDaqui(agora, -60),
     })),
     eventos: EVENTOS.map((e, i) => ({
