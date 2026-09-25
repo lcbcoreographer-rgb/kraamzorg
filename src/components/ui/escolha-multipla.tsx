@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check } from "lucide-react";
+import { Check, CircleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEstadoControlavel } from "@/lib/hooks/estado-controlavel";
 import type { OpcaoEscolha } from "./escolha-unica";
@@ -17,6 +17,8 @@ export interface EscolhaMultiplaProps {
   valoresPadrao?: string[];
   onMudar?: (valores: string[]) => void;
   descricao?: React.ReactNode;
+  /** Mensagem de erro do grupo (ex: "Escolha pelo menos um papel."). */
+  erro?: React.ReactNode;
   disabled?: boolean;
   /** "checklist" sobe a pílula para 52 px (densidade do checklist da enfermeira, blocos 4, 5, 6 e 8). */
   tamanho?: "padrao" | "checklist";
@@ -35,6 +37,7 @@ export function EscolhaMultipla({
   valoresPadrao,
   onMudar,
   descricao,
+  erro,
   disabled,
   tamanho = "padrao",
   className,
@@ -99,6 +102,12 @@ export function EscolhaMultipla({
       </div>
       {descricao ? (
         <p className="text-apoio text-texto-2">{descricao}</p>
+      ) : null}
+      {erro ? (
+        <p role="alert" className="text-apoio text-alerta flex items-start gap-2 font-medium">
+          <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <span>{erro}</span>
+        </p>
       ) : null}
     </fieldset>
   );

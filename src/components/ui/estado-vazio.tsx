@@ -12,6 +12,8 @@ export interface EstadoVazioProps {
   texto: React.ReactNode;
   /** Botão com a próxima ação (ex: um `<Botao>`). */
   acao?: React.ReactNode;
+  /** Nível do título na hierarquia da página (padrão h3). */
+  nivelTitulo?: "h2" | "h3";
   className?: string;
 }
 
@@ -19,6 +21,7 @@ export function EstadoVazio({
   titulo,
   texto,
   acao,
+  nivelTitulo: Titulo = "h3",
   className,
 }: EstadoVazioProps) {
   return (
@@ -28,7 +31,9 @@ export function EstadoVazio({
         className,
       )}
     >
-      <h3 className="font-titulo text-2 text-texto font-medium">{titulo}</h3>
+      <Titulo className="font-titulo text-2 text-texto font-medium">
+        {titulo}
+      </Titulo>
       <p className="text-corpo text-texto-2 max-w-[52ch]">{texto}</p>
       {acao}
     </div>

@@ -21,7 +21,11 @@ type CamposComuns =
   | "readOnly"
   | "maxLength"
   | "autoFocus"
-  | "autoComplete";
+  | "autoComplete"
+  | "inputMode"
+  | "pattern"
+  | "spellCheck"
+  | "autoCapitalize";
 
 export interface CampoTextoProps extends Pick<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -43,6 +47,8 @@ export interface CampoTextoProps extends Pick<
   linhas?: number;
   containerClassName?: string;
   type?: React.HTMLInputTypeAttribute;
+  /** Controle dentro da caixa, à direita do texto (ex: "Mostrar" da senha). */
+  acessorio?: React.ReactNode;
 }
 
 export const CampoTexto = React.forwardRef<
@@ -62,6 +68,7 @@ export const CampoTexto = React.forwardRef<
       className,
       containerClassName,
       type = "text",
+      acessorio,
       ...props
     },
     ref,
@@ -115,6 +122,7 @@ export const CampoTexto = React.forwardRef<
               {...props}
             />
           )}
+          {acessorio}
         </div>
         {/* Erro e descrição aparecem juntos: a referência do dia anterior
             (ou outra ajuda) não pode sumir quando o campo entra em erro

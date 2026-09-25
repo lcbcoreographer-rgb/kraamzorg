@@ -1,0 +1,384 @@
+[
+  {
+    "chave": "acesso_enfermeira_pos_encerramento_dias",
+    "valor": 7,
+    "descricao": "[v4.2] PRD 13, 6.8: dias em que a enfermeira designada ainda lê a família depois do encerramento, para fechar a evolução [confirmar: Edilaine, prazo]."
+  },
+  {
+    "chave": "agente_debounce_segundos",
+    "valor": 20,
+    "descricao": "PRD 11.3: agrupamento de mensagens, padrão Drop."
+  },
+  {
+    "chave": "agente_followup_horas",
+    "valor": 48,
+    "descricao": "[v4.2] PRD 4.1 D-18, 11.3, 6.8: primeiro retorno da Isadora depois de tanto tempo sem resposta. Padrão 48, mínimo 24 (a função de gravação recusa valor menor) [confirmar: Leonardo, valor padrão]."
+  },
+  {
+    "chave": "agente_janela_envio",
+    "valor": {
+      "fim": "20:00",
+      "inicio": "08:00"
+    },
+    "descricao": "PRD 11.3: janela de envio proativo, uma mensagem de conteúdo por dia por família; [confirmar]."
+  },
+  {
+    "chave": "agente_modo",
+    "valor": "desligado",
+    "descricao": "PRD 11.3, 22.1 T-01: desligado em produção até a conta do WhatsApp ser restaurada e o adaptador cloud_api estar pronto. Seed local usa teste (ver observação abaixo)."
+  },
+  {
+    "chave": "agente_pausa_handoff_horas",
+    "valor": 48,
+    "descricao": "PRD 11.3: pausa depois de handoff (motivos não comerciais, antes da qualificação); [confirmar]."
+  },
+  {
+    "chave": "agente_pausa_humano_horas",
+    "valor": 48,
+    "descricao": "PRD 11.3: pausa quando alguém da equipe digita pelo celular; [confirmar]."
+  },
+  {
+    "chave": "agente_whitelist",
+    "valor": [
+      "+5511900000001",
+      "+5511900000002"
+    ],
+    "descricao": "Números autorizados no modo teste (PRD 11.7). Só dado sintético."
+  },
+  {
+    "chave": "alerta_emocional_ativo",
+    "valor": false,
+    "descricao": "PRD 6.8, 22.3 K-17: desligado até a Edilaine aprovar o texto alerta_emocional; enquanto isso vale alerta_saude."
+  },
+  {
+    "chave": "alerta_internacao_ativo",
+    "valor": false,
+    "descricao": "PRD 6.8, 22.3 K-16: desligado até a Edilaine aprovar o texto alerta_internacao; enquanto isso vale alerta_saude."
+  },
+  {
+    "chave": "alerta_saude_sensivel_ativo",
+    "valor": false,
+    "descricao": "[v4.2] PRD 6.8, 22.3 K-20: desligado até a Edilaine aprovar; enquanto isso só o aviso interno de prioridade máxima."
+  },
+  {
+    "chave": "capacidade_alerta_pct",
+    "valor": 85,
+    "descricao": "PRD 3.4, 16.3: limite de alerta de ocupação, motor de capacidade."
+  },
+  {
+    "chave": "comercial_resposta_no_app",
+    "valor": false,
+    "descricao": "[v4.2] PRD 6.8, 20.6, 22.2 C-19: com falso, a conversa assumida é respondida no WhatsApp do aparelho [confirmar: Leonardo]."
+  },
+  {
+    "chave": "deduplicacao",
+    "valor": {
+      "dpp_dias": 14,
+      "limiar_nome": 0.6,
+      "nova_gestacao_dias": 180
+    },
+    "descricao": "PRD 6.10 regra 2 e 12; formato exigido por privado.buscar_duplicatas (P17, migration 0010) [confirmar: Leonardo, limiar_nome e nova_gestacao_dias]."
+  },
+  {
+    "chave": "expediente_comercial",
+    "valor": {
+      "fim": "18:00",
+      "dias": [
+        "seg",
+        "ter",
+        "qua",
+        "qui",
+        "sex"
+      ],
+      "fuso": "America/Sao_Paulo",
+      "inicio": "09:00"
+    },
+    "descricao": "PRD 11.4: SLA em horas úteis usa este expediente [confirmar]."
+  },
+  {
+    "chave": "freio_desfazer_segundos",
+    "valor": 10,
+    "descricao": "[v4.2] PRD 6.8, 8.3, 20.6, 22.4 O-07: janela do \"Desfazer\" do freio para quem acionou; 0 desliga [confirmar: Leonardo e Edilaine]."
+  },
+  {
+    "chave": "grupo_whatsapp_por_destino",
+    "valor": {
+      "operacao": "000000000-teste-operacao@g.us",
+      "comercial": "000000000-teste-comercial@g.us",
+      "coordenacao_clinica": "000000000-teste-clinico@g.us"
+    },
+    "descricao": "PRD 6.8: JIDs dos grupos internos do WhatsApp. Placeholders sintéticos, nunca um JID real."
+  },
+  {
+    "chave": "handoff_matriz",
+    "valor": [
+      {
+        "motivo": "contratar",
+        "destino": "comercial",
+        "prioridade": "alta",
+        "sla_horas_uteis": 2
+      },
+      {
+        "motivo": "reuniao",
+        "destino": "comercial",
+        "prioridade": "alta",
+        "sla_horas_uteis": 2
+      },
+      {
+        "motivo": "condicao_comercial",
+        "destino": "comercial",
+        "prioridade": "normal",
+        "sla_horas_uteis": 4
+      },
+      {
+        "motivo": "cobertura_taxa",
+        "destino": "comercial",
+        "prioridade": "normal",
+        "sla_horas_uteis": 4
+      },
+      {
+        "motivo": "reembolso_fiscal",
+        "destino": "comercial",
+        "prioridade": "normal",
+        "sla_horas_uteis": 4
+      },
+      {
+        "motivo": "duvida_sem_resposta",
+        "destino": "comercial",
+        "prioridade": "normal",
+        "sla_horas_uteis": 4
+      },
+      {
+        "motivo": "pediu_humano",
+        "destino": "comercial",
+        "prioridade": "alta",
+        "sla_horas_uteis": 1
+      },
+      {
+        "motivo": "bebe_nasceu",
+        "destino": "operacao",
+        "sla_horas": 1,
+        "prioridade": "alta"
+      },
+      {
+        "motivo": "pos_venda_operacao",
+        "destino": "operacao",
+        "sla_horas": 4,
+        "prioridade": "normal"
+      },
+      {
+        "sla": "imediato",
+        "motivo": "saude",
+        "destino": "coordenacao_clinica",
+        "prioridade": "maxima"
+      },
+      {
+        "sla": "imediato",
+        "freio": "bloqueio_total",
+        "motivo": "perda",
+        "destino": "coordenacao_clinica",
+        "prioridade": "maxima"
+      },
+      {
+        "motivo": "reclamacao",
+        "destino": "coordenacao_clinica",
+        "sla_horas": 2,
+        "prioridade": "alta"
+      },
+      {
+        "motivo": "parceiro_medico",
+        "destino": "comercial",
+        "sla_dias": 1,
+        "prioridade": "normal"
+      },
+      {
+        "motivo": "estado_sensivel_escreveu",
+        "destino": "coordenacao_clinica",
+        "sla_horas": 1,
+        "prioridade": "alta"
+      },
+      {
+        "motivo": "midia_recebida",
+        "destino": "comercial",
+        "observacao": "operação se for cliente, alta, 2h; pipeline 3 vai para coordenação clínica [confirmar Edilaine]",
+        "prioridade": "normal",
+        "sla_horas_uteis": 4
+      },
+      {
+        "motivo": "validacao_resposta",
+        "destino": "comercial",
+        "prioridade": "alta",
+        "sla_horas_uteis": 1
+      },
+      {
+        "motivo": "audio_nao_transcrito",
+        "destino": "coordenacao_clinica",
+        "observacao": "comercial nos demais casos [confirmar Edilaine]",
+        "prioridade": "alta",
+        "sla_horas_corridas": 1
+      },
+      {
+        "motivo": "outro",
+        "destino": "comercial",
+        "prioridade": "normal",
+        "sla_horas_uteis": 4
+      }
+    ],
+    "descricao": "PRD 11.4: tabela de handoff (situação, motivo, destino, prioridade, SLA), editável sem deploy."
+  },
+  {
+    "chave": "horarios_edilaine",
+    "valor": null,
+    "descricao": "PRD 6.8, 22.1 T-08: opcional, campo livre de link; sem ferramenta de vídeo definida ainda."
+  },
+  {
+    "chave": "janela_dpp_dias",
+    "valor": {
+      "antes": 21,
+      "depois": 14
+    },
+    "descricao": "PRD 10.2, 16.3: janela em que a data de início é distribuída (DPP -21 a +14 dias), ocupação projetada da Fase 1."
+  },
+  {
+    "chave": "pdf_apresentacao",
+    "valor": {
+      "nome": "Apresentação Kraamzorg 2026 (leve)",
+      "path": "apresentacao/kraamzorg-2026-leve.pdf",
+      "versao": "2026-03",
+      "tamanho_mb": 3
+    },
+    "descricao": "PRD 6.8, 22.1 T-04: caminho no storage, nome do arquivo e versão. Placeholder: o PDF real ainda não entra no repositório."
+  },
+  {
+    "chave": "pdf_reenvio_janela_horas",
+    "valor": 0,
+    "descricao": "PRD 6.8, 11.11 item 3, 22.2 C-18: 0 = a apresentação sempre acompanha valor, sem pular reenvio, até o Leonardo decidir o item B dos ajustes."
+  },
+  {
+    "chave": "plantao_telefones",
+    "valor": [
+      "+5511900000003"
+    ],
+    "descricao": "PRD 6.8: números do plantão para prioridade máxima. Só dado sintético."
+  },
+  {
+    "chave": "prazos_relatorio",
+    "valor": {
+      "alerta_dias": 1,
+      "escala_coordenacao_dias": 2
+    },
+    "descricao": "PRD 9.5: a enfermeira tem 1 dia útil após o encerramento para emitir a evolução; alerta em D+1, escala em D+2."
+  },
+  {
+    "chave": "retencao",
+    "valor": {
+      "log_ip_meses": 12,
+      "chat_memoria_dias": 180,
+      "conversa_nao_cliente_meses": 24
+    },
+    "descricao": "[v4.2] PRD 6.8, 10.1, 22.4 O-06: prazos da automação retencao_diaria [confirmar: Leonardo e jurídico]."
+  },
+  {
+    "chave": "retencao_audio_dias",
+    "valor": 90,
+    "descricao": "PRD 22.4 O-03: retenção de áudio, 90 dias após o envio da evolução."
+  },
+  {
+    "chave": "score_cortes",
+    "valor": {
+      "morno": 40,
+      "quente": 70
+    },
+    "descricao": "PRD 7.1, 22.2 C-14: cortes de quente, morno e frio no score (quente >= 70, morno 40 a 69, frio < 40; decisão do Leonardo)."
+  },
+  {
+    "chave": "score_pesos",
+    "valor": {
+      "momento": {
+        "peso": 25,
+        "componentes": {
+          "trimestre": 1,
+          "bebe_nasceu": 1,
+          "proximidade_dpp": 1
+        }
+      },
+      "criterios": {
+        "trimestre": [
+          {
+            "valor": 0,
+            "semana_min": 0
+          },
+          {
+            "valor": 0.5,
+            "semana_min": 14
+          },
+          {
+            "valor": 1,
+            "semana_min": 28
+          }
+        ],
+        "proximidade_dpp_dias": 84,
+        "engajamento_mensagens": 3
+      },
+      "fit_comercial": {
+        "peso": 35,
+        "componentes": {
+          "interesse": 1,
+          "engajamento": 1,
+          "sessao_agendada": 1,
+          "parceiro_envolvido": 1
+        }
+      },
+      "fit_operacional": {
+        "peso": 40,
+        "componentes": {
+          "cidade_atendida": 1,
+          "dpp_com_capacidade": 1,
+          "regiao_com_profissional": 1
+        }
+      }
+    },
+    "descricao": "PRD 7.1, 22.2 C-14; formato exato exigido por privado.calcular_score (P17, migration 0010): três eixos com peso e componentes de 0 a 1, mais os critérios de cada componente [confirmar: Leonardo, pesos internos e critérios]."
+  },
+  {
+    "chave": "taxa_visivel_agente",
+    "valor": false,
+    "descricao": "PRD 6.8, 22.2 C-17: a Isadora nunca confirma o valor da taxa de deslocamento, só avisa que existe e passa para o comercial."
+  },
+  {
+    "chave": "validador_listas",
+    "valor": {
+      "escassez": [
+        "última vaga",
+        "corre que acaba",
+        "só hoje",
+        "imperdível",
+        "não perca essa chance"
+      ],
+      "promessas": [
+        "garantimos",
+        "resultado garantido",
+        "com certeza vai",
+        "prometo que"
+      ],
+      "palavras_evitadas": [
+        "mãezinha",
+        "mamãe",
+        "papai",
+        "amiga",
+        "princesa",
+        "empoderamento",
+        "transformação",
+        "milagre",
+        "vibe",
+        "energia",
+        "cura",
+        "método infalível",
+        "garantimos",
+        "última vaga",
+        "imperdível"
+      ]
+    },
+    "descricao": "PRD 6.8, 11.6, 11.11 item 5: listas lidas pelo validador do fluxo 3, nunca escritas no código (fluxo 3 ainda não existe, fica pronto para o P22 a P25)."
+  }
+]

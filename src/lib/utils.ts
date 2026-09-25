@@ -81,7 +81,7 @@ const mesclarClasses = extendTailwindMerge({
       radius: ["1", "2", "3", "pilula"],
       shadow: ["1", "2", "anel-hoje"],
       spacing: ["toque", "toque-campo", "margem-tela"],
-      container: ["conteudo", "leitura", "lateral"],
+      container: ["conteudo", "leitura", "lateral", "portal", "acesso"],
       ease: ["saida", "estado"],
       font: ["titulo"],
     },

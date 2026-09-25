@@ -1,0 +1,639 @@
+[
+  {
+    "maquina": "p1",
+    "de": "novo",
+    "para": "em_conversa_ia",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "em_conversa_ia",
+    "para": "qualificado",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "qualificado",
+    "para": "sessao_venda_agendada",
+    "automatica": false,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "sessao_venda_agendada",
+    "para": "sessao_venda_realizada",
+    "automatica": false,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "novo",
+    "para": "nao_qualificado",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "novo",
+    "para": "fora_de_cobertura",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "novo",
+    "para": "nutricao",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "novo",
+    "para": "perdido",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "em_conversa_ia",
+    "para": "nao_qualificado",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "em_conversa_ia",
+    "para": "fora_de_cobertura",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "em_conversa_ia",
+    "para": "nutricao",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "em_conversa_ia",
+    "para": "perdido",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "qualificado",
+    "para": "nutricao",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "qualificado",
+    "para": "perdido",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "qualificado",
+    "para": "fora_de_cobertura",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "sessao_venda_agendada",
+    "para": "qualificado",
+    "automatica": false,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "nutricao",
+    "para": "em_conversa_ia",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "nutricao",
+    "para": "qualificado",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "nutricao",
+    "para": "sessao_venda_agendada",
+    "automatica": false,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "perdido",
+    "para": "em_conversa_ia",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "nao_qualificado",
+    "para": "em_conversa_ia",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p1",
+    "de": "fora_de_cobertura",
+    "para": "em_conversa_ia",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p2",
+    "de": "sessao_venda_realizada",
+    "para": "proposta_enviada",
+    "automatica": false,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p2",
+    "de": "qualificado",
+    "para": "proposta_enviada",
+    "automatica": false,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p2",
+    "de": "nutricao",
+    "para": "proposta_enviada",
+    "automatica": false,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p2",
+    "de": "proposta_enviada",
+    "para": "em_negociacao",
+    "automatica": false,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p2",
+    "de": "em_negociacao",
+    "para": "ganho",
+    "automatica": false,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p2",
+    "de": "ganho",
+    "para": "contrato_gerado",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p2",
+    "de": "contrato_gerado",
+    "para": "aguardando_assinatura",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p2",
+    "de": "aguardando_assinatura",
+    "para": "assinado",
+    "automatica": true,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p2",
+    "de": "assinado",
+    "para": "cobranca_gerada",
+    "automatica": true,
+    "papel_minimo": "financeiro"
+  },
+  {
+    "maquina": "p2",
+    "de": "cobranca_gerada",
+    "para": "pagamento_confirmado",
+    "automatica": true,
+    "papel_minimo": "financeiro"
+  },
+  {
+    "maquina": "p2",
+    "de": "pagamento_confirmado",
+    "para": "nota_fiscal_emitida",
+    "automatica": true,
+    "papel_minimo": "financeiro"
+  },
+  {
+    "maquina": "p2",
+    "de": "nota_fiscal_emitida",
+    "para": "consulta_prenatal_agendada",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "consulta_prenatal_agendada",
+    "para": "consulta_realizada",
+    "automatica": true,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "consulta_realizada",
+    "para": "enfermeira_designada",
+    "automatica": true,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "enfermeira_designada",
+    "para": "aguardando_nascimento",
+    "automatica": true,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "aguardando_nascimento",
+    "para": "bebe_nasceu",
+    "automatica": true,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "bebe_nasceu",
+    "para": "aguardando_alta",
+    "automatica": true,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "aguardando_alta",
+    "para": "atendimento_liberado",
+    "automatica": true,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "pagamento_confirmado",
+    "para": "consulta_prenatal_agendada",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "pagamento_confirmado",
+    "para": "bebe_nasceu",
+    "automatica": true,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "nota_fiscal_emitida",
+    "para": "bebe_nasceu",
+    "automatica": true,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "consulta_prenatal_agendada",
+    "para": "bebe_nasceu",
+    "automatica": true,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "consulta_realizada",
+    "para": "bebe_nasceu",
+    "automatica": true,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "enfermeira_designada",
+    "para": "bebe_nasceu",
+    "automatica": true,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "proposta_enviada",
+    "para": "perdido",
+    "automatica": false,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p2",
+    "de": "em_negociacao",
+    "para": "perdido",
+    "automatica": false,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p2",
+    "de": "ganho",
+    "para": "cancelado",
+    "automatica": false,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p2",
+    "de": "contrato_gerado",
+    "para": "cancelado",
+    "automatica": false,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p2",
+    "de": "aguardando_assinatura",
+    "para": "cancelado",
+    "automatica": false,
+    "papel_minimo": "comercial"
+  },
+  {
+    "maquina": "p2",
+    "de": "assinado",
+    "para": "distrato",
+    "automatica": false,
+    "papel_minimo": "diretoria"
+  },
+  {
+    "maquina": "p2",
+    "de": "cobranca_gerada",
+    "para": "distrato",
+    "automatica": false,
+    "papel_minimo": "diretoria"
+  },
+  {
+    "maquina": "p2",
+    "de": "pagamento_confirmado",
+    "para": "distrato",
+    "automatica": false,
+    "papel_minimo": "diretoria"
+  },
+  {
+    "maquina": "p2",
+    "de": "nota_fiscal_emitida",
+    "para": "distrato",
+    "automatica": false,
+    "papel_minimo": "diretoria"
+  },
+  {
+    "maquina": "p2",
+    "de": "consulta_prenatal_agendada",
+    "para": "distrato",
+    "automatica": false,
+    "papel_minimo": "diretoria"
+  },
+  {
+    "maquina": "p2",
+    "de": "consulta_realizada",
+    "para": "distrato",
+    "automatica": false,
+    "papel_minimo": "diretoria"
+  },
+  {
+    "maquina": "p2",
+    "de": "enfermeira_designada",
+    "para": "distrato",
+    "automatica": false,
+    "papel_minimo": "diretoria"
+  },
+  {
+    "maquina": "p2",
+    "de": "aguardando_nascimento",
+    "para": "distrato",
+    "automatica": false,
+    "papel_minimo": "diretoria"
+  },
+  {
+    "maquina": "p2",
+    "de": "bebe_nasceu",
+    "para": "distrato",
+    "automatica": false,
+    "papel_minimo": "diretoria"
+  },
+  {
+    "maquina": "p2",
+    "de": "aguardando_alta",
+    "para": "distrato",
+    "automatica": false,
+    "papel_minimo": "diretoria"
+  },
+  {
+    "maquina": "p2",
+    "de": "proposta_enviada",
+    "para": "intercorrencia",
+    "automatica": true,
+    "papel_minimo": null
+  },
+  {
+    "maquina": "p2",
+    "de": "em_negociacao",
+    "para": "intercorrencia",
+    "automatica": true,
+    "papel_minimo": null
+  },
+  {
+    "maquina": "p2",
+    "de": "ganho",
+    "para": "intercorrencia",
+    "automatica": true,
+    "papel_minimo": null
+  },
+  {
+    "maquina": "p2",
+    "de": "contrato_gerado",
+    "para": "intercorrencia",
+    "automatica": true,
+    "papel_minimo": null
+  },
+  {
+    "maquina": "p2",
+    "de": "aguardando_assinatura",
+    "para": "intercorrencia",
+    "automatica": true,
+    "papel_minimo": null
+  },
+  {
+    "maquina": "p2",
+    "de": "assinado",
+    "para": "intercorrencia",
+    "automatica": true,
+    "papel_minimo": null
+  },
+  {
+    "maquina": "p2",
+    "de": "cobranca_gerada",
+    "para": "intercorrencia",
+    "automatica": true,
+    "papel_minimo": null
+  },
+  {
+    "maquina": "p2",
+    "de": "pagamento_confirmado",
+    "para": "intercorrencia",
+    "automatica": true,
+    "papel_minimo": null
+  },
+  {
+    "maquina": "p2",
+    "de": "nota_fiscal_emitida",
+    "para": "intercorrencia",
+    "automatica": true,
+    "papel_minimo": null
+  },
+  {
+    "maquina": "p2",
+    "de": "consulta_prenatal_agendada",
+    "para": "intercorrencia",
+    "automatica": true,
+    "papel_minimo": null
+  },
+  {
+    "maquina": "p2",
+    "de": "consulta_realizada",
+    "para": "intercorrencia",
+    "automatica": true,
+    "papel_minimo": null
+  },
+  {
+    "maquina": "p2",
+    "de": "enfermeira_designada",
+    "para": "intercorrencia",
+    "automatica": true,
+    "papel_minimo": null
+  },
+  {
+    "maquina": "p2",
+    "de": "aguardando_nascimento",
+    "para": "intercorrencia",
+    "automatica": true,
+    "papel_minimo": null
+  },
+  {
+    "maquina": "p2",
+    "de": "bebe_nasceu",
+    "para": "intercorrencia",
+    "automatica": true,
+    "papel_minimo": null
+  },
+  {
+    "maquina": "p2",
+    "de": "aguardando_alta",
+    "para": "intercorrencia",
+    "automatica": true,
+    "papel_minimo": null
+  },
+  {
+    "maquina": "p2",
+    "de": "intercorrencia",
+    "para": "proposta_enviada",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "intercorrencia",
+    "para": "em_negociacao",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "intercorrencia",
+    "para": "ganho",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "intercorrencia",
+    "para": "contrato_gerado",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "intercorrencia",
+    "para": "aguardando_assinatura",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "intercorrencia",
+    "para": "assinado",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "intercorrencia",
+    "para": "cobranca_gerada",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "intercorrencia",
+    "para": "pagamento_confirmado",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "intercorrencia",
+    "para": "nota_fiscal_emitida",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "intercorrencia",
+    "para": "consulta_prenatal_agendada",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "intercorrencia",
+    "para": "consulta_realizada",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "intercorrencia",
+    "para": "enfermeira_designada",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "intercorrencia",
+    "para": "aguardando_nascimento",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "intercorrencia",
+    "para": "bebe_nasceu",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  },
+  {
+    "maquina": "p2",
+    "de": "intercorrencia",
+    "para": "aguardando_alta",
+    "automatica": false,
+    "papel_minimo": "coordenacao"
+  }
+]

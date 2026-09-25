@@ -239,6 +239,8 @@
   --container-conteudo: 1240px;
   --container-leitura: 68ch;
   --container-lateral: 248px;
+  --container-portal: 720px; /* portal da enfermeira no computador (telas.md) */
+  --container-acesso: 400px; /* coluna das telas de entrar e MFA (entrar.html) */
 
   /* Raio: quatro degraus, comprometidos (nada fora daqui). */
   --radius-1: 4px; /* caixa de seleção, marca pequena */
