@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Alerta clínico · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/icones.js"></script>
+<style>
+  /* Linha do tempo: não existe componente próprio em base.css (declarado no retorno).
+     Composta aqui só com .pilha, .data-chave e a variável existente --linha, sem cor,
+     fonte, raio ou sombra nova. */
+  .k5-tempo { display: flex; flex-direction: column; gap: var(--e-5); border-left: var(--borda-fina); margin-left: 5px; }
+  .k5-tempo__item { position: relative; padding-left: var(--e-5); }
+  .k5-tempo__item::before { content: ""; position: absolute; left: -5px; top: 4px; width: 9px; height: 9px; border-radius: var(--raio-pilula); background: var(--marinho-50); }
+  .k5-tempo__item[data-estado="feito"]::before { background: var(--marinho); }
+  .k5-tempo__item[data-estado="alerta"]::before { background: var(--alerta); }
+  .k5-registro { display: flex; flex-direction: column; gap: var(--e-4); }
+  .k5-estados { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); border-top: var(--borda-fina); margin-top: var(--e-8); }
+  .k5-estado__titulo { font-size: var(--tam-mini); font-weight: 600; color: var(--texto-2); }
+</style>
+</head>
+<body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<div class="app">
+
+  <nav class="lateral" aria-label="Navegação principal">
+    <div class="lateral__marca">
+      <img src="assets/simbolo-provisorio.png" alt="" width="36" height="31">
+      <span class="lateral__nome">Kraamzorg OS</span>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Operação</span>
+      <a class="lateral__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">2</span></a>
+      <a class="lateral__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+      <a class="lateral__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
+      <a class="lateral__item" href="coordenacao-equipe.html"><svg class="icone"><use href="#i-user-check"/></svg>Equipe</a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Experiência</span>
+      <a class="lateral__item" href="#" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+      <a class="lateral__item" href="coordenacao-entrevista.html"><svg class="icone"><use href="#i-clipboard-list"/></svg>Entrevistas</a>
+    </div>
+    <div class="lateral__pe">
+      <div class="forte">Beatriz Falcão</div>
+      <div class="mini" style="color: var(--texto-inverso-2)">Coordenação clínica · perfil fictício</div>
+    </div>
+  </nav>
+
+  <main class="app__principal" id="conteudo">
+    <header class="cab-tela">
+      <a class="botao botao--terciario botao--compacto" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-arrow-left"/></svg>Início</a>
+      <span class="cab-tela__titulo t-2 empurra">Alerta clínico</span>
+    </header>
+
+    <div class="pilha pilha--6" style="padding-top: var(--e-5)">
+
+      <!-- Cabeçalho da família, com freio em um toque -->
+      <div class="familia-cab">
+        <div>
+          <h1 class="familia-cab__nome">Família Teste Aurora</h1>
+          <div class="familia-cab__linha">
+            <span class="selo">Essencial 6 dias</span>
+            <span class="dado">D4 de 6</span>
+            <span><svg class="icone icone--16"><use href="#i-map-pin"/></svg> Moema, São Paulo</span>
+          </div>
+        </div>
+        <button class="botao-freio" type="button"><svg class="icone"><use href="#i-hand"/></svg>Freio</button>
+        <div class="familia-cab__datas">
+          <div class="data-chave"><span class="data-chave__rotulo">DPP</span><span class="data-chave__valor">25/09/2026</span><span class="data-chave__tipo">estimativa</span></div>
+          <div class="data-chave"><span class="data-chave__rotulo">Nascimento</span><span class="data-chave__valor">18/09/2026</span><span class="data-chave__tipo">fato</span></div>
+          <div class="data-chave"><span class="data-chave__rotulo">Alta</span><span class="data-chave__valor">20/09/2026</span><span class="data-chave__tipo">fato</span></div>
+          <div class="data-chave"><span class="data-chave__rotulo">Início</span><span class="data-chave__valor">21/09/2026</span><span class="data-chave__tipo">fato</span></div>
+        </div>
+      </div>
+
+      <!-- Faixa do alerta imediato -->
+      <div class="faixa faixa--imediato" role="alert">
+        <svg class="icone"><use href="#i-siren"/></svg>
+        <div>
+          <div class="faixa__titulo"><span class="faixa__codigo">PU-01</span>Febre de 38,2 °C na puérpera</div>
+          <p class="faixa__texto">Acione a supervisão médica agora e oriente a família a procurar atendimento de emergência.</p>
+          <div class="faixa__acoes">
+            <a class="botao botao--alerta" href="tel:+551190000001"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para Talita Moreno</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Linha do tempo -->
+      <section>
+        <h2 class="t-3" style="margin-bottom: var(--e-4)">Linha do tempo</h2>
+        <ol class="k5-tempo">
+          <li class="k5-tempo__item" data-estado="feito">
+            <span class="dado">10:09</span>
+            <p class="corpo">Temperatura de 38,2 °C salva no aparelho, sem sinal.</p>
+          </li>
+          <li class="k5-tempo__item" data-estado="feito">
+            <span class="dado">10:12</span>
+            <p class="corpo">Registro sincronizado.</p>
+          </li>
+          <li class="k5-tempo__item" data-estado="alerta">
+            <span class="dado">10:14</span>
+            <p class="corpo">Acionamento registrado por Talita Moreno.</p>
+          </li>
+          <li class="k5-tempo__item" data-estado="feito">
+            <span class="dado">10:21</span>
+            <p class="corpo">Orientação médica recebida e conduta registrada.</p>
+          </li>
+        </ol>
+      </section>
+
+      <!-- Registro obrigatório -->
+      <section class="k5-registro">
+        <h2 class="t-3">Registro do acionamento</h2>
+        <div class="pares">
+          <dt>Sinal</dt><dd class="dado">PU-01</dd>
+          <dt>Horário do acionamento</dt><dd class="dado">10:14</dd>
+        </div>
+        <div class="campo">
+          <span class="campo__rotulo">Orientação médica recebida</span>
+          <div class="campo__caixa"><textarea class="campo__entrada" readonly>Observação em casa, com retorno de temperatura em 2 horas. Se persistir acima de 38 °C, procurar atendimento de emergência.</textarea></div>
+        </div>
+        <div class="campo">
+          <span class="campo__rotulo">Conduta adotada</span>
+          <div class="campo__caixa"><textarea class="campo__entrada" readonly>Compressas mornas e antitérmico conforme prescrição, com reavaliação da temperatura em 2 horas.</textarea></div>
+        </div>
+        <div class="linha-flex">
+          <button class="botao botao--primario" type="button">Fechar alerta</button>
+        </div>
+      </section>
+
+      <!-- ---------- Estados ---------- -->
+      <div class="k5-estados">
+        <div>
+          <p class="k5-estado__titulo">Registro incompleto</p>
+          <div class="k5-registro cartao cartao--plano">
+            <div class="pares">
+              <dt>Sinal</dt><dd class="dado">PU-01</dd>
+              <dt>Horário do acionamento</dt><dd class="dado">10:14</dd>
+            </div>
+            <div class="campo">
+              <span class="campo__rotulo">Orientação médica recebida</span>
+              <div class="campo__caixa"><textarea class="campo__entrada" readonly>Observação em casa, com retorno de temperatura em 2 horas.</textarea></div>
+            </div>
+            <div class="campo" data-estado="erro">
+              <span class="campo__rotulo">Conduta adotada</span>
+              <div class="campo__caixa"><textarea class="campo__entrada" placeholder="Ainda não registrada por Talita Moreno"></textarea></div>
+              <span class="campo__ajuda"><svg class="icone"><use href="#i-circle-alert"/></svg>Falta a conduta adotada. Peça a Talita Moreno para completar o registro antes de fechar o alerta.</span>
+            </div>
+            <button class="botao botao--primario" type="button" disabled aria-disabled="true">Fechar alerta</button>
+            <p class="apoio">Fechar alerta desabilitado: falta a conduta adotada.</p>
+          </div>
+        </div>
+
+        <div>
+          <p class="k5-estado__titulo">Fechado</p>
+          <div class="faixa faixa--sucesso">
+            <svg class="icone"><use href="#i-circle-check"/></svg>
+            <p class="faixa__texto">Alerta fechado às 10:24 por Beatriz Falcão. Registro completo.</p>
+          </div>
+        </div>
+
+        <div>
+          <p class="k5-estado__titulo">Prioritário (AM-05)</p>
+          <div class="faixa faixa--prioritario">
+            <svg class="icone"><use href="#i-triangle-alert"/></svg>
+            <div>
+              <div class="faixa__titulo"><span class="faixa__codigo">AM-05</span>Dor persistente à amamentação</div>
+              <p class="faixa__texto">Família Teste Cedro. Comunicar supervisão médica e avaliar consultoria especializada.</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p class="k5-estado__titulo">Saúde mental (ocorrência privada)</p>
+          <div class="faixa faixa--sensivel">
+            <svg class="icone"><use href="#i-shield-alert"/></svg>
+            <div>
+              <div class="faixa__titulo"><span class="faixa__codigo">SM-04</span>Tristeza intensa e persistente</div>
+              <p class="faixa__texto">Família Teste Ipê. Comunicar supervisão médica e registrar.</p>
+              <p class="faixa__meta">Visível só para coordenação e diretoria.</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p class="k5-estado__titulo">Família com freio</p>
+          <div class="familia-cab" data-freio="ativo">
+            <div>
+              <h3 class="familia-cab__nome">Família Teste Brisa</h3>
+              <div class="familia-cab__linha"><span class="dado">Aguardando nascimento</span></div>
+            </div>
+            <span class="freio-ativo"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio ativo</span>
+            <p class="familia-cab__linha" style="grid-column: 1 / -1">Freio em bloqueio total desde 24/09/2026, 09:14. Só contato humano e nominal.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <nav class="abas-inf" aria-label="Navegação principal">
+    <a class="abas-inf__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">2</span></a>
+    <a class="abas-inf__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+    <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
+    <a class="abas-inf__item" href="#" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="coordenacao.html"><svg class="icone"><use href="#i-ellipsis"/></svg>Mais</a>
+  </nav>
+</div>
+</body>
+</html>

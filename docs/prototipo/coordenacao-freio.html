@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Freio: reverter ou ajustar · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/icones.js"></script>
+<style>
+  .k7-estados-freio { display: grid; gap: var(--e-3); }
+  @media (min-width: 700px) { .k7-estados-freio { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .k7-opcao { display: flex; flex-direction: column; gap: var(--e-2); padding: var(--e-4); border: var(--borda-campo-l); border-radius: var(--raio-2); }
+  .k7-opcao input { position: absolute; opacity: 0; }
+  .k7-opcao:has(input:checked) { border-color: var(--foco); box-shadow: 0 0 0 4px var(--foco-halo); }
+  .k7-secao { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); border-top: var(--borda-fina); margin-top: var(--e-8); }
+  .k7-secao__titulo { font-size: var(--tam-mini); font-weight: 600; color: var(--texto-2); }
+</style>
+</head>
+<body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<div class="app">
+
+  <nav class="lateral" aria-label="Navegação principal">
+    <div class="lateral__marca">
+      <img src="assets/simbolo-provisorio.png" alt="" width="36" height="31">
+      <span class="lateral__nome">Kraamzorg OS</span>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Operação</span>
+      <a class="lateral__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">2</span></a>
+      <a class="lateral__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Experiência</span>
+      <a class="lateral__item" href="#" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    </div>
+    <div class="lateral__pe">
+      <div class="forte">Beatriz Falcão</div>
+      <div class="mini" style="color: var(--texto-inverso-2)">Coordenação clínica · perfil fictício</div>
+    </div>
+  </nav>
+
+  <main class="app__principal" id="conteudo">
+    <header class="cab-tela">
+      <a class="botao botao--terciario botao--compacto" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-arrow-left"/></svg>Início</a>
+      <span class="cab-tela__titulo t-2 empurra">Freio: reverter ou ajustar</span>
+    </header>
+
+    <div class="pilha pilha--6" style="padding-top: var(--e-5)">
+
+      <div class="familia-cab" data-freio="ativo">
+        <div>
+          <h1 class="familia-cab__nome">Família Teste Brisa</h1>
+          <div class="familia-cab__linha"><span class="dado">Aguardando nascimento</span><span><svg class="icone icone--16"><use href="#i-map-pin"/></svg> Pinheiros, São Paulo</span></div>
+        </div>
+        <span class="freio-ativo"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio ativo</span>
+        <div class="familia-cab__datas">
+          <div class="data-chave"><span class="data-chave__rotulo">DPP</span><span class="data-chave__valor">02/10/2026</span><span class="data-chave__tipo">estimativa</span></div>
+        </div>
+      </div>
+
+      <div class="faixa faixa--sensivel">
+        <svg class="icone"><use href="#i-octagon-pause"/></svg>
+        <div>
+          <p class="faixa__texto">Freio em bloqueio total desde 24/09/2026, 09:14. Só contato humano e nominal.</p>
+          <p class="faixa__meta">Acionado por Otávio Lemos em 24/09/2026, 09:14. Justificativa pendente.</p>
+        </div>
+      </div>
+
+      <!-- Folha com os quatro estados -->
+      <section class="folha folha--estatica cartao--plano">
+        <h2 class="t-3" style="margin-bottom: var(--e-4)">Ajustar o estado da família</h2>
+        <form class="pilha pilha--6">
+          <fieldset class="k7-estados-freio">
+            <legend class="sr">Escolha o novo estado</legend>
+            <label class="k7-opcao">
+              <input type="radio" name="estado-freio">
+              <span class="forte">Normal</span>
+              <span class="apoio">Operação padrão. Todas as réguas ativas.</span>
+            </label>
+            <label class="k7-opcao">
+              <input type="radio" name="estado-freio">
+              <span class="forte">Atenção</span>
+              <span class="apoio">Réguas de conteúdo e marketing pausadas. Comunicação operacional mantida.</span>
+            </label>
+            <label class="k7-opcao">
+              <input type="radio" name="estado-freio" checked>
+              <span class="forte">Bloqueio total</span>
+              <span class="apoio">Todas as automações que falam com a família congeladas. Só contato humano e nominal.</span>
+            </label>
+            <label class="k7-opcao">
+              <input type="radio" name="estado-freio">
+              <span class="forte">Encerrado sensível</span>
+              <span class="apoio">Sai de pesquisa, indicação, remarketing e qualquer régua futura, para sempre.</span>
+            </label>
+          </fieldset>
+
+          <div class="campo" data-estado="erro">
+            <span class="campo__rotulo">Justificativa</span>
+            <div class="campo__caixa"><textarea class="campo__entrada" placeholder="Descreva o motivo da mudança"></textarea></div>
+            <span class="campo__ajuda"><svg class="icone"><use href="#i-circle-alert"/></svg>A justificativa é obrigatória. Escreva o motivo antes de confirmar.</span>
+          </div>
+
+          <button class="botao botao--sensivel botao--bloco" type="submit">Confirmar mudança</button>
+        </form>
+      </section>
+
+      <!-- ---------- Estados ---------- -->
+      <div class="k7-secao">
+        <div>
+          <p class="k7-secao__titulo">Sem permissão (enfermeira ou comercial)</p>
+          <div class="familia-cab" data-freio="ativo">
+            <div>
+              <h3 class="familia-cab__nome">Família Teste Brisa</h3>
+              <div class="familia-cab__linha"><span class="dado">Aguardando nascimento</span></div>
+            </div>
+            <span class="freio-ativo"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio ativo</span>
+          </div>
+          <p class="apoio" style="margin-top: var(--e-3)">Freio em bloqueio total desde 24/09/2026, 09:14. Reverter ou ajustar exige perfil de coordenação ou diretoria.</p>
+        </div>
+
+        <div>
+          <p class="k7-secao__titulo">Justificativa vazia</p>
+          <div class="campo" data-estado="erro" style="max-width: 480px">
+            <span class="campo__rotulo">Justificativa</span>
+            <div class="campo__caixa"><textarea class="campo__entrada"></textarea></div>
+            <span class="campo__ajuda"><svg class="icone"><use href="#i-circle-alert"/></svg>A justificativa é obrigatória. Escreva o motivo antes de confirmar.</span>
+          </div>
+        </div>
+
+        <div>
+          <p class="k7-secao__titulo">Mudança salva</p>
+          <div class="familia-cab">
+            <div>
+              <h3 class="familia-cab__nome">Família Teste Brisa</h3>
+              <div class="familia-cab__linha"><span class="dado">Aguardando nascimento</span></div>
+            </div>
+            <button class="botao-freio" type="button"><svg class="icone"><use href="#i-hand"/></svg>Freio</button>
+          </div>
+          <div class="aviso-efemero aviso-efemero--estatico" style="margin-top: var(--e-3)">
+            <svg class="icone"><use href="#i-check"/></svg>
+            <span class="corpo">Estado alterado para atenção às 15:40 por Beatriz Falcão.</span>
+          </div>
+        </div>
+
+        <div>
+          <p class="k7-secao__titulo">Encerrado sensível</p>
+          <div class="faixa faixa--sensivel">
+            <svg class="icone"><use href="#i-octagon-pause"/></svg>
+            <p class="faixa__texto">Encerrada em estado sensível às 15:40 por Beatriz Falcão. A Família Teste Brisa sai de pesquisa, indicação e remarketing, para sempre.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <nav class="abas-inf" aria-label="Navegação principal">
+    <a class="abas-inf__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">2</span></a>
+    <a class="abas-inf__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+    <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
+    <a class="abas-inf__item" href="#" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="coordenacao.html"><svg class="icone"><use href="#i-ellipsis"/></svg>Mais</a>
+  </nav>
+</div>
+</body>
+</html>

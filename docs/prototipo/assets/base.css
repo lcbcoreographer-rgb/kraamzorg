@@ -497,3 +497,32 @@ textarea.campo__entrada { padding: var(--e-3) var(--e-4); min-height: 120px; res
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
   .esqueleto { background: var(--marinho-08); }
 }
+
+/* ---------- Adições do grupo coordenacao (25/09/2026) ----------
+   Três componentes que faltavam para K2, K4 e K6. Não alteram nenhuma regra
+   existente; enfermeira.html e comercial.html não usam nenhuma destas classes. */
+
+/* Visibilidade por faixa, quando a mesma informação precisa de duas composições
+   de DOM diferentes (tabela no computador, cartão no celular). Mesmo ponto de
+   corte de .lateral / .abas-inf (1024px). */
+.somente-computador { display: none; }
+.somente-celular { display: block; }
+@media (min-width: 1024px) {
+  .somente-computador { display: block; }
+  .somente-celular { display: none; }
+}
+
+/* Layout de três colunas (K4, entrevista pré-natal): lista de etapas, formulário
+   e contexto da família lado a lado no computador. Empilha no celular e no tablet,
+   porque lá a tela é uma etapa por vez (regra do fluxo B). */
+.tres-colunas { display: grid; gap: var(--e-6); }
+@media (min-width: 1024px) {
+  .tres-colunas { grid-template-columns: minmax(0, 22fr) minmax(0, 46fr) minmax(0, 32fr); align-items: start; }
+}
+
+/* Semana da equipe: variante compacta (sem a coluna de nome, para dentro de um
+   cartão que já mostra o nome no cabeçalho) e turno tocável a 44 px de alvo. */
+.semana--compacta { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.semana--tocavel .semana__turno { min-height: 21px; }
+.semana__turno--tocavel { border: 0; padding: 0; cursor: pointer; width: 100%; }
+.semana__turno--tocavel:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Início · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/icones.js"></script>
+<style>
+  .k1-secao { display: flex; flex-direction: column; gap: var(--e-3); }
+  .k1-secao__titulo { font-size: var(--tam-mini); font-weight: 600; color: var(--texto-2); }
+  .k1-decisao { display: flex; flex-direction: column; gap: 2px; padding: var(--e-4); background: var(--superficie); border-radius: var(--raio-3); box-shadow: var(--sombra-1); }
+  .k1-decisao__linha { display: flex; align-items: center; gap: var(--e-2); }
+  .k1-sintese { padding: var(--e-4); background: var(--superficie-2); border-radius: var(--raio-3); }
+  .k1-estados { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); border-top: var(--borda-fina); margin-top: var(--e-8); }
+  .k1-estado__titulo { font-size: var(--tam-mini); font-weight: 600; color: var(--texto-2); text-transform: none; }
+</style>
+</head>
+<body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<div class="app">
+
+  <nav class="lateral" aria-label="Navegação principal">
+    <div class="lateral__marca">
+      <img src="assets/simbolo-provisorio.png" alt="" width="36" height="31">
+      <span class="lateral__nome">Kraamzorg OS</span>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Operação</span>
+      <a class="lateral__item" href="coordenacao-inicio.html" aria-current="page"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">2</span></a>
+      <a class="lateral__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+      <a class="lateral__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
+      <a class="lateral__item" href="coordenacao-equipe.html"><svg class="icone"><use href="#i-user-check"/></svg>Equipe</a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Experiência</span>
+      <a class="lateral__item" href="#"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+      <a class="lateral__item" href="coordenacao-entrevista.html"><svg class="icone"><use href="#i-clipboard-list"/></svg>Entrevistas</a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Sistema</span>
+      <a class="lateral__item" href="_kit.html"><svg class="icone"><use href="#i-layout-dashboard"/></svg>Kit de componentes</a>
+      <a class="lateral__item" href="#"><svg class="icone"><use href="#i-settings"/></svg>Configurações</a>
+    </div>
+    <div class="lateral__pe">
+      <div class="forte">Beatriz Falcão</div>
+      <div class="mini" style="color: var(--texto-inverso-2)">Coordenação clínica · perfil fictício</div>
+    </div>
+  </nav>
+
+  <main class="app__principal" id="conteudo">
+    <header class="cab-tela">
+      <span class="cab-tela__titulo t-display">Início</span>
+      <span class="sinc empurra" data-estado="sincronizado" role="status"><svg class="icone"><use href="#i-cloud-check"/></svg>Sincronizado 08:02</span>
+    </header>
+
+    <div class="pilha pilha--8" style="padding-top: var(--e-6)">
+
+      <!-- 1. Alerta imediato: PU-01 Aurora -->
+      <section class="k1-secao" aria-label="Alertas abertos">
+        <div class="faixa faixa--imediato" role="alert">
+          <svg class="icone"><use href="#i-siren"/></svg>
+          <div>
+            <div class="faixa__titulo"><span class="faixa__codigo">PU-01</span>Febre de 38,2 °C na puérpera</div>
+            <p class="faixa__texto">Família Teste Aurora, D4 de 6. Acionamento registrado às 10:14 por Talita Moreno.</p>
+            <div class="faixa__acoes">
+              <a class="botao botao--alerta botao--compacto" href="coordenacao-alerta.html">Fechar alerta</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alerta de saúde mental: aparece na lista sem detalhe -->
+        <div class="faixa faixa--imediato">
+          <svg class="icone"><use href="#i-shield-alert"/></svg>
+          <div>
+            <div class="faixa__titulo">Ocorrência de saúde mental registrada</div>
+            <p class="faixa__texto">Família Teste Ipê. Visível só para coordenação e diretoria.</p>
+            <div class="faixa__acoes">
+              <a class="botao botao--alerta botao--compacto" href="coordenacao-alerta.html">Ver ocorrência</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Transferência de saúde: Garoa -->
+        <div class="fila-item" data-prioridade="maxima">
+          <div>
+            <div class="fila-item__motivo">Relato de saúde</div>
+            <div class="fila-item__meta">Família Teste Garoa · 36s0d · "Estou com dor de cabeça forte e vendo pontinhos", às 13:52</div>
+          </div>
+          <a class="botao botao--primario botao--compacto" href="#">Assumir agora</a>
+        </div>
+      </section>
+
+      <!-- 3. Fichas pendentes -->
+      <section class="k1-secao" aria-label="Fichas pendentes">
+        <span class="k1-secao__titulo">Fichas pendentes</span>
+        <a class="cartao cartao--tocavel linha-flex" href="#">
+          <svg class="icone" style="color: var(--aviso-texto)"><use href="#i-clipboard-pen"/></svg>
+          <div>
+            <div class="forte">Ficha do D3 da Família Teste Aurora</div>
+            <div class="apoio">Ainda não assinada. Talita Moreno tem até hoje, 18:00.</div>
+          </div>
+          <svg class="icone empurra"><use href="#i-chevron-right"/></svg>
+        </a>
+      </section>
+
+      <!-- 4. Decisões -->
+      <section class="k1-secao" aria-label="Decisões pendentes">
+        <span class="k1-secao__titulo">Decisões</span>
+        <a class="k1-decisao cartao--tocavel" href="coordenacao-designar.html" style="text-decoration:none; color:inherit">
+          <div class="k1-decisao__linha">
+            <svg class="icone" style="color: var(--aviso-texto)"><use href="#i-hourglass"/></svg>
+            <span class="forte">Oferta sem resposta há 18 horas</span>
+          </div>
+          <p class="apoio">Família Teste Horizonte. Oferta para Rosana Vieira desde 23/09, 20:10.</p>
+        </a>
+        <a class="k1-decisao cartao--tocavel" href="coordenacao-entrevista.html" style="text-decoration:none; color:inherit">
+          <div class="k1-decisao__linha">
+            <svg class="icone" style="color: var(--texto-2)"><use href="#i-clipboard-list"/></svg>
+            <span class="forte">Entrevista pré-natal em andamento</span>
+          </div>
+          <p class="apoio">Família Teste Jasmim. Parou na etapa 4 de 8 em 24/09/2026, 19:40.</p>
+        </a>
+      </section>
+
+      <!-- 5. Síntese da equipe -->
+      <section class="k1-secao" aria-label="Síntese da equipe">
+        <span class="k1-secao__titulo">Equipe agora</span>
+        <p class="k1-sintese corpo">3 enfermeiras em visita agora, 1 livre, 2 reservadas para esta semana e 1 oferta sem resposta há 18 horas.</p>
+      </section>
+
+      <!-- ---------- Estados ---------- -->
+      <div class="k1-estados">
+        <p class="apoio">Nota sobre a captura desta seção: em tela real cada estado ocupa a tela inteira; aqui os quatro ficam lado a lado só para revisão.</p>
+
+        <div>
+          <p class="k1-estado__titulo">Nada pendente (vazio que ensina)</p>
+          <div class="vazio">
+            <svg class="icone icone--24"><use href="#i-circle-check"/></svg>
+            <span class="vazio__titulo">Nenhuma decisão pendente agora</span>
+            <p class="vazio__texto">Quando um alerta abrir, uma ficha vencer o prazo ou uma oferta esperar resposta, a decisão aparece aqui primeiro.</p>
+          </div>
+        </div>
+
+        <div>
+          <p class="k1-estado__titulo">Carregando</p>
+          <div class="pilha pilha--2">
+            <span class="esqueleto esqueleto--bloco"></span>
+            <span class="esqueleto esqueleto--bloco" style="height: 64px"></span>
+          </div>
+        </div>
+
+        <div>
+          <p class="k1-estado__titulo">Offline</p>
+          <div class="faixa faixa--info">
+            <svg class="icone"><use href="#i-wifi-off"/></svg>
+            <div>
+              <p class="faixa__texto">Sem sinal agora. Mostrando os dados de 08:02, a última vez que a lista atualizou.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <nav class="abas-inf" aria-label="Navegação principal">
+    <a class="abas-inf__item" href="coordenacao-inicio.html" aria-current="page"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">2</span></a>
+    <a class="abas-inf__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+    <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
+    <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="coordenacao.html"><svg class="icone"><use href="#i-ellipsis"/></svg>Mais</a>
+  </nav>
+</div>
+</body>
+</html>
