@@ -3,17 +3,23 @@
 // pura: o build embute este arquivo no nó Code; os testes importam a mesma
 // função.
 //
-// Frases são reconhecidas por pontuação final (. ! ?). Quando o texto tem
-// mais frases do que blocos permitidos, o excedente é anexado ao último
-// bloco em vez de criar um quarto bloco.
+// Frases são reconhecidas por pontuação final (. ! ?) seguida de espaço ou
+// quebra de linha. Quando o texto tem mais frases do que blocos permitidos, o
+// excedente é anexado ao último bloco em vez de criar um quarto bloco.
+//
+// [P25] A versão do P23 casava frases com `[^.!?]+[.!?]+(?=\s|$)` e perdia o
+// texto antes de um ponto sem espaço depois: "O Essencial é R$ 4.200." virava
+// "200.". Agora a divisão é só no limite de frase, e nenhum caractere se
+// perde (teste em `build.test.mjs`).
 
 const TAMANHO_ALVO_PADRAO = 280;
 const MAX_BLOCOS_PADRAO = 3;
 
 function dividirEmFrases(texto) {
-  const bruto = texto.match(/[^.!?]+[.!?]+(?=\s|$)|[^.!?]+$/g);
-  if (!bruto) return [texto];
-  return bruto.map((frase) => frase.trim()).filter(Boolean);
+  return texto
+    .split(/(?<=[.!?])\s+/)
+    .map((frase) => frase.trim())
+    .filter(Boolean);
 }
 
 export function dividirEmBlocos(texto, opcoes = {}) {

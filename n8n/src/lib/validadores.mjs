@@ -214,7 +214,14 @@ const VALORES_ON_ERROR_VALIDOS = new Set(['continueRegularOutput', 'continueErro
 // retorno é lógica de nó Code/If, fora do que uma varredura de JSON prova.
 export function todaChamadaExternaComTratamentoDeErro(fluxo) {
   const problemas = [];
-  const tiposDeChamadaExterna = new Set(['n8n-nodes-base.httpRequest', 'n8n-nodes-base.postgres', 'n8n-nodes-base.redis']);
+  const tiposDeChamadaExterna = new Set([
+    'n8n-nodes-base.httpRequest',
+    'n8n-nodes-base.postgres',
+    'n8n-nodes-base.redis',
+    // [P25] sub-fluxo e agente também são chamadas que podem falhar
+    'n8n-nodes-base.executeWorkflow',
+    '@n8n/n8n-nodes-langchain.agent',
+  ]);
   for (const no of fluxo.nodes ?? []) {
     if (!tiposDeChamadaExterna.has(no.type)) continue;
     if (!VALORES_ON_ERROR_VALIDOS.has(no.onError)) {
@@ -270,6 +277,151 @@ export function semConexaoEntreNos(fluxo, nomeOrigem, nomeDestinoProibido) {
   return semProblemas();
 }
 
+// [P24] CLAUDE.md e PRD 19.1 (v4.2): a chave de toda chamada ao banco é o
+// `conversa_id`; o jid só serve para enviar. A única função do schema
+// `agente` que recebe o jid é `registrar_mensagem`, porque é ela que resolve
+// a conversa (Apêndice A).
+export function jidSoParaEnviar(fluxo) {
+  const problemas = [];
+  const regexJid = /\b(wa_)?jid\b/;
+  for (const no of fluxo.nodes ?? []) {
+    if (!TIPOS_POSTGRES.has(no.type)) continue;
+    const query = no.parameters?.query ?? '';
+    if (query.startsWith('select agente.registrar_mensagem(')) continue;
+    const parametros = no.parameters?.options?.queryReplacement ?? '';
+    if (typeof parametros === 'string' && regexJid.test(parametros)) {
+      problemas.push(`nó Postgres "${no.name}" passa o jid ao banco; a chave é o conversa_id`);
+    }
+  }
+  return comProblemas(problemas);
+}
+
+// [P24] O nó Code roda script solto: sobra de `import`/`export` no código
+// embutido quebra o nó na primeira execução, não na importação.
+export function codeSemImportNemExport(fluxo) {
+  const problemas = [];
+  for (const no of fluxo.nodes ?? []) {
+    if (no.type !== 'n8n-nodes-base.code') continue;
+    const codigo = no.parameters?.jsCode ?? '';
+    if (/^\s*(import|export)\b/m.test(codigo)) {
+      problemas.push(`nó Code "${no.name}" com import/export no código embutido`);
+    }
+  }
+  return comProblemas(problemas);
+}
+
+// [P24] PRD 11.10 e 19.1: token da UAZAPI e chave da OpenAI só em credencial
+// do n8n. Nenhum nó HTTP monta cabeçalho ou query de autenticação à mão.
+export function autenticacaoSoPorCredencial(fluxo) {
+  const problemas = [];
+  const nomeSensivel = /token|authorization|api[-_]?key|apikey|secret|senha/i;
+  for (const no of fluxo.nodes ?? []) {
+    if (no.type !== 'n8n-nodes-base.httpRequest') continue;
+    const listas = [no.parameters?.headerParameters?.parameters, no.parameters?.queryParameters?.parameters];
+    for (const lista of listas) {
+      for (const parametro of lista ?? []) {
+        if (nomeSensivel.test(parametro?.name ?? '')) {
+          problemas.push(`nó HTTP "${no.name}" manda "${parametro.name}" à mão; use credencial`);
+        }
+      }
+    }
+    const autenticacao = no.parameters?.authentication;
+    if (autenticacao && autenticacao !== 'none' && !no.credentials) {
+      problemas.push(`nó HTTP "${no.name}" com authentication "${autenticacao}" e sem credencial`);
+    }
+  }
+  return comProblemas(problemas);
+}
+
+// [P25] Todo nó Code compila: um identificador repetido entre dois arquivos
+// embutidos no mesmo nó, ou um `import ... as` que o embutidor não tem como
+// traduzir, só quebraria na primeira execução.
+export function codeCompila(fluxo) {
+  const problemas = [];
+  for (const no of fluxo.nodes ?? []) {
+    if (no.type !== 'n8n-nodes-base.code') continue;
+    const codigo = no.parameters?.jsCode ?? '';
+    if (/^\s*import\s*\{[^}]*\bas\b/m.test(codigo)) problemas.push(`nó Code "${no.name}" com import renomeado (as)`);
+    try {
+      // eslint-disable-next-line no-new-func
+      new Function('$json', '$', '$input', codigo);
+    } catch (erro) {
+      problemas.push(`nó Code "${no.name}" não compila: ${erro.message}`);
+    }
+  }
+  return comProblemas(problemas);
+}
+
+// [P25] Nós alcançáveis a partir de `inicio` pelas conexões `main`, sem
+// atravessar os nós de `bloqueados`.
+export function alcancaveis(fluxo, inicio, bloqueados = new Set()) {
+  const vistos = new Set();
+  const fila = Array.isArray(inicio) ? [...inicio] : [inicio];
+  while (fila.length > 0) {
+    const atual = fila.shift();
+    if (vistos.has(atual) || bloqueados.has(atual)) continue;
+    vistos.add(atual);
+    for (const saida of fluxo.connections?.[atual]?.main ?? []) for (const destino of saida ?? []) fila.push(destino.node);
+  }
+  return vistos;
+}
+
+// [P25] PRD 19.4 e 19.5: todo caminho de `inicios` até cada `alvo` passa pelo
+// `portao` (sem ele, o alvo fica inalcançável).
+export function todoCaminhoPassaPor(fluxo, { inicios, alvos, portao }) {
+  const semPortao = alcancaveis(fluxo, inicios, new Set([portao]));
+  const problemas = alvos.filter((alvo) => semPortao.has(alvo)).map((alvo) => `"${alvo}" é alcançável sem passar por "${portao}"`);
+  return comProblemas(problemas);
+}
+
+// [P25] PRD 19.4 e 19.5: nenhum caminho sai de `origem` e chega a um dos
+// `proibidos` (o ramo de alerta ativo nunca chega ao agente).
+export function nenhumCaminhoEntre(fluxo, { origem, proibidos }) {
+  const alcance = alcancaveis(fluxo, origem);
+  const problemas = proibidos.filter((alvo) => alcance.has(alvo)).map((alvo) => `caminho proibido: "${origem}" chega a "${alvo}"`);
+  return comProblemas(problemas);
+}
+
+// [P25] Funções do schema `agente` que recebem `conversa_id` como primeiro
+// parâmetro (Apêndice A). `registrar_mensagem` (jid),
+// `registrar_transcricao` (wa_message_id), `checar_termos_alerta` (texto),
+// `registrar_notificacao_handoff` (handoff_id), `registrar_followup`
+// (execucao_id) e as sem parâmetro ficam de fora.
+export const FUNCOES_COM_CONVERSA_ID = [
+  'pode_responder',
+  'pode_enviar',
+  'mensagem_sistema',
+  'mensagem_alerta',
+  'sincronizar_memoria',
+  'pausar',
+  'contexto_conversa',
+  'ficha_para_agente',
+  'atualizar_lead',
+  'registrar_marco',
+  'registrar_handoff',
+  'marcar_nao_lead',
+];
+
+// [P25] CLAUDE.md e PRD 19.1: a chave de toda chamada ao banco sai do nó que
+// registrou a mensagem. `expressoesPermitidas` lista as expressões aceitas no
+// primeiro parâmetro; `nosIgnorados`, os nós que usam outra origem legítima
+// (entrada B, com o `conversa_id` devolvido por `followups_devidos`).
+export function conversaIdSoDoRegistro(fluxo, { expressoesPermitidas, nosIgnorados = new Set() }) {
+  const problemas = [];
+  for (const no of fluxo.nodes ?? []) {
+    if (!TIPOS_POSTGRES.has(no.type) || nosIgnorados.has(no.name)) continue;
+    const funcao = /^select (?:\* from )?agente\.(\w+)\(/.exec(no.parameters?.query ?? '')?.[1];
+    if (!FUNCOES_COM_CONVERSA_ID.includes(funcao)) continue;
+    const lista = no.parameters?.options?.queryReplacement ?? '';
+    const primeiro = /^=\{\{\s*\[\s*(.*?)\s*,|^=\{\{\s*\[\s*(.*?)\s*\]\s*\}\}$/.exec(lista);
+    const expressao = (primeiro?.[1] ?? primeiro?.[2] ?? '').trim();
+    if (!expressoesPermitidas.includes(expressao)) {
+      problemas.push(`nó "${no.name}" (${funcao}) usa "${expressao}" como conversa_id, fora do nó de registro`);
+    }
+  }
+  return comProblemas(problemas);
+}
+
 export function executarTodosOsValidadoresEstruturais(fluxo) {
   const resultados = {
     nomesDeNoUnicos: nomesDeNoUnicos(fluxo),
@@ -285,6 +437,10 @@ export function executarTodosOsValidadoresEstruturais(fluxo) {
     todaChamadaExternaComTratamentoDeErro: todaChamadaExternaComTratamentoDeErro(fluxo),
     trackSourceEmTodoEnvio: trackSourceEmTodoEnvio(fluxo),
     nenhumaCredencialSupabaseApi: nenhumaCredencialSupabaseApi(fluxo),
+    jidSoParaEnviar: jidSoParaEnviar(fluxo),
+    codeSemImportNemExport: codeSemImportNemExport(fluxo),
+    autenticacaoSoPorCredencial: autenticacaoSoPorCredencial(fluxo),
+    codeCompila: codeCompila(fluxo),
   };
   const problemas = Object.entries(resultados).flatMap(([nome, resultado]) =>
     resultado.problemas.map((problema) => `[${nome}] ${problema}`),

@@ -29,8 +29,7 @@
 -- 1. Enums (PRD 6.0)
 --
 -- Todo estado do sistema é um destes tipos: nunca texto livre (PRD 5.2,
--- 6.10 regra 6.10 já cobre RLS; a regra do estado como enum é o próprio
--- título deste bloco no PRD). Alguns enums só são usados por tabelas das
+-- "Todo estado é enum no banco"). Alguns enums só são usados por tabelas das
 -- migrations seguintes (0003 e 0004); todos entram juntos aqui porque o
 -- tipo precisa existir antes de qualquer coluna que o use, e o PRD pede
 -- "todos os enums do 6.0 numa migration só" (PROMPTS.md P02).
@@ -450,6 +449,7 @@ create function public.ig(dpp date, data date, out semanas integer, out dias int
   language plpgsql
   immutable
   parallel safe
+  set search_path = ''   -- mesma regra das demais funções do projeto (PRD 6.10 regra 11); só usa pg_catalog
   as $$
 declare
   total_dias integer;

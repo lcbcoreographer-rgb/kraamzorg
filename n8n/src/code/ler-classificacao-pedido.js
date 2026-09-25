@@ -1,24 +1,39 @@
-// Nó "Ler Classificação" do fluxo 2 (nó 8), depois do classificador de pedido
+// Nó 8 "Ler Classificação" do fluxo 2, depois do classificador de pedido
 // (`n8n/prompts/classificar-pedido.md`, PRD 19.3). Função pura: recebe o
 // motivo que o agente informou e a saída bruta do classificador, devolve o
-// motivo final e a ação (PRD 19.3, "Regras do Ler Classificação", e o nó 8a
-// v4.2). O build embute este arquivo no nó Code; os testes importam a mesma
-// função.
+// motivo final, a decisão e a prioridade mínima que o banco deve respeitar.
+// O build embute este arquivo no nó Code; os testes importam a mesma função.
 //
-// Regras (PRD 19.3):
-// - Classificador falhou ou tipo inválido: vale o motivo do agente, marcado
-//   `classificador_falhou`.
-// - O classificador pode subir para `saude` ou `perda`, nunca descer.
+// Regras (PRD 19.3, "Regras do Ler Classificação", v4.2):
+// - Classificador falhou ou devolveu tipo inválido: vale o motivo do agente,
+//   marcado `classificador_falhou`.
+// - O classificador pode subir para `saude` ou `perda`, nunca descer. Subiu:
+//   segue pelo nó 8a (texto à família antes do registro).
+// - Conversa já marcada como não lead no banco continua não lead (salvo
+//   subida para saúde ou perda, que sempre vence).
 // - `sem_aviso` e `nao_lead` só valem quando o motivo do agente foi
-//   `duvida_sem_resposta` ou `outro`; `sem_aviso` nunca vale em modo
-//   `cliente`.
-// - Nos demais casos, o classificador só troca o destino entre os motivos
-//   comerciais, sem nunca baixar a prioridade do motivo original.
-// - Conversa já marcada como não lead continua não lead.
-// - Subiu para `saude` ou `perda`: segue pelo nó 8a (texto à família antes do
-//   registro), `enviar_texto` verdadeiro.
+//   `duvida_sem_resposta` ou `outro`. `sem_aviso` só vale em modo `vendas`,
+//   nunca em `cliente` (modo ausente conta como não `vendas`: na dúvida a
+//   equipe é avisada).
+// - Gestante é lead, nunca `nao_lead`: com semanas, DPP ou plano de interesse
+//   na ficha da transferência, o `nao_lead` do classificador é recusado (caso
+//   da gestante que cita o Leonardo como seu médico).
+// - Nos demais motivos, o classificador só troca o destino entre os motivos
+//   comerciais. A troca mantém a maior prioridade da 11.4 entre o motivo do
+//   agente e o novo (`prioridadeMinima`, aplicada por
+//   `agente.registrar_handoff`) e mantém `dados.opcoes` no texto do grupo
+//   (`manterOpcoes`).
+// - Tipo fora dos comerciais (`pediu_humano`, `reclamacao`, `bebe_nasceu`,
+//   `pos_venda_operacao`) com motivo do agente comercial, ou motivo do agente
+//   fora dos comerciais: mantém o motivo do agente.
 
-const TIPOS_VALIDOS = [
+import {
+  MOTIVOS_COMERCIAIS,
+  prioridadeDoMotivo,
+  maiorPrioridade,
+} from './motivos-handoff.js';
+
+export const TIPOS_CLASSIFICADOR_PEDIDO = [
   'contratar',
   'reuniao',
   'condicao_comercial',
@@ -37,42 +52,7 @@ const TIPOS_VALIDOS = [
   'perda',
 ];
 
-// Mesma lista de `classificar-pedido.md` (PRD 19.3): motivos entre os quais o
-// classificador pode trocar o destino sem que isso conte como "subir" para
-// saúde/perda nem como sair da faixa de motivos comerciais.
-const MOTIVOS_COMERCIAIS = [
-  'contratar',
-  'reuniao',
-  'condicao_comercial',
-  'cobertura_taxa',
-  'reembolso_fiscal',
-  'parceiro_medico',
-  'duvida_sem_resposta',
-  'outro',
-];
-
-// Prioridade da 11.4 (alta = 2, normal = 1), só para a regra "nunca baixa a
-// prioridade do motivo original" desta função pura; a matriz completa (com
-// SLA e destino) mora em `parametro.handoff_matriz`, lida por
-// `agente.registrar_handoff`.
-const PRIORIDADE = {
-  contratar: 2,
-  reuniao: 2,
-  pediu_humano: 2,
-  reclamacao: 2,
-  bebe_nasceu: 2,
-  condicao_comercial: 1,
-  cobertura_taxa: 1,
-  reembolso_fiscal: 1,
-  duvida_sem_resposta: 1,
-  outro: 1,
-  parceiro_medico: 1,
-  pos_venda_operacao: 1,
-};
-
-function prioridadeDe(motivo) {
-  return PRIORIDADE[motivo] ?? 1;
-}
+const MOTIVOS_QUE_ACEITAM_SILENCIO = ['duvida_sem_resposta', 'outro'];
 
 function analisarSaidaModelo(saidaModelo) {
   let objeto = null;
@@ -81,118 +61,134 @@ function analisarSaidaModelo(saidaModelo) {
   } catch {
     objeto = null;
   }
-  if (!objeto || typeof objeto !== 'object' || !TIPOS_VALIDOS.includes(objeto.tipo)) {
+  if (!objeto || typeof objeto !== 'object' || !TIPOS_CLASSIFICADOR_PEDIDO.includes(objeto.tipo)) {
     return null;
   }
-  return objeto.tipo;
+  return { tipo: objeto.tipo, porque: typeof objeto.porque === 'string' ? objeto.porque : '' };
 }
 
-export function lerClassificacaoPedido({ motivoAgente, saidaModelo, modo, jaNaoLead = false }) {
-  // Conversa já marcada como não lead continua não lead, mesmo sem chamar o
-  // classificador de novo.
-  if (jaNaoLead) {
-    return {
-      motivoFinal: 'nao_lead',
-      classificadorFalhou: false,
-      acao: 'transferir',
-      chaveTexto: null,
-      enviarTexto: false,
-      subiuParaAlerta: false,
-    };
+function valorPreenchido(valor) {
+  if (valor === null || valor === undefined) return false;
+  if (typeof valor === 'string') return valor.trim().length > 0;
+  return true;
+}
+
+// Sinal de que quem escreve é uma gestante interessada (lead), vindo da
+// ficha que o agente mandou na transferência.
+export function temSinalDeLead(dados = {}) {
+  if (!dados || typeof dados !== 'object') return false;
+  return ['semanas', 'dpp', 'plano_interesse'].some((campo) => valorPreenchido(dados[campo]));
+}
+
+function temOpcoes(dados = {}) {
+  if (!dados || typeof dados !== 'object') return false;
+  const opcoes = dados.opcoes;
+  if (Array.isArray(opcoes)) return opcoes.length > 0;
+  return valorPreenchido(opcoes);
+}
+
+function resultado({
+  motivoFinal,
+  acao,
+  motivoAgente,
+  classificadorFalhou = false,
+  tipoClassificado = null,
+  porque = '',
+  prioridadeMinima,
+  manterOpcoes = false,
+  recusa = null,
+}) {
+  const subiuParaAlerta = acao === 'alerta_saude' || acao === 'perda';
+  return {
+    motivoFinal,
+    acao,
+    classificadorFalhou,
+    tipoClassificado,
+    porque,
+    prioridadeMinima: prioridadeMinima ?? prioridadeDoMotivo(motivoFinal),
+    manterOpcoes,
+    recusa,
+    subiuParaAlerta,
+    chaveTexto: subiuParaAlerta ? (acao === 'perda' ? 'perda' : 'alerta_saude') : null,
+    enviarTexto: subiuParaAlerta,
+    motivoAgente,
+  };
+}
+
+export function lerClassificacaoPedido({ motivoAgente, saidaModelo, modo = null, jaNaoLead = false, dados = {} }) {
+  const classificacao = analisarSaidaModelo(saidaModelo);
+  const tipo = classificacao?.tipo ?? null;
+  const porque = classificacao?.porque ?? '';
+
+  // Subir para saúde ou perda sempre vale, inclusive em conversa não lead.
+  if (tipo === 'saude' || tipo === 'perda') {
+    return resultado({
+      motivoFinal: tipo,
+      acao: tipo === 'perda' ? 'perda' : 'alerta_saude',
+      motivoAgente,
+      tipoClassificado: tipo,
+      porque,
+      prioridadeMinima: 'maxima',
+    });
   }
 
-  const tipo = analisarSaidaModelo(saidaModelo);
+  if (jaNaoLead) {
+    return resultado({ motivoFinal: 'nao_lead', acao: 'nao_lead', motivoAgente, tipoClassificado: tipo, porque });
+  }
 
   if (tipo === null) {
-    return {
-      motivoFinal: motivoAgente,
-      classificadorFalhou: true,
-      acao: 'transferir',
-      chaveTexto: null,
-      enviarTexto: false,
-      subiuParaAlerta: false,
-    };
+    return resultado({ motivoFinal: motivoAgente, acao: 'transferir', motivoAgente, classificadorFalhou: true });
   }
 
-  // Subiu para saúde ou perda: nó 8a, nunca desce.
-  if (tipo === 'saude' || tipo === 'perda') {
-    return {
-      motivoFinal: tipo,
-      classificadorFalhou: false,
-      acao: tipo === 'perda' ? 'perda' : 'alerta_saude',
-      chaveTexto: tipo === 'perda' ? 'perda' : 'alerta_saude',
-      enviarTexto: true,
-      subiuParaAlerta: true,
-    };
-  }
-
-  const motivoAgenteElegivelParaSilencio = motivoAgente === 'duvida_sem_resposta' || motivoAgente === 'outro';
+  const aceitaSilencio = MOTIVOS_QUE_ACEITAM_SILENCIO.includes(motivoAgente);
 
   if (tipo === 'sem_aviso') {
-    if (motivoAgenteElegivelParaSilencio && modo !== 'cliente') {
-      return {
-        motivoFinal: 'sem_aviso',
-        classificadorFalhou: false,
-        acao: 'sem_aviso',
-        chaveTexto: null,
-        enviarTexto: false,
-        subiuParaAlerta: false,
-      };
+    if (aceitaSilencio && modo === 'vendas') {
+      return resultado({ motivoFinal: 'sem_aviso', acao: 'sem_aviso', motivoAgente, tipoClassificado: tipo, porque });
     }
-    // Não elegível (motivo do agente não era duvida_sem_resposta/outro, ou
-    // modo é cliente): a troca não vale, mantém o motivo original.
-    return {
+    return resultado({
       motivoFinal: motivoAgente,
-      classificadorFalhou: false,
       acao: 'transferir',
-      chaveTexto: null,
-      enviarTexto: false,
-      subiuParaAlerta: false,
-    };
+      motivoAgente,
+      tipoClassificado: tipo,
+      porque,
+      recusa: aceitaSilencio ? 'sem_aviso_fora_do_modo_vendas' : 'sem_aviso_motivo_nao_elegivel',
+    });
   }
 
   if (tipo === 'nao_lead') {
-    if (motivoAgenteElegivelParaSilencio) {
-      return {
-        motivoFinal: 'nao_lead',
-        classificadorFalhou: false,
-        acao: 'transferir',
-        chaveTexto: null,
-        enviarTexto: false,
-        subiuParaAlerta: false,
-      };
+    if (aceitaSilencio && !temSinalDeLead(dados)) {
+      return resultado({ motivoFinal: 'nao_lead', acao: 'nao_lead', motivoAgente, tipoClassificado: tipo, porque });
     }
-    return {
+    return resultado({
       motivoFinal: motivoAgente,
-      classificadorFalhou: false,
       acao: 'transferir',
-      chaveTexto: null,
-      enviarTexto: false,
-      subiuParaAlerta: false,
-    };
+      motivoAgente,
+      tipoClassificado: tipo,
+      porque,
+      recusa: aceitaSilencio ? 'nao_lead_com_sinal_de_lead' : 'nao_lead_motivo_nao_elegivel',
+    });
   }
 
-  // Demais motivos: troca só entre motivos comerciais, sem baixar prioridade.
   if (MOTIVOS_COMERCIAIS.includes(tipo) && MOTIVOS_COMERCIAIS.includes(motivoAgente)) {
-    const motivoFinal = prioridadeDe(tipo) >= prioridadeDe(motivoAgente) ? tipo : motivoAgente;
-    return {
-      motivoFinal,
-      classificadorFalhou: false,
+    const prioridadeMinima = maiorPrioridade(prioridadeDoMotivo(motivoAgente), prioridadeDoMotivo(tipo));
+    return resultado({
+      motivoFinal: tipo,
       acao: 'transferir',
-      chaveTexto: null,
-      enviarTexto: false,
-      subiuParaAlerta: false,
-    };
+      motivoAgente,
+      tipoClassificado: tipo,
+      porque,
+      prioridadeMinima,
+      manterOpcoes: motivoAgente === 'reuniao' || temOpcoes(dados),
+    });
   }
 
-  // Tipo fora da faixa de motivos comerciais trocáveis (ex.: pediu_humano,
-  // bebe_nasceu, reclamacao, pos_venda_operacao): mantém o motivo do agente.
-  return {
+  return resultado({
     motivoFinal: motivoAgente,
-    classificadorFalhou: false,
     acao: 'transferir',
-    chaveTexto: null,
-    enviarTexto: false,
-    subiuParaAlerta: false,
-  };
+    motivoAgente,
+    tipoClassificado: tipo,
+    porque,
+    recusa: tipo === motivoAgente ? null : 'troca_fora_dos_motivos_comerciais',
+  });
 }

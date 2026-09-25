@@ -44,9 +44,20 @@ export function nomeFluxoComAmbiente(nomeFluxo, env) {
   return env === 'prod' ? nomeFluxo : `${nomeFluxo} (HML)`;
 }
 
+// [P25] Envio e transcrição simulados só existem em homologação (P25 item
+// 5): um build de produção com qualquer um ligado mandaria as mensagens da
+// família para a rota de captura, e ninguém receberia nada.
+export function conferirHomologacao(config, env) {
+  const homologacao = config?.homologacao ?? {};
+  if (env === 'prod' && (homologacao.envioSimulado === true || homologacao.transcricaoSimulada === true)) {
+    throw new Error('produção com homologacao.envioSimulado ou homologacao.transcricaoSimulada ligado: desligue os dois no config.prod.json');
+  }
+}
+
 // Monta os três fluxos (objetos JS, sem gravar nada) a partir do config já
 // carregado. É a função que os testes chamam diretamente.
 export function gerarFluxos(config, env) {
+  conferirHomologacao(config, env);
   const fluxo1 = montarFluxo1(config);
   const fluxo2 = montarFluxo2(config);
   const fluxo3 = montarFluxo3(config);

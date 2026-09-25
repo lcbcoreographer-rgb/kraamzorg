@@ -11,6 +11,7 @@
 // n8n já usa para expressão.
 
 import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 
 export const MARCA_INICIO = '=== INÍCIO DO PROMPT ===';
 export const MARCA_FIM = '=== FIM DO PROMPT ===';
@@ -41,11 +42,22 @@ export async function carregarPrompt(caminhoArquivo) {
   return extrairPrompt(conteudo, caminhoArquivo);
 }
 
+// [P24] Versão síncrona, usada pelas definições de fluxo (`montarFluxo` é
+// síncrona para o build e os testes chamarem sem `await`).
+export function carregarPromptSync(caminhoArquivo) {
+  return extrairPrompt(readFileSync(caminhoArquivo, 'utf8'), caminhoArquivo);
+}
+
 // Variáveis do prompt vêm como `{{nome}}`. O mapa dá, para cada nome, o
 // conteúdo que entra dentro das chaves de expressão do n8n (sem o `{{ }}`),
 // por exemplo `$json.data_hora` ou `$('Montar Contexto do Agente').item.json.ficha`.
+// [P25] O nome pode ter ponto (`{{valor.essencial}}`, `{{pagina.gemelar}}`,
+// variáveis de `isadora-system.md`); sem isso a variável ficava no texto e o
+// n8n tentava avaliar `valor.essencial` como expressão.
+const PADRAO_VARIAVEL = /\{\{\s*([a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)*)\s*\}\}/g;
+
 export function trocarVariaveisPorExpressoes(texto, mapaVariaveis) {
-  return texto.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (match, nome) => {
+  return texto.replace(PADRAO_VARIAVEL, (match, nome) => {
     const expressao = mapaVariaveis[nome];
     if (expressao === undefined) {
       throw new Error(`variável "${nome}" do prompt não tem expressão correspondente no mapa passado ao build`);
@@ -59,7 +71,7 @@ export function trocarVariaveisPorExpressoes(texto, mapaVariaveis) {
 // JSON final.
 export function variaveisDoPrompt(texto) {
   const encontradas = new Set();
-  for (const match of texto.matchAll(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g)) {
+  for (const match of texto.matchAll(PADRAO_VARIAVEL)) {
     encontradas.add(match[1]);
   }
   return [...encontradas];

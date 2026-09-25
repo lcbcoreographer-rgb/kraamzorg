@@ -26,7 +26,14 @@ import {
   MARCA_INICIO,
   MARCA_FIM,
 } from './src/lib/prompts.mjs';
-import { removerExport, montarJsCode, embutirCodigo } from './src/lib/codigo-embutido.mjs';
+import {
+  removerExport,
+  montarJsCode,
+  embutirCodigo,
+  embutirCodigoComDependencias,
+  importsLocais,
+  removerImports,
+} from './src/lib/codigo-embutido.mjs';
 import { acharSegredos, temAlgumSegredo } from './src/lib/segredos.mjs';
 import {
   nomesDeNoUnicos,
@@ -43,6 +50,13 @@ import {
   trackSourceEmTodoEnvio,
   nenhumaCredencialSupabaseApi,
   semConexaoEntreNos,
+  jidSoParaEnviar,
+  codeSemImportNemExport,
+  autenticacaoSoPorCredencial,
+  codeCompila,
+  todoCaminhoPassaPor,
+  nenhumCaminhoEntre,
+  conversaIdSoDoRegistro,
   executarTodosOsValidadoresEstruturais,
 } from './src/lib/validadores.mjs';
 
@@ -414,6 +428,88 @@ describe('verificadores estruturais: cada regra pega violação de verdade', () 
     assert.equal(semConexaoEntreNos(fluxo, 'Caminho de Alerta', 'Agente Isadora').ok, false);
     assert.equal(semConexaoEntreNos(fluxo, 'Caminho de Alerta', 'Outro Nó').ok, true);
   });
+
+  test('[P24] jidSoParaEnviar acusa jid como parâmetro do banco fora de registrar_mensagem', () => {
+    const no = (query, queryReplacement) => ({
+      name: 'N',
+      type: 'n8n-nodes-base.postgres',
+      parameters: { query, options: { queryReplacement } },
+    });
+    assert.equal(jidSoParaEnviar({ nodes: [no('select agente.pausar($1, 48)', '={{ [ $json.wa_jid ] }}')] }).ok, false);
+    assert.equal(jidSoParaEnviar({ nodes: [no('select agente.pausar($1, 48)', '={{ [ $json.conversa_id ] }}')] }).ok, true);
+    assert.equal(
+      jidSoParaEnviar({ nodes: [no('select agente.registrar_mensagem($1, $2)', '={{ [ $json.wa_jid, 1 ] }}')] }).ok,
+      true,
+    );
+  });
+
+  test('[P24] codeSemImportNemExport acusa sobra de import/export no código embutido', () => {
+    const code = (jsCode) => ({ nodes: [{ name: 'C', type: 'n8n-nodes-base.code', parameters: { jsCode } }] });
+    assert.equal(codeSemImportNemExport(code("import { a } from './a.js';\nreturn [];")).ok, false);
+    assert.equal(codeSemImportNemExport(code('export function f() {}\nreturn [];')).ok, false);
+    assert.equal(codeSemImportNemExport(code('function f() {}\nreturn [];')).ok, true);
+  });
+
+  test('[P24] autenticacaoSoPorCredencial acusa token em cabeçalho e autenticação sem credencial', () => {
+    const http = (parameters, credentials) => ({
+      nodes: [{ name: 'H', type: 'n8n-nodes-base.httpRequest', parameters, credentials }],
+    });
+    assert.equal(
+      autenticacaoSoPorCredencial(http({ headerParameters: { parameters: [{ name: 'token', value: 'x' }] } })).ok,
+      false,
+    );
+    assert.equal(autenticacaoSoPorCredencial(http({ authentication: 'genericCredentialType' })).ok, false);
+    assert.equal(
+      autenticacaoSoPorCredencial(
+        http({ authentication: 'genericCredentialType' }, { httpHeaderAuth: { id: 'x', name: 'y' } }),
+      ).ok,
+      true,
+    );
+  });
+
+  test('[P25] codeCompila acusa identificador repetido entre arquivos embutidos e import renomeado', () => {
+    const code = (jsCode) => ({ nodes: [{ name: 'C', type: 'n8n-nodes-base.code', parameters: { jsCode } }] });
+    assert.equal(codeCompila(code('const a = 1;\nconst a = 2;\nreturn [];')).ok, false);
+    assert.equal(codeCompila(code("import { a as b } from './a.js';\nreturn [];")).ok, false);
+    assert.equal(codeCompila(code('const a = 1;\nreturn [{ json: { a } }];')).ok, true);
+  });
+
+  test('[P25] todaChamadaExternaComTratamentoDeErro também cobre Execute Workflow e o agente', () => {
+    for (const type of ['n8n-nodes-base.executeWorkflow', '@n8n/n8n-nodes-langchain.agent']) {
+      assert.equal(todaChamadaExternaComTratamentoDeErro({ nodes: [{ name: 'X', type, parameters: {} }] }).ok, false, type);
+      assert.equal(todaChamadaExternaComTratamentoDeErro({ nodes: [{ name: 'X', type, parameters: {}, onError: 'continueRegularOutput' }] }).ok, true, type);
+    }
+  });
+
+  test('[P25] todoCaminhoPassaPor e nenhumCaminhoEntre acusam atalho que pula o filtro e ramo de alerta que chega ao agente', () => {
+    const ligar = (pares) => {
+      const connections = {};
+      for (const [origem, destino] of pares) {
+        connections[origem] ??= { main: [[]] };
+        connections[origem].main[0].push({ node: destino, type: 'main', index: 0 });
+      }
+      return { nodes: [], connections };
+    };
+    const certo = ligar([['Entrada', 'Filtro'], ['Filtro', 'Modo'], ['Modo', 'Agente'], ['Filtro', 'Alerta']]);
+    assert.equal(todoCaminhoPassaPor(certo, { inicios: ['Entrada'], alvos: ['Modo', 'Agente'], portao: 'Filtro' }).ok, true);
+    assert.equal(nenhumCaminhoEntre(certo, { origem: 'Alerta', proibidos: ['Agente'] }).ok, true);
+    const atalho = ligar([['Entrada', 'Filtro'], ['Filtro', 'Modo'], ['Entrada', 'Modo']]);
+    assert.equal(todoCaminhoPassaPor(atalho, { inicios: ['Entrada'], alvos: ['Modo'], portao: 'Filtro' }).ok, false);
+    const vazamento = ligar([['Filtro', 'Alerta'], ['Alerta', 'Agente']]);
+    assert.equal(nenhumCaminhoEntre(vazamento, { origem: 'Alerta', proibidos: ['Agente'] }).ok, false);
+  });
+
+  test('[P25] conversaIdSoDoRegistro acusa conversa_id que não vem do nó de registro', () => {
+    const pg = (query, lista) => ({
+      nodes: [{ name: 'P', type: 'n8n-nodes-base.postgres', parameters: { query, options: { queryReplacement: `={{ [ ${lista} ] }}` } } }],
+    });
+    const registro = "$('Registrar Msg Família').item.json.resultado.conversa_id";
+    const opcoes = { expressoesPermitidas: [registro] };
+    assert.equal(conversaIdSoDoRegistro(pg('select agente.pode_responder($1) as resultado', registro), opcoes).ok, true);
+    assert.equal(conversaIdSoDoRegistro(pg('select agente.pode_enviar($1, $2, $3) as resultado', `${registro}, 'resposta', null`), opcoes).ok, true);
+    assert.equal(conversaIdSoDoRegistro(pg('select agente.pode_responder($1) as resultado', '$json.conversa_id'), opcoes).ok, false);
+    assert.equal(conversaIdSoDoRegistro(pg('select agente.checar_termos_alerta($1) as resultado', '$json.texto'), opcoes).ok, true);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -422,7 +518,7 @@ describe('verificadores estruturais: cada regra pega violação de verdade', () 
 
 describe('varredura de segredos', () => {
   test('acharSegredos reconhece JWT, chave OpenAI, telefone E.164 e service_role', () => {
-    const jwt = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dGhpc2lzYWZha2VzaWduYXR1cmU';
+    const jwt = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dGhpc2lzYWZha2VzaWduYXR1cmU'; // gitleaks:allow (JWT de exemplo, fixture do teste)
     assert.ok(acharSegredos(jwt).jwt.length > 0);
     assert.ok(acharSegredos('sk-abcdefghijklmnopqrstuvwx').chaveOpenAi.length > 0);
     assert.ok(acharSegredos('+5511987654321').telefone.length > 0);
@@ -553,6 +649,28 @@ describe('embutidor de código dos nós Code', () => {
     assert.equal(saida.json.texto, normalizarTexto('JÁ PERDI UM BEBÊ'));
   });
 
+  test('[P24] embutirCodigoComDependencias junta os imports locais em ordem, uma vez cada, sem import/export', () => {
+    const arquivos = {
+      '/x/a.js': "export const A = 1;\nexport function a() { return A; }\n",
+      '/x/b.js': "import { a } from './a.js';\nexport function b() { return a() + 1; }\n",
+      '/x/c.js': "import { a } from './a.js';\nimport { b } from './b.js';\nexport function c() { return a() + b(); }\n",
+    };
+    assert.deepEqual(importsLocais(arquivos['/x/c.js']), ['./a.js', './b.js']);
+    const jsCode = embutirCodigoComDependencias({
+      caminhoArquivo: '/x/c.js',
+      chamada: 'return c();',
+      lerArquivo: (caminho) => arquivos[caminho],
+    });
+    assert.equal(jsCode.match(/function a\(/g).length, 1, 'dependência repetida entra uma vez só');
+    assert.ok(jsCode.indexOf('function a(') < jsCode.indexOf('function b(') && jsCode.indexOf('function b(') < jsCode.indexOf('function c('));
+    assert.ok(!/^\s*(import|export)\b/m.test(jsCode));
+    assert.equal(new Function(jsCode)(), 3);
+  });
+
+  test('[P24] removerImports recusa import de pacote (o nó Code não teria como carregar)', () => {
+    assert.throws(() => removerImports("import fs from 'node:fs';\n"), /não é local/);
+  });
+
   test('montarJsCode preserva o corpo da função original (mudar a regra só num lugar)', async () => {
     const caminho = path.join(RAIZ_N8N, 'src/code/mascarar-documentos.js');
     const fonte = await readFile(caminho, 'utf8');
@@ -636,6 +754,14 @@ describe('dividirEmBlocos', () => {
       assert.match(bloco.trim(), /[.!?]$/, `bloco não termina em pontuação de frase: "${bloco}"`);
     }
     assert.equal(blocos.join(' '), texto);
+  });
+
+  test('[P25] nenhum caractere se perde: valor com ponto de milhar e decimal fica inteiro', () => {
+    assert.deepEqual(dividirEmBlocos('O Essencial é R$ 4.200. O Continuado é R$ 8.100,50 ou 3x de R$ 2.700.', { tamanhoAlvo: 30 }), [
+      'O Essencial é R$ 4.200.',
+      'O Continuado é R$ 8.100,50 ou 3x de R$ 2.700.',
+    ]);
+    assert.deepEqual(dividirEmBlocos('Visite www.kraamzorg.com.br hoje'), ['Visite www.kraamzorg.com.br hoje']);
   });
 
   test('nunca gera mais que o máximo de blocos (excedente entra no último)', () => {
@@ -798,13 +924,16 @@ describe('lerClassificacaoPedido', () => {
   });
 
   test('troca só entre motivos comerciais, sem nunca baixar a prioridade do motivo original', () => {
-    // reuniao (prioridade alta) -> cobertura_taxa (prioridade normal): mantém reuniao.
+    // [P24, PRD 19.3 v4.2] reuniao (alta) -> cobertura_taxa (normal): o
+    // destino troca, a prioridade alta fica e as opções seguem no grupo.
     const mantemMaiorPrioridade = lerClassificacaoPedido({
       motivoAgente: 'reuniao',
       saidaModelo: JSON.stringify({ tipo: 'cobertura_taxa', porque: 'x' }),
       modo: 'vendas',
     });
-    assert.equal(mantemMaiorPrioridade.motivoFinal, 'reuniao');
+    assert.equal(mantemMaiorPrioridade.motivoFinal, 'cobertura_taxa');
+    assert.equal(mantemMaiorPrioridade.prioridadeMinima, 'alta');
+    assert.equal(mantemMaiorPrioridade.manterOpcoes, true);
 
     // condicao_comercial (normal) -> contratar (alta): sobe para contratar.
     const sobeDePrioridade = lerClassificacaoPedido({
@@ -1010,3 +1139,12 @@ describe('mascararDocumentos contra privado.mascarar_documentos (banco local, po
     }
   });
 });
+
+// [P24] Fluxo 2: funções puras, cenários do P24 v2 no simulador e estrutura
+// do JSON gerado. Importado aqui para `node --test n8n/build.test.mjs` rodar
+// tudo num comando só.
+import './fluxo-2.test.mjs';
+
+// [P25] Fluxo 3: funções puras (validarResposta, prepararEnvio, modo, saída
+// do agente, follow-up), cenários do P25 no simulador e estrutura do JSON.
+import './fluxo-3.test.mjs';

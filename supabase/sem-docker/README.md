@@ -209,12 +209,12 @@ migration do projeto, não uma mudança nesta camada de base.
   `pg_net.control` e `pg_net--1.0.sql`) no diretório de extensões do Postgres
   local, de forma idempotente, sem mexer em nenhuma migration versionada. O
   schema `net` dela tem `net.http_post`/`net.http_get` com a mesma
-  assinatura, mas são síncronas e só gravam a chamada em `net._chamadas` — não
+  assinatura, mas são síncronas e só gravam a chamada em `net._chamadas`: não
   saem para a rede, não enfileiram nada e não existe `net._http_response`.
   Como a extensão falsa já existe antes da primeira migration (seção 5 de
   `camada-supabase.sql`, mesmo padrão de pgcrypto/uuid-ossp na seção 2), a
   migration 0001 do capítulo 6.0 do PRD (`create extension if not exists
-  pg_net;`) encontra a extensão já instalada e não faz nada — não falha.
+  pg_net;`) encontra a extensão já instalada e não faz nada, sem falhar.
   Continua sendo uma diferença real do pg_net de verdade (que é assíncrono, com
   fila e worker em background), só documentada aqui, não escondida.
 - **Vault é stub, não cifra nada.** `vault.secrets.secret` fica em texto

@@ -93,6 +93,14 @@ create function privado.sem_acento(texto text) returns text
 
 comment on function privado.sem_acento(text) is 'Wrapper imutável de extensions.unaccent(), com dicionário fixo, para poder entrar em índice de expressão (unaccent() sozinha é STABLE). PRD 6.0.';
 
+-- Esta função nasce ANTES do "alter default privileges" da seção 4, então
+-- recebe o padrão de fábrica do Postgres (execute para o pseudo-papel
+-- public). A revogação explícita abaixo deixa a função igual a todas as
+-- outras do projeto: só o dono executa. O P07 concede execute de volta só a
+-- authenticated (PRD 11.10: quem grava em cidade precisa dela, porque o
+-- índice único calcula a expressão no insert); anon não recebe.
+revoke execute on function privado.sem_acento(text) from public;
+
 
 -- -----------------------------------------------------------------------------
 -- 4. Fronteira de privilégio (PRD 5.2 e 11.10)

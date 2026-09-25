@@ -6,7 +6,8 @@
   },
 
   "fluxo": {
-    "idFluxo2": "EXEMPLO_ID_FLUXO_2_PREENCHER_APOS_IMPORTAR_P24",
+    "_comentario_idFluxo2": "P24: o build grava no JSON do fluxo 2 um id estável (idEstavel da chave do fluxo), que o n8n mantém em n8n import:workflow. Se a importação for pela interface e o n8n trocar o id, anote aqui o id novo no config do ambiente antes do rebuild do fluxo 3 (PRD 19.5, ordem de importação).",
+    "idFluxo2": "0ceff455-b8e4-48c9-8fa1-50c079a4f857",
     "settings": {
       "executionOrder": "v1",
       "callerPolicy": "workflowsFromSameOwner",
@@ -86,19 +87,50 @@
       "aceitaTemperatura": true,
       "temperatura": 0
     },
+    "_comentario_followup": "P25: nó 38 do fluxo 3 (isadora-followup.md): modelo dos classificadores, temperatura 0,7 se o modelo aceitar.",
+    "followup": {
+      "modelo": "gpt-4.1-mini",
+      "aceitaTemperatura": true,
+      "temperatura": 0.7
+    },
     "embeddings": {
       "modelo": "text-embedding-3-small"
     }
   },
 
   "redis": {
-    "prefixo": "kz:"
+    "prefixo": "kz:",
+    "_comentario_ttlAgrupamentoSegundos": "P25: TTL da chave kz:buf:{conversa_id} do agrupamento (PRD 19.1: 5 minutos). O tempo de agrupamento em si (agente_debounce_segundos) vem do banco.",
+    "ttlAgrupamentoSegundos": 300
+  },
+
+  "_comentario_envio": "P25: ritmo do envio (PRD 11.11 item 8): digitação simulada de 2,5 a 5 s por bloco, e a espera entre blocos para a ordem não depender da fila da UAZAPI.",
+  "envio": {
+    "digitacaoMinimaMs": 2500,
+    "digitacaoMaximaMs": 5000,
+    "intervaloEntreBlocosSegundos": 1
   },
 
   "grupoFallbackJid": "000000000000-0000000000@g.us",
+  "_comentario_grupoFallbackTexto": "PRD 19.1 e 23.3: único texto à equipe fora de mensagem_modelo, usado só quando registrar_handoff falha em saúde ou perda (exceção do ADR 0003). {telefone} e {texto_familia} são trocados pelo fluxo 2.",
+  "grupoFallbackTexto": "[NÃO REGISTRADO NO SISTEMA] Possível alerta de saúde · {telefone} · \"{texto_familia}\"",
 
+  "_comentario_textosSistema": "P25: textos de sistema que não são mensagem à família: o resumo da transferência quando o modelo de conversa cai (PRD 19.4 nó 26) e a linha que vai ao agente junto com a legenda de uma mídia (19.4 nó 24), com {midia} e {legenda}. Mudança passa pela mesma aprovação dos prompts.",
+  "textosSistema": {
+    "resumoIaForaDoAr": "IA fora do ar, responder a família",
+    "linhaMidia": "[a família enviou {midia} com a legenda: {legenda}; a equipe já foi avisada]",
+    "nomesMidia": {
+      "imagem": "uma foto",
+      "video": "um vídeo",
+      "documento": "um documento",
+      "padrao": "um arquivo"
+    }
+  },
+
+  "_comentario_homologacao": "P25 item 5: com envioSimulado, todo envio (fluxos 2 e 3) vai para a rota de captura do app (urlCaptura, /api/teste/uazapi), sem credencial; com transcricaoSimulada, o download e a transcrição de áudio também. O build recusa --env prod com qualquer das duas ligada.",
   "homologacao": {
     "envioSimulado": true,
-    "transcricaoSimulada": true
+    "transcricaoSimulada": true,
+    "urlCaptura": "https://exemplo-nao-real.kraamzorg.invalid/api/teste/uazapi"
   }
 }
