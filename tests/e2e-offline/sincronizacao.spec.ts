@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { entrarComo } from "../e2e/apoio/entrar";
 
 /**
  * Invariante 4 (PRD 16.1, "Fila de sincronização"; CLAUDE.md item 22):
@@ -12,8 +13,16 @@ import { expect, test } from "@playwright/test";
  * cria um registro novo (sem precisar de um id de servidor conhecido de
  * antemão nem de `versaoBase`, que só existe ao editar um registro já
  * existente).
+ *
+ * `/dev/sync` e `POST /api/sync` exigem a sessão do CRM em AAL2: cada
+ * teste entra antes como a enfermeira fictícia do modo demonstração
+ * (KZ_DADOS=demonstracao, playwright.offline.config.ts), com a rede ligada.
  */
 test.describe("motor offline (rede desligada)", () => {
+  test.beforeEach(async ({ page }) => {
+    await entrarComo(page, "Enfermeira");
+  });
+
   test("preenche offline, religa e sincroniza, na ordem em que foi salvo", async ({
     page,
     context,

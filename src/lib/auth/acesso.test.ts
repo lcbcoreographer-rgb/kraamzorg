@@ -215,6 +215,16 @@ describe("decidirAcesso: cada papel na própria navegação", () => {
     );
   });
 
+  it("a demonstração do motor offline só para quem trabalha em AAL2", () => {
+    expect(decidirAcesso("/dev/sync", sessao(["enfermeira"]))).toEqual(seguir);
+    expect(decidirAcesso("/dev/sync", sessao(["comercial"]))).toEqual(
+      para("/inicio"),
+    );
+    expect(decidirAcesso("/dev/sync", null)).toEqual(
+      para("/entrar?proximo=%2Fdev%2Fsync"),
+    );
+  });
+
   it("perfil sem papel ou desativado sai com aviso", () => {
     expect(decidirAcesso("/inicio", sessao([]))).toEqual(
       para("/sair?motivo=sem-acesso"),

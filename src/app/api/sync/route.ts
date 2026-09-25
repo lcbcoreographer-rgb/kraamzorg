@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { vitrineLiberada } from "@/lib/ambiente";
+import { obterSessao } from "@/lib/auth/sessao";
 import { processarLote } from "@/lib/sync/protocolo";
 import { RepositorioSincronizacaoMemoria } from "@/lib/sync/repositorio-memoria";
 import type {
@@ -66,21 +67,37 @@ const repositorio = new RepositorioSincronizacaoMemoria();
  * mora em `src/lib/sync/protocolo.ts`, testada direto pelo invariante 4 sem
  * precisar deste servidor HTTP de pé.
  *
- * [confirmar] Autenticação: esta rota ainda não exige sessão (P07 não
- * existe nesta sessão). `usuarioId` vem do corpo, o que um cliente mal
- * intencionado pode forjar. Quando o P07 existir, a rota deve ler o
- * usuário da sessão Supabase (cookie), recusar sem AAL2 quando a entidade
- * for assistencial, e ignorar (ou conferir contra) o `usuarioId` do corpo.
+ * Autenticação (P07, CRM): a rota lê a sessão do servidor (cookie do
+ * Supabase Auth, ou do modo demonstração) e responde JSON com o código
+ * HTTP certo, sem redirecionar (quem chama é o motor, por `fetch`). Sem
+ * sessão, com perfil desativado ou sem papel: 401. Toda entidade da fila é
+ * assistencial, então a sessão precisa estar em AAL2 (PRD 13 e 21.2),
+ * mesmo para papel que não é obrigado a ter MFA: sem isso, 403. O
+ * `usuarioId` de cada item é conferido contra o da sessão: item de outra
+ * pessoa recebe "erro" sozinho, sem derrubar o lote, como o item inválido.
  *
- * Por isso, enquanto a autenticação (P07) e o repositório real não
- * existirem, a rota só responde fora de produção, com a mesma trava de
- * `/dev/sync` (`vitrineLiberada()`): em produção devolve 404, sem ler o
- * corpo. Sem essa trava, um endpoint público aceitaria dado assistencial
- * de qualquer pessoa e o guardaria na memória do processo.
+ * A trava de produção continua (`vitrineLiberada()`, a mesma de
+ * `/dev/sync`): enquanto o repositório for o de memória, em produção a
+ * rota devolve 404 sem ler sessão nem corpo. Sai quando o repositório real
+ * (`api.*`) existir.
  */
 export async function POST(request: Request) {
   if (!vitrineLiberada()) {
     return NextResponse.json({ erro: "não encontrado" }, { status: 404 });
+  }
+
+  const sessao = await obterSessao();
+  if (!sessao || !sessao.ativo || sessao.papeis.length === 0) {
+    return NextResponse.json(
+      { erro: "Sem sessão. Entre de novo e tente outra vez." },
+      { status: 401 },
+    );
+  }
+  if (sessao.aal !== "aal2") {
+    return NextResponse.json(
+      { erro: "Confirme o código do aplicativo (MFA) e tente de novo." },
+      { status: 403 },
+    );
   }
 
   let corpo: unknown;
@@ -105,7 +122,13 @@ export async function POST(request: Request) {
   const recusados: ResultadoItemSincronizacao[] = [];
   for (const bruto of validado.data.itens) {
     const item = itemSchema.safeParse(bruto);
-    if (item.success) {
+    if (item.success && item.data.usuarioId !== sessao.usuarioId) {
+      recusados.push({
+        id: item.data.id,
+        status: "erro",
+        erro: "item de outro usuário",
+      });
+    } else if (item.success) {
       validos.push(item.data);
     } else {
       recusados.push({

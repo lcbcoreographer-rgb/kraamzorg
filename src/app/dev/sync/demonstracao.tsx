@@ -21,8 +21,6 @@ import {
 import { encerrarSessaoOffline, limparCacheDoDia } from "@/lib/sync/cache";
 import type { Entidade, EstadoItemFila, ItemFila } from "@/lib/sync/tipos";
 
-const USUARIO_DEMO = "dev-demo-usuario";
-
 const ENTIDADES: Entidade[] = [
   "visita",
   "consulta_prenatal",
@@ -66,7 +64,7 @@ function textoDoEstado(item: ItemFila): string {
  * aqui dá para salvar um campo qualquer, ver a fila em tempo real, forçar
  * a sincronização e observar conflito e adendo com dados de mentira.
  */
-export function DemonstracaoSync() {
+export function DemonstracaoSync({ usuarioId }: { usuarioId: string }) {
   // Ref, não estado: o banco Dexie é um objeto estável por sessão de tela
   // (um "sistema externo", no sentido do react-hooks/set-state-in-effect),
   // não algo que a interface precisa recalcular a cada render.
@@ -137,13 +135,13 @@ export function DemonstracaoSync() {
       // Na demonstração, o registro inteiro é só o campo digitado.
       if (idInformado === null) return;
       await enfileirarRegistroAssistencial(banco, {
-        usuarioId: USUARIO_DEMO,
+        usuarioId,
         visitaId: idInformado,
         registro: { [campo]: valor },
       });
     } else {
       await salvarCampo(banco, {
-        usuarioId: USUARIO_DEMO,
+        usuarioId,
         entidade,
         entidadeId: idInformado,
         campo,

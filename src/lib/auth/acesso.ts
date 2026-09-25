@@ -1,5 +1,5 @@
 import { caminhoInicial, podeAbrir } from "@/lib/navegacao";
-import { exigeMfa, type Papel } from "./papeis";
+import { exigeMfa, PAPEIS_COM_MFA, type Papel } from "./papeis";
 import type { SessaoBorda } from "./tipos";
 
 /**
@@ -29,6 +29,10 @@ const SO_SESSAO = ["/mfa/cadastro", "/mfa/desafio", "/definir-senha"];
 /** Rotas fora da navegação que só alguns papéis abrem. */
 const RESTRITAS: Record<string, readonly Papel[]> = {
   "/convidar": ["diretoria"],
+  // Demonstração do motor offline (P12 item 5), só fora de produção (a
+  // própria página recusa em produção). Abre para quem trabalha sempre em
+  // AAL2, a mesma exigência de POST /api/sync, que recebe dado assistencial.
+  "/dev/sync": PAPEIS_COM_MFA,
 };
 
 export type DecisaoAcesso =

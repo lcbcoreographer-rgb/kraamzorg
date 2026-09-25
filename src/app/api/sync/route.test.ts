@@ -1,6 +1,26 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { POST } from "./route";
+import type { SessaoUsuario } from "@/lib/auth/tipos";
 import type { RespostaSincronizacao } from "@/lib/sync/tipos";
+
+const obterSessao = vi.hoisted(() =>
+  vi.fn<() => Promise<SessaoUsuario | null>>(),
+);
+vi.mock("@/lib/auth/sessao", () => ({ obterSessao }));
+
+import { POST } from "./route";
+
+function sessao(extra: Partial<SessaoUsuario> = {}): SessaoUsuario {
+  return {
+    usuarioId: "usuario-1",
+    nome: "Perfil Teste Enfermeira",
+    email: "enfermeira.teste@kraamzorgbrasil.test",
+    papeis: ["enfermeira"],
+    ativo: true,
+    aal: "aal2",
+    aalPossivel: "aal2",
+    ...extra,
+  };
+}
 
 function requisicao(corpo: unknown): Request {
   return new Request("http://localhost/api/sync", {
@@ -28,6 +48,7 @@ describe("POST /api/sync", () => {
   beforeEach(() => {
     vi.stubEnv("NEXT_PUBLIC_APP_ENV", "desenvolvimento");
     vi.stubEnv("VERCEL_ENV", "");
+    obterSessao.mockResolvedValue(sessao());
   });
 
   afterEach(() => {
@@ -112,9 +133,65 @@ describe("POST /api/sync", () => {
   });
 });
 
-describe("POST /api/sync em produção (sem autenticação ainda, P07)", () => {
+describe("POST /api/sync, sessão do CRM (P07)", () => {
+  beforeEach(() => {
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "desenvolvimento");
+    vi.stubEnv("VERCEL_ENV", "");
+  });
+
   afterEach(() => {
     vi.unstubAllEnvs();
+    obterSessao.mockReset();
+  });
+
+  it("responde 401 sem sessão", async () => {
+    obterSessao.mockResolvedValue(null);
+    const resposta = await POST(requisicao({ itens: [item()] }));
+    expect(resposta.status).toBe(401);
+  });
+
+  it("responde 401 com perfil desativado ou sem papel", async () => {
+    obterSessao.mockResolvedValue(sessao({ ativo: false }));
+    expect((await POST(requisicao({ itens: [item()] }))).status).toBe(401);
+    obterSessao.mockResolvedValue(sessao({ papeis: [] }));
+    expect((await POST(requisicao({ itens: [item()] }))).status).toBe(401);
+  });
+
+  it("responde 403 em AAL1, mesmo para papel sem MFA obrigatório (dado assistencial)", async () => {
+    obterSessao.mockResolvedValue(
+      sessao({ papeis: ["comercial"], aal: "aal1", aalPossivel: "aal1" }),
+    );
+    const resposta = await POST(requisicao({ itens: [item()] }));
+    expect(resposta.status).toBe(403);
+  });
+
+  it("item de outra pessoa recebe erro sozinho, sem derrubar o lote", async () => {
+    obterSessao.mockResolvedValue(sessao());
+    const alheio = item({
+      id: "55555555-5555-4555-8555-555555555555",
+      usuarioId: "outra-pessoa",
+    });
+    const proprio = item({ id: "66666666-6666-4666-8666-666666666666" });
+    const resposta = await POST(requisicao({ itens: [alheio, proprio] }));
+    expect(resposta.status).toBe(200);
+
+    const corpo = (await resposta.json()) as RespostaSincronizacao;
+    const porId = new Map(corpo.resultados.map((r) => [r.id, r]));
+    expect(porId.get(alheio.id)?.status).toBe("erro");
+    expect(porId.get(proprio.id)?.status).toBe("processado");
+  });
+});
+
+describe("POST /api/sync em produção (repositório ainda em memória)", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    obterSessao.mockReset();
+  });
+
+  it("não lê a sessão em produção", async () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "producao");
+    await POST(requisicao({ itens: [item()] }));
+    expect(obterSessao).not.toHaveBeenCalled();
   });
 
   it("responde 404 com NEXT_PUBLIC_APP_ENV de produção", async () => {

@@ -28,10 +28,13 @@ describe("/dev/sync, bloqueio por ambiente", () => {
     delete process.env.VERCEL_ENV;
     vi.resetModules();
     vi.doMock("next/navigation", () => ({ notFound: vi.fn() }));
+    vi.doMock("@/lib/auth/sessao", () => ({
+      exigirSessao: vi.fn(async () => ({ usuarioId: "u1" })),
+    }));
 
     const { notFound } = await import("next/navigation");
     const { default: PaginaDevSync } = await import("./page");
-    PaginaDevSync();
+    await PaginaDevSync();
 
     expect(notFound).toHaveBeenCalledTimes(1);
   });
@@ -41,10 +44,13 @@ describe("/dev/sync, bloqueio por ambiente", () => {
     delete process.env.VERCEL_ENV;
     vi.resetModules();
     vi.doMock("next/navigation", () => ({ notFound: vi.fn() }));
+    vi.doMock("@/lib/auth/sessao", () => ({
+      exigirSessao: vi.fn(async () => ({ usuarioId: "u1" })),
+    }));
 
     const { notFound } = await import("next/navigation");
     const { default: PaginaDevSync } = await import("./page");
-    PaginaDevSync();
+    await PaginaDevSync();
 
     expect(notFound).toHaveBeenCalledTimes(1);
   });
@@ -54,10 +60,13 @@ describe("/dev/sync, bloqueio por ambiente", () => {
     delete process.env.VERCEL_ENV;
     vi.resetModules();
     vi.doMock("next/navigation", () => ({ notFound: vi.fn() }));
+    vi.doMock("@/lib/auth/sessao", () => ({
+      exigirSessao: vi.fn(async () => ({ usuarioId: "u1" })),
+    }));
 
     const { notFound } = await import("next/navigation");
     const { default: PaginaDevSync } = await import("./page");
-    PaginaDevSync();
+    await PaginaDevSync();
 
     expect(notFound).not.toHaveBeenCalled();
   });
@@ -67,10 +76,13 @@ describe("/dev/sync, bloqueio por ambiente", () => {
     process.env.VERCEL_ENV = "production";
     vi.resetModules();
     vi.doMock("next/navigation", () => ({ notFound: vi.fn() }));
+    vi.doMock("@/lib/auth/sessao", () => ({
+      exigirSessao: vi.fn(async () => ({ usuarioId: "u1" })),
+    }));
 
     const { notFound } = await import("next/navigation");
     const { default: PaginaDevSync } = await import("./page");
-    PaginaDevSync();
+    await PaginaDevSync();
 
     expect(notFound).toHaveBeenCalledTimes(1);
   });
