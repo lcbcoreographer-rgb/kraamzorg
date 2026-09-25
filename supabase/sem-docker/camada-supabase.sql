@@ -191,8 +191,9 @@ grant all on all functions in schema public to postgres, anon, authenticated, se
 -- raw_app_meta_data, raw_user_meta_data, created_at, updated_at). Faltam
 -- dezenas de colunas do Supabase real (encrypted_password, confirmed_at,
 -- banned_until, instance_id, is_sso_user, etc.) e faltam as tabelas
--- relacionadas (auth.identities, auth.sessions, auth.refresh_tokens,
--- auth.mfa_factors, auth.mfa_amr_claims...). O nível de autenticação da
+-- relacionadas (auth.identities, auth.mfa_factors, auth.mfa_amr_claims...),
+-- menos auth.sessions e auth.refresh_tokens, que existem desde a 0015 (ver
+-- logo abaixo de auth.users). O nível de autenticação da
 -- sessão (AAL) não é coluna em lugar nenhum, nem no Supabase real: ele vive
 -- só no claim "aal" do JWT da sessão, por isso não tem "aal" na tabela
 -- aqui. Como não existe GoTrue, nada popula auth.users sozinho: os testes e
@@ -201,7 +202,7 @@ grant all on all functions in schema public to postgres, anon, authenticated, se
 
 create schema if not exists auth;
 grant usage on schema auth to postgres, anon, authenticated, service_role;
-comment on schema auth is 'sem-docker: só auth.users e as três funções auth.uid()/auth.role()/auth.jwt(). Sem GoTrue: nada aqui loga de verdade nem envia e-mail.';
+comment on schema auth is 'sem-docker: só auth.users, auth.sessions, auth.refresh_tokens e as três funções auth.uid()/auth.role()/auth.jwt(). Sem GoTrue: nada aqui loga de verdade nem envia e-mail.';
 
 create table if not exists auth.users (
   id                 uuid primary key default extensions.gen_random_uuid(),
@@ -217,6 +218,54 @@ comment on table auth.users is 'sem-docker: só as colunas que o Kraamzorg OS us
 grant select, insert, update, delete on auth.users to postgres, service_role;
 -- anon e authenticated não leem auth.users direto no Supabase real; o acesso
 -- deles à própria sessão é só via auth.uid()/auth.role()/auth.jwt().
+
+-- auth.sessions e auth.refresh_tokens (acrescentadas para a 0015_crm_apoio,
+-- api.revogar_sessoes). Imita: as colunas que o GoTrue grava nas duas
+-- tabelas, com a chave estrangeira de refresh_tokens.session_id para
+-- sessions.id em "on delete cascade" (apagar a sessão derruba o refresh
+-- token, que é o que encerra o login no aparelho) e a de sessions.user_id
+-- para auth.users. Difere: ninguém cria sessão sozinho (sem GoTrue); os
+-- testes inserem as linhas à mão. O access token já emitido continua
+-- valendo até expirar, aqui e no Supabase real (jwt_expiry).
+do $$
+begin
+  if not exists (select 1 from pg_type t join pg_namespace n on n.oid = t.typnamespace
+                 where n.nspname = 'auth' and t.typname = 'aal_level') then
+    create type auth.aal_level as enum ('aal1', 'aal2', 'aal3');
+  end if;
+end $$;
+
+create table if not exists auth.sessions (
+  id           uuid primary key,
+  user_id      uuid not null references auth.users (id) on delete cascade,
+  created_at   timestamptz,
+  updated_at   timestamptz,
+  factor_id    uuid,
+  aal          auth.aal_level,
+  not_after    timestamptz,
+  refreshed_at timestamp,
+  user_agent   text,
+  ip           inet,
+  tag          text
+);
+create index if not exists sessions_user_id_idx on auth.sessions (user_id);
+comment on table auth.sessions is 'sem-docker: mesmas colunas do GoTrue. Sem GoTrue, ninguém cria sessão sozinho: os testes inserem as linhas que precisam.';
+
+create table if not exists auth.refresh_tokens (
+  instance_id uuid,
+  id          bigserial primary key,
+  token       varchar(255) unique,
+  user_id     varchar(255),
+  revoked     boolean,
+  created_at  timestamptz,
+  updated_at  timestamptz,
+  parent      varchar(255),
+  session_id  uuid references auth.sessions (id) on delete cascade
+);
+comment on table auth.refresh_tokens is 'sem-docker: mesmas colunas do GoTrue, com session_id em "on delete cascade" para auth.sessions.';
+
+grant select, insert, update, delete on auth.sessions, auth.refresh_tokens to postgres, service_role;
+grant usage, select on all sequences in schema auth to postgres, service_role;
 
 create or replace function auth.uid()
 returns uuid

@@ -13,7 +13,10 @@
 --      confirmar_com_equipe na semana cheia e sempre que falta dado.
 --   3. privado.recalculo_diario: etapas na ordem do PRD 10.2, vazias para o
 --      que ainda não existe, erro isolado numa etapa, resultado gravado; job
---      do pg_cron às 10:00 UTC.
+--      do pg_cron às 10:00 UTC. [P20] regua_nutricao e alerta_34s passam a
+--      'ok' assim que 0012_automacoes.sql cria privado.recalculo_regua_nutricao
+--      e privado.recalculo_alerta_34s: privado.recalculo_diario (0011) já
+--      procura essas funções pelo nome a cada rodada, sem precisar mudar.
 --   4. Privilégios.
 --
 -- Janela da DPP do teste: 3 dias antes e 3 depois (7 inícios possíveis),
@@ -226,8 +229,12 @@ select results_eq(
   $$ select e.ordem, e.etapa, e.status::text from privado.recalculo_etapa e
       where e.execucao_id = (select (r ->> 'execucao_id')::bigint from r1) order by e.ordem $$,
   $$ values (1, 'idade_gestacional'::text, 'ok'::text), (2, 'ocupacao', 'ok'), (3, 'score', 'erro'),
-            (4, 'regua_nutricao', 'vazia'), (5, 'alertas_dpp', 'vazia'), (6, 'ficha_pendente', 'vazia'),
-            (7, 'prazo_relatorio', 'vazia'), (8, 'documentos_vencendo', 'vazia'), (9, 'alerta_34s', 'vazia') $$,
+            (4, 'regua_nutricao', 'ok'), (5, 'alertas_dpp', 'vazia'), (6, 'ficha_pendente', 'vazia'),
+            (7, 'prazo_relatorio', 'vazia'), (8, 'documentos_vencendo', 'vazia'), (9, 'alerta_34s', 'ok') $$,
+  -- [P20] regua_nutricao passa a 'ok' (0012_automacoes.sql, privado.recalculo_regua_nutricao:
+  -- roda contra as famílias do seed com conversa iniciada pela família, sem erro, mesmo sem
+  -- nenhuma família nova nesta seção). alerta_34s também vira 'ok' (privado.recalculo_alerta_34s
+  -- existe), mas fica sem efeito nenhum porque ativa = false no seed (Fase 2, pré-natal online).
   'recálculo: etapas na ordem do PRD 10.2; módulo que ainda não existe fica vazio; erro de uma etapa não para as outras');
 select results_eq(
   $$ select status::text, origem, concluido_em is not null from privado.recalculo_execucao

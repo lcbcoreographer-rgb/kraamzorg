@@ -945,7 +945,9 @@ select set_eq(
             ('api.status_cobranca'), ('api.sessao_venda_gravacao'), ('api.status_equipe'),
             ('api.marketing_leads_por_origem'), ('api.marketing_funil'), ('api.lead_origem'),
             ('api.log_auditoria'),
-            ('api.acionar_freio'), ('api.desfazer_freio'), ('api.justificar_freio'), ('api.reverter_freio') $$,
+            ('api.acionar_freio'), ('api.desfazer_freio'), ('api.justificar_freio'), ('api.reverter_freio'),
+            ('api.retomar_agente'), ('api.eliminar_titular'),
+            ('api.revogar_sessoes'), ('api.transicoes_permitidas'), ('api.parametros_da_tela') $$,
   'authenticated executa exatamente a lista do ADR 0002 seção 6');
 
 select is_empty(

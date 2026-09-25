@@ -428,16 +428,18 @@ select results_eq(
 -- 9. RLS: sem política nega tudo
 --
 -- Até o P07 nenhuma tabela tinha política. Depois do P07 (0007_permissoes.sql,
--- ADR 0002) as políticas existem só para authenticated e só em public;
--- agente e agente_n8n continuam sem política até o P21 (n8n_agente). Um
+-- ADR 0002) as políticas existem só para authenticated e só em public.
+-- Desde o P21 (0013, ADR 0003) agente_n8n tem exatamente uma política por
+-- tabela, "for all to n8n_agente", e agente continua sem política. Um
 -- usuário sem papel continua sem ver nem gravar nada (abaixo).
 -- =============================================================================
 
 select is_empty(
   $$ select schemaname || '.' || tablename || '.' || policyname from pg_policies
-     where schemaname in ('agente', 'agente_n8n')
+     where schemaname = 'agente'
+        or (schemaname = 'agente_n8n' and (roles <> array['n8n_agente']::name[] or cmd <> 'ALL'))
         or (schemaname = 'public' and roles <> array['authenticated']::name[]) $$,
-  'políticas só para authenticated em public; agente e agente_n8n sem política até o P21'
+  'políticas só para authenticated em public; agente sem política; agente_n8n só "for all to n8n_agente" (P21)'
 );
 
 select testes.autenticar_authenticated(current_setting('testes.usuario')::uuid, 'aal2');

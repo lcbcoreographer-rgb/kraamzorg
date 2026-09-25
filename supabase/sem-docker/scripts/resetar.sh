@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Recria o banco do zero: apaga e cria de novo o banco $DB_NAME, aplica
 # camada-supabase.sql, depois todas as migrations de MIGRATIONS_DIR em ordem
-# de nome, depois SEED_SQL se existir. Para no primeiro erro, com a mensagem
+# de nome, depois os seeds (SEED_SQL ou [db.seed] de supabase/config.toml). Para no primeiro erro, com a mensagem
 # do próprio Postgres (psql -v ON_ERROR_STOP=1).
 #
 # A pasta de migrations pode vir por variável de ambiente (MIGRATIONS_DIR) ou
@@ -42,11 +42,21 @@ else
   done
 fi
 
-if [ -f "$SEED_SQL" ]; then
-  echo "sem-docker: aplicando seed ($SEED_SQL)"
-  psql_pg "$DB_NAME" -f "$SEED_SQL"
-else
-  echo "sem-docker: sem seed.sql em $SEED_SQL, pulando"
+# Seeds: SEED_SQL, ou [db.seed] sql_paths de supabase/config.toml (a mesma
+# lista do "supabase db reset"), ou supabase/seed.sql. Ver listar_seeds em
+# _comum.sh.
+aplicou_seed=0
+while IFS= read -r seed; do
+  if [ -f "$seed" ]; then
+    echo "sem-docker: aplicando seed ($seed)"
+    psql_pg "$DB_NAME" -f "$seed"
+    aplicou_seed=1
+  else
+    echo "sem-docker: seed $seed não existe, pulando"
+  fi
+done < <(listar_seeds)
+if [ "$aplicou_seed" -eq 0 ]; then
+  echo "sem-docker: nenhum seed aplicado"
 fi
 
 echo "sem-docker: banco '$DB_NAME' pronto"

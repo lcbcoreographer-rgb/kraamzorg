@@ -281,12 +281,12 @@ insert into parametro (chave, valor, descricao) values
    '{"motivo":"reclamacao","destino":"coordenacao_clinica","prioridade":"alta","sla_horas":2},' ||
    '{"motivo":"parceiro_medico","destino":"comercial","prioridade":"normal","sla_dias":1},' ||
    '{"motivo":"estado_sensivel_escreveu","destino":"coordenacao_clinica","prioridade":"alta","sla_horas":1},' ||
-   '{"motivo":"midia_recebida","destino":"comercial","prioridade":"normal","sla_horas_uteis":4,"observacao":"operação se for cliente, alta, 2h; pipeline 3 vai para coordenação clínica [confirmar Edilaine]"},' ||
+   '{"motivo":"midia_recebida","destino":"comercial","prioridade":"normal","sla_horas_uteis":4,"se_cliente":{"destino":"operacao","prioridade":"alta","sla_horas":2},"se_atendimento":{"destino":"coordenacao_clinica","prioridade":"alta","sla_horas":2},"observacao":"operação se for cliente, alta, 2h; pipeline 3 vai para coordenação clínica [confirmar Edilaine]"},' ||
    '{"motivo":"validacao_resposta","destino":"comercial","prioridade":"alta","sla_horas_uteis":1},' ||
-   '{"motivo":"audio_nao_transcrito","destino":"coordenacao_clinica","prioridade":"alta","sla_horas_corridas":1,"observacao":"comercial nos demais casos [confirmar Edilaine]"},' ||
+   '{"motivo":"audio_nao_transcrito","destino":"coordenacao_clinica","prioridade":"alta","sla_horas_corridas":1,"se_nao_cliente":{"destino":"comercial"},"observacao":"comercial nos demais casos [confirmar Edilaine]"},' ||
    '{"motivo":"outro","destino":"comercial","prioridade":"normal","sla_horas_uteis":4}' ||
    ']')::jsonb,
-   'PRD 11.4: tabela de handoff (situação, motivo, destino, prioridade, SLA), editável sem deploy.'),
+   'PRD 11.4: tabela de handoff (situação, motivo, destino, prioridade, SLA), editável sem deploy. [v4.2] se_cliente, se_atendimento (pipeline 3 em curso) e se_nao_cliente sobrepõem destino, prioridade e SLA da linha (agente.registrar_handoff, P22).'),
   ('expediente_comercial', '{"dias":["seg","ter","qua","qui","sex"],"inicio":"09:00","fim":"18:00","fuso":"America/Sao_Paulo"}',
    'PRD 11.4: SLA em horas úteis usa este expediente [confirmar].'),
   ('retencao_audio_dias', '90',
@@ -302,7 +302,20 @@ insert into parametro (chave, valor, descricao) values
   ('freio_desfazer_segundos', '10',
    '[v4.2] PRD 6.8, 8.3, 20.6, 22.4 O-07: janela do "Desfazer" do freio para quem acionou; 0 desliga [confirmar: Leonardo e Edilaine].'),
   ('comercial_resposta_no_app', 'false',
-   '[v4.2] PRD 6.8, 20.6, 22.2 C-19: com falso, a conversa assumida é respondida no WhatsApp do aparelho [confirmar: Leonardo].')
+   '[v4.2] PRD 6.8, 20.6, 22.2 C-19: com falso, a conversa assumida é respondida no WhatsApp do aparelho [confirmar: Leonardo].'),
+  ('sessao_sem_agenda_horas', '24',
+   'PRD 10.1, P20: horas sem handoff depois do marco sessao_interesse até a automação sessao_sem_agenda materializar a tarefa agendar_sessao.'),
+  ('automacao_rota_interna', '"http://localhost:3000/api/interno/automacao"',
+   'PRD 10, 22.1, P20: base da rota que privado.chamar_rota_automacao chama por net.http_post para as ações externas do motor de automações. Placeholder local; a URL de homologação/produção é ambiente, nunca segredo real neste seed.'),
+  ('handoff_dedup_minutos', '10',
+   'PRD 11.4, 19.3 nó 12, Apêndice A (P22): janela em que um pedido comercial igual (mesma conversa, motivo e solicitação) não gera novo aviso, e em que saúde, perda e estado sensível reaproveitam a transferência aberta com ATUALIZAÇÃO. Ausente: nada é deduplicado.'),
+  ('link_ficha_modelo', '"http://localhost:3000/familias/{familia_id}"',
+   'PRD 23.3 {link_ficha} (P22): endereço da ficha da família no CRM, só com o id (nunca nome, PRD 5.2). Placeholder local; homologação e produção trocam a base.'),
+  ('agente_followup_contexto_mensagens', '6',
+   'PRD 19.4 nó 38 (P22): quantas mensagens recentes da própria conversa vão ao prompt do follow-up (isadora-followup.md). 0 = nenhuma.'),
+  ('handoff_motivos_legiveis',
+   '{"cobertura_taxa":"DÚVIDA DE ÁREA OU TAXA","reembolso_fiscal":"REEMBOLSO OU NOTA FISCAL","duvida_sem_resposta":"PERGUNTA SEM RESPOSTA NA BASE","pediu_humano":"PEDIU PARA FALAR COM UMA PESSOA","pos_venda_operacao":"HORÁRIO, VISITA OU ENFERMEIRA","reclamacao":"RECLAMAÇÃO","parceiro_medico":"MÉDICO, CLÍNICA OU PARCEIRO","midia_recebida":"FOTO, DOCUMENTO OU VÍDEO","validacao_resposta":"RESPOSTA BARRADA PELO VALIDADOR","audio_nao_transcrito":"ÁUDIO NÃO TRANSCRITO","outro":"OUTRO ASSUNTO PARA A EQUIPE"}',
+   'PRD 23.3 {motivo_legivel} do grupo_generico (P22), a partir da coluna Situação da 11.4. Motivo sem rótulo aparece pelo código.')
 on conflict (chave) do update set valor = excluded.valor, descricao = excluded.descricao;
 
 
@@ -453,7 +466,26 @@ insert into mensagem_modelo (chave, canal, destinatario, texto, variaveis, statu
    array['nome','texto_familia','link_ficha'], 'rascunho'),
   ('grupo_generico', 'whatsapp', 'equipe',
    '💬 {motivo_legivel} / {resumo_interno} / {link_ficha}',
-   array['motivo_legivel','resumo_interno','link_ficha'], 'rascunho');
+   array['motivo_legivel','resumo_interno','link_ficha'], 'rascunho'),
+  -- Complementos [v4.2] do 23.3, montados por agente.registrar_handoff (P22)
+  ('grupo_rodape_pausa', 'whatsapp', 'equipe',
+   'IA pausada por {pausa_horas} h nesta conversa.',
+   array['pausa_horas'], 'rascunho'),
+  ('grupo_rodape_humano_comercial', 'whatsapp', 'equipe',
+   'A Isadora não volta a esta conversa. Para devolver, use Devolver à Isadora na ficha.',
+   array[]::text[], 'rascunho'),
+  ('grupo_prefixo_atualizacao', 'whatsapp', 'equipe',
+   'ATUALIZAÇÃO · ',
+   array[]::text[], 'rascunho'),
+  ('grupo_mensagem_nao_enviada', 'whatsapp', 'equipe',
+   'nenhuma mensagem saiu, responder agora',
+   array[]::text[], 'rascunho'),
+  ('grupo_observacao_perda_anterior', 'whatsapp', 'equipe',
+   'Pode ser perda de gestação anterior: confira com a família e reverta o freio se for o caso.',
+   array[]::text[], 'rascunho'),
+  ('resumo_ia_fora_do_ar', 'whatsapp', 'equipe',
+   'IA fora do ar, responder a família',
+   array[]::text[], 'rascunho');
 
 -- --- 23.4 Para o agente (instruções devolvidas pelo fluxo 2) ----------------
 insert into mensagem_modelo (chave, canal, destinatario, texto, variaveis, status) values
@@ -483,6 +515,11 @@ insert into mensagem_modelo (chave, canal, destinatario, texto, variaveis, statu
    array[]::text[], 'rascunho'),
   ('instrucao_saude', 'whatsapp', 'agente',
    'A mensagem aprovada já foi enviada pelo sistema e a equipe foi avisada. Responda só [SILENCIO].',
+   array[]::text[], 'rascunho'),
+  -- Apêndice A [v4.2], sincronizar_memoria papel equipe: prefixo da fala da
+  -- equipe na memória do agente (nunca vai à família)
+  ('memoria_prefixo_equipe', 'whatsapp', 'agente',
+   'Mensagem enviada pela equipe: ',
    array[]::text[], 'rascunho');
 
 -- --- 23.5 Para médicos -------------------------------------------------------

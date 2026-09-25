@@ -25,7 +25,7 @@ Vault e `pg_cron` de verdade.
 cd supabase/sem-docker
 
 scripts/iniciar.sh    # sobe o Postgres local (initdb na primeira vez, idempotente)
-scripts/resetar.sh    # recria o banco: camada-supabase.sql + supabase/migrations/*.sql em ordem + seed.sql se existir
+scripts/resetar.sh    # recria o banco: camada-supabase.sql + supabase/migrations/*.sql em ordem + seeds de [db.seed] em supabase/config.toml
 scripts/testar.sh     # reseta e roda pg_prove em supabase/tests/*.sql; código de saída != 0 se algum teste falhar
 scripts/parar.sh      # para o servidor (não apaga o banco)
 ```
@@ -43,7 +43,7 @@ Variáveis de ambiente (todas opcionais, com padrão):
 | `DB_NAME`        | `kraamzorg`                  | Nome do banco da aplicação                          |
 | `MIGRATIONS_DIR` | `supabase/migrations`        | Pasta com as migrations, aplicadas em ordem de nome |
 | `TESTS_DIR`      | `supabase/tests`             | Pasta com os testes pgTAP (`*.sql`)                 |
-| `SEED_SQL`       | `supabase/seed.sql`          | Seed opcional; se o arquivo não existir, é pulado   |
+| `SEED_SQL`       | `[db.seed] sql_paths` de `supabase/config.toml` | Seeds, em ordem; um arquivo ou vários separados por `:`. Sem a variável, a mesma lista do `supabase db reset`; sem `config.toml`, `supabase/seed.sql`. Arquivo que não existe é pulado |
 | `PG_BIN`         | `/usr/lib/postgresql/16/bin` | Onde estão os binários do Postgres 16               |
 | `PG_USER_OS`     | `postgres`                   | Usuário do sistema operacional dono do cluster      |
 
@@ -165,12 +165,12 @@ Dois detalhes verificados contra
 `supabase/postgres` estavam faltando em `camada-supabase.sql` e foram
 acrescentados (seção 1, papéis):
 
-1. `grant supabase_admin to authenticator;` — no Supabase real, `authenticator`
+1. `grant supabase_admin to authenticator;`: no Supabase real, `authenticator`
    (o papel que o PostgREST usa) também recebe `supabase_admin`. Sem
    PostgREST rodando aqui isso não muda o resultado de nenhum teste, mas
    deixar de fora era uma diferença real, não só cosmética.
 2. `alter role anon set statement_timeout = '3s';` e
-   `alter role authenticated set statement_timeout = '8s';` — limite de
+   `alter role authenticated set statement_timeout = '8s';`: limite de
    tempo de consulta que um projeto novo já sai com. Não afeta RLS nem
    privilégio, mas é um valor que existe no Supabase real e não existia
    aqui; se algum teste futuro depender de "quanto tempo uma consulta de
@@ -188,7 +188,7 @@ O `pg_net` real, depois de instalado, concede `execute` em
 `supabase/postgres`). O stub daqui concede só para `postgres` e
 `service_role`. Isso foi deixado assim de propósito, não corrigido: nenhuma
 função do PRD (10, 11.10) chama `net.*` a partir de `anon`/`authenticated`
-diretamente — quem chama pg_net no Kraamzorg OS é automação interna,
+diretamente: quem chama pg_net no Kraamzorg OS é automação interna,
 rodando como `postgres`/`service_role` por trás de função `security
 definer`. Conceder a mais aqui seria destoar do princípio de menor
 privilégio que o próprio PRD 11.10 usa ("revoga o padrão, concede só o que
@@ -224,7 +224,11 @@ migration do projeto, não uma mudança nesta camada de base.
   como todo o resto do projeto).
 - **Sem GoTrue.** Não existe cadastro, login, e-mail de confirmação nem MFA de
   verdade. `auth.users` só tem as seis colunas que o projeto lê (PRD 6.1) e
-  ninguém a popula sozinho: testes e seed inserem as linhas à mão. O nível de
+  ninguém a popula sozinho: testes e seed inserem as linhas à mão.
+  `auth.sessions` e `auth.refresh_tokens` existem desde a
+  0015 (`api.revogar_sessoes`), com as colunas do GoTrue e a cascata de
+  `refresh_tokens.session_id`, mas ninguém cria sessão sozinho: os testes
+  inserem as linhas. O nível de
   autenticação (`aal`) nunca vem de uma tabela, só do JWT simulado.
 - **Sem PostgREST.** Não há troca automática de papel por JWT de requisição
   HTTP nem exposição de `public`/`api` como API REST. Os testes trocam de
@@ -259,7 +263,7 @@ migration do projeto, não uma mudança nesta camada de base.
   importa, porque `resetar.sh` sempre recria o banco do zero.
 
 Cada bloco de `camada-supabase.sql` tem, em comentário, o que imita do
-Supabase e onde difere — este README resume, o arquivo é a referência
+Supabase e onde difere; este README resume, o arquivo é a referência
 completa.
 
 ## A regra que não muda
@@ -270,6 +274,6 @@ enquanto esta máquina não tem Docker, não um substituto do Supabase real: as
 diferenças listadas acima são exatamente os lugares onde um teste pode passar
 aqui e se comportar diferente lá (mais provável: `pg_net`, Vault, qualquer
 coisa que dependa de GoTrue ou PostgREST). E, como CLAUDE.md já diz: nenhuma
-migration vai para homologação ou produção sem revisão humana do SQL — rodar
+migration vai para homologação ou produção sem revisão humana do SQL: rodar
 verde aqui não dispensa isso, é só o que permite continuar escrevendo SQL
 nesta máquina até o Docker voltar.

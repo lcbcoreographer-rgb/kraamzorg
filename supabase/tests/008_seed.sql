@@ -27,7 +27,7 @@
 
 begin;
 
-select plan(79);
+select plan(83);
 
 
 -- =============================================================================
@@ -313,6 +313,22 @@ select ok((select count(*)::integer from mensagem where wa_message_id is null
              and conversa_id in (select id from conversa where wa_jid like '%-teste@%')) >= 13,
   'ao menos duas mensagens por conversa fictícia');
 
+
+
+-- =============================================================================
+-- 10. Base de conhecimento inicial do agente (supabase/dados/
+--     base_conhecimento_seed.sql, P26), carregada pelo [db.seed] de
+--     supabase/config.toml depois do seed.sql
+-- =============================================================================
+
+select ok((select count(*) > 0 from agente.base_conhecimento),
+  'a base de conhecimento inicial do P26 foi carregada pelo seed de desenvolvimento');
+select is((select count(*)::integer from agente.base_conhecimento where status <> 'rascunho'), 0,
+  'todo item da base inicial entra em rascunho (só aprovado é indexado, PRD 19.2)');
+select is((select count(*)::integer from agente.base_conhecimento where fonte is null or btrim(fonte) = ''), 0,
+  'todo item da base inicial tem fonte');
+select is((select (count(*) - count(distinct (tipo, titulo)))::integer from agente.base_conhecimento), 0,
+  'nenhum item duplicado na base inicial (o seed.sql não repete o arquivo do P26)');
 
 select * from finish();
 

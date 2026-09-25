@@ -39,6 +39,10 @@ export type Database = {
         Args: { familia_id: string };
         Returns: Json;
       };
+      eliminar_titular: {
+        Args: { familia_id: string; motivo: string };
+        Returns: Json;
+      };
       familias_do_dia: {
         Args: { dia?: string };
         Returns: {
@@ -106,12 +110,24 @@ export type Database = {
           qualificados: number;
         }[];
       };
+      parametros_da_tela: {
+        Args: { chaves?: string[] };
+        Returns: { atualizado_em: string; chave: string; valor: Json }[];
+      };
+      retomar_agente: {
+        Args: { conversa_id: string };
+        Returns: Json;
+      };
       reverter_freio: {
         Args: {
           estado: Database["public"]["Enums"]["estado_sensivel"];
           familia_id: string;
           justificativa: string;
         };
+        Returns: Json;
+      };
+      revogar_sessoes: {
+        Args: { usuario_id: string };
         Returns: Json;
       };
       sessao_venda_gravacao: {
@@ -147,6 +163,16 @@ export type Database = {
           para: string;
         };
         Returns: Json;
+      };
+      transicoes_permitidas: {
+        Args: { de?: string; maquina: string };
+        Returns: {
+          automatica: boolean;
+          destino: string;
+          origem: string;
+          papel_minimo: Database["public"]["Enums"]["papel_usuario"];
+          pode: boolean;
+        }[];
       };
     };
     Enums: {
