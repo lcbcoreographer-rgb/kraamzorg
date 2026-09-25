@@ -1,0 +1,33 @@
+# origem: Subconjunto compilado à mão nesta sessão (API do IBGE bloqueada nesta rede em 25/09/2026), cobrindo só a Grande São Paulo e a região de Londrina citadas no PRD 3.3. Não confirmado por download. Ver comentário no topo de scripts/baixar-municipios.mjs.
+# colunas: codigo_ibge,nome,uf,regiao_intermediaria (PRD 6.1, tabela municipio)
+codigo_ibge,nome,uf,regiao_intermediaria
+4101408,Assaí,PR,Londrina
+4102554,Bela Vista do Paraíso,PR,Londrina
+4104808,Cambé,PR,Londrina
+4111506,Ibiporã,PR,Londrina
+4112108,Jataizinho,PR,Londrina
+4121901,Rolândia,PR,Londrina
+4124400,Sertanópolis,PR,Londrina
+4127882,Tamarana,PR,Londrina
+3503208,Arujá,SP,São Paulo
+3509007,Caieiras,SP,São Paulo
+3509502,Cajamar,SP,São Paulo
+3510609,Carapicuíba,SP,São Paulo
+3513801,Diadema,SP,São Paulo
+3515004,Embu das Artes,SP,São Paulo
+3515103,Ferraz de Vasconcelos,SP,São Paulo
+3516408,Francisco Morato,SP,São Paulo
+3516309,Franco da Rocha,SP,São Paulo
+3518800,Guarulhos,SP,São Paulo
+3522208,Itapevi,SP,São Paulo
+3523107,Itaquaquecetuba,SP,São Paulo
+3524303,Jandira,SP,São Paulo
+3527801,Mairiporã,SP,São Paulo
+3529401,Mauá,SP,São Paulo
+3530607,Mogi das Cruzes,SP,São Paulo
+3534401,Osasco,SP,São Paulo
+3538907,Poá,SP,São Paulo
+3543303,Ribeirão Pires,SP,São Paulo
+3543832,Rio Grande da Serra,SP,São Paulo
+3552502,Suzano,SP,São Paulo
+3552205,Taboão da Serra,SP,São Paulo

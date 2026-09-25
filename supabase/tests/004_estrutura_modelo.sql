@@ -411,8 +411,14 @@ insert into familia (nome_exibicao, estado_sensivel) values ('Família Teste Fre
 insert into familia (nome_exibicao, nao_contatar) values ('Família Teste Não Contatar', true);
 insert into familia (nome_exibicao, mesclada_em_id) values ('Família Teste Mesclada', current_setting('testes.familia')::uuid);
 
+-- criado_em >= transaction_timestamp() restringe às linhas desta transação
+-- (now() é estável dentro da transação): sem isso, "like 'Família Teste%'"
+-- também pegaria família sintética do seed.sql (P08), que usa o mesmo
+-- prefixo de nome (CLAUDE.md, "Família Teste ..."), e o teste pegaria linha
+-- a mais que não veio deste bloco.
 select results_eq(
-  $$ select nome_exibicao from familia_elegivel_marketing where nome_exibicao like 'Família Teste%' order by 1 $$,
+  $$ select nome_exibicao from familia_elegivel_marketing
+     where nome_exibicao like 'Família Teste%' and criado_em >= transaction_timestamp() order by 1 $$,
   $$ values ('Família Teste Verificação'::text) $$,
   'familia_elegivel_marketing: família em atenção, com nao_contatar ou mesclada fica de fora'
 );

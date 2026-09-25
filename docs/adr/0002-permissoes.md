@@ -2,7 +2,7 @@
 
 Data: 25/09/2026
 Situação: **proposta, pendente de aprovação escrita do Leonardo e da Edilaine (O-05)**. Vale o mais restritivo até a aprovação (PRD 22.4, O-05).
-Relacionado: PRD 5.2, 6.9, 6.10 (regras 4, 6 e 11), 11.10, 13, 21.1, 21.2, 21.3, 22.4 (O-05, O-06, O-08); PROMPTS.md P07; migrations `0005_auditoria.sql`, `0006_maquinas_estado.sql` e `0007_permissoes.sql`; teste `supabase/tests/007_permissoes.sql`.
+Relacionado: PRD 5.2, 6.9, 6.10 (regras 4, 6 e 11), 11.10, 13, 21.1, 21.2, 21.3, 22.4 (O-05, O-06, O-08); PROMPTS.md P07; migrations `0005_auditoria.sql`, `0006_maquinas_estado.sql`, `0007_permissoes.sql`, `0009_freio.sql`, `0010_score_dedup.sql` e `0011_ocupacao.sql`; testes `supabase/tests/007_permissoes.sql`, `009_freio.sql`, `010_score_dedup.sql` e `011_ocupacao.sql`.
 
 ## Contexto
 
@@ -23,6 +23,7 @@ Todo usuário do app chega ao banco como o papel `authenticated` do Supabase. Po
 4. **O app chama por RPC só funções de `api`** (PRD 5.2). Cada uma é `security definer`, com `set search_path = ''`, confere usuário identificado, perfil ativo, papel e AAL, e só então lê ou chama `privado` e `assistencial`. `authenticated` recebe `usage` em `privado` e `api` e `execute` só na lista da seção 6.
 5. **Tabela assistencial, `pessoa_dados_contrato` e sessão gravada não têm `select` direto** (PRD 6.10 regra 6): nenhum `grant` para `authenticated`, nenhuma política. Leitura só por função que grava `leitura` em `log_auditoria` antes de devolver. A escrita também passa por funções, que nascem com cada módulo.
 6. **Mudança de estágio só por `privado.transicionar`**, que o app alcança por `api.transicionar` (PRD 7, invariante 1). Coluna de estágio fica fora dos `grant` de `update`, e o gatilho `privado.proteger_estado` recusa de novo.
+7. **`criado_por` é do banco, não do app.** O gatilho `privado.carimbar_criado_por` (toda tabela de `public` com a coluna) grava `auth.uid()` na inclusão feita pelo usuário do app e mantém o valor antigo na alteração, mesmo que o `grant` de inclusão cite a coluna. Ninguém grava uma linha em nome de outra pessoa. Migrations, seed, funções `security definer` e `service_role` gravam o que informarem.
 
 ### 2. MFA (AAL2)
 
@@ -75,31 +76,31 @@ Legenda: **L** leitura, **I** inclusão, **A** alteração, **X** exclusão. "Pr
 
 | Tabela | Comercial | Enfermeira | Financeiro | Marketing | Coordenação | Diretoria | AAL | Observação |
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
-| `familia` | L, I, A | via `api.familias_do_dia` e `api.ficha_assistencial` | L | nada (só `api.marketing_*`) | L | L, I, A | perfil | Coluna `historico_sensivel` fora de todo `grant`: ninguém lê nem grava direto; coordenação e diretoria veem em `api.ficha_assistencial` [confirmar: Edilaine, quem vê]. Fora do `grant` de I e A: `estado_sensivel*` (freio, P09), `mesclada_em_id` (deduplicação, P17), chave e carimbos |
+| `familia` | L, I, A | via `api.familias_do_dia` e `api.ficha_assistencial` | L só de família com contrato | nada (só `api.marketing_*`) | L | L, I, A | perfil | Coluna `historico_sensivel` fora de todo `grant`: ninguém lê nem grava direto; coordenação e diretoria veem em `api.ficha_assistencial` [confirmar: Edilaine, quem vê]. Colunas de origem do lead (`origem`, `codigo_origem`, `utm`, `indicacao_medico_id`, `indicacao_familia_id`) fora do `grant` de L: "Lead e origem" é sem acesso para financeiro e coordenação (13), que leem a mesma linha; comercial e diretoria leem por `api.lead_origem` (I e A continuam com eles). Financeiro: lead sem contrato não aparece ("Lead e origem" sem acesso; "Ficha comercial" leitura para cobrar). Fora do `grant` de I e A: `estado_sensivel*` (freio, P09), `mesclada_em_id` (deduplicação, P17), chave e carimbos |
 | `familia_elegivel_marketing` (view) | nada | nada | nada | nada (só `api.marketing_*`) | nada | nada | | Lida só pelas funções `api.marketing_*` (6.9). `security_invoker`, então sem `grant` de `familia` para o marketing ela não serviria direto de qualquer jeito |
-| `pessoa` | L, I, A | via `api.ficha_assistencial` | L | nada | L | L, I, A | perfil | Sem X: remoção é `privado.eliminar_titular` (21.3) |
+| `pessoa` | L, I, A | via `api.ficha_assistencial` | L só de família com contrato | nada | L | L, I, A | perfil | Sem X: remoção é `privado.eliminar_titular` (21.3) |
 | `pessoa_dados_contrato` | via `api.dados_contrato` | nada | via `api.dados_contrato` | nada | nada | via `api.dados_contrato` | todos (completo) | **Sem política e sem `grant`** (6.10 regra 6). Escrita pelo formulário seguro (P30) por função própria |
 | `bebe` | L, I, A | via `api.ficha_assistencial` | nada | nada | L, I, A | L, I, A | perfil | |
 | `medico` | L, I, A | via `api.ficha_assistencial` | nada | nada | L, I, A | L, I, A | perfil | |
 | `pacote`, `pacote_versao`, `condicao_comercial` | L | nada | L | nada | L | L, I, A | perfil | Preço é configuração: só a diretoria grava |
-| `oportunidade` | L, I, A | nada | L | nada (só `api.marketing_*`) | L | L, I, A | perfil | Estágio só por `api.transicionar`. Fora do `grant` de A: `estagio_p1`, `estagio_p2`, `pipeline` e `desconto_aprovado_por` (aprovação de desconto por função própria, P30) |
-| `sessao_venda` | L, I, A | nada | nada | nada | L, I, A | L, I, A | perfil | Agenda da conversa com a Edilaine |
+| `oportunidade` | L, I, A | nada | L só de família com contrato | nada (só `api.marketing_*`) | L | L, I, A | perfil | Estágio só por `api.transicionar`. Fora do `grant` de A: `estagio_p1`, `estagio_p2`, `pipeline` e `desconto_aprovado_por` (aprovação de desconto por função própria, P30). `score` e `classificacao` fora do `grant` de I e A desde a 0010: a pontuação é calculada pelo banco (`privado.calcular_score`, P17), nunca digitada |
+| `sessao_venda` | L, I, A | nada | nada | nada | L, I, A | L, I, A | perfil | Agenda da conversa com a Edilaine. `conduzida_por` fora do `grant` de A: decide quem lê a gravação, e com a coluna editável um comercial se poria como condutor de uma sessão de outra pessoa e leria a transcrição. Nasce na inclusão e muda só por função (P29), com log |
 | `sessao_venda_gravacao` | via `api.sessao_venda_gravacao`, só quem conduziu | nada | nada | nada | via `api.sessao_venda_gravacao`, só quem conduziu | via `api.sessao_venda_gravacao` | todos | **Sem política e sem `grant`** (6.10 regra 6). Adotado o mais restritivo do onboarding (13, divergência 1) [confirmar] |
 | `contrato` | L, I, A | nada | L, I, A | nada | nada | L, I, A | todos | Financeira |
 | `cobranca` | status via `api.status_cobranca` | nada | L, I, A | nada | nada | L, I, A | todos | "Parcial (status)" do comercial não cabe em RLS: função devolve só parcela, vencimento, status e data de pagamento |
 | `nota_fiscal` | status via `api.status_cobranca` | nada | L, I, A | nada | nada | L, I, A | todos | |
-| `conversa` | L, I, A | nada | nada | nada | L, I, A | L, I, A | perfil | A só em `familia_id`, `pessoa_id` e `classificacao`; pausa e modo do agente só por função (`privado.retomar_agente`, P22) |
+| `conversa` | L, I, A | nada | nada | nada | L, I, A | L, I, A | perfil | I só com `canal`, `telefone_e164`, `familia_id`, `pessoa_id`, `classificacao` e `nome_contato_salvo` (contato registrado à mão); A só em `familia_id`, `pessoa_id` e `classificacao`; pausa e modo do agente só por função (`privado.retomar_agente`, P22) |
 | `mensagem` | L | nada | nada | nada | L | L | perfil | Sem I direto: o texto precisa passar por `privado.mascarar_documentos` antes de gravar, então o "enviei" do app grava por função (P18). UPDATE, DELETE e TRUNCATE já revogados (P03) |
 | `handoff` | L, A | nada | nada | nada | L, A | L, A | perfil | A só em `assumido_por`, `assumido_em`, `resolvido_em` e `status`; I só pelo agente e pelo sistema |
 | `tarefa` | L, A se responsável | L, A se responsável | L, A se responsável | L, A se responsável | L, A se responsável | L, A todas | perfil | Responsável = `responsavel_id` do usuário, ou tarefa sem pessoa com `papel_responsavel` que o usuário tem (13). A só em `status`, `concluida_em`, `concluida_por` e `responsavel_id`. I pelo sistema |
 | `notificacao` | L, A próprias | L, A próprias | L, A próprias | L, A próprias | L, A próprias | L, A todas | perfil | Própria = `usuario_id` do usuário, ou sem usuário com `papel` que ele tem. A só em `lida_em` |
-| `evento_familia` | L não restrito | nada | L não restrito | nada | L não restrito | L não restrito | perfil | Evento `restrito` segue o registro assistencial: sem leitura direta, só por função com log (P16). Sem I direto: a linha do tempo é escrita pelas funções |
+| `evento_familia` | L não restrito | nada | L não restrito, só de família com contrato | nada | L não restrito | L não restrito | perfil | Evento `restrito` segue o registro assistencial: sem leitura direta, só por função com log (P16). Sem I direto: a linha do tempo é escrita pelas funções |
 
 #### Operação e assistencial
 
 | Tabela | Comercial | Enfermeira | Financeiro | Marketing | Coordenação | Diretoria | AAL | Observação |
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
-| `profissional` | nada (via `api.status_equipe` não, ver seção 5) | L própria | L | nada | L, I, A | L, I, A | perfil | "Cada enfermeira lê o seu" (13); financeiro lê para o pagamento da equipe ("Financeiro" Total) |
+| `profissional` | nada | L própria | L | nada | L, I, A | L, I, A | perfil | "Cada enfermeira lê o seu" (13); financeiro lê para o pagamento da equipe ("Financeiro" Total) |
 | `documento_profissional` | nada | L próprios | nada | nada | L, I, A | L, I, A | perfil | |
 | `bloqueio_agenda` | L | L próprios | nada | nada | L, I, A, X | L, I, A, X | perfil | Agenda: comercial leitura, enfermeira própria |
 | `acompanhamento` | L | L atribuídas | nada | nada | L, I, A | L, I, A | perfil | Agenda. Estado só por `api.transicionar`. Leitura auditada de exemplo em `assistencial.ler_acompanhamento` (P05), usada por `api.ficha_assistencial` |
@@ -112,7 +113,7 @@ Legenda: **L** leitura, **I** inclusão, **A** alteração, **X** exclusão. "Pr
 | `ocorrencia` | responsável, não privada | responsável, não privada | responsável, não privada | responsável, não privada | L, I, A | L, I, A | perfil | `privada` só coordenação e diretoria (13). Responsável altera só `status` e `historico` |
 | `pos_venda` | nada | nada | nada | nada (NPS agregado em `api.marketing_*` futura) | L, A | L, A | perfil | Estágio só por `api.transicionar`. I pelo sistema (7.4) |
 | `log_auditoria` | nada | nada | nada | nada | nada | via `api.log_auditoria` | todos | Sem `grant` (P05). A leitura do log vira linha de log |
-| `fila_sincronizacao` | L, I próprias | L, I próprias | L, I próprias | L, I próprias | L, I próprias | L, I próprias | todos | "Só o próprio usuário" (13). Processamento pelo servidor |
+| `fila_sincronizacao` | L, I próprias | L, I próprias | L, I próprias | L, I próprias | L, I próprias | L, I próprias | todos | "Só o próprio usuário" (13), e só usuário do app com perfil ativo e algum papel: cadastro sem convite ou perfil desativado não grava nem lê, mesmo em AAL2. Processamento pelo servidor |
 | Candidaturas | nada | nada | nada | nada | Total | Total | perfil | Tabela ainda não existe (P51); nasce com esta regra |
 | Financeiro da equipe | nada | próprios | Total | nada | nada | Total | todos | Tabelas do P46; nascem com esta regra |
 
@@ -124,6 +125,8 @@ Legenda: **L** leitura, **I** inclusão, **A** alteração, **X** exclusão. "Pr
 | `agente.ingestao_execucao` | nenhum | Diretoria vê pela tela do agente (P27) |
 | `agente_n8n.documentos`, `agente_n8n.chat_memoria` | nenhum | Só `n8n_agente`, com a política `for all to n8n_agente using (true)` do PRD 11.10, criada junto com o papel no P21 |
 | `privado.auditoria_coluna_sensivel`, `privado.transicao_permitida` | nenhum | Tabelas internas, RLS ligada e sem política |
+| `privado.recalculo_execucao`, `privado.recalculo_etapa` (0011) | nenhum | Registro do recálculo diário (PRD 10.2). RLS ligada, sem política e sem `grant`; a leitura para `/api/saude` e para a tela da diretoria vem por função, na sessão da tela (P14, P19) |
+| `ocupacao_projetada` (view de `public`, 0011) | nenhum | `security_invoker` (6.9). Sem `grant`: lida por `privado.disponibilidade`, pelo recálculo e pelo radar do P19, que publica o recorte por `api` com a regra "diretoria e coordenação" |
 
 ### 5. Funções do schema `api`
 
@@ -140,7 +143,12 @@ Todas `security definer`, `set search_path = ''`, `execute` só para `authentica
 | `api.status_equipe(regiao_id, semana)` | coordenação e diretoria (todas da região), enfermeira (só a própria) | sim | não | Estado calculado de cada dia da semana por `privado.status_profissional` (6.5, O-08) |
 | `api.marketing_leads_por_origem(desde, ate)` | marketing, diretoria | pela regra do perfil | não | Por origem: leads, qualificados e ganhos. Lê só `familia_elegivel_marketing` |
 | `api.marketing_funil(desde, ate)` | marketing, diretoria | pela regra do perfil | não | Por pipeline e estágio: quantidade de oportunidades. Lê só `familia_elegivel_marketing` |
+| `api.lead_origem(familias)` | comercial, diretoria | pela regra do perfil | não | Por família (todas, com `familias` nulo): `origem`, `codigo_origem`, `utm`, `indicacao_medico_id` e `indicacao_familia_id` ("Lead e origem", 13) |
 | `api.log_auditoria(entidade, entidade_id, desde, ate, limite)` | diretoria | sim | sim (a própria leitura) | Linhas do log (P05) |
+| `api.acionar_freio(familia_id, estado, motivo)` (P09) | comercial, enfermeira, financeiro, coordenação, diretoria, e só em família que o usuário vê (`privado.tem_acesso_familia`: a mesma regra de linha da RLS de `familia`; enfermeira pelas atribuídas) | pela regra do perfil (comercial puro em AAL1, botão de um toque) | não (grava `log_auditoria` com ação `freio_acionar` e evento restrito) | Só sobe o freio. Sem motivo, cria a tarefa de justificativa para quem acionou. Devolve `desfazer_ate` (PRD 8.3 [v4.2]) |
+| `api.desfazer_freio(familia_id)` (P09) | quem acionou, dentro de `freio_desfazer_segundos`, enquanto o acionamento for a última mudança do freio | pela regra do perfil | não (log `freio_desfazer`) | Volta ao estado anterior e cancela a tarefa de justificativa; execuções abortadas não voltam. Nunca vale para freio do agente ou do termo de alerta |
+| `api.justificar_freio(familia_id, motivo)` (P09) | quem acionou por último, coordenação, diretoria | pela regra do perfil | não (log `freio_justificar`, motivo como "[oculto]" e HMAC) | Grava o motivo e conclui a tarefa de justificativa |
+| `api.reverter_freio(familia_id, estado, justificativa)` (P09) | coordenação, diretoria | sim | não (log `freio_reverter`) | Só desce, com justificativa obrigatória. O agente e o sistema nunca revertem |
 
 `privado.status_profissional(profissional_id, dia)` segue a precedência do enum `status_profissional` (6.0, 6.5):
 `em_visita` (hoje, visita com check-in e sem check-out), `em_atendimento` (designação titular aceita em acompanhamento `ativo` ou `em_execucao` com visita na semana do dia), `reservada` (titular aceita, acompanhamento `aguardando`, bebê ainda não nasceu e janela da DPP cruzando a semana), `backup` (backup aceita, família na janela), `oferta_pendente` (designação `oferecida`), `folga` (bloqueio de agenda no dia) e `livre`. A janela da DPP vem de `parametro.janela_dpp_dias` (`{"antes": 21, "depois": 14}`, a semear no P08); sem o parâmetro a função recusa, para nunca mostrar como livre uma enfermeira reservada. A regra de "em atendimento" fora do horário de visita segue pendente [confirmar: Edilaine, O-08].
@@ -150,7 +158,7 @@ Todas `security definer`, `set search_path = ''`, `execute` só para `authentica
 Nos schemas do projeto (`public`, `privado`, `assistencial`, `agente`, `api`):
 
 - **`anon`:** nenhuma.
-- **`authenticated`:** `privado.tem_papel`, `privado.familias_atribuidas`, `privado.aal2`, `privado.sem_acento` e as dez funções de `api` da seção 5 (`api.transicionar`, `api.familias_do_dia`, `api.ficha_assistencial`, `api.dados_contrato`, `api.status_cobranca`, `api.sessao_venda_gravacao`, `api.status_equipe`, `api.marketing_leads_por_origem`, `api.marketing_funil`, `api.log_auditoria`).
+- **`authenticated`:** `privado.tem_papel`, `privado.familias_atribuidas`, `privado.aal2`, `privado.sem_acento` e as quinze funções de `api` da seção 5 (`api.transicionar`, `api.familias_do_dia`, `api.ficha_assistencial`, `api.dados_contrato`, `api.status_cobranca`, `api.sessao_venda_gravacao`, `api.status_equipe`, `api.marketing_leads_por_origem`, `api.marketing_funil`, `api.lead_origem`, `api.log_auditoria` e, desde o P09, `api.acionar_freio`, `api.desfazer_freio`, `api.justificar_freio` e `api.reverter_freio`). As funções do freio, da pontuação, da deduplicação, da ocupação e do recálculo em `privado` (0009 a 0011) não entram: o app chega a elas pelos wrappers, e o agente pelo schema `agente` (P21).
 - `service_role` mantém o padrão do Supabase em `public` e nada nos demais schemas; `n8n_agente` recebe as funções do Apêndice A no P21.
 
 Toda função nova de `api` entra nesta lista, no teste 007 e no `grant` explícito da migration que a cria.
@@ -167,6 +175,7 @@ Lista usada por `privado.auditar()` (P05, tabela `privado.auditoria_coluna_sensi
 
 - Tela que precisar de uma coluna fora do `grant` ou de uma tabela sem `grant` pede função nova em `api`, com a mesma checagem de papel e AAL, entrada na seção 6 e no teste 007. Nunca se reabre `grant` direto em tabela assistencial.
 - Tabela nova de `public` nasce fechada para `anon` e `authenticated` (default privileges da 0007) e com o gatilho de auditoria (teste 005). A migration que a cria escreve o `grant`, as políticas e a linha neste ADR.
+- Com privilégio por coluna em `familia`, o `select *` do PostgREST (sem `select=`) é negado para todo usuário do app: as telas pedem as colunas pelo nome (`select=id,nome_exibicao,...`), inclusive no `return=representation` de inclusão e alteração. A origem do lead vem de `api.lead_origem`.
 - `service_role` continua passando por cima da RLS (Supabase). A defesa contra ele são os gatilhos (append-only, auditoria, estágio) e a regra de uso só no servidor.
 - O PostgREST precisa expor `api` além de `public` (configuração do projeto no P14).
 - Sessão de 8 horas e revogação de sessões pela diretoria são configuração do Supabase Auth e tela da diretoria (P07 itens 6 e 7, fora desta parte só de banco).
@@ -178,10 +187,15 @@ Lista usada por `privado.auditar()` (P05, tabela `privado.auditoria_coluna_sensi
 | Matriz inteira (O-05) | Esta, a mais restritiva | Leonardo e Edilaine |
 | Registro assistencial, áudio e relatório médico para o comercial (onboarding marcou Total) | Sem acesso; o Leonardo lê pelo papel de diretoria | Leonardo e Edilaine |
 | Diretoria no assistencial | Só leitura, por função, com log e AAL2; escrita segue o papel de cada pessoa | Leonardo e Edilaine |
-| Sessão gravada | Só quem conduziu e a diretoria, por função com log | Leonardo |
+| Sessão gravada | Só quem conduziu e a diretoria, por função com log; `conduzida_por` só muda por função (P29). A função do P29 que liga a gravação à sessão confere quem conduziu de fato | Leonardo |
+| "Lead e origem" para financeiro e coordenação (13) | Colunas de origem fora do `grant` de `familia` (comercial e diretoria por `api.lead_origem`); financeiro sem linha de lead sem contrato em `familia`, `pessoa`, `oportunidade` e `evento_familia`. Coordenação continua vendo a linha do lead, porque conduz a sessão de venda | Leonardo |
 | `historico_sensivel` na ficha | Só coordenação e diretoria, por `api.ficha_assistencial` | Edilaine |
 | Prazo de acesso da enfermeira depois do encerramento | `acesso_enfermeira_pos_encerramento_dias` = 7 (P08 semeia); interrupção conta como encerramento | Edilaine |
 | AAL2 pelo perfil (inclusive para o Leonardo como comercial) | Adotado | Leonardo |
 | Regra de "em atendimento" e janela da DPP em `api.status_equipe` (O-08) | Seção 5; parâmetro `janela_dpp_dias` novo, a semear no P08 | Edilaine |
 | Contagens pequenas nos agregados de marketing | Sem supressão por enquanto (nenhum dado pessoal sai, só contagem) | Leonardo e jurídico |
 | Execução de funções de extensão (`pgcrypto`, `pg_trgm` etc.) por `anon` e `authenticated` no schema `extensions` | Padrão do Supabase mantido; fora dos schemas do projeto | Drop |
+| Freio: quem aciona (P09, 8.3) | Quem vê a família pela matriz (comercial, coordenação e diretoria todas; financeiro com contrato; enfermeira as atribuídas); marketing não aciona. Acionar só sobe, para todo chamador; descer é reversão ou "Desfazer" | Leonardo e Edilaine |
+| "Desfazer" do freio (O-07) | Só quem acionou, até `freio_desfazer_segundos` (parâmetro ausente ou 0: sem Desfazer), e só se nada mudou no freio depois. Freio do agente ou do termo de alerta nunca tem Desfazer | Leonardo e Edilaine |
+| Justificativa do freio | Quem acionou por último, coordenação ou diretoria gravam o motivo depois; a tarefa de justificativa nasce só para usuário que acionou sem motivo | Edilaine |
+| `pode_enviar_mensagem` (P09) | `interna` nunca autoriza mensagem à família; janela de horário para todas as categorias; conversa iniciada pela família exigida em todo canal menos `cloud_api` | Leonardo |

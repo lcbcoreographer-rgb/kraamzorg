@@ -138,7 +138,11 @@ select throws_ok('truncate log_auditoria', '42501', null,
 
 -- --- Única exceção: anonimização do ip pela retenção (PRD 22.4 O-06) ---------
 
-insert into parametro (chave, valor) values ('retencao', '{"chat_memoria_dias":180,"conversa_nao_cliente_meses":24,"log_ip_meses":12}');
+-- on conflict: P08 semeia esta chave com os valores oficiais (retencao,
+-- PRD 6.8/22.4 O-06); este teste sobrescreve com o próprio valor sintético
+-- só dentro da transação (rollback no fim), sem depender de o seed existir.
+insert into parametro (chave, valor) values ('retencao', '{"chat_memoria_dias":180,"conversa_nao_cliente_meses":24,"log_ip_meses":12}')
+  on conflict (chave) do update set valor = excluded.valor;
 
 do $$
 declare

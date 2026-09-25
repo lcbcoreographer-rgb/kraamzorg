@@ -19,7 +19,8 @@
 --      authenticated só nas quatro funções de privado do PRD 11.10.
 --   4. perfil criado a partir de auth.users (convite da diretoria).
 --   5. Grants e políticas de RLS de cada tabela, conforme o ADR 0002, com
---      duas políticas restritivas de MFA (perfil com MFA e AAL2 para todos).
+--      duas políticas restritivas de MFA (perfil com MFA e AAL2 para todos),
+--      e o gatilho que carimba criado_por com o usuário logado.
 --   6. privado.status_profissional (PRD 6.5, O-08).
 --   7. Schema api: os wrappers security definer que conferem papel e AAL.
 --   8. Travas de revisão: RLS ligada em toda tabela e nenhuma função
@@ -296,6 +297,57 @@ end $$;
 
 
 -- =============================================================================
+-- 5.0.1 criado_por carimbado pelo banco
+--
+-- As tabelas têm criado_por (PRD 5.2) e vários grants de insert incluem a
+-- coluna. Sem esta trava, um usuário do app gravaria uma linha em nome de
+-- outra pessoa (criado_por de outro perfil). Para o usuário do app
+-- (authenticated), o banco escreve auth.uid() no insert e mantém o valor
+-- antigo no update; migrations, seed, funções security definer e o
+-- service_role gravam o que informarem.
+-- =============================================================================
+
+create function privado.carimbar_criado_por() returns trigger
+  language plpgsql
+  set search_path = ''
+  as $$
+begin
+  if current_user = 'authenticated' then
+    if tg_op = 'INSERT' then
+      new.criado_por := auth.uid();
+    else
+      new.criado_por := old.criado_por;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+comment on function privado.carimbar_criado_por() is 'Gatilho BEFORE INSERT OR UPDATE das tabelas de public com criado_por: para o usuário do app (authenticated), criado_por = auth.uid() no insert e inalterado no update. Impede gravar em nome de outra pessoa (ADR 0002).';
+
+revoke execute on function privado.carimbar_criado_por() from public, anon, authenticated, service_role;
+
+do $$
+declare
+  v_tabela text;
+begin
+  for v_tabela in
+    select c.relname
+    from pg_catalog.pg_attribute a
+    join pg_catalog.pg_class c on c.oid = a.attrelid
+    join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind = 'r'
+      and a.attname = 'criado_por' and a.attnum > 0 and not a.attisdropped
+    order by c.relname
+  loop
+    execute format(
+      'create trigger carimbar_criado_por before insert or update on public.%I '
+      'for each row execute function privado.carimbar_criado_por()',
+      v_tabela);
+  end loop;
+end $$;
+
+
+-- =============================================================================
 -- 5.1 Configuração e usuários
 -- =============================================================================
 
@@ -489,11 +541,21 @@ create policy alterar on public.regra_alerta for update to authenticated
 -- agente.atualizar_lead (P21). Também ficam fora de I e A: estado_sensivel e
 -- as colunas do freio (P09, por função), mesclada_em_id (deduplicação, P17),
 -- a chave e os carimbos.
+--
+-- As colunas de origem do lead (origem, codigo_origem, utm, indicacao_medico_id
+-- e indicacao_familia_id) também saem do grant de select: a linha "Lead e
+-- origem" do PRD 13 é "sem acesso" para o financeiro e para a coordenação,
+-- que leem a ficha comercial. Comercial e diretoria leem a origem por
+-- api.lead_origem (seção 7); o marketing só pelos agregados. Inclusão e
+-- alteração dessas colunas continuam com o comercial e a diretoria.
+--
+-- Linha: o financeiro lê só família que já tem contrato (PRD 13, "Lead e
+-- origem" sem acesso; "Ficha comercial" leitura para cobrar). Coordenação
+-- lê todas: conduz a sessão de venda ainda no pipeline 1.
 grant select (id, criado_em, atualizado_em, criado_por, nome_exibicao, cidade_id, regiao_id, bairro,
               endereco_atendimento, dpp, data_nascimento, data_alta, data_inicio_efetivo, gemelar,
               primeira_gestacao, estado_sensivel, estado_sensivel_motivo, estado_sensivel_em,
-              estado_sensivel_por, nao_contatar, nao_contatar_em, nao_contatar_motivo, origem,
-              codigo_origem, utm, indicacao_medico_id, indicacao_familia_id, mesclada_em_id,
+              estado_sensivel_por, nao_contatar, nao_contatar_em, nao_contatar_motivo, mesclada_em_id,
               familia_anterior_id, cidade_informada, municipio_codigo_ibge)
   on public.familia to authenticated;
 grant insert (id, criado_por, nome_exibicao, cidade_id, regiao_id, bairro, endereco_atendimento, dpp,
@@ -509,8 +571,10 @@ grant update (nome_exibicao, cidade_id, regiao_id, bairro, endereco_atendimento,
   on public.familia to authenticated;
 
 create policy ler on public.familia for select to authenticated
-  using ((select privado.tem_papel('comercial')) or (select privado.tem_papel('financeiro'))
-         or (select privado.tem_papel('coordenacao')) or (select privado.tem_papel('diretoria')));
+  using ((select privado.tem_papel('comercial')) or (select privado.tem_papel('coordenacao'))
+         or (select privado.tem_papel('diretoria'))
+         or ((select privado.tem_papel('financeiro'))
+             and id in (select k.familia_id from public.contrato k)));
 create policy incluir on public.familia for insert to authenticated
   with check ((select privado.tem_papel('comercial')) or (select privado.tem_papel('diretoria')));
 create policy alterar on public.familia for update to authenticated
@@ -522,7 +586,7 @@ create policy alterar on public.familia for update to authenticated
 -- É security_invoker, então nem serviria ao marketing, que não lê familia.
 
 -- --- pessoa ---------------------------------------------------------------------
--- Mesma regra da família. Sem X: remoção é privado.eliminar_titular (21.3).
+-- Mesma regra da família (financeiro: só família com contrato). Sem X: remoção é privado.eliminar_titular (21.3).
 grant select on public.pessoa to authenticated;
 grant insert (id, criado_por, familia_id, papel, nome, telefone_e164, email, idade, ocupacao,
               contato_principal, consentimentos)
@@ -531,8 +595,10 @@ grant update (papel, nome, telefone_e164, email, idade, ocupacao, contato_princi
   on public.pessoa to authenticated;
 
 create policy ler on public.pessoa for select to authenticated
-  using ((select privado.tem_papel('comercial')) or (select privado.tem_papel('financeiro'))
-         or (select privado.tem_papel('coordenacao')) or (select privado.tem_papel('diretoria')));
+  using ((select privado.tem_papel('comercial')) or (select privado.tem_papel('coordenacao'))
+         or (select privado.tem_papel('diretoria'))
+         or ((select privado.tem_papel('financeiro'))
+             and familia_id in (select k.familia_id from public.contrato k)));
 create policy incluir on public.pessoa for insert to authenticated
   with check ((select privado.tem_papel('comercial')) or (select privado.tem_papel('diretoria')));
 create policy alterar on public.pessoa for update to authenticated
@@ -616,8 +682,8 @@ create policy alterar on public.condicao_comercial for update to authenticated
   using ((select privado.tem_papel('diretoria'))) with check ((select privado.tem_papel('diretoria')));
 
 -- --- oportunidade -----------------------------------------------------------------
--- L comercial, financeiro, coordenação, diretoria; I e A comercial e
--- diretoria. Estágio e pipeline fora do grant de A (só api.transicionar; o
+-- L comercial, coordenação, diretoria e financeiro (só família com
+-- contrato, como em familia); I e A comercial e diretoria. Estágio e pipeline fora do grant de A (só api.transicionar; o
 -- gatilho privado.proteger_estado recusa de novo e obriga o insert no estado
 -- inicial). desconto_aprovado_por fora de I e A: aprovação de desconto é
 -- função própria (P30), nunca o próprio comercial marcando.
@@ -634,8 +700,10 @@ grant update (score, classificacao, motivo_perda, motivo_perda_detalhe, responsa
   on public.oportunidade to authenticated;
 
 create policy ler on public.oportunidade for select to authenticated
-  using ((select privado.tem_papel('comercial')) or (select privado.tem_papel('financeiro'))
-         or (select privado.tem_papel('coordenacao')) or (select privado.tem_papel('diretoria')));
+  using ((select privado.tem_papel('comercial')) or (select privado.tem_papel('coordenacao'))
+         or (select privado.tem_papel('diretoria'))
+         or ((select privado.tem_papel('financeiro'))
+             and familia_id in (select k.familia_id from public.contrato k)));
 create policy incluir on public.oportunidade for insert to authenticated
   with check ((select privado.tem_papel('comercial')) or (select privado.tem_papel('diretoria')));
 create policy alterar on public.oportunidade for update to authenticated
@@ -648,8 +716,12 @@ grant select on public.sessao_venda to authenticated;
 grant insert (id, criado_por, familia_id, agendada_para, opcoes_informadas, realizada_em, conduzida_por,
               link_reuniao, parceiro_presente, status)
   on public.sessao_venda to authenticated;
-grant update (agendada_para, opcoes_informadas, realizada_em, conduzida_por, link_reuniao,
-              parceiro_presente, status)
+-- conduzida_por fica fora do grant de A: é ela que decide quem lê a
+-- gravação (api.sessao_venda_gravacao, "quem conduziu", PRD 13). Com a
+-- coluna editável, um comercial se poria como condutor de uma sessão
+-- conduzida por outra pessoa e leria a transcrição. Nasce na inclusão
+-- (agendamento) e muda só por função (P29), com log.
+grant update (agendada_para, opcoes_informadas, realizada_em, link_reuniao, parceiro_presente, status)
   on public.sessao_venda to authenticated;
 
 create policy ler on public.sessao_venda for select to authenticated
@@ -732,13 +804,18 @@ create policy alterar on public.nota_fiscal for update to authenticated
 
 -- --- conversa, mensagem, handoff ---------------------------------------------------------
 -- "Conversas do WhatsApp e handoffs": comercial, coordenação e diretoria
--- (PRD 13). conversa: A só no vínculo com a família e na classificação; a
+-- (PRD 13). conversa: I só com as colunas de contato manual e A só no
+-- vínculo com a família e na classificação; a
 -- pausa e o modo do agente mudam só por função (privado.retomar_agente,
 -- P22). mensagem: só L; o texto passa por privado.mascarar_documentos antes
 -- de gravar, então o registro do "enviei" é função (P18); UPDATE, DELETE e
 -- TRUNCATE já estavam revogados (P03). handoff: A só para assumir e
 -- resolver; quem abre é o agente ou o sistema.
-grant select, insert on public.conversa to authenticated;
+grant select on public.conversa to authenticated;
+-- I só com as colunas de um contato registrado à mão (telefone, presencial);
+-- wa_jid, wa_lid, marcos de mensagem e pausa/modo do agente são do agente.
+grant insert (id, criado_por, canal, telefone_e164, familia_id, pessoa_id, classificacao, nome_contato_salvo)
+  on public.conversa to authenticated;
 grant update (familia_id, pessoa_id, classificacao) on public.conversa to authenticated;
 
 create policy ler on public.conversa for select to authenticated
@@ -807,15 +884,17 @@ create policy alterar on public.notificacao for update to authenticated
 
 -- --- evento_familia ---------------------------------------------------------------------
 -- Linha do tempo da ficha: quem lê a ficha comercial lê os eventos não
--- restritos. Evento restrito segue o registro assistencial (PRD 13): sem
+-- restritos (financeiro: só família com contrato). Evento restrito segue o registro assistencial (PRD 13): sem
 -- leitura direta, só por função com log (P16). Sem I direto: a linha do
 -- tempo é escrita pelas funções (transicionar, freio, agente).
 grant select on public.evento_familia to authenticated;
 
 create policy ler on public.evento_familia for select to authenticated
   using (not restrito
-         and ((select privado.tem_papel('comercial')) or (select privado.tem_papel('financeiro'))
-              or (select privado.tem_papel('coordenacao')) or (select privado.tem_papel('diretoria'))));
+         and ((select privado.tem_papel('comercial')) or (select privado.tem_papel('coordenacao'))
+              or (select privado.tem_papel('diretoria'))
+              or ((select privado.tem_papel('financeiro'))
+                  and familia_id in (select k.familia_id from public.contrato k))));
 
 
 -- =============================================================================
@@ -1027,10 +1106,19 @@ grant select on public.fila_sincronizacao to authenticated;
 grant insert (id, usuario_id, entidade, entidade_id, campo, payload, versao_base, criado_no_cliente_em)
   on public.fila_sincronizacao to authenticated;
 
+-- "Próprio usuário" = usuário do app com perfil ativo e algum papel: um
+-- cadastro sem convite (sem perfil) ou um perfil desativado não grava nem
+-- lê a fila, mesmo em AAL2.
 create policy ler on public.fila_sincronizacao for select to authenticated
-  using (usuario_id = (select auth.uid()));
+  using (usuario_id = (select auth.uid())
+         and ((select privado.tem_papel('comercial')) or (select privado.tem_papel('enfermeira'))
+              or (select privado.tem_papel('financeiro')) or (select privado.tem_papel('marketing'))
+              or (select privado.tem_papel('coordenacao')) or (select privado.tem_papel('diretoria'))));
 create policy incluir on public.fila_sincronizacao for insert to authenticated
-  with check (usuario_id = (select auth.uid()));
+  with check (usuario_id = (select auth.uid())
+              and ((select privado.tem_papel('comercial')) or (select privado.tem_papel('enfermeira'))
+                   or (select privado.tem_papel('financeiro')) or (select privado.tem_papel('marketing'))
+                   or (select privado.tem_papel('coordenacao')) or (select privado.tem_papel('diretoria'))));
 
 -- --- Schemas agente e agente_n8n -------------------------------------------------------------
 -- authenticated sem usage (seção 1). agente.base_conhecimento e
@@ -1692,6 +1780,38 @@ end;
 $$;
 comment on function api.marketing_funil(date, date) is 'Agregado de marketing (PRD 13): oportunidades por pipeline e estágio. Lê só familia_elegivel_marketing (6.9). Marketing e diretoria. ADR 0002 seção 5.';
 
+-- --- api.lead_origem --------------------------------------------------------------------------
+-- "Lead e origem" (PRD 13): Total só para o comercial e a diretoria. As
+-- colunas de origem saíram do grant de familia (seção 5.2), porque o
+-- financeiro e a coordenação leem a mesma linha. familias nulo = todas (lista
+-- de leads do comercial). Sem log: não é dado assistencial nem de contrato.
+create function api.lead_origem(familias uuid[] default null)
+  returns table (
+    familia_id           uuid,
+    origem               public.origem_lead,
+    codigo_origem        text,
+    utm                  jsonb,
+    indicacao_medico_id  uuid,
+    indicacao_familia_id uuid
+  )
+  language plpgsql
+  stable
+  security definer
+  set search_path = ''
+  as $$
+#variable_conflict use_column
+begin
+  perform privado.autorizar(array['comercial', 'diretoria']::public.papel_usuario[], false);
+
+  return query
+    select f.id, f.origem, f.codigo_origem, f.utm, f.indicacao_medico_id, f.indicacao_familia_id
+    from public.familia f
+    where lead_origem.familias is null or f.id = any (lead_origem.familias)
+    order by f.criado_em, f.id;
+end;
+$$;
+comment on function api.lead_origem(uuid[]) is 'Origem do lead (origem, código, UTM e indicação) para o comercial e a diretoria (PRD 13, "Lead e origem"): as colunas ficam fora do grant de familia porque financeiro e coordenação leem a linha. familias nulo = todas. ADR 0002 seção 5.';
+
 -- --- api.log_auditoria ------------------------------------------------------------------------
 -- Wrapper de privado.ler_log_auditoria (P05): diretoria, AAL2, a leitura do
 -- log vira linha de log.
@@ -1740,6 +1860,7 @@ grant execute on function api.sessao_venda_gravacao(uuid)                       
 grant execute on function api.status_equipe(uuid, date)                                         to authenticated;
 grant execute on function api.marketing_leads_por_origem(date, date)                            to authenticated;
 grant execute on function api.marketing_funil(date, date)                                       to authenticated;
+grant execute on function api.lead_origem(uuid[])                                               to authenticated;
 grant execute on function api.log_auditoria(text, text, timestamptz, timestamptz, integer)      to authenticated;
 
 
