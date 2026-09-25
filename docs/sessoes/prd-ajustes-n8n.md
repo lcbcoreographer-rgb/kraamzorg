@@ -17,6 +17,13 @@ Leitura de `n8n/IMPORTAR.md` (seção 9) e de `docs/sessoes/P23.md` a `P26.md`, 
    - `registrar_handoff` passa a documentar a leitura de `dados._fluxo2` (`prioridade_minima`, que só sobe a prioridade da matriz; `manter_opcoes`, que mantém `dados.opcoes` no texto do grupo na troca de motivo comercial; `mensagem_enviada`, o texto que já saiu à família, usado em `{mensagem_enviada}` de `grupo_saude`), tanto no nó 12 do 19.3 quanto no próprio Apêndice A;
    - a lista de "Entradas" do 19.3 ganhou um parágrafo `[v4.2]` com as entradas opcionais `tipo`, `modo`, `telefone`, `alerta_internacao_ativo` e `alerta_emocional_ativo`, e o que acontece quando elas faltam.
 
+### Verificação de 25/09 (segunda sessão, correção)
+
+Conferido cada um dos seis pontos contra `n8n/IMPORTAR.md` seção 9, `docs/sessoes/P23.md` a `P26.md` e o código real de `n8n/src/` (só para ler, nada foi alterado em `n8n/`). Dois ajustes:
+
+- O nó 26 do 19.4 dizia que a falha do próprio modelo ("este caminho") também levava ao apagamento da fala pela `agente.sincronizar_memoria` "no nó 35", junto com o `[SILENCIO]` do nó 27 e a violação do nó 29. Mas nem o texto do nó 35, nem a entrada de `sincronizar_memoria` no Apêndice A, nem a pendência original do P25 (que fala só em saúde, `[SILENCIO]` e validação reprovada) incluíam esse terceiro caso, e a falha do modelo sai direto para o fluxo 2 sem passar pelos nós 27 a 35. Corrigido o texto do nó 26 e a entrada de `sincronizar_memoria` no Apêndice A para não atribuir esse caso ao nó 35.
+- Um travessão em `Resultado dos invariantes`, abaixo, que contradiz a regra de "sem travessão nem meia-risca" desta sessão. Trocado por ponto final.
+
 ## Ficou de fora (e por quê)
 
 - `PROMPTS.md`: não precisou de ajuste. A seção do config (linha 488) já diz que "valores de negócio (tempo de agrupamento, pausa, PDF oficial) não vão no config", coerente com o item 2; a linha 518 registra, como histórico do que o P25 executou, o texto literal "IA fora do ar, responder a família" que existia antes desta correção. Como é relatório de prompt já executado, não histórico a reescrever, foi deixado como está.
@@ -51,4 +58,4 @@ Não há tela nem rota nesta trilha: `pnpm build` e specs Playwright não se apl
 
 ## Resultado dos invariantes
 
-Sessão só de texto em `PRD.md`; não mexe em banco, app nem n8n, então os quatro invariantes do 16.1 não rodam por completo. `pnpm lint`: 0 erros, 5 avisos pré-existentes (não relacionados a esta sessão). `pnpm typecheck`: sem erro. `pnpm test`: 213 testes de Vitest passam; os quatro arquivos `n8n/*.test.mjs` falham ao carregar sob o Vitest (erro pré-existente do bundler ao importar `node:test`, não causado por esta sessão, já que ela não toca em `n8n/`) — rodados à parte com `node --test n8n/build.test.mjs`: 311 ok, 1 pulado (sem banco local), 0 falhas. `gitleaks detect`: nenhum vazamento.
+Sessão só de texto em `PRD.md`; não mexe em banco, app nem n8n, então os quatro invariantes do 16.1 não rodam por completo. `pnpm lint`: 0 erros, 5 avisos pré-existentes (não relacionados a esta sessão). `pnpm typecheck`: sem erro. `pnpm test`: 213 testes de Vitest passam; os quatro arquivos `n8n/*.test.mjs` falham ao carregar sob o Vitest (erro pré-existente do bundler ao importar `node:test`, não causado por esta sessão, já que ela não toca em `n8n/`). Rodados à parte com `node --test n8n/build.test.mjs`: 311 ok, 1 pulado (sem banco local), 0 falhas. `gitleaks detect`: nenhum vazamento.
