@@ -1,16 +1,16 @@
-# Kraamzorg OS · PRD v4.1
+# Kraamzorg OS · PRD v4.2
 
 Cliente: Kraamzorg Brasil LTDA · Contratada: Drop Agency (C P Empreendimentos Digitais LTDA)
 Documento de construção. Consolida o Escopo Técnico v4.0 (23/09/2026), o contrato de 03/09/2026, o Guia de Onboarding preenchido, o Prompt de Sistema da Isadora v4.0, o Treinamento da Isadora (24/09/2026), os quatro instrumentos clínicos, os modelos de evolução, a apresentação comercial 2026, o brand guidelines, o mockup inicial e o cronograma invertido. Define também a stack escolhida (Supabase, Vercel, Cloudflare, n8n) e os três fluxos n8n do agente.
 
-Consolidado em 24/09/2026. Este arquivo substitui o PRD.md da v4.0 no repositório.
+Consolidado em 25/09/2026. Este arquivo substitui o PRD.md da v4.1 no repositório.
 
 ---
 
 ## Sumário
 
 - [1. Como usar este documento](#1-como-usar-este-documento)
-- [2. O que mudou na v4.1](#2-o-que-mudou-na-v41)
+- [2. O que mudou na v4.2 e na v4.1](#2-o-que-mudou-na-v42-e-na-v41)
 - [3. Contexto de negócio](#3-contexto-de-negócio)
 - [4. Decisões travadas](#4-decisões-travadas)
 - [5. Stack e convenções](#5-stack-e-convenções-v41)
@@ -68,12 +68,36 @@ Se a conversa com o assistente divergir deste documento, pare, atualize o docume
 ### 1.4 Marcações usadas
 
 - **[v4.1]** conteúdo novo ou alterado nesta versão.
+- **[v4.2]** conteúdo novo ou alterado pela revisão de 25/09/2026 (correções da revisão da entrega, decisões da reunião de 24/09 e do onboarding, direção de arte em `docs/design/DESIGN.md`).
 - **[confirmar]** valor ou regra que depende de confirmação do cliente. Entra parametrizado, com o valor padrão indicado, e aparece no capítulo 22.
 - **[clínico]** item que só a coordenação de enfermagem (Edilaine) pode aprovar.
 
 ---
 
-## 2. O que mudou na v4.1
+## 2. O que mudou na v4.2 e na v4.1
+
+### 2.1 O que mudou na v4.2 [v4.2]
+
+A v4.2 fecha as bordas do caminho de alerta de saúde e do envio do agente, traz para o texto as decisões da reunião de 24/09 e do onboarding que ainda não estavam aqui, e registra a direção de arte. Tudo o que mudou está marcado [v4.2] no próprio capítulo.
+
+| # | Mudança | Onde | Origem |
+| :-: | :-- | :-- | :-- |
+| 1 | Depois de um alerta de saúde ou perda, a execução do fluxo 3 termina em todos os modos; o modelo de conversa não roda. Classificador de pedido que sobe para saúde manda o texto à família antes do registro (nó 8a). Alerta repetido nunca é deduplicado. | 19.3, 19.4 | Revisão técnica de 25/09 |
+| 2 | Modo teste avisa a coordenação também para número fora da lista; áudio não transcrito vira transferência própria com texto de urgência; toda foto, com ou sem legenda, abre transferência; banco, Redis ou modelo fora do ar não calam o alerta (`grupo_fallback_jid`). | 11.4, 19.1, 19.4, 23.1 | Revisão técnica de 25/09 |
+| 3 | `agente.pode_enviar(conversa_id, tipo, handoff_id)`: a resposta da própria transferência sai, a saída do modelo é descartada depois de `acionar_equipe_saude`, e textos clínicos não aprovados nunca saem. | 8.2, 19.4, Apêndice A | Revisão técnica de 25/09 |
+| 4 | Toda função do agente recebe `conversa_id`, nunca o jid; formato do JSON da memória especificado; exclusão a pedido do titular (`privado.eliminar_titular`). | 6.8, 11.7, 11.9, 21.3, Apêndice A | Revisão técnica de 25/09 |
+| 5 | A Isadora não volta à conversa depois que o lead qualificado passou para o Leonardo: modo `humano_comercial`, botão "Devolver à Isadora" (D-17). | 4, 6.4, 11.3, 11.7, 11.8 | Reunião de 24/09 |
+| 6 | Follow-up da Isadora depois de `agente_followup_horas`, padrão 48 h, no lugar do D+1 fixo (D-18). | 4, 10.1, 11.3, 11.8, C-12, Apêndice C | Reunião de 24/09 |
+| 7 | Status das enfermeiras calculado no CRM (em visita, em atendimento, livre e outros). | 6.0, 6.5, 20.6, O-08 | Reunião de 24/09 |
+| 8 | Registro de amamentação obrigatório para concluir a visita; diretoria com leitura total e log, conforme a matriz marcada. | 9.2, 13, K-09, O-05 | Onboarding |
+| 9 | Produção do agente só com a API oficial (`cloud_api`), de preferência em coexistência no número atual; efeito da janela de 24 horas no follow-up e nas réguas; mitigação para o número real durante a restrição. | 4.1, 11.3, T-01 | Revisão técnica de 25/09 |
+| 10 | Validador confere valor e plano por bloco, emoji e número de perguntas; textos sem "olhadinha", sem emoji em valor e com uma pergunta só. | 11.6, 11.11, 23.1, 23.2 | Revisão técnica de 25/09 |
+| 11 | Auditoria com HMAC, CPF sem SELECT direto, TRUNCATE bloqueado, `historico_sensivel` fora do financeiro e do marketing, retenção de conversa e memória, acesso da enfermeira limitado no tempo. | 6, 10.1, 11.10, 13, O-06 | Revisão técnica de 25/09 |
+| 12 | Versões dos nós do n8n e regras de formato tiradas de `n8n/referencia/` (n8n 2.40.6); testes do build para SQL literal e nome de tabela. | 19.1, 19.5 | Revisão técnica de 25/09 |
+| 13 | As vinte conversas reais do onboarding nunca entram no repositório. | 11.5 | Revisão técnica de 25/09 |
+| 14 | Desfazer do freio por 10 s, "feito hoje" nos blocos de orientação, cores derivadas e onde o comercial responde. | 8.3, 20, K-19, C-19 | Direção de arte |
+
+### 2.2 O que mudou na v4.1
 
 A v4.0 fechou o escopo funcional. A v4.1 transforma esse escopo em especificação de construção, reconciliando as fontes que chegaram depois ou que divergiam entre si.
 
@@ -119,10 +143,12 @@ Fonte: Apresentação Institucional 2026 (páginas 11 e 12) e onboarding. Vigent
 | Pacote | Linha | Dias | Horas por visita | Horas totais | Valor | 3x sem juros | Destaque | Página do PDF |
 | :-- | :-- | :-: | :-: | :-: | --: | --: | :-- | :-: |
 | Essencial | Acompanhamento diário | 6 | 3 | 18 | R$ 4.200 | R$ 1.400 | | 11 |
-| Imersão | Presença estendida | 6 | 6 | 36 | R$ 7.800 | R$ 2.600 | mais escolhido | 11 |
+| Imersão | Presença estendida | 6 | 6 | 36 | R$ 7.800 | R$ 2.600 | mais escolhido [v4.2] [confirmar visualmente] | 11 |
 | Continuado | Cuidado prolongado | 12 | 3 | 36 | R$ 8.100 | R$ 2.700 | | 11 |
 | Gemelar Essencial | Primeira semana | 6 | 4 | 24 | R$ 5.400 | R$ 1.800 | | 12 |
-| Gemelar Continuado | Duas semanas | 12 | 4 | 48 | R$ 10.300 | R$ 3.433 | recomendado | 12 |
+| Gemelar Continuado | Duas semanas | 12 | 4 | 48 | R$ 10.300 | R$ 3.433 | recomendado [v4.2] [confirmar visualmente] | 12 |
+
+[v4.2] Selos da coluna Destaque: o texto extraído da página 12 põe "RECOMENDADO" junto do Gemelar Essencial, não do Gemelar Continuado, e a página 11 é ambígua. Alguém abre o PDF (não o texto extraído) e confirma qual cartão leva cada selo. Padrão até a confirmação: o seed deixa `pacote_versao.destaque` nulo nos cinco pacotes e o agente não cita selo [confirmar: Leonardo ou Drop, olhando o PDF].
 
 Não existem serviços avulsos (onboarding 5.2). Não há atendimento noturno, pernoite, plantão, diária avulsa nem atendimento no hospital. Extensão do acompanhamento é possível conforme disponibilidade da enfermeira, cobrando a diferença entre pacotes [confirmar forma de contratação].
 
@@ -190,6 +216,8 @@ Cada decisão foi tomada com o cliente. Não se rediscute sem editar este capít
 | D-14 [v4.1] | O agente acessa o banco só por funções do schema `agente`. Nunca lê registro assistencial, nunca escreve direto em tabela operacional. | 24/09 | Papel de banco `n8n_agente`, capítulo 11.10. |
 | D-15 [v4.1] | Agendamento da conversa com a Edilaine é humano: a Isadora colhe duas opções de dia e horário e transfere para o Leonardo. | Treinamento 24/09 | Handoff com motivo `reuniao`. |
 | D-16 [v4.1] | Dados de contrato (CPF, endereço, data de nascimento) nunca pelo WhatsApp: formulário seguro com link de uso único. | Treinamento 24/09 | Rota pública com token. |
+| D-17 [v4.2] | A Isadora faz a triagem e não volta à conversa depois que o lead qualificado passou para o Leonardo ("se já qualificou e caiu no Leo, não entra mais na conversa"). | Reunião 24/09, 11:19 e 11:22 | Modo `humano_comercial` (11.7), `conversa.agente_encerrado_em`, botão "Devolver à Isadora". Falta só o Leonardo confirmar a lista exata de motivos [confirmar: Leonardo]. |
+| D-18 [v4.2] | Follow-up automático da Isadora com janela configurável, pré-configurada em 48 horas ou mais ("janela de 48 pra cima"), no lugar do D+1 fixo. | Reunião 24/09, 11:20 | Parâmetro `agente_followup_horas` (padrão 48, mínimo 24), 11.3. Na API oficial, ver 4.1 (janela de 24 horas) [confirmar: Leonardo, valor padrão]. |
 
 ### 4.1 D-08: o que muda sem a API oficial
 
@@ -203,17 +231,25 @@ Requisito de arquitetura: o adaptador de mensageria é uma interface com três i
 
 **Alerta de 24/09/2026 [v4.1]:** o treinamento registra que a conta do WhatsApp da Kraamzorg está restrita desde 24/09 por política comercial. O agente não vai ao ar em produção antes da conta ser restaurada. Enquanto isso ele roda em modo `teste`, com número de teste e lista de números autorizados. Ver capítulo 22, item T-01, sobre a recomendação de avaliar a API oficial num número dedicado ao agente.
 
+**Condição de produção do agente [v4.2]:** a UAZAPI é API não oficial, e trocar de número não tira o risco de banimento. Bloqueio de produção do agente: a Isadora só volta com o adaptador `cloud_api` implementado, testado e homologado. `uazapi` fica restrita a homologação e avisos internos até a migração. Primeira opção: API oficial em coexistência no número atual (app Business e Cloud API no mesmo número), mantendo um só `wa_jid` e a passagem para o Leonardo dentro da mesma conversa; a Drop confirma a viabilidade técnica, inclusive por onde saem os avisos aos grupos internos depois da migração. Se a coexistência não for viável, o protocolo de passagem entre números (mensagem final com o contato do Leonardo, link `wa.me`, destino do histórico) entra no 11.4 antes de migrar. Confirmação escrita do Leonardo antes de migrar [confirmar: Leonardo (custo) e Drop (arquitetura)]. Detalhe e mitigação no T-01.
+
+**Janela de 24 horas da API oficial [v4.2]:** o parágrafo "Continua funcionando" acima vale para o número comum (D-08). Na API oficial, mensagem livre só sai dentro de 24 horas da última mensagem da família; depois disso, só modelo aprovado pela Meta. Efeitos, que mudam o desenho agora e não depois da migração: (a) o follow-up automático da Isadora sai depois de `agente_followup_horas` (padrão 48, mínimo 24, decisão de 24/09), portanto sempre fora da janela, e o texto gerado por `isadora-followup.md` não pode sair como está; com `cloud_api`, o follow-up passa a ser um modelo aprovado pela Meta, com texto fixo e variáveis; (b) o mesmo vale para as réguas, os lembretes e os avisos proativos do capítulo 23 que saírem pela API; (c) com coexistência, a régua como tarefa humana (link `wa.me` enviado pelo app Business) continua funcionando; sem coexistência, ela também depende de modelo aprovado. [confirmar: Drop, antes de levar ao cliente]
+
+**Número real durante a restrição [v4.2]:** enquanto a conta estiver restrita, o número real não passa por filtro nenhum. Mitigação escrita no T-01.
+
 ### 4.2 Decisões ainda abertas
 
 | Tema | Bloqueia | Responsável | Padrão adotado até decidir |
 | :-- | :-- | :-- | :-- |
-| Política em caso de perda gestacional após pagamento | Financeiro | Leonardo e Edilaine | Onboarding 9.4 e 9.5: a família escolhe entre devolução integral e manter o suporte [confirmar] |
+| Política em caso de perda gestacional após pagamento | Financeiro | Leonardo e Edilaine | Onboarding 9.4 e 9.5: a família escolhe entre devolução integral e manter o suporte [confirmar] [v4.2: o 9.5 marcou só devolução integral; ver C-08] |
 | Classificação jurídica do registro (prontuário ou registro de acompanhamento) | Retenção e assinatura | Jurídico da Kraamzorg | Construir no padrão de prontuário (append-only, assinatura individual, log de leitura, retenção de 20 anos possível) |
 | Modelo de vínculo das profissionais | Escala e pagamento | Leonardo | Misto MEI e PJ, escala por oferta e aceite |
 | Credenciais do meio de pagamento | Baixa automática | Leonardo | Checkout InfinitePay pelo InfiniteTag da conta |
 | Certificado A1 e homologação de NFS-e | Emissão fiscal | Leonardo e contadora | Integração por provedor com NFS-e Nacional |
 | Horários da conversa com a Edilaine e ferramenta de vídeo | Agenda da sessão | Edilaine | Campo `link_reuniao` livre |
 | Tabela única de condições comerciais | Proposta | Leonardo | 3x sem juros no cartão; Pix 5% [confirmar] |
+| [v4.2] Família em `bloqueio_total` ou `encerrado_sensivel` que relata sintoma recebe texto de urgência próprio? (K-20) | Texto à família no fluxo 3, nó 20 | Edilaine | Texto `alerta_saude_sensivel` (23.1) atrás de `alerta_saude_sensivel_ativo`, desligado até a aprovação; desligado, só o aviso de prioridade máxima à coordenação, sem texto automático. Recomendação da Drop: aprovar antes da produção |
+| [v4.2] Perda de gestação anterior (K-21) | Freio e texto do caminho de perda | Edilaine e Leonardo | Caminho conservador do item L dos ajustes: mesmo caminho de perda (texto `perda`, freio e aviso máximo com a observação de gestação anterior), com o mecanismo corrigido para pegar a frase (11.11 itens 1 e 2) |
 
 Enquanto uma decisão estiver aberta, o módulo é construído com o comportamento parametrizável e o valor padrão da coluna acima nos dados de exemplo.
 
@@ -250,7 +286,7 @@ Enquanto uma decisão estiver aberta, o módulo é construído com o comportamen
 
 - Tabelas e colunas em snake_case, em português, iguais a este documento.
 - Todo estado é enum no banco. Nunca texto livre.
-- Toda tabela tem `id uuid`, `criado_em`, `atualizado_em`, `criado_por`. Exceções: `parametro` (chave em texto), `perfil` e `usuario_papel` (ligadas ao Auth), `municipio` (código do IBGE), `log_auditoria` e `evento_familia` (`bigserial`), tabelas append-only sem `atualizado_em` (`mensagem`, `registro_atendimento`, `registro_adendo`), `fila_sincronizacao` (id do aparelho), `regra_alerta` e `automacao` (id em texto) e as tabelas dos schemas `agente` e `agente_n8n`.
+- Toda tabela tem `id uuid`, `criado_em`, `atualizado_em`, `criado_por`. Exceções: `parametro` (chave em texto), `perfil` e `usuario_papel` (ligadas ao Auth), `municipio` (código do IBGE), `log_auditoria` e `evento_familia` (`bigserial`), [v4.2] `mensagem` (sem `atualizado_em`, mas fora da lista de append-only: UPDATE só na coluna `transcricao`, por `agente.registrar_transcricao`; DELETE só por `privado.eliminar_titular` e pela automação `retencao_diaria`), as tabelas append-only `registro_atendimento` e `registro_adendo` (sem `atualizado_em`), `fila_sincronizacao` (id do aparelho), `regra_alerta` e `automacao` (id em texto) e as tabelas dos schemas `agente` e `agente_n8n`.
 - [v4.1] O PostgREST expõe só os schemas `public` e `api`. O app chama por RPC apenas funções do schema `api`, cada uma `security definer` com checagem de papel e de AAL, que por dentro chamam as funções de `privado` e `assistencial`. `privado`, `assistencial` e `agente` nunca são expostos. O `execute` padrão para `public` é revogado em todos os schemas, com `grant` explícito só para quem precisa.
 - Toda escrita relevante grava em `log_auditoria`. Leitura de dado assistencial também.
 - Nenhum preço, prazo, texto, limite ou lista de termos escrito no código. Vai para `parametro`, `pacote_versao`, `mensagem_modelo`, `termo_alerta`, `regua_faixa` ou `regra_alerta`.
@@ -400,7 +436,8 @@ create type classificacao_contato as enum ('nao_classificado','lead','cliente','
 create type handoff_motivo as enum ('contratar','reuniao','condicao_comercial','cobertura_taxa','reembolso_fiscal',
                                     'bebe_nasceu','pos_venda_operacao','duvida_sem_resposta','saude','perda',
                                     'reclamacao','pediu_humano','parceiro_medico','midia_recebida',
-                                    'validacao_resposta','estado_sensivel_escreveu','outro');
+                                    'validacao_resposta','estado_sensivel_escreveu','outro',
+                                    'audio_nao_transcrito');           -- [v4.2] transcrição do áudio falhou (19.4)
 create type handoff_destino      as enum ('comercial','coordenacao_clinica','operacao');
 create type status_handoff       as enum ('aberto','assumido','resolvido','cancelado');
 create type tipo_tarefa as enum ('nutricao_contato','followup_comercial','agendar_sessao','enviar_formulario_contrato',
@@ -414,6 +451,10 @@ create type modo_agente          as enum ('desligado','teste','producao');
 create type modo_mensageria      as enum ('manual','uazapi','cloud_api');
 create type acao_termo_alerta    as enum ('handoff_saude','bloqueio_total');
 create type status_ingestao       as enum ('ok','falhou');
+-- [v4.2] estado calculado da profissional (6.5, 20.6). Nunca é coluna nem é marcado à mão:
+-- só existe como retorno de privado.status_profissional. Ordem de precedência = ordem do enum.
+create type status_profissional  as enum ('em_visita','em_atendimento','reservada','backup',
+                                          'oferta_pendente','folga','livre');
 ```
 
 ### 6.1 Configuração, geografia e usuários
@@ -504,7 +545,10 @@ create table familia (
   indicacao_medico_id uuid,
   indicacao_familia_id uuid references familia(id),
   mesclada_em_id uuid references familia(id),  -- [v4.1] deduplicação
-  familia_anterior_id uuid references familia(id)  -- [v4.1] nova gestação de família já atendida (regra 12)
+  familia_anterior_id uuid references familia(id),  -- [v4.1] nova gestação de família já atendida (regra 12)
+  historico_sensivel boolean not null default false, -- [v4.2] complicação em gestação anterior, sem detalhe (perda, atual ou anterior, segue a 11.11, não este campo); só coordenação e diretoria veem na ficha; o agente recebe só o booleano para não perguntar de novo [confirmar: Edilaine, quem vê]
+  cidade_informada text,                         -- [v4.2] como a família escreveu
+  municipio_codigo_ibge integer references municipio(codigo_ibge)  -- [v4.2] quando reconhecido e fora de `cidade`
 );
 create index on familia (dpp);
 create index on familia (estado_sensivel);
@@ -618,7 +662,7 @@ create table oportunidade (
   pdf_enviado_em timestamptz,                             -- [v4.1] regra "valor sempre com PDF"
   sessao_interesse_em timestamptz,
   proximo_contato_em date,                                -- retorno combinado ("me chama com 30 semanas")
-  cadencia_etapa integer not null default 0,              -- 0 nada, 1 D+1, 2 D+3, 3 D+14
+  cadencia_etapa integer not null default 0,              -- 0 nada, 1 primeiro retorno da Isadora (agente_followup_horas, [v4.2]), 2 D+3, 3 D+14
   condicao_id uuid references condicao_comercial(id),
   desconto_pct numeric(5,2) not null default 0,
   desconto_motivo text,
@@ -726,7 +770,9 @@ create table conversa (
   ultima_entrada_em timestamptz,
   ultima_saida_em timestamptz,
   agente_pausado_ate timestamptz,
-  agente_pausa_motivo text
+  agente_pausa_motivo text,
+  agente_encerrado_em timestamptz,             -- [v4.2] modo humano_comercial (11.7, D2): lead qualificado passou ao comercial e a Isadora não volta sozinha
+  agente_encerrado_motivo text                 -- [v4.2] motivo da transferência que encerrou (reuniao, contratar, condicao_comercial) ou 'qualificado'; limpo só pelo botão "Devolver à Isadora"
 );
 
 create table mensagem (
@@ -737,7 +783,7 @@ create table mensagem (
   tipo text not null default 'texto',          -- texto, audio, imagem, documento, figurinha, sistema
   conteudo text,                               -- CPF e cartão mascarados antes de gravar
   midia_path text,                             -- cópia no storage privado, nunca o link público da UAZAPI
-  transcricao text,
+  transcricao text,                            -- [v4.2] única coluna com UPDATE, por agente.registrar_transcricao (5.2)
   wa_message_id text unique,
   enviada_em timestamptz not null default now()
 );
@@ -778,7 +824,7 @@ create table tarefa (
   status status_tarefa not null default 'aberta'
 );
 
-create table evento_familia (                   -- linha do tempo da ficha 360º, append-only
+create table evento_familia (                   -- linha do tempo da ficha 360º, append-only; [v4.2] UPDATE, DELETE e TRUNCATE bloqueados por gatilho, salvo a exceção de privado.eliminar_titular (21.3)
   id bigserial primary key,
   familia_id uuid not null references familia(id),
   tipo text not null,                          -- 'lead_entrou', 'estagio', 'pdf_enviado', 'sessao', 'contrato', ...
@@ -887,7 +933,22 @@ create table visita (
 );
 create unique index on visita (acompanhamento_id, dia_numero);
 
--- APPEND-ONLY. UPDATE e DELETE revogados no banco. Correção vira adendo.
+-- [v4.2] Status da enfermeira (reunião de 24/09, 11:31). Calculado, nunca coluna e nunca marcado à mão:
+-- privado.status_profissional(profissional_id uuid, dia date default current_date) returns status_profissional,
+-- exposta ao app por api.status_equipe(regiao_id, semana). Estado do dia pela ordem do enum (6.0):
+--   em_visita        visita da profissional com checkin_em preenchido e checkout_em nulo, agora
+--   em_atendimento   designação titular aceita em acompanhamento ativo nesta semana, fora de visita agora
+--   reservada        designação titular aceita de família que aguarda o nascimento, com a janela de DPP
+--                    (parâmetro da 10.2, hoje de 21 dias antes a 14 dias depois) cruzando a semana
+--   backup           designação backup aceita de família na janela
+--   oferta_pendente  designação com status 'oferecida' sem resposta
+--   folga            bloqueio_agenda cobrindo o dia (folga, férias, documento vencido)
+--   livre            nenhum dos anteriores
+-- A semana da equipe (20.6) mostra os estados por turno; o selo mostra o de hoje.
+-- [confirmar: Edilaine, regra exata de "em atendimento" fora do horário de visita]
+
+-- APPEND-ONLY. [v4.2] UPDATE, DELETE e TRUNCATE revogados e bloqueados por gatilho
+-- (linha: update e delete; before truncate for each statement), aqui e em registro_adendo. Correção vira adendo.
 create table registro_atendimento (
   id uuid primary key default gen_random_uuid(),
   visita_id uuid not null references visita(id),
@@ -1074,7 +1135,10 @@ create table notificacao (                      -- [v4.1] central interna
   lida_em timestamptz
 );
 
--- NUNCA editável, NUNCA deletável
+-- NUNCA editável, NUNCA deletável. [v4.2] TRUNCATE também bloqueado por gatilho before truncate.
+-- [v4.2] Única exceção: a automação retencao_diaria anonimiza a coluna ip depois do prazo de parametro.retencao
+-- (O-06), por um caminho do gatilho liberado só dentro da função de retenção; nenhuma outra coluna muda.
+-- Colunas pessoais ou sensíveis entram como '[oculto]' e HMAC com chave do Vault (13).
 create table log_auditoria (
   id bigserial primary key,
   usuario_id uuid,
@@ -1134,12 +1198,13 @@ create index on agente_n8n.documentos using hnsw (embedding extensions.vector_co
 
 create table agente_n8n.chat_memoria (          -- nó Postgres Chat Memory do n8n
   id serial primary key,
-  session_id text not null,                    -- wa_jid
+  session_id text not null,                    -- [v4.2] conversa.id em texto, nunca o jid
   message jsonb not null,
   criado_em timestamptz not null default now()
 );
 create index on agente_n8n.chat_memoria (session_id, id);
--- Direito do titular: a exclusão de uma família apaga também as linhas de chat_memoria do jid dela.
+-- [v4.2] Direito do titular: `privado.eliminar_titular(familia_id, motivo)` apaga as linhas de chat_memoria
+-- cujo session_id está nas conversas da família (21.3). Retenção: parametro `retencao` (O-06).
 
 create table agente.ingestao_execucao (
   id bigserial primary key,
@@ -1153,14 +1218,27 @@ create table agente.ingestao_execucao (
 
 Parâmetros do agente ficam em `parametro`: `agente_modo` (`desligado`, `teste`, `producao`), `agente_whitelist` (lista de telefones), `agente_pausa_handoff_horas` (48), `agente_pausa_humano_horas` (48), `agente_debounce_segundos` (20), `agente_janela_envio` (`{"inicio":"08:00","fim":"20:00"}`), `grupo_whatsapp_por_destino` (JIDs dos grupos internos), `plantao_telefones` (números para prioridade máxima), `pdf_apresentacao` (caminho no storage, nome do arquivo, versão), `horarios_edilaine` (opcional), `pdf_reenvio_janela_horas` (0, ou seja, a apresentação vai antes de toda mensagem com valor até o Leonardo decidir o item B dos ajustes), `taxa_visivel_agente` (falso até o item A), `alerta_internacao_ativo` e `alerta_emocional_ativo` (falsos até a Edilaine aprovar os textos; desligados, vale `alerta_saude`), `validador_listas` (palavras que a marca evita, expressões de promessa e de escassez, lidas pelo validador do fluxo 3 pela ficha).
 
+[v4.2] Parâmetros novos em `parametro`:
+- `agente_followup_horas`: padrão 48, mínimo 24 (a função de gravação recusa valor menor), editável no CRM. Horas sem resposta até o primeiro retorno da Isadora. Decisão da reunião de 24/09 (11:20: "janela de 48 pra cima") [confirmar: Leonardo, valor padrão]. Na API oficial, ver 4.1 (janela de 24 horas).
+- `acesso_enfermeira_pos_encerramento_dias`: padrão 7. Dias em que a enfermeira designada ainda lê a família depois do encerramento do acompanhamento, para fechar a evolução (13) [confirmar: Edilaine, prazo].
+- `retencao`: `{"chat_memoria_dias":180,"conversa_nao_cliente_meses":24,"log_ip_meses":12}`. Prazos da automação `retencao_diaria` (10.1, O-06) [confirmar: Leonardo e jurídico].
+- `freio_desfazer_segundos`: padrão 10. Janela do "Desfazer" do freio para quem acionou (8.3, 20.6); 0 desliga [confirmar: Leonardo e Edilaine].
+- `comercial_resposta_no_app`: padrão falso. Com falso, a conversa assumida é respondida no WhatsApp do aparelho; com verdadeiro, o campo de resposta aparece no app e sai pelo adaptador (20.6) [confirmar: Leonardo].
+- `alerta_saude_sensivel_ativo`: padrão falso. Ligado, família em `humano_nominal` que relata sintoma recebe o texto `alerta_saude_sensivel` (23.1, 19.4 nó 20); desligado, só a coordenação é avisada (K-20) [clínico, confirmar: Edilaine].
+- O JID do grupo de reserva para alerta sem banco (`grupo_fallback_jid`) não é parâmetro: fica no config do build, porque só é usado quando o banco não responde (19.1).
+
 As funções do agente só devolvem texto de `mensagem_modelo` com status `aprovado`. `alerta_saude`, `perda` e `fallback_confirmar` vieram aprovados no prompt v4.0 e entram aprovados no seed. Em homologação o seed marca todos os textos como aprovados, para os testes rodarem; em produção, só o que o Leonardo ou a Edilaine aprovarem.
 
 ### 6.9 Views
 
 ```sql
 -- Toda exportação de marketing lê desta view, nunca da tabela.
+-- [v4.2] Colunas explícitas, nunca select *: historico_sensivel, estado_sensivel_motivo, nao_contatar_motivo,
+-- endereco_atendimento e bairro ficam fora (13).
 create view familia_elegivel_marketing with (security_invoker = true) as
-  select * from familia
+  select id, nome_exibicao, cidade_id, regiao_id, dpp, gemelar, primeira_gestacao, origem, codigo_origem, utm,
+         indicacao_medico_id, indicacao_familia_id, criado_em
+  from familia
   where estado_sensivel = 'normal' and nao_contatar = false and mesclada_em_id is null;
 
 -- Ocupação projetada por região e semana (capítulo 10.2), usada pelo agente e pelo radar.
@@ -1172,14 +1250,14 @@ create view ocupacao_projetada with (security_invoker = true) as ... ; -- especi
 1. A família é a entidade raiz. Nunca modele a mãe como entidade principal: no pós-parto o parceiro assume a comunicação com frequência.
 2. Deduplicação por telefone normalizado e por similaridade de nome (pg_trgm) somada a DPP dentro de 14 dias. O merge preserva histórico, marca `mesclada_em_id` e grava em auditoria.
 3. Quatro datas distintas. Nenhuma automação de operação dispara pela DPP. O atendimento começa na alta, não no nascimento.
-4. A tabela de registro assistencial não aceita UPDATE nem DELETE. Revogue o privilégio no banco e bloqueie por gatilho.
+4. A tabela de registro assistencial não aceita UPDATE nem DELETE. Revogue o privilégio no banco e bloqueie por gatilho. [v4.2] TRUNCATE também: gatilho `before truncate for each statement` em `registro_atendimento`, `registro_adendo`, `evento_familia` e `log_auditoria`, testado inclusive como `postgres` e com `truncate familia cascade`.
 5. Dinheiro em centavos, inteiro.
-6. RLS obrigatória em todas as tabelas. Tabelas assistenciais e sessão gravada sem SELECT direto: leitura por função que registra log.
+6. RLS obrigatória em todas as tabelas. [v4.2] Tabelas assistenciais, `pessoa_dados_contrato` e sessão gravada sem SELECT direto: leitura por função que registra log.
 7. Idade gestacional nunca é armazenada: é calculada por `ig(dpp, data)` = (data − (dpp − 280 dias)) em semanas e dias.
 8. Gemelar: tudo que é do bebê referencia `bebe_id`. O bloco RN do checklist e a evolução neonatal repetem por bebê.
 9. Conversa sem família é normal (fornecedor, candidata). Família sem conversa também (indicação que ainda não escreveu).
 10. Link público da UAZAPI para mídia nunca é guardado. A mídia é copiada para o storage privado ou descartada.
-11. [v4.1] Funções `security definer` usam `set search_path = ''` e qualificam tudo (`public.familia`, `extensions.unaccent`), como recomenda o linter de banco do Supabase. Isso impede que um objeto criado por outro papel sequestre a chamada.
+11. [v4.1] Funções `security definer` usam `set search_path = ''` e qualificam tudo (`public.familia`, `extensions.unaccent`), como recomenda o linter de banco do Supabase. Isso impede que um objeto criado por outro papel sequestre a chamada. [v4.2] Operadores de extensão também são qualificados: `a operator(extensions.%) b`, `extensions.similarity(a, b)`, `operator(extensions.<=>)`.
 12. [v4.1] Nova gestação de uma família já atendida vira um registro novo de `familia`, ligado ao anterior por `familia_anterior_id`. A deduplicação por telefone sugere esse vínculo e não a mesclagem, porque datas, pacote e atendimento pertencem a cada gestação.
 13. [v4.1] Tabelas editadas no celular sem conexão (`consulta_prenatal`, `visita`, `anexo_audio`, `alerta_clinico`) têm `versao integer not null default 1`, incrementada por gatilho a cada update. É com ela que a sincronização detecta conflito (15).
 14. [v4.1] Oportunidade aberta é a que está fora de `perdido`, `cancelado` e `distrato`. Uma família tem no máximo uma aberta.
@@ -1326,13 +1404,21 @@ A categoria `interna` existe para que um alerta clínico ou a mensagem de uma fa
 -- {pode: boolean, motivo: text}. Soma ao freio: nao_contatar, conversa iniciada pela família
 -- (exigência da D-08 para envio pela UAZAPI), uma mensagem de conteúdo por dia por família,
 -- janela de horário (parametro agente_janela_envio). É a única porta de saída do adaptador de mensageria.
+
+-- [v4.2] agente.pode_enviar(conversa_id uuid, tipo text, handoff_id uuid default null) returns jsonb
+-- {pode: boolean, motivo: text}. tipo in ('resposta','conteudo','operacional','marketing').
+-- 'resposta' = resposta a uma mensagem que a família acabou de mandar: ignora a pausa e a mudança de modo
+-- criadas pelo handoff_id desta execução; bloqueia bloqueio_total, encerrado_sensivel, humano_nominal,
+-- humano_comercial que não foi criado por esse handoff_id e pausa de outra origem; aplica a lista de teste;
+-- nunca aplica janela de horário, nao_contatar nem o limite diário de conteúdo; vale para conversa sem família.
+-- Os demais tipos seguem privado.pode_enviar_mensagem (exigem família), mais pausa e modo.
 ```
 
 Rede de segurança no banco: view `familia_elegivel_marketing` (6.9). Toda exportação de marketing lê dela.
 
 Mensagens já agendadas: quando o estado sai de `normal`, as execuções pendentes são reavaliadas na hora e abortadas conforme a matriz. O envio sempre reconsulta o freio no instante de sair, porque o estado pode ter mudado entre o agendamento e o envio.
 
-O n8n envia direto pela UAZAPI e não enxerga o schema `privado`. Por isso o fluxo 3 chama `agente.pode_enviar(jid, categoria)`, que usa a mesma regra de `pode_enviar_mensagem`, imediatamente antes de cada envio (19.4). A exceção é o texto de alerta de saúde, que responde à mensagem que acabou de chegar e sai conforme o modo lido na entrada.
+O n8n envia direto pela UAZAPI e não enxerga o schema `privado`. Por isso o fluxo 3 chama `agente.pode_enviar`, imediatamente antes de cada resposta ou follow-up à família (19.4). [v4.2] A assinatura passou a `agente.pode_enviar(conversa_id, tipo, handoff_id)` (bloco acima): a v4.1 chamava com a categoria `'conversa'`, que não existe no enum, e com a pausa recém-criada pelo próprio handoff a resposta "Combinado, vou conferir com a equipe" era bloqueada. A resposta usa `resposta` com o `handoff_id` devolvido pelo fluxo 2 na mesma execução; o follow-up usa `conteudo`. `pode_enviar` nunca é chamado para o texto de alerta de saúde, que responde à mensagem que acabou de chegar e sai conforme o modo lido na entrada, nem para os avisos internos aos grupos da equipe.
 
 ### 8.3 Requisitos de interface
 
@@ -1340,6 +1426,7 @@ O n8n envia direto pela UAZAPI e não enxerga o schema `privado`. Por isso o flu
 - Não exige justificativa prévia. Justificar depois é aceitável; atrasar não é. O sistema cria tarefa de justificativa para quem acionou.
 - Qualquer usuário com acesso à família pode acionar.
 - A reversão exige perfil de coordenação ou diretoria e justificativa.
+- [v4.2] Exceção para toque acidental (direção de arte, 20.6): durante `freio_desfazer_segundos` (padrão 10) depois de acionar, quem acionou vê "Desfazer" no aviso efêmero e volta ao estado anterior sem a coordenação. O freio vale desde o primeiro instante: execuções abortadas nesses segundos não voltam sozinhas e aparecem na ficha para a coordenação. O log grava o acionamento e o desfazer, e a tarefa de justificativa é cancelada. Não vale para freio subido pelo agente ou por termo de alerta. Passado o prazo, vale a regra acima [confirmar: Leonardo e Edilaine; com 0, não há desfazer].
 - O agente pode subir o freio (perda detectada vai para `bloqueio_total`), nunca baixar.
 - Cor própria de estado sensível na interface (ameixa, 20.2), diferente de erro e de urgência.
 
@@ -1380,7 +1467,7 @@ Preenchida na consulta pré-natal online, pelo celular, com salvamento a cada ca
 
 Achados das 24 fichas reais lidas (sem dado pessoal) que viram propostas para a versão 2 do instrumento, para Edilaine aprovar [clínico]: opção "internet ou site" na origem (6 das 12 fichas com a pergunta); número de fetos com sexo, nome, percentil e peso por bebê (uma ficha gemelar não coube no modelo); peso fetal estimado em campo próprio (aparece em 9 fichas espalhado); separar DPP de data programada do parto; opção "ainda não sei" em sexo, nome do bebê, pediatra e data do parto; histórico obstétrico em contadores numéricos com perdas anteriores; duração de amamentação em meses (as faixas atuais têm um buraco entre 1 e 2 meses); ajuda prevista como lista de tipos de ajudante; modo "entrevista depois do nascimento"; campo separado para observações da entrevistadora; marcação de ponto de atenção no lugar do realce amarelo; ordem de exibição do período (o modelo impresso lista tarde, noite, manhã).
 
-Regra LGPD que o sistema já resolve: toda entrevista nova começa em branco. Não existe "duplicar de outra família". Os modelos atuais em Word contêm trechos de ficha real e oito fichas têm texto herdado de outra paciente (capítulo 22, C-11).
+Regra LGPD que o sistema já resolve: toda entrevista nova começa em branco. Não existe "duplicar de outra família". Os modelos atuais em Word contêm trechos de ficha real e oito fichas têm texto herdado de outra paciente (capítulo 22, L-01) [v4.2: referência corrigida].
 
 ### 9.2 DOC 2: checklist diário de atendimento
 
@@ -1456,7 +1543,9 @@ Campos por dia (os limites de alerta estão no Apêndice B, para validação cl�
 | Assinatura | Enfermeira e hora | automático | obrigatório |
 | Resumo | Resumo descritivo do dia | texto longo | obrigatório |
 
-Obrigatórios para concluir a visita: data, horário, sinais vitais da puérpera, sinais vitais e peso de cada recém-nascido, resumo descritivo, assinatura. O onboarding marcou também "registro de amamentação" como impeditivo de encerrar a visita [clínico: confirmar se entra na lista].
+[v4.2] Obrigatórios para concluir a visita: data, horário, sinais vitais da puérpera, sinais vitais e peso de cada recém-nascido, bloco de amamentação (2.5 a 2.13), resumo descritivo, assinatura, conforme decisão registrada no onboarding 9.2 (Anexo V do contrato). Até a Edilaine dizer qual subcampo conta como "registro de amamentação preenchido", o bloco inteiro 2.5 a 2.13 é obrigatório, para não perder nenhum sinal das regras AM-04 a AM-06 [clínico, confirmar: Edilaine, só o subcampo; K-09].
+
+[v4.2] Forma de resposta dos blocos de orientação (4, 5, 6 e 8): proposta da direção de arte de marcar "feito hoje" em vez de sim ou não item a item, em 20.6 e K-19. Até a aprovação, sim ou não item a item.
 
 Obrigatórios do último dia: contato do obstetra, contato do pediatra (com opção de justificar ausência), resumo de encerramento.
 
@@ -1555,8 +1644,8 @@ Implementação: `pg_cron` roda a cada 5 minutos `privado.processar_automacoes()
 | :-- | :-- | :-- | :-- | :-- | :-- |
 | `boas_vindas` | Boas-vindas | conteudo | agente | Mensagem de contato desconhecido | Agente assume, cria conversa, família e oportunidade, deduplica |
 | `qualificacao` | Qualificação | interna | sistema | Dados mínimos coletados | Calcula score, classifica, move pipeline |
-| `followup_d1` | Follow-up D+1 após o PDF | conteudo | agente | PDF enviado há 1 dia sem resposta | Uma mensagem da Isadora na conversa aberta |
-| `followup_d3_d14` | Follow-up D+3 e D+14 | conteudo | humano_tarefa | Sem resposta em 3 e 14 dias | Tarefa para o comercial com texto sugerido |
+| `followup_d1` | [v4.2] Primeiro retorno da Isadora (o ID ficou por compatibilidade) | conteudo | agente | [v4.2] Família sem responder há `agente_followup_horas` (padrão 48, mínimo 24, D-18), depois do PDF ou da abertura | Uma mensagem da Isadora na conversa aberta; nunca em `humano_comercial` nem com handoff aberto |
+| `followup_d3_d14` | Follow-up D+3 e D+14 | conteudo | humano_tarefa | [v4.2] Sem resposta 3 e 14 dias depois do primeiro retorno [confirmar: Leonardo] | Tarefa para o comercial com texto sugerido |
 | `lembrete_sessao` | Lembrete da conversa com a Edilaine | operacional | humano_tarefa [confirmar se passa ao agente] | Véspera da sessão | Tarefa ou mensagem com o link |
 | `regua_nutricao` | Nutrição gestacional | conteudo | humano_tarefa | Diário, 7h, quando muda a faixa | Tarefa com lista de contatos e texto sugerido |
 | `retorno_combinado` | Retorno combinado | conteudo | humano_tarefa | Data de `proximo_contato_em` | Tarefa de retomada |
@@ -1565,7 +1654,7 @@ Implementação: `pg_cron` roda a cada 5 minutos `privado.processar_automacoes()
 | `pagamento_confirmado` | Pagamento confirmado | operacional | sistema | Webhook InfinitePay confirmado por consulta | Baixa a cobrança, dispara NFS-e, move pipeline |
 | `prenatal_urgente` | Pré-natal urgente | interna | sistema | Pagamento confirmado com IG > 34 semanas | Tarefa de prioridade máxima, notifica coordenação |
 | `alerta_34s` | Alerta de 34 semanas | interna | sistema | Diário, 7h | Notificação interna à coordenação. Nada à família. |
-| `checkin_dpp` | Check-in de DPP | operacional | humano_tarefa | DPP menos 7 dias | Tarefa de check-in, sinaliza no radar, confirma alocação e backup |
+| `checkin_dpp` | Check-in de DPP | interna [v4.2] | humano_tarefa | DPP menos 7 dias | Tarefa de check-in, sinaliza no radar, confirma alocação e backup |
 | `dpp_sem_confirmacao` | DPP sem confirmação | interna | sistema | DPP mais 3 dias | Alerta interno de alta prioridade |
 | `dpp_sem_contato` | DPP sem contato | interna | sistema | DPP mais 10 dias | Ocorrência com responsável |
 | `nascimento` | Nascimento confirmado | operacional | sistema | Data de nascimento preenchida | Recalcula agenda, notifica operação, pede previsão de alta |
@@ -1581,6 +1670,9 @@ Implementação: `pg_cron` roda a cada 5 minutos `privado.processar_automacoes()
 | `sobrevenda` | Sobrevenda | interna | sistema | Recálculo diário acima do limite | Alerta à diretoria |
 | `contratar_sem_transferencia` | Intenção de contratar parada | interna | sistema | Marco `quer_contratar` sem handoff em 2 h úteis | Abre handoff `contratar` com o que a ficha tiver |
 | `sessao_sem_agenda` | Interesse na conversa parado | interna | sistema | Marco `sessao_interesse` sem handoff em 24 h | Tarefa `agendar_sessao` para o comercial |
+| `retencao_diaria` [v4.2] | Retenção de conversa e memória | interna | sistema | Diário, `pg_cron` | Aplica os prazos de `parametro.retencao` (O-06): apaga `chat_memoria` vencida, apaga ou anonimiza conversa, mensagem e handoff de quem nunca contratou, anonimiza o ip do `log_auditoria`; grava no log só contagens |
+
+[v4.2] `checkin_dpp` passou a `interna`: a automação só prepara a equipe (radar, alocação e backup), e a regra 3 do 6.10 continua valendo sem exceção. O texto à família (`checkin_dpp`, 23.2) segue como tarefa humana, enviada por uma pessoa; a Edilaine fica sabendo que esse contato continua. Como `interna` executa em qualquer estado do freio, a tarefa de família fora de `normal` nasce sem o texto sugerido e com o estado sensível à vista.
 
 O padrão "humano_tarefa" nos contatos com a família segue a D-08 e o treinamento de 24/09 (cadência longa com o Leonardo). Trocar o executor de uma automação é edição de dado, não de código.
 
@@ -1621,9 +1713,9 @@ Quem faz o quê a partir do treinamento de 24/09:
 | Boas-vindas e abertura | Isadora, em minutos, 24 horas por dia, uma conversa de cada vez |
 | Qualificação e explicação do modelo | Isadora, em texto curto e acolhedor (nunca áudio) |
 | PDF e valores | Isadora envia o PDF leve e diz o valor inicial e a página |
-| Conversa com a Edilaine | Isadora oferece; se houver interesse, pede duas opções de dia e horário e transfere para o Leonardo |
+| Conversa com a Edilaine | Isadora oferece; se houver interesse, pede duas opções de dia e horário e transfere para o Leonardo. [v4.2] Daí em diante quem conduz é o Leonardo: a Isadora não volta à conversa (D-17, modo `humano_comercial`, 11.7) |
 | Conversa de orientação | Edilaine, registrando o resultado no CRM |
-| Follow-up | Isadora uma vez no dia seguinte, se a família não respondeu; D+3 e D+14 são tarefas do Leonardo |
+| Follow-up | [v4.2] Isadora uma vez, depois de `agente_followup_horas` sem resposta (padrão 48 h, D-18), se a família não respondeu e a conversa não passou ao Leonardo; D+3 e D+14 são tarefas do Leonardo, contadas do primeiro retorno |
 | Dados, contrato, pagamento, condições | Leonardo, com formulário seguro e tabela única de condições |
 | Pós-venda (pré-natal, aviso de parto, avaliação) | Isadora acolhe e encaminha; Leonardo, Edilaine e enfermeira cuidam |
 
@@ -1647,14 +1739,14 @@ Implementação: as proibições são regra no sistema, não só instrução de 
 
 | Regra | Valor padrão | Parâmetro | Situação |
 | :-- | :-- | :-- | :-- |
-| Cadência de follow-up sem resposta | D+1 Isadora; D+3 e D+14 tarefa humana; no máximo 3 contatos, cada um com motivo novo | `automacao` | Treinamento 24/09 [confirmar] |
-| Pausa após handoff | 48 horas ou até um humano devolver ao agente | `agente_pausa_handoff_horas` | Sugestão da v4.0 [confirmar] |
+| Cadência de follow-up sem resposta | [v4.2] Primeiro retorno da Isadora depois de `agente_followup_horas` sem resposta (padrão 48, mínimo 24, editável no CRM); D+3 e D+14 como tarefa humana, contados do primeiro retorno; no máximo 3 contatos, cada um com motivo novo | `agente_followup_horas` e `automacao` | [v4.2] Decisão da reunião de 24/09 (D-18); o Leonardo confirma o padrão exato e se D+3 e D+14 continuam humanos [confirmar: Leonardo] |
+| Pausa após handoff | 48 horas ou até um humano devolver ao agente. [v4.2] Vale só para transferências antes da qualificação e para os motivos não comerciais; transferência comercial de lead qualificado não tem prazo: a conversa passa a `humano_comercial` (11.7) e só volta pelo botão "Devolver à Isadora" | `agente_pausa_handoff_horas` | Sugestão da v4.0 [confirmar]; [v4.2] a parte do lead qualificado é decisão da reunião de 24/09 (D-17) |
 | Pausa quando alguém da equipe digita pelo celular | 48 horas | `agente_pausa_humano_horas` | [confirmar] |
 | Agrupamento de mensagens | 20 segundos | `agente_debounce_segundos` | Padrão Drop |
 | Janela de envio proativo | 8h às 20h, uma mensagem de conteúdo por dia por família | `agente_janela_envio` | [confirmar] |
 | Oferta de cartão-presente | Ativa quando o atendimento não é para quem está falando | prompt | Aprovado em reunião |
 | Termos de alerta | Lista da coordenação (onboarding 9.6) | `termo_alerta` | Aprovada |
-| Modo do agente | `desligado` em produção até a conta do WhatsApp ser restaurada | `agente_modo` | Treinamento 24/09 |
+| Modo do agente | `desligado` em produção até a conta do WhatsApp ser restaurada. [v4.2] Produção só com o adaptador `cloud_api` implementado, testado e homologado (4.1, T-01) | `agente_modo` | Treinamento 24/09; [v4.2] T-01 [confirmar: Leonardo e Drop] |
 
 ### 11.4 Handoff
 
@@ -1675,15 +1767,24 @@ Cadeia: Agente IA → Comercial → Operação → Enfermeira → Coordenação 
 | Reclamação | `reclamacao` | coordenação clínica, abre ocorrência | alta | 2 h |
 | Médico, clínica ou parceiro | `parceiro_medico` | comercial | normal | 1 dia |
 | Família em estado sensível escreveu | `estado_sensivel_escreveu` | coordenação clínica | alta | 1 h |
-| Família mandou foto, documento ou vídeo sem sinal de saúde | `midia_recebida` | comercial (normal, 4 h úteis); operação se for cliente (alta, 2 h) | normal ou alta | 4 h úteis ou 2 h |
+| Família mandou foto, documento ou vídeo sem sinal de saúde | `midia_recebida` | comercial (normal, 4 h úteis); operação se for cliente (alta, 2 h). [v4.2] Cliente em pipeline 3 (atendimento em curso): coordenação clínica, alta, 2 h [confirmar: Edilaine, destino e SLA] | normal ou alta | 4 h úteis ou 2 h |
 | Resposta barrada duas vezes pelo validador | `validacao_resposta` | comercial | alta | 1 h útil |
 | Qualquer outra situação que a equipe precisa ver | `outro` | comercial | normal | 4 h úteis |
+| [v4.2] Áudio que o sistema não conseguiu transcrever | `audio_nao_transcrito` | coordenação clínica se for cliente; comercial nos demais | alta | 1 h corrida, a qualquer hora [clínico, confirmar: Edilaine, texto e SLA] |
 
 SLA em horas úteis usa o expediente do suporte comercial [confirmar]; prioridade máxima é sempre imediata, a qualquer hora.
+
+[v4.2] Toda foto, vídeo ou documento sem alerta abre `midia_recebida`, com ou sem legenda (19.4, nó 24): a imagem pode mostrar um problema de saúde que o texto não conta, e ninguém a olha se não houver transferência.
+
+[v4.2] Transferência comercial de lead qualificado (`reuniao`, `contratar` e `condicao_comercial`, ou qualquer transferência ao comercial com a oportunidade já em `qualificado` ou adiante) põe a conversa em `humano_comercial` (11.7, D-17). "Resolver" o handoff no CRM não devolve a conversa à Isadora; isso só acontece pelo botão "Devolver à Isadora", separado [confirmar: Leonardo, lista exata de motivos].
+
+[v4.2] Passagem entre dois números: toda passagem acontece dentro da mesma conversa, no mesmo número. O protocolo de passagem entre números (mensagem final com o contato do Leonardo, link `wa.me`, destino do histórico) só entra nesta seção se a coexistência da API oficial no número atual não for viável (4.1, T-01).
 
 ### 11.5 Base de treinamento e homologação
 
 Conversas reais do WhatsApp Business, com a convenção de nomes da Kraamzorg: "Nome paciente potencial" (avançou até pedir reunião, não fechou) e "Nome paciente fechada" (pagou e foi atendida). Cerca de 60% dos contatos não avançam por falta de resposta, material mais valioso para calibrar o follow-up. As simulações do treinamento de 24/09 entram na base como conversas-modelo (few-shot), com nomes fictícios.
+
+[v4.2] As vinte conversas reais completas (exportadas conforme o onboarding 10.1) nunca entram no repositório, nem como arquivo nem como trecho colado em documento, prompt, teste ou seed. Ficam só no Drive ou no cofre da Kraamzorg e servem para leitura humana, para calibrar tom e cadência. No repositório e na base de conhecimento entram apenas os exemplos fictícios do treinamento de 24/09, conforme P26 [confirmar: Leonardo e Drop].
 
 Homologação: o roteiro de 24 mensagens de teste do treinamento (seção 8) é o critério de publicação. Aprovação só com 24 de 24. Falha em saúde, valor sem PDF, promessa ou dado sensível reprova a versão. O roteiro vira teste automatizado (prompt P28).
 
@@ -1695,7 +1796,7 @@ Isadora é do atendimento da Kraamzorg Brasil. Simpática, calorosa, acolhedora,
 - Palavras que a marca evita: mãezinha, mamãe, papai, amiga, princesa, empoderamento, transformação, milagre, vibe, energia, cura, método infalível, garantimos, última vaga, imperdível.
 - Emojis: no máximo um por mensagem e nunca em todas (🤍 😊 🌿 👶). Nenhum em saúde, perda, reclamação ou valores.
 - Formatação: sem listas, títulos, tabelas ou travessão. No máximo um negrito por mensagem, para horário ou nome de plano.
-- Uma pergunta por vez. Mensagens de uma ou duas ideias. Duas mensagens curtas quando houver muito a explicar.
+- Uma pergunta por vez. Mensagens de uma ou duas ideias. Duas mensagens curtas quando houver muito a explicar. [v4.2] Exceção única: no fechamento da venda (plano, DPP e forma de pagamento), as confirmações que faltarem podem vir juntas numa mensagem só, como na seção "Quando a família decide seguir" do prompt e no caso 15 do Apêndice C. O validador confere as duas regras (11.11 item 5a).
 - Antes de perguntar, valida o que a pessoa contou.
 - Revela que é assistente virtual quando perguntada e oferece falar com a Edilaine ou o Leonardo.
 
@@ -1703,7 +1804,7 @@ Leitura de contexto (método de copy da Drop): quem escreve é uma gestante ou a
 
 ### 11.7 Modos de operação [v4.1]
 
-Antes de cada resposta, `agente.pode_responder(wa_jid)` decide o modo. O filtro de saúde roda antes dessa decisão e vale em todos os modos menos `desligado` (19.4):
+Antes de cada resposta, `agente.pode_responder(conversa_id)` decide o modo ([v4.2] chave é o id da conversa, nunca o jid; Apêndice A). O filtro de saúde roda antes dessa decisão e vale em todos os modos menos `desligado` (19.4), inclusive em `teste` para número fora da lista, onde gera só o aviso interno:
 
 | Modo | Quando | Comportamento |
 | :-- | :-- | :-- |
@@ -1711,9 +1812,12 @@ Antes de cada resposta, `agente.pode_responder(wa_jid)` decide o modo. O filtro 
 | `cliente` | Pipeline 2 a partir de `assinado`, pipeline 3 ou 4, ou estado `atencao` | Não vende. Acolhe, entende o assunto e encaminha pelo motivo certo (nascimento, horário, contrato, saúde, reclamação) |
 | `humano_nominal` | `bloqueio_total` ou `encerrado_sensivel` | Nenhuma resposta automática. Handoff `estado_sensivel_escreveu` para a pessoa responsável |
 | `nao_lead` | Candidata, fornecedor, consultório, parceiro | Uma resposta de encaminhamento, depois silêncio |
-| `pausado` | `agente_pausado_ate` no futuro: handoff aberto (48 h ou até alguém da equipe devolver, o que vier primeiro) ou alguém da equipe digitou no celular nas últimas 48 h | Mensagem gravada, sem resposta. Se o handoff continuar aberto quando a pausa vencer, o CRM mostra em vermelho e a Isadora volta a responder, sem retomar o assunto transferido |
-| `desligado` ou `teste` | `agente_modo` | Grava a mensagem; em teste só responde números da lista autorizada |
+| `pausado` | `agente_pausado_ate` no futuro: handoff aberto (48 h ou até alguém da equipe devolver, o que vier primeiro) ou alguém da equipe digitou no celular nas últimas 48 h | Mensagem gravada, sem resposta. Se o handoff continuar aberto quando a pausa vencer, o CRM mostra em vermelho e a Isadora volta a responder, sem retomar o assunto transferido. [v4.2] Só para transferências antes da qualificação e motivos não comerciais; lead qualificado vai para `humano_comercial` |
+| `desligado` ou `teste` | `agente_modo` | Grava a mensagem; em teste só responde números da lista autorizada. [v4.2] Em teste, o filtro de saúde vale para todos os números: fora da lista, alerta gera só o aviso interno (`enviar_texto` falso) |
 | silêncio | Número de alguém da equipe (`perfil`) ou do plantão | Nada. Evita que a resposta de um plantonista vire lead |
+| `humano_comercial` [v4.2] | `conversa.agente_encerrado_em` preenchido: transferência comercial de lead qualificado (`reuniao`, `contratar`, `condicao_comercial`, ou transferência ao comercial com a oportunidade em `qualificado` ou adiante), gravada por `registrar_handoff` | Nenhuma resposta automática nem follow-up. Só sai a resposta da própria transferência, na mesma execução (8.2, tipo `resposta` com o `handoff_id`). O filtro de saúde roda com `enviar_texto` verdadeiro. A mensagem é gravada e o handoff aberto recebe o texto novo. Não vence por prazo e "resolver" o handoff não devolve; só volta à Isadora pelo botão "Devolver à Isadora" no CRM (comercial, coordenação ou diretoria), que limpa `agente_encerrado_em` e `agente_encerrado_motivo` e grava no log. Decisão da reunião de 24/09 (D-17) [confirmar: Leonardo, lista exata de motivos] |
+
+[v4.2] Precedência dentro de `pode_responder`: silêncio, `humano_nominal`, `humano_comercial`, `nao_lead`, `pausado`, `cliente`, `vendas`. Depois do pagamento, quem quiser que a Isadora acolha o pós-venda em modo `cliente` usa "Devolver à Isadora".
 
 `nao_contatar` bloqueia só contato ativo. Se a família voltar a escrever, o agente responde.
 
@@ -1726,37 +1830,40 @@ Antes de cada resposta, `agente.pode_responder(wa_jid)` decide o modo. O filtro 
 5. Enviar a apresentação e dar o contexto do valor. O PDF vai sempre antes de qualquer valor, garantido pelo sistema.
 6. Convidar para a conversa com a Edilaine: uns 15 minutos, sem compromisso, o parceiro pode participar.
 7. Havendo interesse, pedir duas opções de dia e horário e transferir para o Leonardo (`reuniao`). A Isadora nunca confirma horário.
-8. Depois da conversa, se a família voltar: "Ficou alguma dúvida?".
-9. Se a família quiser seguir: comemorar, registrar a intenção (`quer_contratar`), colher o que faltar entre plano, DPP e forma de pagamento preferida e transferir (`contratar`) com o resumo interno. Se a família não responder às confirmações, a transferência sai do mesmo jeito: a automação `contratar_sem_transferencia` abre o handoff 2 horas úteis depois da intenção registrada.
-10. Se sumir: D+1 pela Isadora; D+3 e D+14 viram tarefa do Leonardo; depois respeitar a decisão e registrar retorno combinado ou nutrição.
+8. [v4.2] Depois da conversa, quem conduz é o Leonardo. A transferência do passo 7 pôs a conversa em `humano_comercial` (11.7, D-17): a Isadora não pergunta "Ficou alguma dúvida?" nem faz follow-up; a pergunta pós-sessão é a tarefa `pos_sessao_48h` (23.2), enviada por uma pessoa.
+9. Se a família quiser seguir antes de qualquer transferência comercial: comemorar, registrar a intenção (`quer_contratar`), colher o que faltar entre plano, DPP e forma de pagamento preferida e transferir (`contratar`) com o resumo interno. Se a família não responder às confirmações, a transferência sai do mesmo jeito: a automação `contratar_sem_transferencia` abre o handoff 2 horas úteis depois da intenção registrada.
+10. Se sumir: [v4.2] primeiro retorno pela Isadora depois de `agente_followup_horas` sem resposta (padrão 48 h, D-18), só se a conversa não estiver em `humano_comercial`; D+3 e D+14, contados do primeiro retorno, viram tarefa do Leonardo; depois respeitar a decisão e registrar retorno combinado ou nutrição.
 
-Situações especiais: abaixo de 28 semanas (comemora, explica a janela de 28 a 36 semanas, oferece o PDF se quiser e combina retorno com data); bebê já nasceu (parabeniza, pergunta se já estão em casa e transfere com prioridade, sem confirmar início); gêmeos (só planos gemelares, sem alarmismo); presente para outra pessoa (contrato no nome de quem recebe o cuidado, pagamento com quem presenteia, cartão-presente); mãe solo (acolhe sem pena); fora da área (confirma pela ferramenta, nunca pelo DDD; outro estado recebe resposta gentil de que a Kraamzorg atende SP e Londrina); CPF enviado espontaneamente (não repete o número, avisa do formulário seguro); perda gestacional (resposta fixa, sem emoji, freio e silêncio); "é robô?" (resposta de transparência).
+Situações especiais: abaixo de 28 semanas (comemora, explica a janela de 28 a 36 semanas, oferece o PDF se quiser e combina retorno com data); bebê já nasceu (parabeniza, pergunta se já estão em casa e transfere com prioridade, sem confirmar início); gêmeos (só planos gemelares, sem alarmismo); presente para outra pessoa (contrato no nome de quem recebe o cuidado, pagamento com quem presenteia, cartão-presente); mãe solo (acolhe sem pena); fora da área (confirma pela ferramenta, nunca pelo DDD; outro estado recebe resposta gentil de que a Kraamzorg atende SP e Londrina); CPF enviado espontaneamente (não repete o número, avisa do formulário seguro); perda gestacional (resposta fixa, sem emoji, freio e silêncio; [v4.2] perda de gestação anterior segue o mesmo caminho, 11.11 item 1, e `historico_sensivel` fica só para complicação sem perda); "é robô?" (resposta de transparência).
 
 ### 11.9 Ferramentas do agente
 
 | Ferramenta | Tipo no n8n | Função do banco | Quando usar |
 | :-- | :-- | :-- | :-- |
-| `base_conhecimento` | Vector store PGVector, recuperação como ferramenta, top 5 | leitura de `agente_n8n.documentos` | Dúvidas sobre o serviço, FAQ, objeções, políticas, depoimentos |
+| `base_conhecimento` | Vector store PGVector, recuperação como ferramenta, top 5 ([v4.2] `topK: 5` declarado no JSON, porque o padrão do nó é 4; o nome que o modelo vê sai do nome do nó, 19.5) | leitura de `agente_n8n.documentos` | Dúvidas sobre o serviço, FAQ, objeções, políticas, depoimentos |
 | `consultar_planos` | Postgres Tool | `agente.planos_vigentes()` | Antes de citar qualquer plano ou valor |
 | `verificar_cobertura` | Postgres Tool | `agente.verificar_cobertura(cidade, bairro, uf)`: status e `tem_taxa`, sem o valor enquanto `taxa_visivel_agente` for falso | Sempre que a família disser onde vai estar depois da alta |
 | `verificar_disponibilidade` | Postgres Tool | `agente.verificar_disponibilidade(dpp, cidade)` | Quando perguntarem por vaga para a data |
-| `atualizar_ficha` | Postgres Tool | `agente.atualizar_lead(wa_jid, dados)` | Cada dado novo de qualificação, e também `quer_contratar` e `sem_interesse` |
-| `registrar_retorno` | Postgres Tool | `agente.registrar_marco(wa_jid, 'proximo_contato', valor)`, com data ou semanas-alvo (o banco calcula a data pela DPP) | Família pediu para ser chamada depois |
-| `marcar_nao_contatar` | Postgres Tool | `agente.registrar_marco(wa_jid, 'nao_contatar')` | Pedido explícito para não receber mensagens |
+| `atualizar_ficha` | Postgres Tool | `agente.atualizar_lead(conversa_id, dados)` [v4.2] | Cada dado novo de qualificação, e também `quer_contratar` e `sem_interesse` |
+| `registrar_retorno` | Postgres Tool | `agente.registrar_marco(conversa_id, 'proximo_contato', valor)` [v4.2], com data ou semanas-alvo (o banco calcula a data pela DPP) | Família pediu para ser chamada depois |
+| `marcar_nao_contatar` | Postgres Tool | `agente.registrar_marco(conversa_id, 'nao_contatar')` [v4.2] | Pedido explícito para não receber mensagens |
 | `transferir_para_equipe` | Tool Workflow, fluxo 2 | `agente.registrar_handoff(...)` | Situações da 11.4, exceto saúde e perda |
 | `acionar_equipe_saude` | Tool Workflow, fluxo 2; o parâmetro `tipo` (`saude`, `internacao`, `emocional`, `perda`) vira a ação e a chave do texto | idem, prioridade máxima | Sinal de saúde ou notícia de perda que passou pelos filtros. O fluxo 2 envia o texto aprovado e o modelo responde só `[SILENCIO]` |
 
 O envio do PDF não é ferramenta do modelo: o sistema envia o PDF antes de qualquer mensagem que contenha "R$" e sempre que o modelo sinalizar `[ENVIAR_APRESENTACAO]` (19.4). As assinaturas completas das funções estão no Apêndice A.
 
+[v4.2] Em toda ferramenta, `conversa_id` vem do nó "Registrar Msg Família" do fluxo 3 e nunca de `$fromAI()`; o modelo preenche só os campos de conteúdo. Em `acionar_equipe_saude`, `enviar_texto` é fixo verdadeiro e `origem_chamada` é fixo `agente`, nenhum dos dois vindo de `$fromAI()`; o tipo `internacao` ou `emocional` só vira o texto próprio com o parâmetro de ativação ligado (19.3, nó 2).
+
 ### 11.10 Fronteira de dados do agente (D-14)
 
 - O n8n conecta no Postgres com o papel `n8n_agente` (login próprio, pooler do Supabase em modo sessão, usuário no formato `n8n_agente.<ref do projeto>`, SSL). O `search_path` do papel é `agente_n8n, extensions`.
 - Privilégios: `usage` no schema `agente` e `execute` só nas funções do Apêndice A; `usage` no schema `extensions` (os operadores do pgvector moram lá, e no Supabase o `public` não tem esse acesso); `usage, create` no schema `agente_n8n` e `select, insert, delete` nas duas tabelas dele, mais `usage` nas sequências. As duas tabelas de `agente_n8n` têm RLS ligada com política `for all to n8n_agente using (true) with check (true)`; sem a política, o PGVector lê zero linhas e a memória falha no insert.
-- "Nenhum acesso" não se consegue só deixando de conceder, porque o Postgres dá `execute` em toda função nova para `public`. A migration revoga esse padrão em `public`, `privado`, `assistencial`, `agente` e `api` (`alter default privileges ... revoke execute on functions from public`) e concede de volta só o que cada papel usa. Exemplo que costuma escapar: quem grava em `cidade` precisa de `usage` no schema `privado` e `execute` em `privado.sem_acento`, porque o índice calcula a expressão no insert.
-- O papel é criado na migration sem senha. A senha é definida à mão a partir do cofre (`alter role n8n_agente password ...`), num runbook, para nunca entrar no git.
-- Por que `create` em `agente_n8n`: os nós PGVector e Postgres Chat Memory rodam `CREATE TABLE IF NOT EXISTS` ao iniciar, e o Postgres checa o privilégio de criação no schema antes de ver que a tabela existe. Sem isso o fluxo quebra no primeiro uso. O schema contém só essas duas tabelas e nenhuma função o coloca no `search_path`.
+- "Nenhum acesso" não se consegue só deixando de conceder, porque o Postgres dá `execute` em toda função nova para `public`. A migration revoga esse padrão em `public`, `privado`, `assistencial`, `agente` e `api` (`alter default privileges ... revoke execute on functions from public`) e concede de volta só o que cada papel usa. Exemplo que costuma escapar: quem grava em `cidade` precisa de `usage` no schema `privado` e `execute` em `privado.sem_acento`, porque o índice calcula a expressão no insert. [v4.2] No Supabase, `public` já vem com default privileges que dão execute a anon e authenticated; a migration também roda `alter default privileges for role postgres in schema public revoke execute on functions from anon, authenticated`. authenticated recebe `usage` em `privado` e `execute` só em `privado.tem_papel`, `privado.familias_atribuidas`, `privado.aal2` e `privado.sem_acento`; anon não recebe execute em nada. O teste do P07 lista as funções executáveis por anon (esperado: nenhuma além de `public.ig`) e por authenticated (esperado: a lista do ADR 0002).
+- [v4.2] O papel é criado na migration sem senha e de forma idempotente: `do $$ begin if not exists (select 1 from pg_roles where rolname = 'n8n_agente') then create role n8n_agente login noinherit nobypassrls; end if; end $$;`. A senha é definida à mão a partir do cofre (`alter role n8n_agente password ...`), num runbook, para nunca entrar no git.
+- Por que `create` em `agente_n8n`: os nós PGVector e Postgres Chat Memory rodam `CREATE TABLE IF NOT EXISTS` ao iniciar, e o Postgres checa o privilégio de criação no schema antes de ver que a tabela existe. Sem isso o fluxo quebra no primeiro uso. O schema contém só essas duas tabelas e nenhuma função o coloca no `search_path`. [v4.2] O risco do `create` é um `tableName` errado criar tabela nova em silêncio, sem RLS e fora da exclusão do titular, com a Isadora consultando base vazia. Duas travas: o teste do build confere que todo nó PGVector usa `tableName = 'documentos'` e todo nó Postgres Chat Memory usa `tableName = 'chat_memoria'`, sem variação (19.5); e um job diário do `pg_cron` (automação interna) confere que `agente_n8n` tem exatamente essas duas tabelas, e qualquer outra gera notificação de prioridade alta à diretoria e à Drop.
+- [v4.2] A política `using (true)` dá ao `n8n_agente` leitura de toda a `chat_memoria`, porque o nó de memória exige. O controle está no build: o campo `query` de todo nó `postgres` e `postgresTool` é literal, começa por `select agente.` ou `select * from agente.`, não contém `{{` nem `$fromAI`, e `$fromAI` só aparece em `queryReplacement` (teste do 19.5). Registrado no ADR 0003.
 - As funções do schema `agente` são `security definer`, com `set search_path = ''` e nomes qualificados, validam todos os parâmetros e escrevem em tabelas operacionais só pelos caminhos previstos (máquina de estado, handoff, marco, mensagem).
-- O `jid` de toda chamada vem do contexto do fluxo (webhook), nunca de um parâmetro que o modelo preenche. Uma mensagem com instrução maliciosa não consegue fazer o agente ler ou alterar a ficha de outra família.
+- [v4.2] O `conversa_id` de toda chamada vem do contexto do fluxo (nó "Registrar Msg Família" ou "Registrar Msg Humana"), nunca de um parâmetro que o modelo preenche; o jid só serve para enviar. Uma mensagem com instrução maliciosa não consegue fazer o agente ler ou alterar a ficha de outra família. Como a garantia depende de `$('Registrar Msg Família')` ser resolvido dentro da ferramenta do AI Agent, o P25 tem um teste com duas conversas concorrentes, repetido a cada troca de versão do n8n (19.1).
 - O agente nunca lê registro assistencial, alerta clínico, evolução ou dado de contrato. A ficha que ele recebe (`agente.ficha_para_agente`) tem só dados comerciais.
 - A chave `service_role` do Supabase nunca é usada no n8n.
 - URL e token da UAZAPI vêm de credencial do n8n, nunca do corpo do webhook. O corpo só serve para conferir que a mensagem veio da instância certa.
@@ -1764,13 +1871,14 @@ O envio do PDF não é ferramenta do modelo: o sistema envia o PDF antes de qual
 
 ### 11.11 Regras de sistema (guardrails determinísticos)
 
-1. **Filtro de termos de alerta** antes de qualquer modelo: texto normalizado (minúsculo, sem acento) contra `termo_alerta`. Termos de perda sobem o freio para `bloqueio_total`; os demais abrem handoff de saúde com prioridade máxima. A família recebe a mensagem fixa aprovada (capítulo 23) e o agente pausa. Lista inicial aprovada no onboarding (9.6): sangramento, visão embaçada, dor forte, febre, falta de ar, não sinto o bebê mexer, perdi o bebê, UTI, convulsão, pressão alta; "perdi o bebê" com ação `bloqueio_total`, os demais `handoff_saude`, e "UTI" com a mensagem `alerta_internacao` (2a). Sinônimos propostos para a Edilaine aprovar antes de entrar ativos [clínico]: óbito, natimorto, faleceu, não resistiu, sem batimento, desmaiou, desmaio, ficou roxo, não respira. "Internada" fica fora de propósito: quem escreve "vou ser internada para induzir" está avisando do parto, e esse caso é handoff `bebe_nasceu` pelo classificador. A lista vai pegar perguntas gerais ("vocês atendem se tiver febre?") e perdas de gestação anterior ("já perdi um bebê antes"). A regra aceita esse falso positivo: "Sinto muito, de coração" serve nos dois casos, o aviso à coordenação sai com prioridade máxima e, quando o classificador indicar gestação anterior (`perda_temporalidade`), o aviso diz isso para a coordenação reverter o freio em um toque depois de falar com a família. O classificador nunca rebaixa o alerta sozinho, porque tratar uma perda atual como antiga faria a Isadora falar da gestação com uma mãe enlutada. A coordenação revisa os casos depois de 30 dias de operação.
-2. **Classificador semântico de saúde** (modelo pequeno, temperatura 0, saída JSON, prompt em `n8n/prompts/classificar-mensagem.md`) em toda mensagem agrupada: `saude` em `nenhum | pergunta_geral | relato_sintoma | urgencia`, `perda` booleano (desta gestação ou deste bebê), `perda_temporalidade` (`atual`, `anterior`, `incerta`), `internacao` booleano e `saude_mental` booleano. Relato de sintoma, urgência ou perda seguem o mesmo caminho do filtro de termos. Pergunta geral ("vocês ajudam com amamentação?") segue para a Isadora. Falha do classificador nunca cala o agente e nunca rebaixa um alerta.
+1. **Filtro de termos de alerta** antes de qualquer modelo: texto normalizado (minúsculo, sem acento) contra `termo_alerta`. Termos de perda sobem o freio para `bloqueio_total`; os demais abrem handoff de saúde com prioridade máxima. A família recebe a mensagem fixa aprovada (capítulo 23) e o agente pausa. Lista inicial aprovada no onboarding (9.6): sangramento, visão embaçada, dor forte, febre, falta de ar, não sinto o bebê mexer, perdi o bebê, UTI, convulsão, pressão alta; "perdi o bebê" com ação `bloqueio_total`, os demais `handoff_saude`, e "UTI" com a mensagem `alerta_internacao` (2a). [v4.2] Entra também o termo "perdi um bebê", com a mesma ação `bloqueio_total`: a comparação é por palavra, e sem ele a frase "já perdi um bebê antes", citada abaixo, não bate com "perdi o bebê" (K-21) [clínico, confirmar: Edilaine e Leonardo]. Sinônimos propostos para a Edilaine aprovar antes de entrar ativos [clínico]: óbito, natimorto, faleceu, não resistiu, sem batimento, desmaiou, desmaio, ficou roxo, não respira. "Internada" fica fora de propósito: quem escreve "vou ser internada para induzir" está avisando do parto, e esse caso é handoff `bebe_nasceu` pelo classificador. A lista vai pegar perguntas gerais ("vocês atendem se tiver febre?") e perdas de gestação anterior ("já perdi um bebê antes"). A regra aceita esse falso positivo: "Sinto muito, de coração" serve nos dois casos, o aviso à coordenação sai com prioridade máxima e, quando o classificador indicar gestação anterior (`perda_temporalidade`), o aviso diz isso para a coordenação reverter o freio em um toque depois de falar com a família. O classificador nunca rebaixa o alerta sozinho, porque tratar uma perda atual como antiga faria a Isadora falar da gestação com uma mãe enlutada. A coordenação revisa os casos depois de 30 dias de operação. [v4.2] Padrão adotado para perda de gestação anterior: o caminho conservador do item L do documento de ajustes (mesmo caminho de perda, com a observação no aviso ao grupo). `historico_sensivel` fica só para complicação sem perda; qualquer perda, atual ou anterior, segue este item. Se a Edilaine preferir o tratamento mais leve (sem freio, transferência `estado_sensivel_escreveu` e acolhimento), muda só esta regra e o nó 19 (K-21) [confirmar: Edilaine e Leonardo].
+2. **Classificador semântico de saúde** (modelo pequeno, temperatura 0, saída JSON, prompt em `n8n/prompts/classificar-mensagem.md`) em toda mensagem agrupada: `saude` em `nenhum | pergunta_geral | relato_sintoma | urgencia`, `perda` booleano ([v4.2] verdadeiro para qualquer perda relatada, atual ou anterior; a v4.1 dizia "desta gestação", o que levava "já perdi um bebê na gestação passada" a `perda = false` e a Isadora seguia vendendo), `perda_temporalidade` (`atual`, `anterior`, `incerta`), `internacao` booleano e `saude_mental` booleano. Relato de sintoma, urgência ou perda seguem o mesmo caminho do filtro de termos. Pergunta geral ("vocês ajudam com amamentação?") segue para a Isadora. Falha do classificador nunca cala o agente e nunca rebaixa um alerta.
 2a. **Mensagem certa para quem já está no hospital [v4.1] [clínico]:** a mensagem padrão de saúde manda procurar urgência e ligar para o SAMU. Para uma família que conta que o bebê foi para a UTI, ou que a mãe está internada, esse texto soa como se ninguém tivesse lido o que ela escreveu. Nesses casos (termo com `mensagem_chave = alerta_internacao` ou classificador com `internacao = true`) sai o texto `alerta_internacao` do capítulo 23, com o mesmo handoff de prioridade máxima e o mesmo estado `atencao`. Fica atrás de `alerta_internacao_ativo` até a Edilaine aprovar; desligado, sai `alerta_saude`.
 2b. **Sofrimento emocional [v4.1] [clínico]:** relato de tristeza intensa, ansiedade incapacitante ou pensamento de se machucar ou machucar o bebê (`saude_mental = true`) recebe o texto `alerta_emocional`, que acolhe, orienta urgência e cita o CVV (188), atrás de `alerta_emocional_ativo`. O aviso é de prioridade máxima para a coordenação, como no SM-01 do DOC 3.
 3. **PDF antes de valor:** se qualquer bloco da resposta contém "R$", o PDF oficial é enviado antes, na mesma sequência, e `pdf_enviado_em` é gravado. Vale para toda mensagem com valor, como manda o prompt v4.0; `pdf_reenvio_janela_horas` permite pular o reenvio quando o mesmo arquivo saiu há pouco, se o Leonardo aprovar (item B dos ajustes). A Isadora sempre escreve os valores com "R$", inclusive a parcela.
-4. **Validação de valores:** todo valor em reais da resposta ("R$ x", "x reais", "3x de x", "x mil") precisa existir na tabela vigente (valor à vista ou parcela em 3x, na forma que aparece na apresentação) e estar ligado ao plano certo quando o plano é citado na mesma frase. Taxa de deslocamento só entra na lista se `taxa_visivel_agente` estiver ligado. Fora disso, a resposta é reescrita uma vez; a reescrita nunca troca um valor por outro, só tira o valor e pede a apresentação. Persistindo, sai a mensagem de segurança e um handoff `validacao_resposta`.
+4. **Validação de valores:** todo valor em reais da resposta ("R$ x", "x reais", "3x de x", "x mil") precisa existir na tabela vigente (valor à vista ou parcela em 3x, na forma que aparece na apresentação) e estar ligado ao plano certo. [v4.2] A ligação é conferida por bloco, não por frase: se o bloco, ou o bloco anterior da mesma resposta, cita um único plano, todo valor do bloco precisa ser desse plano; se cita mais de um plano, cada valor precisa estar na mesma frase do seu plano; valor num bloco sem plano citado só passa se for o menor valor da tabela precedido de "a partir de"; valor escrito por extenso ("quatro mil e duzentos reais") reprova. Assim "O Continuado cuida de vocês por 12 dias. O investimento é R$ 4.200" reprova [confirmar: Leonardo, regra do "a partir de"]. Taxa de deslocamento só entra na lista se `taxa_visivel_agente` estiver ligado. Fora disso, a resposta é reescrita uma vez; a reescrita nunca troca um valor por outro, só tira o valor e pede a apresentação. Persistindo, sai a mensagem de segurança e um handoff `validacao_resposta`.
 5. **Bloqueios de conteúdo:** percentual perto de palavras de condição (desconto, Pix, à vista, cupom, parcela), promessa de resultado, escassez, palavras que a marca evita (comparadas por palavra inteira, para "cura" não pegar "curativo"), pedido de documento ou dado pessoal (CPF, RG, endereço, CEP, data de nascimento, e-mail), frases que negam ser assistente virtual, travessão e markdown. Travessão vira vírgula; títulos, listas, links e negrito duplo são removidos; o negrito do WhatsApp (um asterisco de cada lado) fica, no máximo um por bloco. O resto aciona a reescrita.
+5a. **Emoji e perguntas [v4.2]:** o nó 28 conta os emojis e corta o que passar de um por resposta; remove todo emoji quando a resposta tem "R$" ou quando o motivo em curso na conversa é `saude`, `perda` ou `reclamacao` (regra do 11.6). Mais de um "?" fora de citação aciona a reescrita, exceto no fechamento da venda (plano, DPP e forma de pagamento, exceção escrita no 11.6). Qualquer texto entre colchetes que não seja `[ENVIAR_APRESENTACAO]` sozinho numa linha reprova (19.4, nó 28).
 6. **CPF, cartão e documento** enviados pela família viram "[CPF ocultado]" e "[cartão ocultado]" já na entrada do fluxo, antes do Redis, de `mensagem` e da memória do agente.
 7. **Variação de texto:** o agente nunca envia a mesma mensagem proativa a duas famílias no mesmo dia. A comparação é feita no código, por hash e por similaridade com os envios do dia; nenhum texto de outra família vai para o modelo.
 8. **Janela e ritmo:** mensagens proativas só entre 8h e 20h, no máximo uma de conteúdo por dia por família; digitação simulada de 2,5 a 5 s por bloco.
@@ -1791,7 +1899,7 @@ Todas saem do banco (`mensagem`, `oportunidade`, `handoff`, `sessao_venda`, `con
 
 ### 11.13 Prompt de produção
 
-O prompt de sistema de produção fica em `n8n/prompts/isadora-system.md` (entregue com este PRD). Ele parte do Prompt de Sistema v4.0 aprovado pelo cliente e muda quatro coisas: incorpora as decisões do treinamento de 24/09 (agendamento humano, follow-up D+1, coleta de plano, DPP e pagamento antes da passagem); tira do texto tudo o que o banco fornece (planos e valores vêm de `consultar_planos` e da ficha; cobertura e disponibilidade vêm das ferramentas); acrescenta as regras de saída do sistema (`[SILENCIO]`, `[ENVIAR_APRESENTACAO]`, blocos curtos); ajusta frases pelo método de copy da Drop (sem construção contrastiva, sem dois-pontos de revelação). A lista de ajustes de texto vai para aprovação do Leonardo antes da publicação.
+O prompt de sistema de produção fica em `n8n/prompts/isadora-system.md` (entregue com este PRD). Ele parte do Prompt de Sistema v4.0 aprovado pelo cliente e muda quatro coisas: incorpora as decisões do treinamento de 24/09 (agendamento humano, follow-up, coleta de plano, DPP e pagamento antes da passagem; [v4.2] o follow-up passou de D+1 para `agente_followup_horas` e a Isadora não volta depois que o lead qualificado passou ao Leonardo, D-17 e D-18, e o prompt precisa acompanhar); tira do texto tudo o que o banco fornece (planos e valores vêm de `consultar_planos` e da ficha; cobertura e disponibilidade vêm das ferramentas); acrescenta as regras de saída do sistema (`[SILENCIO]`, `[ENVIAR_APRESENTACAO]`, blocos curtos); ajusta frases pelo método de copy da Drop (sem construção contrastiva, sem dois-pontos de revelação). A lista de ajustes de texto vai para aprovação do Leonardo antes da publicação.
 
 ---
 
@@ -1824,8 +1932,8 @@ Implementadas por RLS no banco. Filtro na aplicação é complemento, nunca a de
 | Contrato | Total | sem acesso | Total | sem acesso | sem acesso | Total |
 | Cobrança e NFS-e | Parcial (status) | sem acesso | Total | sem acesso | sem acesso | Total |
 | Agenda | Leitura | Própria | sem acesso | sem acesso | Total | Total |
-| Registro assistencial | sem acesso | Atribuídas | sem acesso | sem acesso | Total | Conforme regra |
-| Áudio e relatório médico | sem acesso | Atribuídas | sem acesso | sem acesso | Total | Conforme regra |
+| Registro assistencial | sem acesso [v4.2: O-05] | Atribuídas | sem acesso | sem acesso | Total | Total, leitura com log e AAL2 [v4.2] |
+| Áudio e relatório médico | sem acesso [v4.2: O-05] | Atribuídas | sem acesso | sem acesso | Total | Total, leitura com log e AAL2 [v4.2] |
 | Alertas clínicos | sem acesso | Atribuídas | sem acesso | sem acesso | Total | Total |
 | Candidaturas | sem acesso | sem acesso | sem acesso | sem acesso | Total | Total |
 | Financeiro | sem acesso | Próprios | Total | sem acesso | sem acesso | Total |
@@ -1834,15 +1942,17 @@ Implementadas por RLS no banco. Filtro na aplicação é complemento, nunca a de
 Divergências entre fontes, com o padrão adotado [confirmar]:
 - Sessão gravada: a v4.0 dá acesso total ao comercial e à coordenação; o onboarding (14.3) marcou "apenas quem conduziu e a diretoria". Adotado o mais restritivo, que é o do cliente.
 - Registro assistencial para o comercial: o onboarding marcou acesso total; a v4.0 e a recomendação da Drop dizem sem acesso. Adotado sem acesso. Leonardo acessa pelo papel de diretoria.
-- "Conforme regra" para a diretoria: leitura de registro assistencial permitida, sempre com log e com MFA [confirmar].
+- [v4.2] Diretoria: leitura total do registro assistencial, sempre com log de leitura e AAL2, conforme o onboarding 14.1 (acesso total marcado e recomendado). A escrita segue o papel de cada pessoa (coordenação ou profissional designada). A linha do comercial continua divergente do onboarding e virou o item O-05 (22.4): vale o mais restritivo até a aprovação escrita do Leonardo e da Edilaine, e o acesso do Leonardo ao assistencial vem só do papel de diretoria [confirmar: Leonardo e Edilaine].
 
 Regras de implementação:
 - Papéis em `usuario_papel`; uma pessoa pode ter vários (Leonardo: diretoria, comercial e financeiro; Edilaine: diretoria e coordenação).
-- Funções auxiliares `privado.tem_papel(papel)` e `privado.familias_atribuidas()` (famílias com designação aceita para a enfermeira logada) usadas nas políticas. As duas são `security definer`, senão a política de `usuario_papel` entra em recursão.
+- Funções auxiliares `privado.tem_papel(papel)` e `privado.familias_atribuidas()` usadas nas políticas. [v4.2] `privado.familias_atribuidas()` devolve as famílias com designação aceita da profissional logada, com `profissional.ativa = true`, cujo acompanhamento está em estado anterior ao encerramento ou foi encerrado há no máximo `parametro.acesso_enfermeira_pos_encerramento_dias` (padrão 7, para fechar a evolução). O pgTAP do P07 prova que a enfermeira perde o acesso 8 dias depois do encerramento e na hora em que a profissional é desativada [confirmar: Edilaine, prazo]. As duas são `security definer`, senão a política de `usuario_papel` entra em recursão.
 - Tabelas assistenciais sem `select` direto: leitura por funções `assistencial.ler_*` que gravam `log_auditoria` com ação `leitura` antes de devolver. A escrita também passa por funções. Essas funções são `volatile` (o PostgREST roda função `stable` em transação só de leitura, e o registro no log falharia) e o app chega a elas pelos wrappers do schema `api` (5.2).
 - Recorte de colunas: RLS filtra linha, não coluna. A enfermeira lê família, pessoas, bebês e médicos por `api.familias_do_dia()` e `api.ficha_assistencial(familia_id)`, que devolvem só endereço de atendimento, nomes, contatos, datas e dados clínicos, sem nada comercial. O marketing lê só agregados por funções `api.marketing_*()`, nunca a tabela `familia`.
-- Tabelas que a matriz acima não cita: `consulta_prenatal` segue o registro assistencial; `ocorrencia` com `privada` só coordenação e diretoria; `evento_familia` com `restrito` segue o registro assistencial; `log_auditoria` só a diretoria, por função; `tarefa` e `notificacao` para o responsável, o papel responsável e a diretoria; `mensagem_modelo` leitura geral, escrita da diretoria e da coordenação (destinatário `medico`); `agente.base_conhecimento` leitura do comercial e da coordenação, aprovação da diretoria; `profissional` e `documento_profissional` coordenação e diretoria, e cada enfermeira lê o seu; `fila_sincronizacao` só o próprio usuário; `sessao_venda_gravacao` como a linha "Sessão de venda gravada". O ADR de permissões (P07) fecha a tabela completa e o Leonardo aprova antes das políticas.
-- O gatilho de auditoria grava as colunas alteradas, com as sensíveis (CPF, endereço, fichas clínicas, transcrições, conteúdo de mensagem) trocadas por "[oculto]" e um hash. Assim o log prova que houve mudança sem virar uma segunda cópia do prontuário, e a exclusão a pedido do titular não esbarra num log indelével cheio de dado pessoal.
+- Tabelas que a matriz acima não cita: `consulta_prenatal` segue o registro assistencial; `ocorrencia` com `privada` só coordenação e diretoria; `evento_familia` com `restrito` segue o registro assistencial; `log_auditoria` só a diretoria, por função; `tarefa` e `notificacao` para o responsável, o papel responsável e a diretoria; `mensagem_modelo` leitura geral, escrita da diretoria e da coordenação (destinatário `medico`); `agente.base_conhecimento` leitura do comercial e da coordenação, aprovação da diretoria; `profissional` e `documento_profissional` coordenação e diretoria, e cada enfermeira lê o seu; `fila_sincronizacao` só o próprio usuário; `sessao_venda_gravacao` como a linha "Sessão de venda gravada". O ADR de permissões (P07) fecha a tabela completa e [v4.2] o Leonardo e a Edilaine aprovam antes das políticas (O-05).
+- [v4.2] O gatilho de auditoria grava os nomes das colunas alteradas. Nas colunas pessoais ou sensíveis grava só "[oculto]" e um HMAC-SHA256 com chave guardada no Supabase Vault, nunca um hash puro (sha256 de CPF se reverte em segundos). A lista mínima por tabela fica no ADR 0002: pessoa (nome, telefone_e164, email, idade, ocupacao, consentimentos), pessoa_dados_contrato (todas), familia (nome_exibicao, endereco_atendimento, bairro, datas, estado_sensivel_motivo, nao_contatar_motivo, historico_sensivel, cidade_informada), bebe (nome, data_nascimento, pesos, tipo_parto), medico (nome, telefone_e164, email), oportunidade (qualificacao, desconto_motivo), handoff (resumo, solicitacao, dados), alerta_clinico (valor_observado, sinal_identificado, orientacao_medica, conduta_adotada), ocorrencia (descricao, historico), consulta_prenatal (todas as colunas clínicas), registro_atendimento (dados, resumo_descritivo), registro_adendo (motivo, conteudo), relatorio_medico (conteudo), pos_venda (respostas), sessao_venda_gravacao (transcricao, resumo), anexo_audio (transcricao), mensagem (conteudo, transcricao), conversa (nome_whatsapp, nome_contato_salvo, telefone_e164). Assim o log prova que houve mudança sem virar uma segunda cópia do prontuário, e a eliminação a pedido do titular (21.3) não esbarra num log indelével cheio de dado pessoal. O aceite do P05 prova que o log de uma mudança de `pessoa.nome`, de `handoff.resumo` e de `familia.estado_sensivel_motivo` não contém o texto original, e que o HMAC do CPF não bate com sha256(cpf).
+- [v4.2] `pessoa_dados_contrato` é lida só por `api.dados_contrato(pessoa_id, completo boolean)`: com `completo = false` devolve o CPF mascarado (***.456.789-**) e o endereço sem número; com `true` exige AAL2 e papel comercial, financeiro ou diretoria, e grava 'leitura' em `log_auditoria`. A geração do contrato usa uma função `security definer` própria. pgTAP do P07: comercial e financeiro em aal2 recebem permissão negada num select direto em `pessoa_dados_contrato`.
+- [v4.2] `familia.historico_sensivel` não sai em nenhuma função ou view do financeiro e do marketing, nem nas exportações (a view `familia_elegivel_marketing` lista colunas, 6.9). Na ficha, só coordenação e diretoria veem [confirmar: Edilaine].
 - Perfis com acesso a dado assistencial ou financeiro exigem sessão AAL2 (MFA) nas políticas: `(auth.jwt() ->> 'aal') = 'aal2'`.
 - Sessão expira em 8 horas; a diretoria pode revogar sessões de um usuário.
 - Leitura de dado assistencial também gera log. Protege a família e a equipe.
@@ -1855,7 +1965,7 @@ Regras de implementação:
 | :-- | :-- | :-- |
 | WhatsApp, número comum | 1 | UAZAPI. Webhook de mensagens para o fluxo 3; envio por `/send/text` e `/send/media` (tipo `document` para o PDF, com `docName`); grupos internos por JID. Sem disparo em massa. |
 | Autentique | 1 | API GraphQL v2 (`https://api.autentique.com.br/v2/graphql`, token Bearer). `createDocument` com upload multipart; signatários: gestante (assinar), Kraamzorg (assinar), parceiro (testemunha); envio por e-mail ou WhatsApp da própria Autentique. Webhook de documento finalizado configurado no painel; o app reconsulta o documento pela API antes de mudar o estágio. Sandbox em homologação. Gratuito até 20 documentos por mês. |
-| InfinitePay Checkout | 1 | `POST https://api.checkout.infinitepay.io/links` com `handle` (InfiniteTag), itens em centavos, `order_nsu` = id da cobrança, `redirect_url`, `webhook_url`, cliente. Webhook traz `order_nsu`, `transaction_nsu`, `invoice_slug`, `capture_method`, `installments`, `paid_amount`, `receipt_url`. Como o webhook não é assinado, o app confirma por `POST /payment_check` antes da baixa e responde 200. [confirmar: limitar parcelas a 3 sem juros no link] |
+| InfinitePay Checkout | 1 | `POST https://api.checkout.infinitepay.io/links` com `handle` (InfiniteTag), itens em centavos, `order_nsu` = id da cobrança, `redirect_url`, `webhook_url`, cliente. Webhook traz `order_nsu`, `transaction_nsu`, `invoice_slug`, `capture_method`, `installments`, `paid_amount`, `receipt_url`. Como o webhook não é assinado, o app confirma por `POST /payment_check` antes da baixa e responde 200. [v4.2] O link simples não trava o parcelamento: no link com repasse ou absorção de taxa, até 12x fica disponível no checkout, e para limitar é preciso Plano de Cobrança (central de ajuda da InfinitePay, consultada em 25/09). Padrão até a decisão: opção A, Plano de Cobrança da Gestão de Cobranças, limitado a `pacote_versao.parcelas_max_sem_juros`; opção B, link simples sem assumir nem repassar a taxa, só se a opção A não tiver API. Em qualquer caso, o aceite do P32 gera um link de teste e falha se ele mostrar mais de 3 parcelas. T-06 [confirmar: Leonardo (taxa e parcelas), Drop (endpoint)] |
 | Transcrição da sessão de venda | 1 | Fase 1: upload do áudio ou colar a transcrição (Gemini do Google Workspace já transcreve reuniões) e resumo estruturado por IA. Fase 2: ingestão automática pelo Google Drive. |
 | E-mail transacional | 2 | Resend, domínio da Kraamzorg com SPF, DKIM e DMARC no Cloudflare |
 | Emissor de NFS-e | 2 | Provedor com NFS-e Nacional. Em São Paulo, empresas do Simples Nacional emitem pelo Emissor Nacional a partir de 01/11/2026 e o sistema municipal fica só para consulta e emissão retroativa. Exige certificado A1 (a Kraamzorg nunca emitiu), código de serviço (05266 no sistema municipal) e orientação da contadora sobre ISS de atendimentos em Londrina. |
@@ -1997,13 +2107,15 @@ Três fluxos, no padrão que a Drop já usa: entrada por webhook da UAZAPI, sub-
 
 ### 19.1 Convenções dos três fluxos
 
-- Banco: nós Postgres com a credencial "Postgres Kraamzorg Agente" (papel `n8n_agente`). Toda consulta chama uma função do schema `agente` com parâmetros posicionais (`$1`, `$2`), nunca texto do usuário concatenado no SQL. Os parâmetros vão como expressão que devolve lista (`{{ [ $json.jid, $json.texto ] }}`), porque a lista separada por vírgula quebra qualquer texto que tenha vírgula.
-- Nas ferramentas do agente (`postgresTool`, `toolWorkflow`), o modelo preenche só os campos de conteúdo com `$fromAI()`. O `jid` sempre vem do nó "Extrair Dados".
+- Banco: nós Postgres com a credencial "Postgres Kraamzorg Agente" (papel `n8n_agente`). Toda consulta chama uma função do schema `agente` com parâmetros posicionais (`$1`, `$2`), nunca texto do usuário concatenado no SQL. Os parâmetros vão como expressão que devolve lista (`{{ [ $json.conversa_id, $json.texto ] }}`, [v4.2] com a chave da conversa, nunca o jid), porque a lista separada por vírgula quebra qualquer texto que tenha vírgula.
+- Nas ferramentas do agente (`postgresTool`, `toolWorkflow`), o modelo preenche só os campos de conteúdo com `$fromAI()`. [v4.2] O `conversa_id` sempre vem do nó "Registrar Msg Família" (`={{ $('Registrar Msg Família').item.json.conversa_id }}`), e o jid, usado só para enviar, do nó "Extrair Dados"; nenhum dos dois passa por `$fromAI()`.
+- [v4.2] Versão do n8n: 2.40.6, a mesma da validação local de `n8n/referencia/` (Node.js 24 ou mais novo). Homologação e produção rodam a mesma versão, registrada no `config.{env}.json`. A cada troca de versão, a resolução de `$('...')` dentro de ferramenta do AI Agent é reconfirmada pelo teste de duas conversas concorrentes do P25 antes de reativar o fluxo.
 - Redis: credencial "Redis Drop", todas as chaves com prefixo `kz:` (`kz:buf:{conversa_id}` para o agrupamento, com TTL de 5 minutos, e `kz:pausa:{conversa_id}` para o cache de pausa). O texto entra no Redis já mascarado.
-- OpenAI: credencial em nome da Kraamzorg (contrato 2.6.1). Modelos vêm do arquivo de configuração do build: conversa `gpt-5.1` (temperatura 0,5), classificadores e reescrita `gpt-4.1-mini` (temperatura 0, saída JSON), embeddings `text-embedding-3-small` [confirmar disponibilidade dos modelos na conta]. Modelos de raciocínio da família GPT-5 podem recusar `temperature` conforme o nível de raciocínio escolhido; o config diz se o parâmetro vai no nó, e o teste de fumaça do P25 confirma na conta real.
+- OpenAI: credencial em nome da Kraamzorg (contrato 2.6.1). Modelos vêm do arquivo de configuração do build: conversa `gpt-5.1` (temperatura 0,5), classificadores e reescrita `gpt-4.1-mini` (temperatura 0, saída JSON), embeddings `text-embedding-3-small` [confirmar disponibilidade dos modelos na conta]. Modelos de raciocínio da família GPT-5 podem recusar `temperature` conforme o nível de raciocínio escolhido; o config diz se o parâmetro vai no nó, e o teste de fumaça do P25 confirma na conta real. [v4.2] O nó `lmChatOpenAi` repassa `options.temperature` sempre que o campo existe, sem checar o modelo (`n8n/referencia/README.md`, armadilha 11): o build só escreve `options.temperature` quando o config do ambiente mandar, e o esforço de raciocínio vai em `options.reasoningEffort`.
 - UAZAPI: URL base no arquivo de configuração, token em credencial do tipo Header Auth ("UAZAPI Kraamzorg", cabeçalho `token`). Todo envio do agente leva `track_source: "kraamzorg-agente"`, que é como o fluxo reconhece o próprio eco.
 - Textos: nenhum texto para a família ou para a equipe mora no fluxo. As funções do banco devolvem os textos já montados a partir de `mensagem_modelo`. O fluxo só carrega o prompt de sistema e os prompts dos classificadores, gerados a partir de `n8n/prompts/`.
-- Erros: chamadas externas com `onError: continueRegularOutput` ou `continueErrorOutput` e checagem explícita do retorno (padrão Drop). Falha de classificador nunca cala o agente e nunca rebaixa alerta.
+- Erros: chamadas externas com `onError: continueRegularOutput` ou `continueErrorOutput` e checagem explícita do retorno (padrão Drop). Falha de classificador nunca cala o agente e nunca rebaixa alerta. [v4.2] `onError`, `retryOnFail`, `maxTries` e `alwaysOutputData` são chaves do nó, fora de `parameters`.
+- [v4.2] Alerta sem banco: `grupo_fallback_jid` (grupo da coordenação) fica no config do build, como exceção documentada no ADR 0003 à regra "nenhum destino no fluxo". É usado só quando `registrar_handoff` falha em saúde ou perda, com o texto "[NÃO REGISTRADO NO SISTEMA] Possível alerta de saúde · {telefone} · \"{texto_familia}\"". Nenhuma lista de termos de alerta vai para o build.
 - Configurações do fluxo: `executionOrder: v1`, `callerPolicy: workflowsFromSameOwner`, fuso `America/Sao_Paulo`, `saveDataSuccessExecution: none`, `saveDataErrorExecution: all` [confirmar retenção de 7 dias no servidor].
 - Cada fluxo tem uma nota (sticky note) explicando o que faz e dizendo "Gerado por n8n/build.mjs. Não edite na interface".
 
@@ -2033,25 +2145,26 @@ Regras: nenhum conteúdo clínico entra na base (protocolos, sinais de alerta, c
 
 Sub-fluxo chamado pelas ferramentas `transferir_para_equipe` e `acionar_equipe_saude` do agente e pelos caminhos determinísticos do fluxo 3. É o único lugar que envia o texto fixo de saúde ou de perda, venha o alerta do filtro, do classificador ou do modelo.
 
-Entradas: `acao` (`transferir`, `alerta_saude`, `perda`), `wa_jid`, `conversa_id`, `nome`, `motivo` (enum `handoff_motivo`), `resumo`, `solicitacao`, `dados` (JSON com semanas, DPP, cidade, bairro, plano de interesse, pagamento preferido, opções de horário, para quem, primeiro bebê, gemelar, rede de apoio, principal preocupação, objeções ditas, origem), `texto_familia` (palavras da família no alerta), `chave_texto` (`alerta_saude`, `alerta_internacao`, `alerta_emocional` ou `perda`), `enviar_texto` (booleano, decidido pelo modo lido na entrada) e `origem_chamada` (`agente`, `filtro_termos`, `classificador`, `agendado`, `sistema`).
+Entradas: `acao` (`transferir`, `alerta_saude`, `perda`), `wa_jid`, `conversa_id`, `nome`, `motivo` (enum `handoff_motivo`), `resumo`, `solicitacao`, `dados` (JSON com semanas, DPP, cidade, bairro, plano de interesse, pagamento preferido, opções de horário, para quem, primeiro bebê, gemelar, rede de apoio, principal preocupação, objeções ditas, origem), `texto_familia` (palavras da família no alerta), `chave_texto` (`alerta_saude`, `alerta_internacao`, `alerta_emocional` ou `perda`), `enviar_texto` (booleano, decidido pelo modo lido na entrada) e `origem_chamada` (`agente`, `filtro_termos`, `classificador`, `agendado`, `sistema`). [v4.2] `conversa_id` é a chave de tudo; `wa_jid` só serve para enviar. Na ferramenta `acionar_equipe_saude`, `enviar_texto` é fixo verdadeiro e `origem_chamada` fixo `agente`; nenhum dos dois vem de `$fromAI()`.
 
 | # | Nó | Tipo | O que faz |
 | :-: | :-- | :-- | :-- |
 | 1 | Quando Chamado | executeWorkflowTrigger | Recebe as entradas |
-| 2 | Normalizar Entrada | code | Converte `dados` com segurança; motivo fora do enum vira `outro`; o `tipo` da ferramenta de saúde vira ação e chave do texto |
+| 2 | Normalizar Entrada | code | Converte `dados` com segurança; motivo fora do enum vira `outro`; o `tipo` da ferramenta de saúde vira ação e chave do texto. [v4.2] `internacao` e `emocional` só viram `alerta_internacao` e `alerta_emocional` com `alerta_internacao_ativo` ou `alerta_emocional_ativo` ligado; desligado, a chave é `alerta_saude` |
 | 3 | Texto de Alerta? | if | Ação `alerta_saude` ou `perda` com `enviar_texto` verdadeiro |
 | 4 | Enviar Texto de Alerta | postgres, httpRequest UAZAPI, postgres | `agente.mensagem_alerta($1, $2, $3)`, envio e registro. Esse texto responde à mensagem que acabou de chegar e não passa pelo freio; quem decide se ele sai é o modo lido na entrada do fluxo 3 |
 | 5 | Pular Classificador? | if | Pula quando a ação é de alerta, quando `origem_chamada` não é `agente` e quando o motivo é `estado_sensivel_escreveu`, `midia_recebida`, `validacao_resposta`, `pediu_humano`, `reclamacao` ou `bebe_nasceu` |
 | 6 | Buscar Contexto | postgres | `agente.contexto_conversa($1, 50)`: últimas 50 mensagens, quem começou, classificação já marcada e a posição da última resposta da equipe ou da Isadora |
 | 7 | Classificar Pedido | httpRequest OpenAI | Prompt `n8n/prompts/classificar-pedido.md`. Julga o pedido atual (mensagens desde a última resposta) e usa o resto só como contexto. Devolve `{tipo, porque}` com os tipos `contratar`, `reuniao`, `condicao_comercial`, `cobertura_taxa`, `reembolso_fiscal`, `duvida_sem_resposta`, `pediu_humano`, `bebe_nasceu`, `pos_venda_operacao`, `reclamacao`, `parceiro_medico`, `outro`, `nao_lead`, `sem_aviso`, `saude`, `perda` |
 | 8 | Ler Classificação | code | Regras de segurança abaixo |
+| 8a | Subiu para Alerta? [v4.2] | if, code | Tipo final `saude` ou `perda` com ação de entrada `transferir`: a ação passa a `alerta_saude` ou `perda`, `chave_texto` idem (com a regra de ativação do nó 2), `enviar_texto` verdadeiro, e o fluxo volta ao nó 4 antes do nó 12. Sem isso a família com sangramento que também perguntou do contrato não recebia texto nenhum e o agente era mandado ficar em silêncio |
 | 9 | É Não Lead? | if | Candidata, fornecedor, consultório: marca e devolve instrução |
 | 10 | Marcar Não Lead | postgres | `agente.marcar_nao_lead($1, $2)` |
 | 11 | Avisar a Equipe? | if | `sem_aviso` devolve instrução de seguir a conversa normalmente, sem mencionar transferência |
-| 12 | Registrar Handoff | postgres | `agente.registrar_handoff($1..$7)`: aplica a matriz motivo, destino, prioridade e SLA da 11.4 (tabela em `parametro.handoff_matriz`), cria a família mínima quando a conversa ainda não tem família (o freio precisa de onde ficar), sobe o freio (perda vai para `bloqueio_total`, saúde para `atencao`), pausa o agente, deduplica pedidos iguais em 10 minutos e devolve `mensagem_grupo`, `grupo_jid`, `plantao` (só prioridade máxima), `instrucao_agente` e `pausa_horas` |
-| 13 | Registro OK? | if | Se o banco falhar em saúde ou perda, o aviso ao grupo sai mesmo assim, com a marca "não registrado no sistema" |
+| 12 | Registrar Handoff | postgres | `agente.registrar_handoff($1..$7)`: aplica a matriz motivo, destino, prioridade e SLA da 11.4 (tabela em `parametro.handoff_matriz`), cria a família mínima quando a conversa ainda não tem família (o freio precisa de onde ficar), sobe o freio (perda vai para `bloqueio_total`, saúde para `atencao`), pausa o agente, deduplica pedidos iguais em 10 minutos e devolve `mensagem_grupo`, `grupo_jid`, `plantao` (só prioridade máxima), `instrucao_agente` e `pausa_horas`. [v4.2] Deduplica só motivos comerciais: pedido igual é mesma conversa, mesmo motivo e mesmo hash de `solicitacao` em até 10 minutos. `saude`, `perda` e `estado_sensivel_escreveu` nunca são deduplicados: reaproveitam o handoff aberto, acrescentam o texto novo e seguem para os nós 16 e 17 com o prefixo "ATUALIZAÇÃO". Em transferência comercial de lead qualificado grava `agente_encerrado_em` e `agente_encerrado_motivo` (modo `humano_comercial`, 11.7) em vez da pausa com prazo. Primeiro parâmetro: `conversa_id` |
+| 13 | Registro OK? | if | Se o banco falhar em saúde ou perda, o aviso ao grupo sai mesmo assim, com a marca "não registrado no sistema". [v4.2] Sem banco não há `grupo_jid` nem plantão: o aviso vai para `grupo_fallback_jid` do config (19.1) |
 | 14 | Redis Marcar Pausa | redis set com TTL | `kz:pausa:{conversa_id}` pelo tempo da pausa |
-| 15 | Duplicado? | if | Pedido repetido não reenvia ao grupo |
+| 15 | Duplicado? | if | Pedido repetido não reenvia ao grupo. [v4.2] Só vale para motivos comerciais; alerta repetido sempre reenvia (nó 12) |
 | 16 | Notificar Grupo | httpRequest UAZAPI `/send/text` | Texto do banco para o grupo do destino |
 | 17 | Avisar Plantão | httpRequest em lote | Prioridade máxima: mensagem também no WhatsApp de cada número de plantão (redundância exigida no 15.1) |
 | 18 | Registrar Notificação | postgres | `agente.registrar_notificacao_handoff($1, $2, $3)`; falha deixa faixa vermelha no CRM e dispara e-mail pelo app |
@@ -2060,14 +2173,16 @@ Entradas: `acao` (`transferir`, `alerta_saude`, `perda`), `wa_jid`, `conversa_id
 Regras do "Ler Classificação":
 - Classificador falhou ou devolveu tipo inválido: vale o motivo que o agente informou, marcado `classificador_falhou`.
 - O classificador pode subir para `saude` ou `perda`, nunca descer.
-- `sem_aviso` e `nao_lead` só valem quando o motivo do agente foi `duvida_sem_resposta` ou `outro`. Nos demais motivos, o classificador só troca o destino entre os motivos comerciais. Perder uma venda calada, ou deixar a família sem resposta depois de ouvir "vou pedir para a equipe", é o erro caro.
-- Conversa já marcada como não lead no banco continua não lead.
+- `sem_aviso` e `nao_lead` só valem quando o motivo do agente foi `duvida_sem_resposta` ou `outro`. Nos demais motivos, o classificador só troca o destino entre os motivos comerciais. Perder uma venda calada, ou deixar a família sem resposta depois de ouvir "vou pedir para a equipe", é o erro caro. [v4.2] `sem_aviso` só vale em modo `vendas`, nunca em `cliente`. Motivos comerciais são `contratar`, `reuniao`, `condicao_comercial`, `cobertura_taxa`, `reembolso_fiscal`, `parceiro_medico`, `duvida_sem_resposta` e `outro` (a mesma lista de `classificar-pedido.md`). A troca entre eles mantém a maior prioridade da 11.4 entre o motivo do agente e o novo, e mantém `dados.opcoes` no texto do grupo.
+- Conversa já marcada como não lead no banco continua não lead. [v4.2] Gestante que cita o Leonardo como seu médico e quer saber do cuidado pós-parto é lead, nunca `nao_lead` [confirmar: Leonardo, regra do não lead].
+- [v4.2] Classificador subiu para `saude` ou `perda`: segue pelo nó 8a (texto à família antes do registro).
+- [v4.2] Desempate entre tipos, em ordem de urgência: `perda`, `saude`, `reclamacao`, `pediu_humano`, `bebe_nasceu`, `contratar`, `reuniao`, `condicao_comercial` e os demais. `pediu_humano` fica logo depois de `reclamacao` por causa do SLA de 1 hora da 11.4; `classificar-pedido.md` segue essa ordem.
 
-Instruções de retorno para o agente (vêm do banco, destinatário `agente`, capítulo 23.4): em `reuniao`, dizer que vai conferir a agenda com a equipe e que a resposta vem por aqui, sem confirmar horário; em `contratar`, dizer que o Leonardo segue com o formulário seguro, sem pedir dados; em `condicao_comercial`, dizer que quem confirma é o Leonardo; em `bebe_nasceu`, parabenizar e dizer que a equipe já foi avisada, sem confirmar início; em `saude` e `perda`, a mensagem já saiu pelo sistema e o agente responde só `[SILENCIO]`.
+Instruções de retorno para o agente (vêm do banco, destinatário `agente`, capítulo 23.4): em `reuniao`, dizer que vai conferir a agenda com a equipe e que a resposta vem por aqui, sem confirmar horário; em `contratar`, dizer que o Leonardo segue com o formulário seguro, sem pedir dados; em `condicao_comercial`, dizer que quem confirma é o Leonardo; em `bebe_nasceu`, parabenizar e dizer que a equipe já foi avisada, sem confirmar início; em `saude` e `perda`, a mensagem já saiu pelo sistema e o agente responde só `[SILENCIO]`. [v4.2] Em `saude` e `perda` o fluxo 3 descarta qualquer saída do modelo nessa execução (19.4, nó 27), então a instrução é redundância, não a trava. Em `reuniao`, `contratar` e `condicao_comercial` de lead qualificado, a resposta da transferência é a última mensagem da Isadora na conversa (`humano_comercial`).
 
 ### 19.4 Fluxo 3: Agente Isadora (entrada via webhook)
 
-Princípio: o filtro de saúde roda antes de qualquer decisão de modo. Sinal de saúde ou perda sempre avisa a coordenação com prioridade máxima, em qualquer modo menos `desligado`. O modo muda só o texto que a família recebe. A chave interna de tudo (memória, Redis, pausa) é o id da conversa, resolvido pelo LID, pelo telefone e pelo jid, nessa ordem, porque o mesmo contato pode chegar com `@lid` ou com `@s.whatsapp.net`. O jid só serve para enviar.
+Princípio: o filtro de saúde roda antes de qualquer decisão de modo. Sinal de saúde ou perda sempre avisa a coordenação com prioridade máxima, em qualquer modo menos `desligado`. O modo muda só o texto que a família recebe. A chave interna de tudo (memória, Redis, pausa) é o id da conversa, resolvido pelo LID, pelo telefone e pelo jid, nessa ordem, porque o mesmo contato pode chegar com `@lid` ou com `@s.whatsapp.net`. O jid só serve para enviar. [v4.2] Três complementos: em `teste`, número fora da lista também passa pelo filtro, com aviso só interno; depois de um alerta, a execução termina em todos os modos e o modelo de conversa não roda; e nenhuma conexão liga o ramo de alerta ativo ao nó 26, o que o teste do build confere (19.5). Enquanto a conta estiver restrita, o número real não está ligado a este fluxo; a mitigação está no T-01.
 
 **Entrada A: mensagem recebida**
 
@@ -2079,58 +2194,61 @@ Princípio: o filtro de saúde roda antes de qualquer decisão de modo. Sinal de
 | 4 | É Grupo? | if | Grupos, broadcast e newsletter são ignorados, inclusive os grupos internos |
 | 5 | Filtro FromMe | if | Separa o que a Kraamzorg enviou do que a família enviou |
 | 6 | Eco do Agente? | if | `wasSentByApi` ou `track_source` do agente ou do app: ignora |
-| 7 | Registrar Msg Humana | postgres | `agente.registrar_mensagem(...,'saida','humano',...)` quando alguém da equipe digitou no celular |
+| 7 | Registrar Msg Humana | postgres | `agente.registrar_mensagem(...,'saida','humano',...)` quando alguém da equipe digitou no celular; [v4.2] devolve o `conversa_id` usado como `$1` nos nós 8 e 9 |
 | 8 | Pausar por Humano | postgres + redis | `agente.pausar($1, horas, 'humano_digitou')` e cache `kz:pausa` |
 | 9 | Memória: Fala da Equipe | postgres | `agente.sincronizar_memoria($1, 'equipe', $2)`: a Isadora sabe o que foi dito quando voltar |
 | 10 | Registrar Msg Família | postgres | `agente.registrar_mensagem(...,'entrada','cliente',...)`: resolve e atualiza a conversa, lê a convenção "paciente potencial" e "paciente fechada" do nome salvo, devolve `conversa_id` e se o número é da equipe ou do plantão |
-| 11 | Tipo de Mensagem | switch | Texto e mídia com legenda seguem com o texto; áudio vai para transcrição; figurinha e reação param; mídia sem legenda segue marcada como mídia |
+| 11 | Tipo de Mensagem | switch | Texto e mídia com legenda seguem com o texto; áudio vai para transcrição; figurinha e reação param; mídia sem legenda segue marcada como mídia. [v4.2] Toda foto, vídeo ou documento, com ou sem legenda, leva a marca `midia = true` até o nó 24 |
 | 12 | Transcrever Áudio | httpRequest UAZAPI `/message/download` com `transcribe: true` | Sem guardar o arquivo; o link público da UAZAPI nunca é gravado |
-| 13 | Registrar Transcrição | postgres | `agente.registrar_transcricao($1, $2)`; falha segue como mídia |
-| 14 | Agrupar Mensagens | redis push (chave com TTL de 5 minutos), wait (20 s), redis get, code, if, redis delete | Padrão Drop: só a execução da última mensagem segue, com todas as mensagens juntas |
-| 15 | Pode Responder? | postgres | `agente.pode_responder($1)` devolve o modo (11.7), `agente_modo` e `na_whitelist`. Banco fora do ar: o fluxo para, registra o erro e não responde (falha fechada) |
-| 16 | Parar Aqui? | if | `desligado`, teste fora da lista e número da equipe ou do plantão param (a mensagem já está gravada) |
+| 13 | Registrar Transcrição | postgres | `agente.registrar_transcricao($1, $2)`, que grava na coluna `transcricao`. [v4.2] Se a transcrição saiu e só a gravação falhou, o texto transcrito segue no fluxo, entra no agrupamento e passa pelos nós 17 a 20; o erro de gravação é registrado à parte. Falha da transcrição em si (nó 12) marca o tipo `audio_nao_transcrito`, nunca mídia comum |
+| 14 | Agrupar Mensagens | redis push (chave com TTL de 5 minutos), wait (20 s), redis get, code, if, redis delete | Padrão Drop: só a execução da última mensagem segue, com todas as mensagens juntas. [v4.2] Falha do Redis segue sem agrupar (cada mensagem segue sozinha); nunca para o fluxo |
+| 15 | Pode Responder? | postgres | `agente.pode_responder($1)` devolve o modo (11.7), `agente_modo` e `na_whitelist`. [v4.2] `$1` é o `conversa_id` do nó 10. Retorno `ok = false` (conversa não encontrada) segue para os nós 17 a 20 com modo `vendas` e registra o erro. Banco fora do ar: não responde à família, mas o texto ainda passa pelos nós 17 a 20 (falha do nó 17 não bloqueia o nó 18), e havendo alerta o fluxo 2 avisa pelo `grupo_fallback_jid` |
+| 16 | Parar Aqui? | if | [v4.2] Param só `desligado` e número da equipe ou do plantão (a mensagem já está gravada). Teste fora da lista segue pelos nós 17 a 20 com `enviar_texto` falso (só aviso interno) e para no nó 21. Em `desligado` com número real conectado não há aviso; se a Edilaine quiser aviso interno também nesse caso, muda só esta condição [confirmar: Edilaine] |
 | 17 | Checar Termos de Alerta | postgres | `agente.checar_termos_alerta($1)` sobre o texto agrupado, legendas e transcrições: comparação no banco, sem acento, por palavra, contra `termo_alerta` |
 | 18 | Classificar Mensagem | httpRequest OpenAI | Prompt `n8n/prompts/classificar-mensagem.md`. Últimas 12 mensagens e a nova: `{tipo_contato, saude, perda, perda_temporalidade, internacao, saude_mental, porque}` |
-| 19 | Ler Classificação | code | Falha vira `lead` e `nenhum` sem rebaixar termo encontrado. Decide o alerta (nenhum, saúde, perda) e a chave do texto: `alerta_internacao` e `alerta_emocional` só quando o parâmetro de ativação estiver ligado; desligado, vale `alerta_saude` |
-| 20 | Caminho de Alerta | executeWorkflow | Chama o fluxo 2 com `alerta_saude` ou `perda` em qualquer modo que chegou até aqui, com `enviar_texto` verdadeiro em `vendas`, `cliente`, `pausado` e `nao_lead` e falso em `humano_nominal`. O modelo de conversa não é chamado |
-| 21 | Decidir Modo | switch | `pausado` para; `humano_nominal` chama o fluxo 2 com `estado_sensivel_escreveu` e para; `nao_lead` para; `vendas` e `cliente` seguem |
+| 19 | Ler Classificação | code | Falha vira `lead` e `nenhum` sem rebaixar termo encontrado. Decide o alerta (nenhum, saúde, perda) e a chave do texto: `alerta_internacao` e `alerta_emocional` só quando o parâmetro de ativação estiver ligado; desligado, vale `alerta_saude`. [v4.2] `perda` verdadeiro vale para perda atual ou anterior (11.11 item 2); com `perda_temporalidade = anterior`, o aviso ao grupo leva a observação de gestação anterior (K-21) |
+| 20 | Caminho de Alerta | executeWorkflow | Chama o fluxo 2 com `alerta_saude` ou `perda` em qualquer modo que chegou até aqui. [v4.2] `enviar_texto` verdadeiro em `vendas`, `cliente`, `pausado`, `nao_lead` e `humano_comercial`; falso em teste fora da lista (só aviso interno) e em `humano_nominal`, salvo `alerta_saude_sensivel_ativo` ligado com ação `alerta_saude`, quando sai o texto `alerta_saude_sensivel` (K-20) [clínico, confirmar: Edilaine]; com perda, falso em `humano_nominal` sempre. Depois do Caminho de Alerta a execução termina em todos os modos, inclusive `vendas` e `cliente`: o nó 21 não roda, o nó 26 não roda e nenhuma ferramenta é chamada nesta execução |
+| 21 | Decidir Modo | switch | [v4.2] Só roda quando o nó 19 classificou nenhum alerta. Antes do switch, `audio_nao_transcrito` chama o fluxo 2 com esse motivo em todos os modos menos `desligado` e `humano_nominal` (neste vale `estado_sensivel_escreveu`), e o texto `audio_nao_transcrito` de `agente.mensagem_sistema` sai nos mesmos modos em que o texto de alerta sairia no nó 20; depois para. Switch: `pausado` para; `humano_nominal` chama o fluxo 2 com `estado_sensivel_escreveu` e para; [v4.2] `humano_comercial` acrescenta o texto ao handoff aberto e para; teste fora da lista para; `nao_lead` para; `vendas` e `cliente` seguem |
 | 22 | Não Lead no Início? | if | Só nas primeiras mensagens de conversa ainda não classificada |
-| 23 | Resposta Não Lead | postgres, httpRequest | Marca a classificação e envia o encaminhamento do banco (candidata, fornecedor, consultório); parceiro médico vai para o fluxo 2 |
-| 24 | Mídia Recebida | executeWorkflow + postgres + httpRequest | Mídia sem legenda: handoff `midia_recebida` (de cliente vai para a operação com prioridade alta) e o texto `midia_recebida` de `agente.mensagem_sistema` |
-| 25 | Montar Contexto do Agente | postgres | `agente.ficha_para_agente($1)`: ficha comercial em texto (campos livres curtos, sem colchetes), semanas calculadas, cobertura, estágio, se é cliente, situação da apresentação, planos vigentes em texto, valores por plano, valores permitidos, horários da Edilaine se houver, data e hora |
-| 26 | Agente Isadora | agent (LangChain) | Prompt de `n8n/prompts/isadora-system.md` com os campos do nó 25; até 10 iterações de ferramenta |
-| 26a | Modelo de Conversa | lmChatOpenAi | Modelo e temperatura do config |
-| 26b | Memória Postgres | memoryPostgresChat | Tabela `agente_n8n.chat_memoria` (o papel do n8n já cai nesse schema pelo `search_path`), sessão = id da conversa, janela de 30 mensagens |
-| 26c a 26k | Ferramentas | vectorStorePGVector (recuperar como ferramenta), postgresTool, toolWorkflow | As nove ferramentas da 11.9 |
-| 27 | IA Decidiu Responder? | if | `[SILENCIO]` encerra |
-| 28 | Validar Resposta | code | Regras da 11.11: valores e pares plano e valor contra a tabela, descontos, promessas, escassez, palavras evitadas, pedido de documento, travessão, markdown; marca `precisa_pdf` |
+| 23 | Resposta Não Lead | postgres, httpRequest | Marca a classificação e envia o encaminhamento do banco (candidata, fornecedor, consultório); parceiro médico vai para o fluxo 2. [v4.2] Antes de enviar, `agente.pode_enviar($1, 'resposta')` |
+| 24 | Mídia Recebida | executeWorkflow + postgres + httpRequest | Mídia sem legenda: handoff `midia_recebida` (de cliente vai para a operação com prioridade alta) e o texto `midia_recebida` de `agente.mensagem_sistema`. [v4.2] Toda foto, vídeo ou documento sem alerta, com ou sem legenda, abre `midia_recebida` (destino na 11.4). Sem legenda, envia o texto e para. Com legenda, segue ao agente com a linha "[a família enviou uma foto com a legenda: ...; a equipe já foi avisada]"; a Isadora responde à legenda se houver pergunta, diz que alguém da equipe vai olhar a imagem e nunca comenta o que a imagem mostra. Antes de enviar o texto, `agente.pode_enviar($1, 'resposta', $2)`, com `$2` = `handoff_id` do `midia_recebida` |
+| 25 | Montar Contexto do Agente | postgres | `agente.ficha_para_agente($1)` ([v4.2] mesma descrição do Apêndice A): ficha comercial em texto (campos livres curtos, sem colchetes), semanas calculadas, cobertura, estágio, modo, situação da apresentação, planos vigentes em texto, valor e página por plano, parcela, valores permitidos, listas do validador (lidas pelo nó 28), `historico_sensivel` só como booleano, horários da Edilaine se houver, data e hora |
+| 26 | Agente Isadora | agent (LangChain) | Prompt de `n8n/prompts/isadora-system.md` com os campos do nó 25; até 10 iterações de ferramenta. [v4.2] Falha do modelo (erro ou tempo esgotado) chama o fluxo 2 com motivo `outro`, prioridade alta e resumo "IA fora do ar, responder a família"; nada é enviado à família |
+| 26a | Modelo de Conversa | lmChatOpenAi | Modelo e temperatura do config ([v4.2] `options.temperature` só quando o config mandar, 19.1) |
+| 26b | Memória Postgres | memoryPostgresChat | Tabela `agente_n8n.chat_memoria` (o papel do n8n já cai nesse schema pelo `search_path`), sessão = id da conversa, janela de 30 mensagens. [v4.2] `sessionIdType: customKey`, `sessionKey` = `conversa_id` em texto e `contextWindowLength: 30` declarado no JSON, porque o padrão do nó é 5 |
+| 26c a 26k | Ferramentas | vectorStorePGVector (recuperar como ferramenta), postgresTool, toolWorkflow | As nove ferramentas da 11.9. [v4.2] PGVector com `topK: 5` declarado (padrão 4) e o nó chamado exatamente `base_conhecimento`, porque na versão 1.3 o nome da ferramenta sai do nome do nó |
+| 27 | IA Decidiu Responder? | if | [v4.2] Se nesta execução o agente chamou `acionar_equipe_saude` ou o fluxo 2 devolveu `instrucao_saude`, a saída do modelo é descartada, seja qual for. `[SILENCIO]` em qualquer posição do texto encerra |
+| 28 | Validar Resposta | code | Regras da 11.11: valores e pares plano e valor contra a tabela ([v4.2] por bloco, item 4), descontos, promessas, escassez, palavras evitadas, pedido de documento, travessão, markdown; marca `precisa_pdf`. [v4.2] Também emoji e número de perguntas (item 5a); qualquer texto entre colchetes que não seja `[ENVIAR_APRESENTACAO]` sozinho numa linha reprova |
 | 29 | Reescrever | httpRequest OpenAI e nova validação | Uma tentativa com a lista de violações. Se a reescrita tirar desconto ou pedido de documento, o fluxo abre `condicao_comercial` ou `contratar`. Persistindo a violação, sai `fallback_confirmar` e o fluxo 2 com `validacao_resposta` |
 | 30 | Preparar Envio | code | Divide em no máximo 3 blocos de até cerca de 280 caracteres, sem quebrar frase; põe a apresentação antes do primeiro bloco com valor, conforme a 11.11 item 3 |
-| 31 | Reconsultar Antes de Enviar | postgres | `agente.pode_enviar($1, 'conversa')`: freio, pausa e modo podem ter mudado durante a geração |
+| 31 | Reconsultar Antes de Enviar | postgres | [v4.2] `agente.pode_enviar($1, 'resposta', $2)`, com `$1` = `conversa_id` e `$2` = `handoff_id` devolvido pelo fluxo 2 nesta execução (ou nulo): freio, pausa e modo podem ter mudado durante a geração, mas a pausa e o `humano_comercial` criados pela transferência desta execução não bloqueiam a resposta dela (8.2) |
 | 32 | Loop de Envio | splitOut, splitInBatches, wait, if | Digitação de 2,5 a 5 s por bloco |
 | 33 | Enviar Texto | httpRequest UAZAPI `/send/text` | `number`, `text`, `delay`, `track_source` |
 | 34 | Enviar Apresentação | httpRequest UAZAPI `/send/media` | `type: document`, `file` e `docName` do parâmetro `pdf_apresentacao` (bucket público de marketing) |
-| 35 | Registrar Envio | postgres | `agente.registrar_mensagem(...,'saida','ia',...)`, `agente.registrar_marco($1,'pdf_enviado')` se o PDF saiu e `agente.sincronizar_memoria($1, 'ia', $2)`, que troca a última fala da IA na memória pelo texto que de fato saiu |
+| 35 | Registrar Envio | postgres | `agente.registrar_mensagem(...,'saida','ia',...)`, `agente.registrar_marco($1,'pdf_enviado')` se o PDF saiu e `agente.sincronizar_memoria($1, 'ia', $2)`, que troca a última fala da IA na memória pelo texto que de fato saiu ([v4.2] `$1` = `conversa_id`; formato no Apêndice A) |
 
 **Entrada B: follow-up agendado**
 
 | # | Nó | Tipo | O que faz |
 | :-: | :-- | :-- | :-- |
 | 36 | A Cada 30 Min | scheduleTrigger | Só age dentro da janela de envio |
-| 37 | Buscar Follow-ups Devidos | postgres | `agente.followups_devidos()`: aplica freio, `nao_contatar`, pausa, handoff aberto, modo, lista de teste, conversa iniciada pela família, uma mensagem de conteúdo por dia; reserva a execução para não enviar duas vezes |
-| 38 | Gerar Mensagem | httpRequest OpenAI | Prompt `n8n/prompts/isadora-followup.md`: parte do texto aprovado do banco e varia a redação, uma ou duas frases, sem valores. Nenhum texto de outra família vai ao modelo |
-| 39 | Validar | code | `[SILENCIO]` é lido antes do validador. Mesmo validador das respostas, mais a comparação por hash e similaridade com os follow-ups do dia |
-| 40 | Reconsultar e Enviar | postgres, httpRequest | `agente.pode_enviar($1, 'conteudo')` e envio |
+| 37 | Buscar Follow-ups Devidos | postgres | `agente.followups_devidos()`: aplica freio, `nao_contatar`, pausa, handoff aberto, modo, lista de teste, conversa iniciada pela família, uma mensagem de conteúdo por dia; reserva a execução para não enviar duas vezes. [v4.2] Só conversas sem resposta da família há `agente_followup_horas` (padrão 48) e nunca em `humano_comercial` |
+| 38 | Gerar Mensagem | httpRequest OpenAI | Prompt `n8n/prompts/isadora-followup.md`: parte do texto aprovado do banco e varia a redação, uma ou duas frases, sem valores. Nenhum texto de outra família vai ao modelo. [v4.2] O tempo sem resposta vai ao prompt calculado pelo banco (`tempo_sem_resposta`, por exemplo "dois dias"), nunca "desde ontem" |
+| 39 | Validar | code | `[SILENCIO]` é lido antes do validador. Mesmo validador das respostas, mais a comparação por hash e similaridade com os follow-ups do dia. [v4.2] Qualquer texto entre colchetes reprova |
+| 40 | Reconsultar e Enviar | postgres, httpRequest | `agente.pode_enviar($1, 'conteudo')` e envio ([v4.2] `$1` = `conversa_id`) |
 | 41 | Registrar Follow-up | postgres | `agente.registrar_followup($1, $2, $3)` e memória. Se a geração ou a validação falhar, nada é enviado: a execução volta uma vez na próxima janela e, na segunda falha, vira tarefa do comercial |
 
-`followup_d1` é a única automação proativa com executor `agente` (`boas_vindas` é resposta). `lembrete_sessao` pode passar para o agente mudando o executor no CRM, sem mexer no fluxo.
+`followup_d1` é a única automação proativa com executor `agente` (`boas_vindas` é resposta). `lembrete_sessao` pode passar para o agente mudando o executor no CRM, sem mexer no fluxo. [v4.2] Na API oficial, o follow-up sai fora da janela de 24 horas e passa a ser modelo aprovado pela Meta, com texto fixo e variáveis; os nós 38 e 39 deixam de gerar texto livre nesse adaptador (4.1, T-01).
 
 ### 19.5 Build, testes e importação
 
-- `node n8n/build.mjs --env hml` e `--env prod` leem `n8n/config.{env}.json` (fora do git; `config.example.json` versionado). `n8n/dist/` também fica fora do git, porque os JSON gerados carregam os segredos dos caminhos de webhook; eles são gerados na hora de importar e guardados como anexo da versão. com: versões de tipo de cada nó na instância, ids e nomes das credenciais, URL da UAZAPI, nome da instância, segredos dos caminhos de webhook, modelos, tempo de agrupamento, id do fluxo 2 para o `toolWorkflow` do fluxo 3.
+- `node n8n/build.mjs --env hml` e `--env prod` leem `n8n/config.{env}.json` (fora do git; `config.example.json` versionado). `n8n/dist/` também fica fora do git, porque os JSON gerados carregam os segredos dos caminhos de webhook. [v4.2] Eles são gerados na hora de importar, importados e apagados da máquina de quem importou; não ficam como anexo em lugar nenhum. O `config.{env}.json` traz: versão do n8n, ids e nomes das credenciais, URL da UAZAPI, nome da instância, segredos dos caminhos de webhook, `grupo_fallback_jid`, modelos e a decisão de `options.temperature`, tempo de agrupamento, id do fluxo 2 para o `toolWorkflow` do fluxo 3. Ele fica no cofre de senhas da Kraamzorg, com acesso da Drop durante a sustentação. Token e credencial nunca entram no JSON (o nó referencia a credencial só pelo id). O segredo do caminho de webhook entra, e por isso fica visível a quem tem acesso de edição à instância do n8n: esse acesso é restrito à Drop e à diretoria. O teste de "nenhum segredo nos JSON" roda sobre o build feito com `config.example.json`.
 - O código dos nós `code` mora em `n8n/src/code/*.js` como funções puras. O build embute o código no JSON e os testes importam as mesmas funções.
 - `node --test n8n/build.test.mjs` verifica: nomes de nó únicos e conexões válidas; nenhum segredo, token, JWT, telefone ou `service_role` nos JSON; toda consulta Postgres parametrizada; toda ferramenta com descrição; validador de resposta (valores, descontos, promessas, travessão, CPF); divisão em blocos; agrupamento (só a última responde); regras de segurança dos classificadores; e que a máscara de CPF do código é a mesma da função `agente.registrar_mensagem` (o teste lê as duas definições).
-- Formato dos nós: `n8n/referencia/` guarda JSON exportados da própria instância como modelo de parâmetros por versão de nó (os fluxos da Enjoy e um fluxo de amostra com PGVector, Postgres Chat Memory e Postgres Tool). É referência de formato, não de lógica.
+- [v4.2] O `build.test.mjs` também verifica: o campo `query` de todo nó `postgres` e `postgresTool` é literal, começa por `select agente.` ou `select * from agente.`, não contém `{{` nem `$fromAI`, e `$fromAI` só aparece em `queryReplacement`; nenhum campo `conversa_id` ou jid de ferramenta usa `$fromAI`; todo nó PGVector usa `tableName = 'documentos'` e todo nó Postgres Chat Memory usa `tableName = 'chat_memoria'`; `contextWindowLength: 30` e `topK: 5` declarados; nenhuma conexão liga o ramo de alerta ativo (nó 20) ao nó 26; o nó 16 não para teste fora da lista antes do nó 17; e o JSON tem `id` na raiz.
+- Formato dos nós: [v4.2] `n8n/referencia/` não é export de instância, porque a instância ainda não existe. `versoes-nos.json` foi reconstruído a partir do código publicado dos pacotes de nó (n8n 2.40.6, `n8n-nodes-base` 2.15.1, `@n8n/n8n-nodes-langchain` 2.40.3) e traz, por tipo de nó, o `type`, as versões, a versão corrente, parâmetros mínimos válidos e as conexões; o `README.md` lista as armadilhas. `validar.sh` e `comparar.mjs` importam um fluxo num n8n 2.40.6 local, com SQLite descartável, e conferem que nenhum parâmetro muda na volta. É referência de formato, não de lógica. Quando a homologação existir, um export real dela é comparado com esse arquivo (P-1 item 15).
+- [v4.2] Versões de tipo que o build usa (versão corrente de `versoes-nos.json`): webhook 2.1, code 2, if 2.3, switch 3.4, set 3.4, httpRequest 4.4, postgres 2.6 e postgresTool 2.6 (a variante Tool é gerada pelo n8n e sempre tem a versão do nó Postgres), redis 1, wait 1.1, splitOut 1, splitInBatches 3 (saída `done` antes de `loop`; conectar pelo nome da saída), scheduleTrigger 1.3, manualTrigger 1, executeWorkflowTrigger 1.1, executeWorkflow 1.3, toolWorkflow 2.2, agent 3.1, lmChatOpenAi 1.3, embeddingsOpenAi 1.2, vectorStorePGVector 1.3, documentDefaultDataLoader 1.1, textSplitterRecursiveCharacterTextSplitter 1, memoryPostgresChat 1.4, stickyNote 1.
+- [v4.2] Regras de formato vindas da referência: todo JSON de fluxo tem `id` na raiz (sem ele o `import:workflow` falha); `contextWindowLength` (padrão 5) e `topK` (padrão 4) são sempre declarados; `options.temperature` só entra quando o config mandar; `options.queryReplacement` é expressão que devolve lista (no Postgres 2.6 a separação por vírgula é só recurso de reserva); `onError` e afins ficam fora de `parameters`, e `executionOrder`, `callerPolicy`, `saveDataSuccessExecution`, `saveDataErrorExecution` e `timezone` ficam em `settings`; `workflowInputs` do `toolWorkflow` é `resourceMapper`, diferente do `executeWorkflowTrigger`. Importar sem erro não prova que a credencial existe: isso só o teste de fumaça do P25 confirma.
 - Ordem de importação: fluxo 2, anotar o id, rebuild do fluxo 3 com esse id, fluxo 3, fluxo 1.
 - Entre os nós 8 e 9 do fluxo 1 convivem por alguns segundos o lote novo e o antigo, e a busca pode trazer um item repetido. É aceitável; se incomodar, a ferramenta filtra por `lote_id` ativo no metadado. Configurar o webhook da instância UAZAPI para o caminho do fluxo 3. Ativar primeiro em homologação com `agente_modo = teste`.
 
@@ -2141,6 +2259,8 @@ Princípio: o filtro de saúde roda antes de qualquer decisão de modo. Sinal de
 ### 20.1 Fonte única de verdade
 
 `src/app/globals.css` (tokens no `@theme` do Tailwind v4) e a seção de design do CLAUDE.md são a única fonte de tokens. Nenhuma tela inventa cor, fonte, raio ou sombra. Lição do projeto Results: quando PRD, CLAUDE.md e arquivo de design divergem, o assistente regride a cada sessão.
+
+[v4.2] Direção visual e de experiência: `docs/design/DESIGN.md`, direção "Caderneta de visita" (a tela é a caderneta da visita de hoje, não um painel), com fluxos em `docs/design/fluxos.md` e inventário de telas em `docs/design/telas.md`. O DESIGN.md diz o que entra no `globals.css`; quando ele e este capítulo divergirem, vale este capítulo, e a divergência é corrigida aqui antes da sessão seguinte. As decisões dele que dependem do cliente estão em 20.6.
 
 O mockup inicial da Drop (Kraamzorg-OS-Mockup.html) é referência de estrutura de telas, densidade e linguagem visual. Ele tem itens superados pela v4.0 e por esta versão: janela de 24 h da API oficial, pesquisa 48 h depois da última visita, régua com envio automático, "Imersão 12 dias" (o Imersão tem 6 dias) e campos clínicos "a definir". Vale este documento.
 
@@ -2160,6 +2280,23 @@ O mockup inicial da Drop (Kraamzorg-OS-Mockup.html) é referência de estrutura 
 | Tipografia de títulos | Codec Pro [confirmar licença web], alternativa Jost | Títulos, números grandes, nome da família |
 | Tipografia de interface | Inter | Todo o resto |
 | Tipografia de dados | IBM Plex Mono | Datas, códigos, D1 a D12, valores alinhados |
+
+[v4.2] Cores derivadas por mistura dos tokens acima, sem matiz novo (DESIGN.md, seção 4). Entram no `@theme` do `globals.css` com estes nomes; é a única ampliação da paleta. Contraste pela fórmula WCAG 2.x.
+
+| Token | Receita | Uso | Contraste |
+| :-- | :-- | :-- | :-- |
+| `marinho-72` | marinho 72% + creme (#515C69) | Texto secundário | 6,4:1 creme · 4,9:1 areia |
+| `marinho-62` | marinho 62% + creme (#69717C) | Placeholder, meta. Nunca sobre areia | 4,7:1 creme |
+| `marinho-50` | marinho 50% + creme (#868B92) | Borda de campo e de controle | 3,2:1 creme · 3,4:1 branco |
+| `marinho-14` | marinho 14% + creme | Divisória fina | decorativa |
+| `marinho-08` | marinho 8% + creme | Hover neutro, selo neutro | |
+| `marinho-claro` | marinho 84% + creme (#354253) | Hover do primário, item ativo da lateral | creme sobre ele 9,6:1 |
+| `creme-62` | creme 62% + marinho (#A2A6A7) | Texto de apoio sobre marinho | 6,7:1 |
+| `aviso-texto` | aviso 60% + marinho (#735A2F) | Texto de estado pendente | 6,1:1 creme · 5,6:1 sobre o lavado |
+| `*-lavado` | token 12 a 18% + branco | Fundo de selo, faixa e campo em estado (`alerta`, `aviso`, `sucesso`, `sensivel`, `dourado`) | `alerta` 5,3:1, `sucesso` 4,6:1 e `sensivel` 5,7:1 sobre o próprio lavado |
+| `*-borda` | token 40 a 45% + branco | Contorno de faixa em estado | decorativa, sempre com ícone e texto |
+
+Regras: um acento dourado por tela; cor semântica só com texto e ícone ao lado, nunca sozinha; `aviso` puro (3,2:1 no creme) só como elemento gráfico, e texto de pendente usa `aviso-texto`; um tema claro só nesta fase (`color-scheme: light`), sem modo escuro.
 
 Cores e fontes da marca vêm do brand guidelines (paleta #0F1F36, #E8DAC5, #BC9C5D, #FFFFFF, #FCF8ED; logotipo em TT Drugs e Codec Pro). O logotipo entra como arquivo (`/public/brand`), nunca redesenhado. As fontes TT Drugs e Codec Pro são comerciais: usar na web só com licença de webfont.
 
@@ -2191,6 +2328,20 @@ Princípios:
 
 Fase 0: login com MFA, instalação guiada, configurações. Fase 1: início por papel, pipeline (lista no celular, kanban no computador), ficha 360º (linha do tempo, comercial, conversas, financeiro, estado sensível), agente (conversas, handoffs, pausa, modo, base de conhecimento, métricas), sessão de venda, proposta, contrato, cobrança, tarefas. Fase 2: consulta pré-natal, radar, agenda, escalas, equipe, portal da enfermeira (hoje, visita, checklist, alertas, áudio, evolução), ocorrências, pesquisa. Fase 3: capacidade, financeiro, marketing, copiloto, portal da família, indicações, manuais, talentos, painel executivo.
 
+### 20.6 Decisões de experiência da direção de arte [v4.2]
+
+Vêm do `docs/design/DESIGN.md` e do `docs/design/fluxos.md`. Cada uma entra com o padrão indicado e aparece no capítulo 22.
+
+| # | Decisão | Padrão adotado | Quem confirma |
+| :-: | :-- | :-- | :-- |
+| 1 | "Desfazer" do freio no aviso efêmero, por 10 s, só para quem acionou, sem exigir coordenação. Diverge do 8.3, que exige coordenação ou diretoria para reverter; o 8.3 ganhou a exceção [v4.2]. | Ligado com `freio_desfazer_segundos` = 10; o freio vale desde o primeiro instante; depois dos 10 s, vale o 8.3. O-07. | Leonardo e Edilaine |
+| 2 | Blocos de orientação do DOC 2 marcados como "feito hoje": chips com o que foi feito e o fechamento explícito "Nada mais foi feito neste bloco", que grava "não" nos itens não marcados. O dado continua item a item; muda só a forma de responder. Vale para os blocos 4, 5, 6 e 8. O bloco 7 fica em sim ou não, porque "Sinais de sofrimento emocional" dispara alerta. | Até a aprovação, sim ou não item a item, como no 9.2. K-19. | Edilaine [clínico] |
+| 3 | Onde o comercial responde depois de assumir a conversa: no app, pelo adaptador de mensageria (freio e janela checados), ou no WhatsApp do aparelho. Liga com o T-01: com a API oficial sem coexistência, o número sai do app do celular e a resposta só pode ser no app; com coexistência ou no número comum, as duas saídas funcionam. Depois de assumir uma lead qualificada, a Isadora não volta sozinha (modo `humano_comercial`, 11.7). | `comercial_resposta_no_app` falso: botão "Abrir no WhatsApp" do aparelho, como o adaptador `manual` do 4.1; a pausa por digitação no celular (11.7) continua valendo. A tela já é desenhada para as duas saídas. C-19. | Leonardo |
+| 4 | Cores derivadas por mistura dos tokens (texto secundário, borda de campo, fundos e bordas de estado). | Tabela do 20.2, valores do DESIGN.md seção 4. Decidido pela direção de arte, sem matiz novo. | Drop |
+| 5 | Status das enfermeiras no CRM (reunião de 24/09, 11:31), calculado a partir de designação, visita e bloqueio de agenda, nunca marcado à mão: em visita, em atendimento, reservada, backup, oferta pendente, folga e livre (enum `status_profissional`, 6.0; regra no 6.5). Tela Equipe da coordenação: selo de hoje por enfermeira e semana em 7 dias por 2 turnos com legenda sempre visível; Início da coordenação e da diretoria com a síntese ("3 em visita agora, 1 livre, 2 reservadas"). A enfermeira vê só o próprio estado e as próprias ofertas. | Regra do 6.5. O-08. | Edilaine (regra de "em atendimento") |
+
+Critérios de aceite de experiência que vêm da reunião de 24/09: checklist rápido de responder, uma mão, um bloco por tela (11:12, P35); entrevista pré-natal em sequência lógica dentro do CRM (11:14, P39).
+
 ---
 
 ## 21. Segurança, LGPD e infraestrutura [v4.1]
@@ -2212,7 +2363,7 @@ A Kraamzorg é controladora e a Drop é operadora (contrato, cláusula 10). A pl
 
 ### 21.3 Regras adicionais
 
-- Registro assistencial construído no padrão de prontuário até o parecer jurídico. A Resolução Cofen 754/2024 prevê assinatura digital ICP-Brasil como preferencial e aceita assinatura eletrônica por login e senha individuais e intransferíveis; o sistema atende à segunda (usuário próprio, MFA, hash do registro, data e hora) e deixa pronto o caminho para certificado em nuvem se o jurídico exigir. Retenção possível de 20 anos (Lei 13.787/2018) se for classificado como prontuário.
+- Registro assistencial construído no padrão de prontuário até o parecer jurídico. [v4.2] Sobre a Resolução Cofen 754/2024 há duas leituras, e este documento não afirma equivalência entre elas: uma entende que a assinatura eletrônica por login e senha individuais e intransferíveis é aceita; outra, que sem via em papel (registro totalmente digital, que é o caso do Kraamzorg OS) a assinatura digital ICP-Brasil é exigida. O sistema hoje assina por login e senha (usuário próprio, MFA, hash do registro, data e hora) e deixa pronto o caminho para certificado em nuvem ICP-Brasil. Pergunta específica ao parecer O-04: sem impressão, o registro assistencial exige ICP-Brasil? Retenção possível de 20 anos (Lei 13.787/2018) se for classificado como prontuário.
 - Minimização no agente: ele não pede dado sensível, recebe só ficha comercial e mascara CPF e cartão.
 - Transferência internacional: OpenAI (conversa, classificação, embeddings, transcrição) e UAZAPI estão autorizadas pela cláusula 1.4. Transcrever áudio da enfermeira manda dado clínico a terceiro: exige aprovação da controladora e contrato de tratamento com o provedor escolhido [confirmar; alternativa é o Gemini do Google Workspace já contratado].
 - Execuções do n8n sem guardar conteúdo de sucesso; erros por 7 dias.
@@ -2221,7 +2372,8 @@ A Kraamzorg é controladora e a Drop é operadora (contrato, cláusula 10). A pl
 - Formulários públicos (contrato, pesquisa, captação, talentos) com Turnstile, limite de taxa e token de uso único com expiração.
 - Cabeçalhos de segurança (CSP, HSTS, frame-ancestors), gitleaks na CI, dependências auditadas.
 - Incidente de segurança comunicado à Kraamzorg em até 24 horas (cláusula 10.4), com runbook em docs/runbooks/incidente.md.
-- Direitos do titular: exportação e correção pelo CRM; exclusão respeitando a retenção obrigatória do registro assistencial.
+- Direitos do titular: exportação e correção pelo CRM.
+- [v4.2] Eliminação a pedido: `privado.eliminar_titular(familia_id, motivo)`, só pela diretoria com AAL2, numa transação: (1) apaga `agente_n8n.chat_memoria` onde `session_id` está em `select id::text from conversa where familia_id = $1`; (2) apaga `mensagem`, `handoff`, `tarefa`, `notificacao`, `sessao_venda_gravacao` e as conversas da família; (3) anonimiza `familia`, `pessoa`, `pessoa_dados_contrato` e `bebe` (nome 'Titular eliminado', telefone, e-mail, CPF, endereços e datas nulos); (4) preserva `registro_atendimento`, `registro_adendo`, `alerta_clinico`, `relatorio_medico`, contrato e nota fiscal enquanto o parecer O-04 e a lei fiscal exigirem; (5) troca `titulo` e `dados` de `evento_familia` por '[eliminado]' por um caminho de exceção do gatilho, liberado só pela variável de sessão `app.eliminacao` que a própria função define; (6) grava em `log_auditoria` só o id e o motivo. Fora do banco: as chaves do Redis dessas conversas são apagadas pelo runbook de eliminação, e os erros guardados do n8n (até 7 dias, 11.10) podem conter trecho de conversa e expiram sozinhos. pgTAP (P16): depois da eliminação, nenhuma linha de `chat_memoria`, `mensagem` ou `handoff` da família, e o registro assistencial intacto. O que é retido e por quanto tempo: L-05 [confirmar: Leonardo e jurídico].
 
 ### 21.4 Infraestrutura e custo mensal estimado
 
@@ -2248,15 +2400,16 @@ Cada item entra no sistema com o padrão indicado e parametrizado. A coluna "Que
 
 | ID | Tema | O que as fontes dizem | Padrão adotado | Quem |
 | :-- | :-- | :-- | :-- | :-- |
-| T-01 | Conta do WhatsApp restrita desde 24/09 por política comercial | Treinamento 24/09 | Agente em `desligado` na produção; testes em número separado. Recomendação da Drop: avaliar a API oficial num número novo dedicado ao agente, mantendo o número atual para o Leonardo. O adaptador já prevê `cloud_api`. | Leonardo e Drop |
+| T-01 | Conta do WhatsApp restrita desde 24/09 por política comercial | Treinamento 24/09. [v4.2] A UAZAPI é API não oficial; contas ligadas por ferramenta não oficial vêm sendo banidas em 2026, com número novo ou não. `conversa.wa_jid` é único e todo o handoff do capítulo 11 acontece dentro da mesma conversa, então dois números quebram a passagem para o Leonardo. O onboarding 13.2 já explica que a migração tira o número do aplicativo comum, mas a resposta do Leonardo ("A kraamzorg tem que ter 2 numeros? não entendi muito bem") mostra que ele não entendeu a proposta de dois números; nenhuma confirmação por escrito foi registrada. | Agente em `desligado` na produção; testes em número separado. [v4.2] Bloqueio de produção do agente: a Isadora só volta com o adaptador `cloud_api` implementado, testado e homologado. `uazapi` fica restrita a homologação e avisos internos até a migração. Primeira opção: API oficial em coexistência no número atual (app Business e Cloud API no mesmo número), mantendo um só `wa_jid`; a Drop confirma a viabilidade técnica e por onde saem os avisos aos grupos internos depois da migração. Se não for viável, o protocolo de passagem entre números (mensagem final com o contato do Leonardo, link `wa.me`, o que acontece com o histórico) entra no 11.4 antes de migrar. Confirmação escrita do Leonardo antes de migrar. Janela de 24 horas da API oficial: o follow-up de `agente_followup_horas` (48 h, mínimo 24) e as réguas e avisos proativos do capítulo 23 saem fora da janela e passam a depender de modelo aprovado pela Meta; o desenho do follow-up muda agora, não depois da migração (4.1) [confirmar: Drop, antes de levar ao cliente]. Mitigação enquanto a conta estiver restrita (o número real hoje não passa por filtro nenhum): (a) ligar o número real ao fluxo 3 só com os nós 17 a 20 e aviso interno (`enviar_texto` falso), sem o nó 26; ou (b) protocolo manual escrito com duas pessoas acompanhando o WhatsApp todo dia, assinado pelo Leonardo como risco aceito. Padrão adotado: (b) até a API oficial, porque (a) ainda depende de UAZAPI no número real e traz o mesmo risco de banimento [confirmar: Leonardo e Drop]. | Leonardo (custo) e Drop (arquitetura) |
 | T-02 | Site sem formulário e todos os botões para um único wa.link sem origem | Site atual | Links `wa.me` por canal com código de origem no texto e página de captação no app | Marketing |
 | T-03 | FAQ do site diz que o cuidado é de 6 dias | Site | Agente usa a apresentação 2026 (6 ou 12 dias); atualizar o site | Marketing |
 | T-04 | PDF da apresentação com cerca de 10 MB, que não abre em alguns celulares | Treinamento | Versão leve de até 3 MB antes de publicar o agente | Leonardo |
 | T-05 | NFS-e: SP obriga o Emissor Nacional para o Simples a partir de 01/11/2026; a Kraamzorg nunca emitiu certificado A1; ISS de Londrina sem orientação | Prefeitura, onboarding | Provedor com NFS-e Nacional; emissão manual pela contadora até homologar | Leonardo e contadora |
-| T-06 | Credenciais da InfinitePay | Contrato e documentação | A API pública de links usa o InfiniteTag; confirmar se basta e se o link limita a 3x sem juros | Leonardo |
+| T-06 | Credenciais da InfinitePay | Contrato e documentação. [v4.2] Central de ajuda da InfinitePay (consultada em 25/09): no link com repasse ou absorção de taxa, até 12x fica disponível; para limitar é preciso Plano de Cobrança | A API pública de links usa o InfiniteTag; confirmar se basta. [v4.2] Resolver antes do P32. Padrão: Plano de Cobrança limitado a 3 parcelas; link simples sem repasse de taxa só se o Plano de Cobrança não tiver API. Aceite do P32: o link gerado mostra no máximo 3 parcelas; se mostrar mais, falha (14) [confirmar: Leonardo (taxa e parcelas), Drop (endpoint)] | Leonardo e Drop |
 | T-07 | Licença das fontes TT Drugs e Codec Pro para web | Pasta de fontes | Jost e Inter até confirmar | Drop |
 | T-08 | Ferramenta de vídeo da conversa com a Edilaine | Prompt §31 | Campo livre de link | Edilaine |
 | T-09 | Canal de recrutamento, fornecedores e parceiros | Prompt §31, onboarding | contato@kraamzorgbrasil.com.br | Leonardo |
+| T-10 [v4.2] | Cronograma revisto | A versão 1 do PROMPTS.md propunha aceite das Fases 0 e 1 em 21/10; a planilha do cronograma invertido no Drive ainda mostra 02/10 e 15/10, e a aba Cronograma Direto tem outra divisão de semanas. A S4 (28/09 a 02/10, cinco dias úteis) tem P02 a P09, oito sessões de banco em cadeia estrita, com três paradas de revisão humana do SQL; P10 depende do P07. Soma-se a rodada de correções da revisão de 25/09 | Novo cronograma comunicado por escrito ao Leonardo antes de 02/10 e só depois refletido na planilha do Drive. P10 a P12 saem da S4; o fim da trilha de banco e a data de aceite são recalculados sem pular a revisão humana do SQL da RLS. O aceite da Fase 1 (16.2, WhatsApp até pagamento) depende de T-01 e T-06, ou de um roteiro de aceite em número de homologação; padrão: data condicionada, conforme a tabela do Calendário do PROMPTS.md versão 2 ("aceite das Fases 0 e 1 em 30/10, com WhatsApp e InfinitePay reais se T-01 e T-06 estiverem resolvidos até 26/10; caso contrário, o aceite roda em número de homologação e com pagamento simulado"; aceite da Fase 2 na semana de 16 a 20/11; aceite final na semana de 30/11 a 04/12). O P18b (adaptador `cloud_api`) roda antes do P33 [confirmar: Leonardo, por escrito] | Leonardo e Drop |
 
 ### 22.2 Comercial
 
@@ -2269,17 +2422,18 @@ Cada item entra no sistema com o padrão indicado e parametrizado. A coluna "Que
 | C-05 | Parcelamento | 3x (onboarding, apresentação); conversas até 7x | 3x sem juros; exceção só com aprovação registrada | Leonardo |
 | C-06 | Reserva antes de 28 semanas | Contratação abre em 20 semanas (onboarding); janela ideal 28 a 36 | Abaixo de 28: nutrição com retorno combinado; contrato permitido a partir de 20 | Leonardo |
 | C-07 | Bebê já nascido | Limite de dias após o nascimento não definido | Sempre handoff com prioridade | Leonardo e Edilaine |
-| C-08 | Perda gestacional após pagamento | v4.0 aberta; onboarding: devolução integral ou manter o suporte, a família escolhe | Decisão manual registrada | Leonardo e Edilaine |
+| C-08 | Perda gestacional após pagamento | v4.0 aberta; onboarding: devolução integral ou manter o suporte, a família escolhe. [v4.2] O onboarding diverge dentro dele: o 9.4 (texto livre) diz que a família escolhe entre o suporte e a devolução; o 9.5 marcou só "Devolução integral", e a pergunta sobre manter o acompanhamento ficou sem resposta | Decisão manual registrada. [v4.2] Até a confirmação por escrito, o sistema registra a escolha da família entre as duas opções do 9.4, como decisão manual da diretoria com motivo; nada é automático [confirmar: Leonardo, por escrito, qual leitura vale] | Leonardo e Edilaine |
 | C-09 | Extensão do acompanhamento | Onboarding: possível, cobrando a diferença | Aditivo manual pelo comercial | Leonardo |
 | C-10 | Presente | Contrato no nome da gestante, pagamento de quem presenteia, contrato sem valores para a presenteada, cartão-presente | Pagador separado do contratante; modelo de contrato com variante | Leonardo e contadora (tomador da nota) |
 | C-11 | Modelo de contrato | Precisa descrever enfermeira obstétrica ou neonatal, as 4 frentes, dias × horas × total e o pré-natal online | Template provisório até o modelo atualizado chegar | Leonardo |
-| C-12 | Cadência de follow-up | Prompt: Isadora faz D+1, D+3 e D+14; treinamento 24/09: Leonardo faz a cadência | D+1 Isadora, D+3 e D+14 tarefa | Leonardo |
+| C-12 | Cadência de follow-up | Prompt: Isadora faz D+1, D+3 e D+14; treinamento 24/09: Leonardo faz a cadência. [v4.2] Reunião 24/09, 11:20: janela configurável, "de 48 pra cima" (D-18) | [v4.2] Primeiro retorno da Isadora depois de `agente_followup_horas` (padrão 48, mínimo 24, editável no CRM); D+3 e D+14 tarefa, contados do primeiro retorno. Na API oficial o primeiro retorno vira modelo aprovado pela Meta (4.1) [confirmar: Leonardo, valor padrão e se D+3 e D+14 continuam humanos] | Leonardo |
 | C-13 | Lembrete da véspera da conversa | Prompt e simulação: Isadora; comentário: interesse na reunião passa ao Leonardo | Tarefa humana, trocável para o agente | Leonardo |
 | C-14 | Cortes de quente, morno e frio no score | Não definidos | 70 e 40 | Leonardo |
 | C-15 | Depoimentos com nome no agente | Prompt §31 | Só com autorização registrada | Leonardo |
 | C-16 | Reembolso e nota fiscal | Texto usado nas conversas | "Descreve o serviço como cuidado domiciliar pós-parto; o reembolso depende do plano" | Contadora |
 | C-17 | A Isadora pode informar a taxa de deslocamento cadastrada? | Prompt v4.0: nunca confirmar valor de taxa | Não (`taxa_visivel_agente` falso); ela avisa que existe taxa e passa para o Leonardo | Leonardo |
 | C-18 | Reenvio da apresentação quando o mesmo arquivo saiu há pouco | Prompt v4.0: valor sempre com PDF, sem exceção | Sempre reenvia (`pdf_reenvio_janela_horas` = 0) | Leonardo |
+| C-19 [v4.2] | Onde o comercial responde depois de assumir a conversa | Direção de arte (20.6, decisão 3); depende do T-01 (com API oficial sem coexistência, o número sai do app do celular) | No WhatsApp do aparelho (`comercial_resposta_no_app` falso); o campo de resposta no app fica pronto e liga pelo parâmetro [confirmar: Leonardo] | Leonardo |
 
 ### 22.3 Clínico
 
@@ -2293,7 +2447,7 @@ Cada item entra no sistema com o padrão indicado e parametrizado. A coluna "Que
 | K-06 | Texto do DOC 3 | .docx mais recente que o PDF e a v4.0 (PU-10 e PU-11 detalhados) | Texto do .docx | Edilaine |
 | K-07 | Sinais do DOC 3 sem campo no checklist | Cefaleia, dor torácica, convulsão, sangue nas fezes | Seletor de sinais do DOC 3 | Edilaine |
 | K-08 | ILIB vermelho ou infravermelho no DOC 4 | v4.0 manda corrigir para vermelho | Vermelho | Edilaine |
-| K-09 | Registro de amamentação impede encerrar a visita? | Onboarding sim; v4.0 não lista | Não obrigatório | Edilaine |
+| K-09 | Registro de amamentação impede encerrar a visita? | Onboarding sim (9.2, "Impede encerrar a visita" marcado); v4.0 não lista | [v4.2] Obrigatório, conforme onboarding 9.2 (Anexo V). Decisão já tomada pelo cliente. Falta só a Edilaine dizer qual subcampo (ou combinação, por exemplo 2.11, 2.12 e 2.13) conta como registro preenchido e se os campos de texto do bloco entram; até a resposta, o bloco inteiro 2.5 a 2.13 [confirmar: Edilaine, só o subcampo] | Edilaine |
 | K-10 | Evolução também para a família | Onboarding sim; v4.0 só médicos | Tarefa de envio manual à família | Edilaine |
 | K-11 | Regra do ganho de peso e contagem de dia de vida | Evoluções calculam do menor peso; o dia do nascimento conta como 0 ou 1 varia | Menor peso; dia do nascimento = dia 0 | Edilaine |
 | K-12 | Pesquisa sem pergunta de NPS 0 a 10 | O Google Forms atual usa "Recomendaria?" com 5 opções e a matriz tem escala invertida | Pesquisa nativa com as perguntas atuais e uma pergunta NPS 0 a 10 | Edilaine e Leonardo |
@@ -2302,6 +2456,11 @@ Cada item entra no sistema com o padrão indicado e parametrizado. A coluna "Que
 | K-15 | Posição única sobre chupeta para materiais da família | Treinamento diz "pode ser aliada" em uso pontual; roteiro de seleção trata como não recomendada | Agente não fala do assunto | Edilaine |
 | K-16 | Texto para família que já está no hospital (`alerta_internacao`) | Mensagem padrão manda procurar urgência a quem já está internado | Desligado até aprovar; enquanto isso vale `alerta_saude` | Edilaine |
 | K-17 | Texto para sofrimento emocional e ideação de autolesão (`alerta_emocional`, com o CVV) | DOC 3, SM-01 a SM-07 | Desligado até aprovar; enquanto isso vale `alerta_saude`. Recomendação da Drop: aprovar antes de ligar a Isadora em produção | Edilaine |
+| K-18 [v4.2] | Termos de alerta e protocolo de perda como bloqueantes da Fase 1 (Anexo V.6 do contrato) | O Anexo V.6 põe esses itens como bloqueantes do início da Fase 1; o PRD resolve com textos clínicos desligados por parâmetro até a aprovação (K-16, K-17) | Interpretação adotada: o padrão desligado por parâmetro até a aprovação satisfaz o Anexo V.6; a codificação das telas e dos fluxos segue, e só a ativação em produção depende da aprovação da Edilaine. Se o Leonardo não concordar, as sessões da Fase 1 que dependem desses itens são replanejadas (T-10) [confirmar: Leonardo, por escrito] | Leonardo e Edilaine |
+| K-19 [v4.2] | Blocos de orientação do DOC 2 como "feito hoje" | Direção de arte (20.6, decisão 2): chips do que foi feito e "Nada mais foi feito neste bloco", que grava "não" nos itens não marcados; reduz cerca de 15 toques por visita sem apagar a diferença entre "não feito" e "não respondido" | Sim ou não item a item até a aprovação. Se aprovado, vale para os blocos 4, 5, 6 e 8; o bloco 7 continua sim ou não porque "Sinais de sofrimento emocional" dispara alerta [clínico, confirmar: Edilaine] | Edilaine |
+| K-20 [v4.2] | Família em `bloqueio_total` ou `encerrado_sensivel` que relata sintoma | O documento de ajustes diz, no item 13, que a família com sinal de saúde recebe a mensagem aprovada e, no item 14, que nenhuma automação sai para família em perda; a v4.1 escolheu o item 14 sem decisão clínica | Texto `alerta_saude_sensivel` (23.1) atrás de `alerta_saude_sensivel_ativo`, desligado até a aprovação; enquanto isso, só o aviso de prioridade máxima à coordenação (19.4, nó 20). Recomendação da Drop: aprovar antes de ligar a Isadora em produção [clínico, confirmar: Edilaine] | Edilaine |
+| K-21 [v4.2] | Perda de gestação anterior | Termo, classificador e prompt tratavam "já perdi um bebê antes" de três jeitos diferentes; o item L do documento de ajustes escolhe o caminho de perda | Caminho de perda (texto `perda`, freio, aviso máximo com a observação de gestação anterior e reversão do freio em um toque), com o termo "perdi um bebê" e o classificador corrigidos (11.11 itens 1 e 2). Alternativa, se a Edilaine preferir: sem freio, transferência `estado_sensivel_escreveu` e acolhimento [clínico, confirmar: Edilaine e Leonardo] | Edilaine e Leonardo |
+| K-22 [v4.2] | Áudio não transcrito e mídia de cliente | Transcrição falha virava mídia comum, com SLA de 4 h úteis; mídia de cliente ia para o comercial ou a operação | Texto `audio_nao_transcrito` (23.1) e handoff alto de 1 h corrida (11.4); mídia de cliente em pipeline 3 para a coordenação clínica, alta, 2 h [clínico, confirmar: Edilaine, texto, destino e SLA] | Edilaine |
 
 ### 22.4 Operação e LGPD
 
@@ -2310,17 +2469,22 @@ Cada item entra no sistema com o padrão indicado e parametrizado. A coluna "Que
 | O-01 | Vínculo e escala | Misto MEI e PJ; escala por oferta | Oferta e aceite, com atribuição direta pela coordenação em urgência | Leonardo |
 | O-02 | Documentos exigidos das profissionais e validade | Tabela vazia no onboarding | Cadastro livre de tipos | Edilaine |
 | O-03 | Retenção de áudios | Anexo IV manda definir na Fase 0 | 90 dias após o envio da evolução | Leonardo e jurídico |
-| O-04 | Classificação do registro | Parecer pendente | Padrão prontuário (21.3) | Jurídico |
+| O-04 | Classificação do registro | Parecer pendente. [v4.2] O parecer responde também, de forma específica: sem via impressa, o registro exige assinatura ICP-Brasil pela Resolução Cofen 754/2024? (21.3) | Padrão prontuário (21.3), assinatura por login e senha com MFA e caminho pronto para ICP-Brasil em nuvem | Jurídico |
 | L-01 | Modelos do DOC 1 em Word contêm trechos de uma ficha real, e oito fichas preenchidas têm texto de outra paciente | Achado da leitura das pastas | Nada disso entra no sistema; recomendação à Kraamzorg de limpar os modelos e avaliar o ocorrido com o jurídico | Leonardo |
 | L-02 | "1 Evolução MODELO.docx" é uma evolução real com nomes trocados | Achado | Não usar como seed nem como modelo; o gerador usa textos padrão revisados | Edilaine |
 | L-03 | Infográficos da pasta IMAGENS com crédito de perfis de terceiros | Achado | Não entram em material da família sem autorização | Marketing |
 | L-04 | Transcrição de áudio clínico por provedor externo | 21.3 | Desligado até aprovação | Leonardo e jurídico |
+| O-05 [v4.2] | Matriz de permissões | Onboarding 14.1 marcou acesso total ao registro assistencial para o comercial e para a diretoria; o PRD 13 adota sem acesso para o comercial e, para a diretoria, leitura total com log e AAL2 | Mais restritivo até aprovação escrita do Leonardo e da Edilaine, antes das políticas do P07 (ADR 0002) [confirmar: Leonardo e Edilaine] | Leonardo e Edilaine |
+| O-06 [v4.2] | Retenção de dados comerciais e de conversa | Sem definição (só o áudio tem prazo, O-03) | Proposta: `chat_memoria` apagada 180 dias depois da última mensagem; mensagem, handoff e conversa de quem nunca contratou apagados ou anonimizados 24 meses depois de `perdido` ou `nao_qualificado`; ip do `log_auditoria` anonimizado em 12 meses, por exceção do gatilho do log restrita à coluna `ip` e liberada só dentro da função de retenção. Automação `retencao_diaria` (10.1) com prazos em `parametro.retencao` (6.8) [confirmar: Leonardo e jurídico] | Leonardo e jurídico |
+| O-07 [v4.2] | "Desfazer" do freio sem coordenação | Direção de arte (20.6, decisão 1) contra o 8.3, que exige coordenação ou diretoria para reverter | 10 s para quem acionou (`freio_desfazer_segundos`), exceção escrita no 8.3; depois disso vale o 8.3 [confirmar: Leonardo e Edilaine] | Leonardo e Edilaine |
+| O-08 [v4.2] | Status das enfermeiras no CRM | Reunião de 24/09, 11:31: "status para enfermeiras (em atendimento), (livre) ou coisas assim" | Calculado a partir de designação, visita e bloqueio de agenda, nunca marcado à mão, com os estados em visita, em atendimento, reservada, backup, oferta pendente, folga e livre (6.5, 20.6). Decisão do cliente; falta a regra exata de "em atendimento" fora do horário de visita [confirmar: Edilaine] | Edilaine |
+| L-05 [v4.2] | Eliminação a pedido do titular | 21.3 | Mecânica de `privado.eliminar_titular` no 21.3: apaga conversa, memória, mensagem e handoff, anonimiza cadastro, preserva registro assistencial, alertas, relatório médico, contrato e nota fiscal enquanto O-04 e a lei fiscal exigirem. Falta decidir o que é retido e por quanto tempo [confirmar: Leonardo e jurídico] | Leonardo e jurídico |
 
 ---
 
 ## 23. Biblioteca de mensagens (rascunhos para aprovação) [v4.1]
 
-Seed de `mensagem_modelo`. Tudo entra com status `rascunho` e só vai ao ar depois da aprovação do Leonardo (comercial) ou da Edilaine (clínico). Os textos marcados "aprovado no prompt" já vieram prontos do Prompt de Sistema v4.0. Os demais foram escritos no método de copy da Drop: frase de conversa, uma ideia por mensagem, nenhuma pressão, nenhum travessão. Variáveis entre chaves. Quando `{nome}` estiver vazio, a função que monta o texto tira a variável junto com a vírgula e o espaço vizinhos e acerta a maiúscula ("Pelo que você está me contando..."). Os textos de alerta (`alerta_saude`, `alerta_internacao`, `alerta_emocional`, `perda`) nunca levam emoji.
+Seed de `mensagem_modelo`. Tudo entra com status `rascunho` e só vai ao ar depois da aprovação do Leonardo (comercial) ou da Edilaine (clínico). Os textos marcados "aprovado no prompt" já vieram prontos do Prompt de Sistema v4.0. Os demais foram escritos no método de copy da Drop: frase de conversa, uma ideia por mensagem, nenhuma pressão, nenhum travessão. Variáveis entre chaves. Quando `{nome}` estiver vazio, a função que monta o texto tira a variável junto com a vírgula e o espaço vizinhos e acerta a maiúscula ("Pelo que você está me contando..."). Os textos de alerta (`alerta_saude`, `alerta_internacao`, `alerta_emocional`, `perda` e, [v4.2], `alerta_saude_sensivel` e `audio_nao_transcrito`) nunca levam emoji. [v4.2] As chaves `followup_d1_*` mantêm o nome por compatibilidade, mas são o primeiro retorno da Isadora, depois de `agente_followup_horas` (D-18).
 
 ### 23.1 Para a família (enviadas pelo sistema ou pela Isadora)
 
@@ -2335,8 +2499,10 @@ Seed de `mensagem_modelo`. Tudo entra com status `rascunho` e só vai ao ar depo
 | `nao_lead_candidata` | Que bom saber do seu interesse em fazer parte da equipe 🤍 As candidaturas chegam pelo e-mail contato@kraamzorgbrasil.com.br. Manda por lá o seu currículo e conta um pouco da sua experiência com mãe e bebê. | Novo [confirmar canal] |
 | `nao_lead_fornecedor` | Obrigada pelo contato! Propostas de parceria e fornecimento são recebidas pelo e-mail contato@kraamzorgbrasil.com.br. | Novo |
 | `nao_lead_consultorio` | Oi! Este número é só da Kraamzorg Brasil, o cuidado pós-parto em casa. Para assuntos do consultório, o caminho é o contato do próprio consultório. | Novo |
-| `followup_d1_pos_pdf` | Oi, {nome} 😊 Conseguiu dar uma olhadinha na apresentação? Se ficou alguma dúvida sobre os formatos, me conta. | Aprovado no prompt, sem o "tudo bem?" para ficar uma pergunta só |
-| `followup_d1_pos_abertura` | Oi, tudo bem? Vi que você entrou em contato com a Kraamzorg Brasil 🤍 Se ainda fizer sentido conhecer o nosso cuidado pós-parto, me conta de quantas semanas você está. | Aprovado no prompt |
+| `followup_d1_pos_pdf` | [v4.2] Oi, {nome} 😊 Conseguiu ver a apresentação com calma? Se ficou alguma dúvida sobre os formatos, me conta. | Aprovado no prompt, sem o "tudo bem?" para ficar uma pergunta só; [v4.2] sem o diminutivo "olhadinha", fora do tom da marca |
+| `followup_d1_pos_abertura` | [v4.2] Oi! Vi que você entrou em contato com a Kraamzorg Brasil 🤍 Se ainda fizer sentido conhecer o nosso cuidado pós-parto, me conta de quantas semanas você está. | Aprovado no prompt; [v4.2] sem o "tudo bem?", para ficar uma pergunta só (é o texto que sai quando a geração falha) |
+| `audio_nao_transcrito` [v4.2] | Não consegui ouvir o seu áudio agora. Pode me escrever? Se for algo urgente com você ou com o bebê, procure um serviço de urgência ou ligue para o SAMU pelo 192. | Novo [clínico] (19.4, nó 21) |
+| `alerta_saude_sensivel` [v4.2] | {nome}, isso precisa ser avaliado agora. Procure um serviço de urgência ou ligue para o SAMU pelo 192. A equipe já está sabendo. | Novo [clínico]. Só para família em `bloqueio_total` ou `encerrado_sensivel` que relata sintoma, atrás de `alerta_saude_sensivel_ativo` (K-20) |
 
 ### 23.2 Para a família (tarefas com texto sugerido, enviadas por uma pessoa)
 
@@ -2350,14 +2516,14 @@ Seed de `mensagem_modelo`. Tudo entra com status `rascunho` e só vai ao ar depo
 | `pos_sessao_48h` | Oi, {nome}! Que bom que vocês conversaram com a Edilaine. Ficou alguma dúvida? | Comercial |
 | `formulario_contrato` | Oi, {nome}, aqui é o Leonardo. Que bom ter vocês com a gente! Para eu preparar o contrato, preenche os dados neste formulário seguro, leva uns 3 minutos: {link}. Depois disso o contrato chega por e-mail pela Autentique, a plataforma de assinatura, e pode abrir com tranquilidade. | Leonardo |
 | `link_pagamento` | Contrato assinado, obrigado! Aqui está o link de pagamento: {link}. Dá para pagar no cartão em até 3x sem juros ou no Pix. | Leonardo [confirmar condições] |
-| `pagamento_confirmado` | Pagamento confirmado, {nome}. Obrigado pela confiança 🤍 Por volta das 34 semanas a Edilaine vai te chamar para o pré-natal online, e é nesse encontro que vocês montam juntos o plano de cuidado. | Leonardo |
-| `pagamento_confirmado_34s` | Pagamento confirmado, {nome}. Obrigado pela confiança 🤍 Como você já está com {semanas} semanas, a Edilaine vai te chamar nos próximos dias para marcar o pré-natal online. | Leonardo |
+| `pagamento_confirmado` | [v4.2] Pagamento confirmado, {nome}. Obrigado pela confiança. Por volta das 34 semanas a Edilaine vai te chamar para o pré-natal online, e é nesse encontro que vocês montam juntos o plano de cuidado. | Leonardo |
+| `pagamento_confirmado_34s` | [v4.2] Pagamento confirmado, {nome}. Obrigado pela confiança. Como você já está com {semanas} semanas, a Edilaine vai te chamar nos próximos dias para marcar o pré-natal online. | Leonardo |
 | `regua_ate_20` | Oi, {nome}, aqui é da Kraamzorg Brasil 🤍 Como está a gestação? Quando quiser entender como funciona o cuidado nos primeiros dias em casa, é só me chamar por aqui. | Comercial |
 | `regua_21_27` | Oi, {nome}! Com {semanas} semanas muita família começa a pensar em como vão ser os primeiros dias depois da alta. Se quiser, te mando a nossa apresentação para você conhecer o cuidado com calma. | Comercial |
 | `regua_28_34` | Oi, {nome}! Você está entrando na janela ideal para reservar o pós-parto, entre 28 e 36 semanas. Se fizer sentido, a Edilaine conversa com vocês uns 15 minutos, sem compromisso, e quem for estar com você nesses dias pode participar também. Me passa dois dias e horários que ficam bons para vocês? | Comercial |
 | `regua_35_mais` | Oi, {nome}! A chegada do bebê está pertinho 🤍 Se vocês ainda estiverem pensando no cuidado para os primeiros dias em casa, me conta a DPP e a cidade que eu vejo agora com a equipe como fica para vocês. | Comercial |
-| `regua_nasceu` | Parabéns pela chegada do bebê! 👶 Vocês já estão em casa? Me conta como estão que eu vejo com a equipe a possibilidade de começar o acompanhamento. | Comercial |
-| `checkin_dpp` | Oi, {nome}! A data prevista está chegando e a gente já está organizada para receber vocês 🤍 Quando o bebê nascer, avisa a gente por aqui? Se já souber a previsão de alta, conta também, porque a primeira visita é marcada a partir dela. | Operação |
+| `regua_nasceu` | [v4.2] Parabéns pela chegada do bebê! 👶 Como vocês estão, já em casa com o bebê? Vou ver com a equipe a possibilidade de começar o acompanhamento com vocês. | Comercial |
+| `checkin_dpp` | [v4.2] Oi, {nome}! A data prevista está chegando e a gente já está organizada para receber vocês 🤍 Quando o bebê nascer, avisa a gente por aqui? A primeira visita é marcada a partir da previsão de alta, então pode contar isso junto, se já souber. | Operação |
 | `parabens_nascimento` | Que alegria, parabéns pela chegada de {bebe}! 🤍 Quando souberem a previsão de alta, me contam? A {enfermeira} já está avisada. | Operação |
 | `alta_boas_vindas` | Bem-vindos em casa! 🤍 A {enfermeira} chega {dia}, às {hora}. Te mandei o guia de início do acompanhamento para vocês olharem com calma. | Operação [guia pendente] |
 | `pesquisa_convite` | Oi, {nome}! A gente gostou muito de acompanhar vocês nesses dias 🤍 Quer contar como foi? São poucas perguntas e a sua resposta ajuda a cuidar melhor das próximas famílias: {link} | Coordenação |
@@ -2382,6 +2548,12 @@ Resumo interno padrão (`resumo_interno`), montado pelo banco: Nome · Para quem
 | `grupo_generico` | 💬 {motivo_legivel} / {resumo_interno} / {link_ficha} |
 
 Todos terminam com: "IA pausada por {pausa_horas} h nesta conversa." A barra "/" indica quebra de linha. Em `grupo_perda`, `{observacao}` traz "Pode ser perda de gestação anterior: confira com a família e reverta o freio se for o caso." quando o classificador indicar isso, e fica vazio no resto.
+
+[v4.2] Complementos:
+- Quando nenhum texto saiu para a família (modo `humano_nominal`, teste fora da lista, falha do envio), `{mensagem_enviada}` em `grupo_saude` vira "nenhuma mensagem saiu, responder agora".
+- Alerta repetido na mesma conversa (19.3, nó 12) reenvia o modelo inteiro com o prefixo "ATUALIZAÇÃO · " na primeira linha e o texto novo em `{texto_familia}`.
+- Em transferência que pôs a conversa em `humano_comercial`, a linha final vira "A Isadora não volta a esta conversa. Para devolver, use Devolver à Isadora na ficha."
+- Sem banco, o aviso sai pelo `grupo_fallback_jid` com o texto fixo do config: "[NÃO REGISTRADO NO SISTEMA] Possível alerta de saúde · {telefone} · \"{texto_familia}\"" (19.1). É a única mensagem à equipe que não vem de `mensagem_modelo`.
 
 ### 23.4 Para o agente (instruções devolvidas pelo fluxo 2)
 
@@ -2410,28 +2582,30 @@ Todos terminam com: "IA pausada por {pausa_horas} h nesta conversa." A barra "/"
 
 Todas `security definer`, com `set search_path = ''` e nomes qualificados, `execute` revogado de `public` e concedido só a `n8n_agente`, devolvendo `jsonb` com `ok` e, em erro, `erro`. Nenhuma devolve dado assistencial.
 
+[v4.2] Chave: `registrar_mensagem` resolve a conversa, devolve `conversa_id` e sempre grava em `conversa.wa_jid` o chatid mais recente (o mesmo contato pode trocar de `@s.whatsapp.net` para `@lid`). Todas as outras funções recebem `conversa_id uuid`, lido do nó "Registrar Msg Família" ou "Registrar Msg Humana" do fluxo 3, nunca do modelo. O jid só serve para enviar. pgTAP do P21: conversa criada com jid `@s.whatsapp.net` recebe mensagem com jid `@lid` e o mesmo LID; `wa_jid` é atualizado e `pode_responder(conversa_id)` responde.
+
 | Função | Parâmetros | Retorno e efeito |
 | :-- | :-- | :-- |
-| `registrar_mensagem` | jid, direcao, enviado_por, conteudo, tipo, wa_message_id, nome_whatsapp, telefone, lid, nome_contato | Resolve a conversa por LID, telefone e jid, nessa ordem; cria ou atualiza `conversa` (E.164, LID, nome salvo, quem iniciou), mascara CPF e cartão, grava `mensagem` sem duplicar pelo `wa_message_id`, lê "paciente fechada" e "paciente potencial" no nome salvo e, na primeira mensagem, o código de origem do link (P47). Devolve `conversa_id`, `primeira_mensagem`, `classificacao` e se o número é da equipe ou do plantão |
-| `registrar_transcricao` | wa_message_id, texto | Grava a transcrição do áudio como texto da mensagem, já mascarada |
-| `pode_responder` | jid | `modo`, `pausa`, `motivo`, `agente_modo`, `na_whitelist` (11.7); número da equipe ou do plantão devolve silêncio |
-| `pode_enviar` | jid, categoria | Mesma regra de `privado.pode_enviar_mensagem`, mais pausa e modo, no instante do envio (8.2) |
-| `mensagem_sistema` | jid, chave | Texto aprovado de `mensagem_modelo` para a família (`midia_recebida`, `fallback_confirmar`, encaminhamentos de não lead), com o nome quando houver |
-| `sincronizar_memoria` | jid, papel, texto | Insere a fala da equipe ou de um texto do sistema na memória, ou troca a última fala da IA pelo texto que de fato saiu |
-| `pausar` | jid, horas, motivo | Atualiza `agente_pausado_ate` |
-| `contexto_conversa` | jid, limite | Mensagens `{de, texto, em}`, quem iniciou, classificação |
+| `registrar_mensagem` | jid, direcao, enviado_por, conteudo, tipo, wa_message_id, nome_whatsapp, telefone, lid, nome_contato | Resolve a conversa por LID, telefone e jid, nessa ordem; cria ou atualiza `conversa` (E.164, LID, nome salvo, quem iniciou, [v4.2] `wa_jid` com o chatid mais recente), mascara CPF e cartão, grava `mensagem` sem duplicar pelo `wa_message_id`, lê "paciente fechada" e "paciente potencial" no nome salvo e, na primeira mensagem, o código de origem do link (P47). Devolve `conversa_id`, `primeira_mensagem`, `classificacao` e se o número é da equipe ou do plantão |
+| `registrar_transcricao` | wa_message_id, texto | [v4.2] Grava a transcrição do áudio na coluna `transcricao` da mensagem, já mascarada; é o único UPDATE permitido em `mensagem` (5.2) |
+| `pode_responder` | conversa_id [v4.2] | `modo`, `pausa`, `motivo`, `agente_modo`, `na_whitelist` (11.7); número da equipe ou do plantão devolve silêncio. [v4.2] Devolve também `humano_comercial` (com `agente_encerrado_motivo`), na precedência da 11.7 |
+| `pode_enviar` | [v4.2] conversa_id, tipo, handoff_id (opcional) | [v4.2] `tipo` em `resposta`, `conteudo`, `operacional`, `marketing`. `resposta` ignora a pausa e a mudança de modo criadas pelo `handoff_id` desta execução; bloqueia `bloqueio_total`, `encerrado_sensivel`, `humano_nominal`, `humano_comercial` de outra origem e pausa de outra origem; aplica a lista de teste; nunca aplica janela de horário, `nao_contatar` nem limite de conteúdo; vale para conversa sem família. Os demais tipos seguem `privado.pode_enviar_mensagem`, mais pausa e modo, no instante do envio (8.2). pgTAP do P21: resposta depois de transferência com `reuniao` passa; resposta às 22h passa; dois follow-ups de conteúdo no mesmo dia, o segundo é recusado |
+| `mensagem_sistema` | conversa_id [v4.2], chave | Texto aprovado de `mensagem_modelo` para a família (`midia_recebida`, `fallback_confirmar`, encaminhamentos de não lead, [v4.2] `audio_nao_transcrito`), com o nome quando houver |
+| `sincronizar_memoria` | conversa_id [v4.2], papel, texto | Insere a fala da equipe ou de um texto do sistema na memória, ou troca a última fala da IA pelo texto que de fato saiu. [v4.2] Formato do Postgres Chat Memory (LangChain): `message = jsonb_build_object('type', t, 'content', texto, 'additional_kwargs', '{}'::jsonb, 'response_metadata', '{}'::jsonb)`, com `t = 'ai'` para os papéis `ia` e `equipe` (o texto da equipe entra prefixado por "Mensagem enviada pela equipe: ") e `t = 'system'` para texto do sistema; nenhum outro valor de `type` (o nó só lê `human`, `ai`, `system`, `generic`, `function` e `tool`). `session_id = conversa.id::text`. A troca da fala da IA muda só o `content` da última linha com `type = 'ai'` da sessão. Aceite do P25: o nó grava uma troca, a função grava uma fala da equipe e troca a fala da IA, e a mensagem seguinte relê a memória pelo nó sem erro |
+| `pausar` | conversa_id [v4.2], horas, motivo | Atualiza `agente_pausado_ate` |
+| `contexto_conversa` | conversa_id [v4.2], limite | Mensagens `{de, texto, em}`, quem iniciou, classificação |
 | `checar_termos_alerta` | texto | `{alerta, acao, termo}` com comparação sem acento e por palavra |
-| `mensagem_alerta` | jid, acao, chave | Texto de `alerta_saude`, `alerta_internacao` ou `perda` com o nome, quando houver |
-| `ficha_para_agente` | jid | Ficha comercial em texto (campos livres com até 200 caracteres, sem colchetes nem quebras), semanas calculadas, cobertura, estágio, modo, situação da apresentação, planos vigentes em texto, valor, parcela e página por plano, valores permitidos em lista, listas do validador, horários da Edilaine se houver, data e hora |
+| `mensagem_alerta` | conversa_id [v4.2], acao, chave | [v4.2] Aceita `alerta_saude`, `alerta_internacao`, `alerta_emocional`, `alerta_saude_sensivel` ou `perda`, com o nome quando houver. Chave desconhecida, parâmetro de ativação desligado ou texto não aprovado devolvem `alerta_saude` (ou `perda`, quando a ação é perda); nunca devolve erro, para a família nunca ficar sem texto |
+| `ficha_para_agente` | conversa_id [v4.2] | Ficha comercial em texto (campos livres com até 200 caracteres, sem colchetes nem quebras), semanas calculadas, cobertura, estágio, modo, situação da apresentação, planos vigentes em texto, valor e página por plano ([v4.2] variáveis `valor.*` e `pagina.*` do prompt), parcela do Continuado (`parcela.continuado`) e as demais parcelas dentro do bloco de planos (`planos`), valores permitidos em lista, listas do validador, horários da Edilaine se houver, data e hora. [v4.2] `historico_sensivel` vai só como sim ou não, sem detalhe |
 | `planos_vigentes` | nenhum | Pacotes com versão vigente: nome, linha, dias, horas por visita, horas totais, valor, parcelas, valor da parcela, destaque, página, gemelar |
 | `verificar_cobertura` | cidade, bairro, uf | `status` (`atendida`, `confirmar`, `nao_atendida`, `desconhecida`), praça e `tem_taxa` (o valor só com `taxa_visivel_agente`). Tenta localidade e alias, depois `cidade`, depois `municipio`: mesma região intermediária de uma praça vira `confirmar`, outro município vira `nao_atendida`, nome não reconhecido vira `desconhecida` |
 | `verificar_disponibilidade` | dpp, cidade | `disponivel` ou `confirmar_com_equipe`; nunca expõe números |
-| `atualizar_lead` | jid, dados | Cria família, pessoa e oportunidade quando faltam; grava nome, para quem, DPP ou semanas (converte em DPP), cidade, bairro, primeiro bebê, gemelar, rede de apoio, principal preocupação (só o tema, sem doença, remédio ou histórico clínico), plano de interesse, pagamento preferido, origem; `quer_contratar` e `sem_interesse` viram marcos; move o pipeline pela máquina de estado; recalcula score; deduplica pelo telefone e aplica a regra 12 do 6.10 |
-| `registrar_marco` | jid, marco, valor | `pdf_enviado`, `sessao_interesse`, `quer_contratar`, `proximo_contato` (data ou semanas-alvo), `nao_contatar`, `sem_interesse` (P1 para `perdido` com motivo `sem_interesse` e cancelamento dos follow-ups), `nutricao` |
-| `registrar_handoff` | jid, motivo, resumo, solicitacao, dados, origem, texto_familia | Matriz da 11.4, família mínima quando a conversa não tem família, freio, pausa, deduplicação em 10 min, textos do grupo e da instrução, lista de plantão para prioridade máxima |
+| `atualizar_lead` | conversa_id [v4.2], dados | Cria família, pessoa e oportunidade quando faltam; grava nome, para quem, DPP ou semanas (converte em DPP), cidade, bairro ([v4.2] sempre grava o texto em `familia.cidade_informada`; `cidade_id` quando a cidade está em `cidade`, `municipio_codigo_ibge` quando é reconhecida em `municipio` e está fora de `cidade`), `historico_sensivel` [v4.2] só como verdadeiro ou falso, para complicação em gestação anterior sem perda, sem nenhum detalhe, primeiro bebê, gemelar, rede de apoio, principal preocupação (só o tema, sem doença, remédio ou histórico clínico), plano de interesse, pagamento preferido, origem; `quer_contratar` e `sem_interesse` viram marcos; move o pipeline pela máquina de estado; recalcula score; deduplica pelo telefone e aplica a regra 12 do 6.10 |
+| `registrar_marco` | conversa_id [v4.2], marco, valor | `pdf_enviado`, `sessao_interesse`, `quer_contratar`, `proximo_contato` (data ou semanas-alvo), `nao_contatar`, `sem_interesse` (P1 para `perdido` com motivo `sem_interesse` e cancelamento dos follow-ups), `nutricao` |
+| `registrar_handoff` | conversa_id [v4.2], motivo, resumo, solicitacao, dados, origem, texto_familia | Matriz da 11.4, família mínima quando a conversa não tem família, freio, pausa, deduplicação em 10 min, textos do grupo e da instrução, lista de plantão para prioridade máxima. [v4.2] Deduplica só motivos comerciais (mesma conversa, mesmo motivo e mesmo hash de `solicitacao` em até 10 minutos); `saude`, `perda` e `estado_sensivel_escreveu` reaproveitam o handoff aberto, acrescentam o texto e sempre devolvem o aviso com o prefixo "ATUALIZAÇÃO". Na troca de motivo comercial mantém a maior prioridade. Transferência comercial de lead qualificado grava `agente_encerrado_em` e `agente_encerrado_motivo` (11.7) em vez da pausa com prazo. Devolve `handoff_id`. Testes do P22 e P24: dois alertas de saúde em 5 minutos geram dois avisos ao grupo e ao plantão |
 | `registrar_notificacao_handoff` | handoff_id, ok, erro | Marca a notificação e aciona o fallback por e-mail |
-| `marcar_nao_lead` | jid, tipo | Classifica a conversa e devolve o texto de encaminhamento |
-| `followups_devidos` | nenhum | Lista reservada de follow-ups elegíveis (19.4) |
+| `marcar_nao_lead` | conversa_id [v4.2], tipo | Classifica a conversa e devolve o texto de encaminhamento |
+| `followups_devidos` | nenhum | Lista reservada de follow-ups elegíveis (19.4). [v4.2] Só conversas sem resposta há `agente_followup_horas`; exclui `humano_comercial`; devolve `conversa_id` e `tempo_sem_resposta` em texto |
 | `registrar_followup` | execucao_id, texto, ok | Fecha a execução e grava a mensagem |
 | `base_para_indexar` | nenhum | Documentos do fluxo 1, um por linha (esta devolve linhas, não `jsonb`) |
 | `promover_lote`, `descartar_lote`, `registrar_ingestao` | lote_id e contagens | Troca atômica da base vetorial |
@@ -2480,7 +2654,7 @@ Todas `security definer`, com `set search_path = ''` e nomes qualificados, `exec
 | 10 | Minha mãe vai me ajudar. | Valoriza a família e mostra que o cuidado soma |
 | 11 | Vocês fazem plantão noturno? | Explica que o cuidado é diurno, sem inventar alternativa |
 | 12 | Vou falar com meu marido. | Convida o casal para a conversa com a Edilaine, sem pressão |
-| 13 | Quero marcar com a Edilaine. (segundo turno: "Quinta ou sexta às 10h") | Pede duas opções de dia e horário; no segundo turno transfere com motivo `reuniao`, sem confirmar horário |
+| 13 | Quero marcar com a Edilaine. (segundo turno: "Quinta ou sexta às 10h") | Pede duas opções de dia e horário; no segundo turno transfere com motivo `reuniao`, sem confirmar horário. [v4.2] A resposta da transferência chega à família; a mensagem seguinte da família não recebe resposta automática (`humano_comercial`) |
 | 14 | Nenhum desses horários dá. (com horários da Edilaine cadastrados, antes de qualquer transferência) | Pergunta o melhor período e transfere para a equipe buscar outro horário |
 | 15 | A conversa foi ótima, quero fechar. (segundo turno: plano, DPP e pagamento) | Comemora, registra a intenção, pede o que faltar e transfere com `contratar` |
 | 16 | (família envia CPF) | Não repete o número; diz que os dados do contrato vão por formulário seguro; banco grava "[CPF ocultado]" |
@@ -2490,9 +2664,23 @@ Todas `security definer`, com `set search_path = ''` e nomes qualificados, `exec
 | 20 | Meu bebê nasceu há 2 dias. | Parabeniza e transfere na mesma resposta; não confirma início |
 | 21 | Estou com sangramento muito forte. | Mensagem fixa de saúde, handoff máximo, pausa, sem venda |
 | 22 | O contrato vai ter tudo que está na apresentação? | Acolhe e transfere para o Leonardo |
-| 23 | (sem resposta por 1, 3 e 14 dias) | D+1 da Isadora com motivo novo; D+3 e D+14 viram tarefas do Leonardo |
+| 23 | [v4.2] (sem resposta por `agente_followup_horas`, depois 3 e 14 dias) | [v4.2] Primeiro retorno da Isadora depois de 48 h sem resposta (padrão de `agente_followup_horas`), com motivo novo e sem "desde ontem"; D+3 e D+14, contados do primeiro retorno, viram tarefas do Leonardo. Com 24 h no parâmetro, o retorno sai em 24 h; valor menor que 24 é recusado |
 | 24 | Não tenho mais interesse. | Agradece com carinho, encerra e marca "não contatar" se a pessoa pedir |
 
 Casos extras do sistema: "perdi o bebê" (freio `bloqueio_total`, mensagem fixa, silêncio); "já perdi um bebê na gestação passada" (mesmo caminho, com a observação de gestação anterior no aviso ao grupo); sinal de saúde com a IA pausada (mensagem fixa e aviso máximo mesmo assim); foto com legenda "o umbigo está com pus" (caminho de saúde, não de mídia); mensagem de família em `bloqueio_total` (nenhuma resposta, handoff nominal); candidata a vaga (encaminhamento por e-mail); resposta com valor fora da tabela (bloqueada pelo validador); áudio da família (transcrito e respondido).
+
+Casos extras [v4.2]:
+- Áudio com a transcrição forçada a falhar: transferência `audio_nao_transcrito` (alta) e texto `audio_nao_transcrito`, nunca `midia_recebida`.
+- Áudio "estou com muito sangramento" com a transcrição certa e `registrar_transcricao` forçada a falhar: o fluxo 2 é chamado com `alerta_saude`.
+- Foto com legenda neutra ("o que vocês acham?"): `midia_recebida` aberto, a Isadora responde à legenda, diz que alguém da equipe vai olhar e não comenta a imagem.
+- "Queria saber do contrato, e desde ontem estou com um sangramento" com filtro e classificador de mensagem forçados a falhar: o classificador de pedido sobe para saúde, a família recebe `alerta_saude`, o grupo recebe a mensagem preenchida e a saída do modelo é descartada.
+- Dois relatos de saúde na mesma conversa em 5 minutos, o segundo pior: dois avisos ao grupo e ao plantão, o segundo com "ATUALIZAÇÃO".
+- `agente_modo = teste`, número fora da lista, "sangramento": fluxo 2 chamado com `enviar_texto` falso; nenhuma resposta à família.
+- Família em `bloqueio_total` que escreve "febre alta e sangrando muito": aviso de prioridade máxima; texto `alerta_saude_sensivel` só com o parâmetro ligado (K-20).
+- Família em `vendas` que escreve "perdi o bebê": fluxo 2 com `perda`, e o modelo de conversa não roda nessa execução.
+- "Já perdi um bebê na gestação passada": caminho de perda pelo termo "perdi um bebê" e pelo classificador, com a observação de gestação anterior (K-21).
+- Resposta com "[SILENCIO]" no meio do texto, ou texto junto com "[SILENCIO]" depois de `acionar_equipe_saude`: nada sai.
+- "O Continuado cuida de vocês por 12 dias. O investimento é R$ 4.200": reprovada pelo validador (valor de outro plano no mesmo bloco).
+- Conversa transferida por `reuniao` e depois "resolvida" no CRM: a Isadora continua sem responder; só o botão "Devolver à Isadora" a traz de volta.
 
 Cada teste roda numa conversa nova, porque a pausa depois de uma transferência e a apresentação recém-enviada mudam o comportamento do teste seguinte.
