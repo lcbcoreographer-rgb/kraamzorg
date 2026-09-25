@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Coordenação · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/icones.js"></script>
+<style>
+  .indice { display: flex; flex-direction: column; gap: var(--e-3); max-width: 640px; }
+</style>
+</head>
+<body>
+<main class="app__principal" style="max-width: 720px; margin: 0 auto; padding: var(--e-8) var(--margem-tela)">
+  <p class="apoio" style="margin-bottom: var(--e-2)">docs/design/telas.md define sete telas para o grupo coordenacao, não uma só. Esta página é só o índice entre elas.</p>
+  <h1 class="t-display" style="margin-bottom: var(--e-6)">Coordenação</h1>
+  <nav class="indice" aria-label="Telas da coordenação">
+    <a class="cartao cartao--tocavel linha-flex" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg><span><span class="forte">K1 · Início</span><br><span class="apoio">O que pede decisão hoje</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+    <a class="cartao cartao--tocavel linha-flex" href="coordenacao-equipe.html"><svg class="icone"><use href="#i-user-check"/></svg><span><span class="forte">K2 · Equipe</span><br><span class="apoio">Estado de cada enfermeira, hoje e na semana</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+    <a class="cartao cartao--tocavel linha-flex" href="coordenacao-designar.html"><svg class="icone"><use href="#i-users"/></svg><span><span class="forte">K3 · Designar enfermeira</span><br><span class="apoio">Titular e backup para uma família</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+    <a class="cartao cartao--tocavel linha-flex" href="coordenacao-entrevista.html"><svg class="icone"><use href="#i-clipboard-list"/></svg><span><span class="forte">K4 · Entrevista pré-natal</span><br><span class="apoio">DOC 1, em sequência lógica</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+    <a class="cartao cartao--tocavel linha-flex" href="coordenacao-alerta.html"><svg class="icone"><use href="#i-siren"/></svg><span><span class="forte">K5 · Alerta clínico</span><br><span class="apoio">Acompanhar e fechar um alerta</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+    <a class="cartao cartao--tocavel linha-flex" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg><span><span class="forte">K6 · Radar de nascimentos</span><br><span class="apoio">Janelas de DPP e ocupação por praça</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+    <a class="cartao cartao--tocavel linha-flex" href="coordenacao-freio.html"><svg class="icone"><use href="#i-octagon-pause"/></svg><span><span class="forte">K7 · Freio: reverter ou ajustar</span><br><span class="apoio">Tirar ou mudar o estado sensível</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+  </nav>
+</main>
+</body>
+</html>
