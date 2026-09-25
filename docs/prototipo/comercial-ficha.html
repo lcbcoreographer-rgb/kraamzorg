@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Ficha da família · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/icones.js"></script>
+<!--
+  C4 · Ficha 360, visão do comercial (docs/design/telas.md, fluxo D). Momento: 24/09/2026, 15:26, logo depois de assumir a transferência.
+  Abas do comercial: Linha do tempo, Comercial, Conversas, Financeiro (sem Pré-natal e Atendimento, PRD 13).
+  Freio: um toque, sem pergunta (PRD 8.3). O "Desfazer" de 10 s para quem acionou é proposta pendente de decisão do cliente
+  (telas.md, decisões, item 1). Dados do contrato aparecem mascarados; ver completo gera registro de leitura.
+  A Dália ainda não preencheu o formulário do contrato; o estado "preenchido e mascarado" está na seção Estados.
+-->
+<style>
+  .c4-ainda { display: inline-flex; align-self: flex-start; padding: 0 var(--e-2); border: 1.5px dashed var(--marinho-50); border-radius: var(--raio-1); font-family: var(--fonte-ui); font-size: var(--tam-apoio); font-weight: 500; color: var(--marinho-72); }
+  .familia-cab[data-freio="ativo"] .c4-ainda { border-color: var(--creme-62); color: var(--texto-inverso); }
+  .c4-freio-texto { flex-basis: 100%; font-weight: 500; }
+  .familia-cab[data-freio="ativo"] .selo { background: var(--superficie); color: var(--sensivel); }
+
+  .c4-painel { display: flex; flex-direction: column; gap: var(--e-5); padding-top: var(--e-5); }
+  .c4-painel:focus-visible { box-shadow: none; outline-offset: 4px; }
+
+  /* Linha do tempo com a régua como espinha, na vertical */
+  .c4-linha { display: flex; flex-direction: column; }
+  .c4-marco { display: grid; grid-template-columns: 8px minmax(0, 1fr); gap: var(--e-4); }
+  .c4-marco__espinha { border-radius: var(--raio-pilula); margin: 4px 0; background: var(--marinho); }
+  .c4-marco[data-estado="hoje"] .c4-marco__espinha { background: var(--dourado); }
+  .c4-marco[data-estado="futuro"] .c4-marco__espinha { background: transparent; border: 1.5px dashed var(--marinho-50); }
+  .c4-marco__corpo { display: flex; flex-direction: column; gap: 2px; padding: var(--e-2) 0 var(--e-4); }
+  .c4-marco__quando { font-family: var(--fonte-dado); font-variant-numeric: tabular-nums; font-size: var(--tam-mini); font-weight: 500; color: var(--texto-2); }
+  .c4-marco__quando--texto { font-family: var(--fonte-ui); font-size: var(--tam-mini); }
+  .c4-marco__titulo { font-weight: 600; }
+  .c4-marco[data-estado="futuro"] .c4-marco__titulo { font-weight: 500; color: var(--texto-2); }
+  .c4-marco__quem { display: inline-flex; align-items: center; gap: var(--e-1); }
+
+  .c4-lateral { display: flex; flex-direction: column; gap: var(--e-4); }
+  .c4-bloco { display: flex; flex-direction: column; gap: var(--e-3); }
+  .c4-bloco__cab { display: flex; align-items: center; gap: var(--e-2); }
+  .c4-pessoa { display: flex; flex-direction: column; gap: 2px; padding-bottom: var(--e-3); border-bottom: var(--borda-fina); }
+  .c4-pessoa:last-child { border-bottom: 0; padding-bottom: 0; }
+  .c4-mascara { font-family: var(--fonte-dado); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+
+  .c-estados { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); margin-top: var(--e-8); border-top: var(--borda-fina); }
+  .c-estados__grade { display: grid; gap: var(--e-6); }
+  @media (min-width: 900px) { .c-estados__grade { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .c-estado__titulo { font-size: var(--tam-apoio); font-weight: 600; color: var(--texto-2); margin-bottom: var(--e-2); }
+  .c-estados .familia-cab { margin: 0; border-radius: var(--raio-3); padding: var(--e-4); }
+</style>
+</head>
+<body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<div class="app">
+
+  <nav class="lateral" aria-label="Navegação principal">
+    <div class="lateral__marca">
+      <img src="assets/simbolo-provisorio.png" alt="" width="36" height="26">
+      <span class="lateral__nome">Kraamzorg OS</span>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Comercial</span>
+      <a class="lateral__item" href="comercial-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">1</span></a>
+      <a class="lateral__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
+      <a class="lateral__item" href="comercial-conversas.html"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
+      <a class="lateral__item" href="comercial-ficha.html" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Agente</span>
+      <a class="lateral__item" href="comercial-agente-regras.html"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Sistema</span>
+      <a class="lateral__item" href="_kit.html"><svg class="icone"><use href="#i-layout-dashboard"/></svg>Kit de componentes</a>
+      <a class="lateral__item" href="entrar.html"><svg class="icone"><use href="#i-log-out"/></svg>Sair</a>
+    </div>
+    <div class="lateral__pe">
+      <div class="forte">Otávio Lemos</div>
+      <div class="mini" style="color: var(--texto-inverso-2)">Comercial e diretoria</div>
+    </div>
+  </nav>
+
+  <main class="app__principal" id="conteudo">
+    <header class="cab-tela">
+      <a class="botao botao--terciario botao--compacto" href="comercial-pipeline.html"><svg class="icone"><use href="#i-arrow-left"/></svg>Pipeline</a>
+      <span class="sinc empurra" data-estado="sincronizado" role="status"><svg class="icone"><use href="#i-cloud-check"/></svg>Atualizado 15:26</span>
+    </header>
+
+    <div class="pilha pilha--6" style="padding-top: var(--e-4)">
+      <div class="familia-cab" id="cab" aria-live="polite">
+        <div>
+          <h1 class="familia-cab__nome">Família Teste Dália</h1>
+          <div class="familia-cab__linha">
+            <span class="selo selo--marinho" data-estagio>Qualificado</span>
+            <span class="dado" title="Calculada da DPP 15/11/2026">32s4d</span>
+            <span>Pinheiros, São Paulo</span>
+            <span class="c4-freio-texto" data-freio-texto hidden></span>
+          </div>
+        </div>
+        <button class="botao-freio" type="button" id="freio" aria-label="Freio: pausa na hora todas as mensagens automáticas para esta família">
+          <svg class="icone"><use href="#i-hand"/></svg>Freio
+        </button>
+        <dl class="familia-cab__datas">
+          <div class="data-chave"><dt class="data-chave__rotulo">DPP</dt><dd class="data-chave__valor">15/11/2026</dd><dd class="data-chave__tipo">estimativa</dd></div>
+          <div class="data-chave"><dt class="data-chave__rotulo">Nascimento</dt><dd class="c4-ainda">ainda não</dd><dd class="data-chave__tipo">fato</dd></div>
+          <div class="data-chave"><dt class="data-chave__rotulo">Alta</dt><dd class="c4-ainda">ainda não</dd><dd class="data-chave__tipo">fato</dd></div>
+          <div class="data-chave"><dt class="data-chave__rotulo">Início</dt><dd class="c4-ainda">ainda não</dd><dd class="data-chave__tipo">fato</dd></div>
+        </dl>
+      </div>
+
+      <div class="faixa faixa--sensivel" id="tarefa-freio" hidden>
+        <svg class="icone"><use href="#i-octagon-pause"/></svg>
+        <div>
+          <p class="faixa__titulo">Justificar o freio</p>
+          <p class="faixa__texto">Tarefa criada para você, até hoje às 18:00. Justificar depois é normal; o que importava era parar as mensagens.</p>
+          <div class="faixa__acoes"><a class="botao botao--compacto" href="comercial-inicio.html">Escrever justificativa</a></div>
+        </div>
+      </div>
+
+      <div class="duas-colunas">
+        <div>
+          <div class="abas" role="tablist" aria-label="Ficha da família">
+            <button class="abas__item" role="tab" id="a-tempo" aria-controls="p-tempo" aria-selected="true">Linha do tempo</button>
+            <button class="abas__item" role="tab" id="a-com" aria-controls="p-com" aria-selected="false" tabindex="-1">Comercial</button>
+            <button class="abas__item" role="tab" id="a-conv" aria-controls="p-conv" aria-selected="false" tabindex="-1">Conversas</button>
+            <button class="abas__item" role="tab" id="a-fin" aria-controls="p-fin" aria-selected="false" tabindex="-1">Financeiro</button>
+          </div>
+
+          <section class="c4-painel" id="p-tempo" role="tabpanel" aria-labelledby="a-tempo" tabindex="0">
+            <ol class="c4-linha" aria-label="Marcos da Família Teste Dália">
+              <li class="c4-marco" data-estado="feito"><span class="c4-marco__espinha" aria-hidden="true"></span><div class="c4-marco__corpo"><span class="c4-marco__quando">02/09/2026, 09:31</span><span class="c4-marco__titulo">Entrou pelo Instagram</span><span class="apoio">Mensagem pelo link do perfil. A Isadora respondeu em 1 minuto.</span></div></li>
+              <li class="c4-marco" data-estado="feito"><span class="c4-marco__espinha" aria-hidden="true"></span><div class="c4-marco__corpo"><span class="c4-marco__quando">03/09/2026, 10:00</span><span class="c4-marco__titulo">Follow-up D+1 da Isadora</span><span class="apoio">Sem resposta. Ficou em Em conversa.</span></div></li>
+              <li class="c4-marco" data-estado="feito"><span class="c4-marco__espinha" aria-hidden="true"></span><div class="c4-marco__corpo"><span class="c4-marco__quando">19/09/2026, 20:05</span><span class="c4-marco__titulo">Qualificada pela Isadora</span><span class="apoio">Voltou a escrever com <span class="dado">31s6d</span>. Pinheiros, cobertura confirmada, primeiro bebê.</span></div></li>
+              <li class="c4-marco" data-estado="feito"><span class="c4-marco__espinha" aria-hidden="true"></span><div class="c4-marco__corpo"><span class="c4-marco__quando">19/09/2026, 20:12</span><span class="c4-marco__titulo">Apresentação enviada</span><span class="apoio">PDF oficial, antes de qualquer valor. Imersão na página 11.</span></div></li>
+              <li class="c4-marco" data-estado="feito"><span class="c4-marco__espinha" aria-hidden="true"></span><div class="c4-marco__corpo"><span class="c4-marco__quando">24/09/2026, 14:02</span><span class="c4-marco__titulo">Transferida ao comercial: quer contratar</span><span class="apoio">Imersão no Pix. A Isadora saiu da conversa e não volta sozinha.</span></div></li>
+              <li class="c4-marco" data-estado="hoje" aria-current="step"><span class="c4-marco__espinha" aria-hidden="true"></span><div class="c4-marco__corpo"><span class="c4-marco__quando">24/09/2026, 15:25</span><span class="c4-marco__titulo">Otávio Lemos assumiu a conversa</span><span class="apoio">Dentro do prazo, 37 minutos antes de vencer.</span></div></li>
+              <li class="c4-marco" data-estado="futuro"><span class="c4-marco__espinha" aria-hidden="true"></span><div class="c4-marco__corpo"><span class="c4-marco__quando c4-marco__quando--texto">Próximo passo</span><span class="c4-marco__titulo">Formulário do contrato</span><span class="apoio">Link seguro de uso único. Os dados voltam para esta ficha, mascarados.</span></div></li>
+              <li class="c4-marco" data-estado="futuro"><span class="c4-marco__espinha" aria-hidden="true"></span><div class="c4-marco__corpo"><span class="c4-marco__quando c4-marco__quando--texto">Depois</span><span class="c4-marco__titulo">Contrato, pagamento e pré-natal com a coordenação</span></div></li>
+              <li class="c4-marco" data-estado="futuro"><span class="c4-marco__espinha" aria-hidden="true"></span><div class="c4-marco__corpo"><span class="c4-marco__quando c4-marco__quando--texto">Quando a família avisar</span><span class="c4-marco__titulo">Nascimento e alta</span><span class="apoio">Entram como fato. Nenhuma automação dispara pela DPP.</span></div></li>
+            </ol>
+          </section>
+
+          <section class="c4-painel" id="p-com" role="tabpanel" aria-labelledby="a-com" tabindex="0" hidden>
+            <dl class="pares">
+              <dt>Plano de interesse</dt><dd>Imersão, 6 dias de 6 horas</dd>
+              <dt>Valor</dt><dd><span class="dado">R$ 7.800</span> ou 3x de <span class="dado">R$ 2.600</span> sem juros</dd>
+              <dt>Pagamento preferido</dt><dd>Pix</dd>
+              <dt>Para quem</dt><dd>A própria gestante</dd>
+              <dt>Temperatura</dt><dd>Quente</dd>
+              <dt>Rede de apoio</dt><dd>Parceiro em casa na primeira semana</dd>
+              <dt>Principal preocupação</dt><dd>Amamentação nos primeiros dias</dd>
+              <dt>Conversa com a coordenação</dt><dd>Preferiu fechar sem a conversa</dd>
+              <dt>Responsável</dt><dd>Otávio Lemos</dd>
+            </dl>
+            <div class="cartao cartao--plano pilha pilha--2" data-sugestao>
+              <p class="forte">Próximo passo</p>
+              <p class="apoio">Mandar o formulário seguro do contrato. O texto sugerido já vem pronto na conversa.</p>
+              <a class="botao botao--compacto" href="comercial-conversa.html" style="align-self: flex-start"><svg class="icone"><use href="#i-file-text"/></svg>Enviar formulário do contrato</a>
+            </div>
+          </section>
+
+          <section class="c4-painel" id="p-conv" role="tabpanel" aria-labelledby="a-conv" tabindex="0" hidden>
+            <div class="conversa" aria-label="Últimas mensagens no WhatsApp">
+              <div class="bolha bolha--familia">Quero fechar o Imersão. Posso pagar no Pix?<div class="bolha__hora">14:01</div></div>
+              <div class="bolha bolha--isadora"><div class="bolha__autor"><svg class="icone icone--16"><use href="#i-bot"/></svg>Isadora (IA)</div>Que notícia boa, Bianca. O Otávio vai seguir com vocês por aqui, começando por um formulário seguro para os dados do contrato.<div class="bolha__hora">14:02</div></div>
+              <span class="evento-conversa"><svg class="icone icone--16"><use href="#i-user-check"/></svg>Otávio Lemos assumiu às 15:25</span>
+            </div>
+            <a class="botao botao--compacto" href="comercial-conversa.html" style="align-self: flex-start"><svg class="icone"><use href="#i-message-circle"/></svg>Abrir a conversa</a>
+          </section>
+
+          <section class="c4-painel" id="p-fin" role="tabpanel" aria-labelledby="a-fin" tabindex="0" hidden>
+            <div class="vazio">
+              <svg class="icone icone--24"><use href="#i-file-text"/></svg>
+              <p class="vazio__titulo">Nenhuma cobrança ainda</p>
+              <p class="vazio__texto">A cobrança nasce quando o contrato for assinado. Aqui você vê o estado dela; valores pagos e nota ficam com o financeiro.</p>
+            </div>
+          </section>
+        </div>
+
+        <aside class="c4-lateral" aria-label="Pessoas e dados do contrato">
+          <section class="cartao c4-bloco" aria-labelledby="t-pessoas">
+            <div class="c4-bloco__cab"><svg class="icone"><use href="#i-users"/></svg><h2 class="t-3" id="t-pessoas">Pessoas</h2></div>
+            <div class="c4-pessoa">
+              <span class="forte">Bianca Teste</span>
+              <span class="apoio">Gestante e contratante.</span>
+              <a class="dado" href="tel:+5511900000014">+55 11 90000-0014</a>
+            </div>
+            <div class="c4-pessoa">
+              <span class="apoio">Parceiro ou parceira</span>
+              <span class="c4-ainda">não informado</span>
+            </div>
+          </section>
+
+          <section class="cartao c4-bloco" aria-labelledby="t-contrato">
+            <div class="c4-bloco__cab"><svg class="icone"><use href="#i-lock"/></svg><h2 class="t-3" id="t-contrato">Dados do contrato</h2></div>
+            <dl class="pares">
+              <dt>CPF</dt><dd><span class="c4-ainda">aguardando</span></dd>
+              <dt>Endereço</dt><dd><span class="c4-ainda">aguardando</span></dd>
+            </dl>
+            <p class="apoio">Chegam pelo formulário seguro e ficam mascarados aqui. Ninguém pede CPF pela conversa.</p>
+          </section>
+        </aside>
+      </div>
+    </div>
+
+    <!-- ---------- Estados ---------- -->
+    <section class="c-estados" aria-labelledby="t-estados">
+      <h2 class="t-2" id="t-estados">Estados</h2>
+      <div class="c-estados__grade">
+        <div>
+          <p class="c-estado__titulo">Freio recém-acionado</p>
+          <div class="pilha pilha--2">
+            <div class="familia-cab" data-freio="ativo">
+              <div>
+                <p class="familia-cab__nome">Família Teste Dália</p>
+                <div class="familia-cab__linha"><span>Freio em bloqueio total desde 24/09/2026, 15:27. Só contato humano e nominal.</span></div>
+              </div>
+              <span class="freio-ativo"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio ativo</span>
+            </div>
+            <div class="aviso-efemero aviso-efemero--estatico">
+              <svg class="icone"><use href="#i-octagon-pause"/></svg>
+              <span>Freio acionado. Nenhuma mensagem automática sai para a Família Teste Dália.</span>
+              <button class="botao botao--compacto empurra" type="button">Desfazer <span class="dado">10 s</span></button>
+            </div>
+          </div>
+        </div>
+
+        <div id="estado-freio">
+          <p class="c-estado__titulo">Freio ativo</p>
+          <div class="pilha pilha--2">
+            <div class="familia-cab" data-freio="ativo">
+              <div>
+                <p class="familia-cab__nome">Família Teste Brisa</p>
+                <div class="familia-cab__linha"><span class="selo">Aguardando nascimento</span><span class="dado">38s6d</span><span>Pinheiros, São Paulo</span></div>
+                <div class="familia-cab__linha"><span>Freio em bloqueio total desde 24/09/2026, 09:14. Só contato humano e nominal.</span></div>
+              </div>
+              <span class="freio-ativo"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio ativo</span>
+              <dl class="familia-cab__datas">
+                <div class="data-chave"><dt class="data-chave__rotulo">DPP</dt><dd class="data-chave__valor">02/10/2026</dd><dd class="data-chave__tipo">estimativa</dd></div>
+                <div class="data-chave"><dt class="data-chave__rotulo">Nascimento</dt><dd class="c4-ainda">ainda não</dd><dd class="data-chave__tipo">fato</dd></div>
+              </dl>
+            </div>
+            <div class="faixa faixa--sensivel">
+              <svg class="icone"><use href="#i-octagon-pause"/></svg>
+              <div>
+                <p class="faixa__titulo">Justificar o freio</p>
+                <p class="faixa__texto">Você acionou às 09:14. Escreva o motivo até hoje, 18:00. Reverter é com a coordenação ou a diretoria.</p>
+                <div class="faixa__acoes"><a class="botao botao--compacto" href="comercial-inicio.html">Escrever justificativa</a></div>
+              </div>
+            </div>
+            <p class="apoio">Follow-up, régua, pesquisa e indicação aparecem como pausados pelo freio. Mensagem só por uma pessoa, pelo nome.</p>
+          </div>
+        </div>
+
+        <div>
+          <p class="c-estado__titulo">Carregando</p>
+          <div class="pilha pilha--2" aria-busy="true" aria-label="Carregando ficha">
+            <div class="cartao cartao--areia pilha pilha--2">
+              <span class="esqueleto esqueleto--titulo" style="width: 55%; background: var(--superficie)"></span>
+              <span class="esqueleto esqueleto--linha" style="width: 40%; background: var(--superficie)"></span>
+              <span class="esqueleto esqueleto--linha" style="width: 80%; background: var(--superficie)"></span>
+            </div>
+            <span class="esqueleto esqueleto--linha" style="width: 30%"></span>
+            <span class="esqueleto esqueleto--bloco"></span>
+          </div>
+        </div>
+
+        <div>
+          <p class="c-estado__titulo">Duplicata detectada</p>
+          <div class="faixa faixa--prioritario">
+            <svg class="icone"><use href="#i-copy"/></svg>
+            <div>
+              <p class="faixa__titulo">Parece a mesma família que a Família Teste Ipê</p>
+              <p class="faixa__texto">O nome da gestante e o bairro batem, e os telefones são diferentes. Compare antes de unir: a união junta conversas e linha do tempo e não se desfaz sozinha.</p>
+              <div class="faixa__acoes">
+                <button class="botao botao--compacto" type="button"><svg class="icone"><use href="#i-copy"/></svg>Comparar e unir</button>
+                <button class="botao botao--terciario botao--compacto" type="button">Não é a mesma</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p class="c-estado__titulo">Dados do contrato preenchidos</p>
+          <section class="cartao c4-bloco" aria-label="Dados do contrato, mascarados">
+            <div class="c4-bloco__cab"><svg class="icone"><use href="#i-lock"/></svg><span class="t-3">Dados do contrato</span><span class="selo selo--sucesso empurra">Formulário preenchido</span></div>
+            <dl class="pares" id="dados-mascarados">
+              <dt>CPF</dt><dd class="c4-mascara" data-real="000.000.001-91">•••.•••.•••-91</dd>
+              <dt>Endereço</dt><dd data-real="Rua Fictícia dos Ipês, 88, apto 41, Pinheiros, São Paulo">Rua Fictícia dos Ipês, •••, Pinheiros</dd>
+              <dt>E-mail</dt><dd data-real="bianca.teste@exemplo.com.br">b•••@exemplo.com.br</dd>
+            </dl>
+            <button class="botao botao--terciario botao--compacto" type="button" id="ver-dados" style="align-self: flex-start"><svg class="icone"><use href="#i-lock"/></svg>Ver dados completos</button>
+            <p class="apoio" id="ver-dados-nota">Ver os dados completos fica registrado no histórico, com seu nome e a hora.</p>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="abas-inf" aria-label="Navegação principal">
+    <a class="abas-inf__item" href="comercial-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">1</span></a>
+    <a class="abas-inf__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
+    <a class="abas-inf__item" href="comercial-conversas.html"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
+    <a class="abas-inf__item" href="comercial-ficha.html" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="comercial.html"><svg class="icone"><use href="#i-ellipsis"/></svg>Mais</a>
+  </nav>
+
+  <div class="aviso-efemero" id="aviso" role="status" hidden>
+    <svg class="icone"><use href="#i-octagon-pause"/></svg>
+    <span data-texto></span>
+    <button class="botao botao--compacto empurra" type="button" data-desfazer>Desfazer <span class="dado" data-seg>10 s</span></button>
+  </div>
+</div>
+
+<script>
+(function () {
+  // Abas da ficha
+  var abas = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  function escolher(i) {
+    abas.forEach(function (a, j) {
+      a.setAttribute('aria-selected', i === j ? 'true' : 'false');
+      a.tabIndex = i === j ? 0 : -1;
+      document.getElementById(a.getAttribute('aria-controls')).hidden = i !== j;
+    });
+  }
+  abas.forEach(function (a, i) {
+    a.addEventListener('click', function () { escolher(i); });
+    a.addEventListener('keydown', function (e) {
+      var n = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (n) { var k = (i + n + abas.length) % abas.length; escolher(k); abas[k].focus(); }
+    });
+  });
+
+  // Freio em um toque, sem pergunta
+  var cab = document.getElementById('cab');
+  var freio = document.getElementById('freio');
+  var texto = cab.querySelector('[data-freio-texto]');
+  var tarefa = document.getElementById('tarefa-freio');
+  var sugestao = document.querySelector('[data-sugestao]');
+  var sugestaoOriginal = sugestao.innerHTML;
+  var aviso = document.getElementById('aviso');
+  var seg = aviso.querySelector('[data-seg]');
+  var relogio = null;
+
+  function acionar() {
+    cab.dataset.freio = 'ativo';
+    texto.textContent = 'Freio em bloqueio total desde 24/09/2026, 15:27. Só contato humano e nominal.';
+    texto.hidden = false;
+    freio.outerHTML = '<span class="freio-ativo" id="freio"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio ativo</span>';
+    tarefa.hidden = false;
+    sugestao.innerHTML = '<p class="forte">Próximo passo pausado pelo freio</p><p class="apoio">Sem texto sugerido nem formulário automático. Se for preciso falar com a família, escreva você, pelo nome.</p>';
+    aviso.querySelector('[data-texto]').textContent = 'Freio acionado. Nenhuma mensagem automática sai para a Família Teste Dália.';
+    aviso.hidden = false;
+    var s = 10; seg.textContent = s + ' s';
+    clearInterval(relogio);
+    relogio = setInterval(function () {
+      s -= 1; seg.textContent = s + ' s';
+      if (s <= 0) { clearInterval(relogio); aviso.hidden = true; }
+    }, 1000);
+  }
+  function desfazer() {
+    clearInterval(relogio);
+    aviso.hidden = true;
+    delete cab.dataset.freio;
+    texto.hidden = true;
+    document.getElementById('freio').outerHTML = '<button class="botao-freio" type="button" id="freio" aria-label="Freio: pausa na hora todas as mensagens automáticas para esta família"><svg class="icone"><use href="#i-hand"/></svg>Freio</button>';
+    document.getElementById('freio').addEventListener('click', acionar);
+    tarefa.hidden = true;
+    sugestao.innerHTML = sugestaoOriginal;
+  }
+  freio.addEventListener('click', acionar);
+  aviso.querySelector('[data-desfazer]').addEventListener('click', desfazer);
+
+  // Dados do contrato: ver completo gera registro
+  var ver = document.getElementById('ver-dados');
+  ver.addEventListener('click', function () {
+    document.querySelectorAll('#dados-mascarados [data-real]').forEach(function (dd) { dd.textContent = dd.dataset.real; });
+    ver.hidden = true;
+    document.getElementById('ver-dados-nota').textContent = 'Leitura registrada às 15:28 por Otávio Lemos. Os dados voltam a ficar mascarados em 1 minuto.';
+  });
+})();
+</script>
+</body>
+</html>

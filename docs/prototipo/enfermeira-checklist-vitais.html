@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Checklist, sinais vitais · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/enfermeira.css">
+<script src="assets/icones.js"></script>
+<!--
+  E2 · Checklist, etapa 3 (sinais vitais da puérpera) com o alerta PU-01.
+  Fonte: telas.md E2, fluxos.md fluxo A (passos 2 a 6), PRD 9.2 bloco 2.1 e 9.3.
+  O checklist inteiro é navegável: Etapas no cabeçalho ou Voltar e Próxima etapa.
+  Para ver sem sinal desde o início: enfermeira-checklist-vitais.html?sinal=0
+  A tela principal abre com a temperatura de 38,2 °C já digitada hoje (estado típico do E2).
+-->
+</head>
+<body data-hora="10:09" data-sinc-inicial="local" class="com-barra-alta">
+<a class="pular" href="#cl-etapas">Pular para a etapa</a>
+<div class="app app--enf app--checklist">
+  <main class="app__principal cl" id="conteudo">
+
+    <header class="cl-cab" data-familia-cab data-familia="Família Teste Aurora">
+      <div class="cl-cab__topo">
+        <a class="botao botao--terciario botao--icone cl-cab__voltar" href="enfermeira-hoje.html" aria-label="Voltar para Hoje"><svg class="icone icone--24"><use href="#i-arrow-left"/></svg></a>
+        <div class="cl-cab__familia">
+          <p class="t-3">Família Teste Aurora</p>
+          <p class="mini"><span class="dado">D4</span> de 6, quinta 24/09</p>
+        </div>
+        <button class="botao-freio" type="button" data-freio-botao><svg class="icone"><use href="#i-hand"/></svg>Freio</button>
+      </div>
+      <p class="cl-cab__freio" data-freio-texto hidden></p>
+      <div class="cl-cab__linha">
+        <button class="sinc" type="button" data-sinc data-abre-fila></button>
+        <button class="botao botao--compacto cl-cab__etapas" type="button" data-abre-etapas><span data-etapa-rotulo>Etapa 3 de 8</span><svg class="icone"><use href="#i-chevron-down"/></svg></button>
+      </div>
+      <div class="blocos__trilha" style="--n: 8" aria-hidden="true" data-trilha></div>
+    </header>
+
+    <section class="faixa faixa--info cl-aviso-sinal" role="status" data-sem-sinal hidden>
+      <svg class="icone"><use href="#i-wifi-off"/></svg>
+      <div>
+        <p class="faixa__titulo">Sem sinal agora</p>
+        <p class="faixa__texto">O registro está salvo no aparelho e sobe sozinho quando a conexão voltar.</p>
+      </div>
+    </section>
+    <div id="cl-faixa-fixa"></div>
+    <div id="cl-etapas"></div>
+
+    <!-- ---------- Estados da etapa 3 ---------- -->
+    <section class="estados" aria-labelledby="estados-t">
+      <h2 class="t-2" id="estados-t">Estados desta etapa</h2>
+      <div class="estados__grade">
+
+        <div class="estado">
+          <p class="estado__titulo">Etapa vazia: nada vem preenchido</p>
+          <div class="cartao cartao--plano pilha">
+            <div class="campo">
+              <label class="campo__rotulo" for="st-temp">Temperatura</label>
+              <div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="st-temp" inputmode="decimal" placeholder="36,5"><span class="campo__unidade">°C</span></div>
+              <p class="cl-ref"><svg class="icone"><use href="#i-clock"/></svg><span>No D3 foi 36,9 °C.</span></p>
+            </div>
+            <div class="campo">
+              <label class="campo__rotulo" for="st-fc0">Frequência cardíaca</label>
+              <div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="st-fc0" inputmode="numeric" placeholder="80"><span class="campo__unidade">bpm</span></div>
+              <p class="cl-ref"><svg class="icone"><use href="#i-clock"/></svg><span>No D3 foi 84 bpm.</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Erro de digitação</p>
+          <div class="campo" data-estado="erro">
+            <label class="campo__rotulo" for="st-fc">Frequência cardíaca</label>
+            <div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="st-fc" inputmode="numeric" value="8" aria-invalid="true" aria-describedby="st-fc-e"><span class="campo__unidade">bpm</span></div>
+            <p class="campo__ajuda" id="st-fc-e"><svg class="icone"><use href="#i-circle-alert"/></svg>8 bpm parece um dígito a menos. Confira e digite de novo.</p>
+          </div>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Sem sinal na hora do alerta</p>
+          <section class="faixa faixa--info" aria-label="Sem sinal">
+            <svg class="icone"><use href="#i-wifi-off"/></svg>
+            <div><p class="faixa__titulo">Sem sinal agora</p><p class="faixa__texto">O registro está salvo no aparelho e sobe sozinho quando a conexão voltar.</p></div>
+          </section>
+          <section class="faixa faixa--imediato" aria-label="Alerta PU-01 sem sinal">
+            <svg class="icone"><use href="#i-siren"/></svg>
+            <div>
+              <p class="faixa__titulo"><span class="faixa__codigo">PU-01</span>Febre de 38,2 °C na puérpera</p>
+              <p class="faixa__texto">Acione a supervisão médica agora e oriente a família a procurar atendimento de emergência.</p>
+              <p class="faixa__meta">Sem sinal: a coordenação recebe o alerta quando a conexão voltar. Se for urgente agora, ligue.</p>
+              <div class="faixa__acoes">
+                <a class="botao botao--alerta" href="tel:+5511900000001"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para a supervisão</a>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Enviando, sincronizado e falha de envio</p>
+          <div class="linha-flex">
+            <span class="sinc" data-estado="local"><svg class="icone"><use href="#i-smartphone"/></svg>Salvo no aparelho</span>
+            <span class="sinc" data-estado="enviando"><svg class="icone"><use href="#i-cloud-upload"/></svg>Enviando 3 respostas</span>
+            <span class="sinc" data-estado="sincronizado"><svg class="icone"><use href="#i-cloud-check"/></svg>Sincronizado 10:12</span>
+          </div>
+          <section class="faixa faixa--info" aria-label="Falha de envio">
+            <svg class="icone"><use href="#i-refresh-cw"/></svg>
+            <div>
+              <p class="faixa__titulo">Não enviou</p>
+              <p class="faixa__texto">Tentamos de novo em 30 s. As respostas continuam salvas no aparelho.</p>
+              <div class="faixa__acoes"><button class="botao botao--compacto" type="button">Tentar agora</button></div>
+            </div>
+          </section>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Faixa presa no topo, em outra etapa</p>
+          <section class="faixa faixa--imediato" aria-label="Alerta PU-01 preso no topo">
+            <svg class="icone"><use href="#i-siren"/></svg>
+            <div>
+              <p class="faixa__titulo"><span class="faixa__codigo">PU-01</span>Febre de 38,2 °C na puérpera</p>
+              <p class="faixa__texto">Registre o acionamento antes de assinar. Etapa 3.</p>
+              <div class="faixa__acoes">
+                <a class="botao botao--alerta" href="tel:+5511900000001"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para a supervisão</a>
+                <button class="botao" type="button"><svg class="icone"><use href="#i-clipboard-pen"/></svg>Registrar acionamento</button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Folha Registrar acionamento, preenchida</p>
+          <div class="folha folha--estatica" role="group" aria-labelledby="st-folha-t">
+            <div class="folha__topo"><h3 class="t-2" id="st-folha-t">Registrar acionamento</h3></div>
+            <div class="folha__corpo">
+              <dl class="pares"><dt>Sinal</dt><dd><span class="dado">PU-01</span> Febre de 38,2 °C na puérpera</dd></dl>
+              <div class="campo"><label class="campo__rotulo" for="st-h">Horário do acionamento</label><div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="st-h" value="10:14" inputmode="numeric"></div></div>
+              <div class="campo"><label class="campo__rotulo" for="st-o">Orientação médica recebida</label><div class="campo__caixa"><textarea class="campo__entrada" id="st-o" rows="3">Observação em casa, com nova medida de temperatura em 2 horas. Se passar de 38 °C de novo, procurar atendimento de emergência.</textarea></div></div>
+              <div class="campo"><label class="campo__rotulo" for="st-c">Conduta adotada</label><div class="campo__caixa"><textarea class="campo__entrada" id="st-c" rows="3">Antitérmico conforme prescrição, hidratação e nova medida às 12:15, combinada com a família.</textarea></div></div>
+              <div class="folha__acoes"><button class="botao" type="button">Agora não</button><button class="botao botao--primario" type="button">Salvar registro</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Sem sinal: fila do aparelho</p>
+          <div class="folha folha--estatica" role="group" aria-labelledby="st-fila-t">
+            <div class="folha__topo"><h3 class="t-2" id="st-fila-t">Fila do aparelho</h3></div>
+            <div class="folha__corpo">
+              <p class="corpo">Sem sinal agora. 4 registros esperam no aparelho e sobem sozinhos quando a conexão voltar, na ordem em que foram salvos. Nada sai da fila antes de o servidor confirmar.</p>
+              <ol class="fila-sinc">
+                <li><span class="fila-sinc__hora">10:09</span><span class="fila-sinc__corpo"><span>D4: Temperatura, 38,2 °C</span><span class="mini">No aparelho</span></span></li>
+                <li><span class="fila-sinc__hora">10:09</span><span class="fila-sinc__corpo"><span>Alerta PU-01 para a coordenação: Febre de 38,2 °C na puérpera</span><span class="selo selo--alerta" style="align-self: flex-start"><svg class="icone"><use href="#i-siren"/></svg>Alerta para a coordenação</span><span class="apoio">Se for urgente agora, ligue: <a href="tel:+5511900000001">+55 11 90000-0001</a>.</span></span></li>
+                <li><span class="fila-sinc__hora">10:10</span><span class="fila-sinc__corpo"><span>D4: Pressão arterial, 118/76</span><span class="mini">No aparelho</span></span></li>
+                <li><span class="fila-sinc__hora">10:10</span><span class="fila-sinc__corpo"><span>D4: Frequência cardíaca, 88 bpm</span><span class="mini">No aparelho</span></span></li>
+              </ol>
+              <button class="botao botao--bloco" type="button"><svg class="icone"><use href="#i-refresh-cw"/></svg>Tentar agora</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <div class="barra-acao cl-barra">
+    <button class="botao botao--terciario botao--compacto cl-barra__sinal" type="button" data-abre-seletor><svg class="icone"><use href="#i-triangle-alert"/></svg>Registrar outro sinal de alerta</button>
+    <p class="apoio cl-barra__razao" data-razao hidden></p>
+    <div class="cl-barra__nav">
+      <button class="botao" type="button" data-voltar><svg class="icone"><use href="#i-arrow-left"/></svg>Voltar</button>
+      <button class="botao botao--primario" type="button" data-proxima>Próxima etapa<svg class="icone"><use href="#i-arrow-right"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/enfermeira.js"></script>
+<script src="assets/enfermeira-dados.js"></script>
+<script>
+  (function () {
+    var d = KZ.DADOS.aurora, e = d.porEtapa;
+    KZ.semearFila([
+      { hora: '10:09', texto: 'D4: Temperatura, 38,2 °C' },
+      { hora: '10:09', texto: 'Alerta PU-01 para a coordenação: Febre de 38,2 °C na puérpera', alerta: true },
+      { hora: '10:10', texto: 'D4: Pressão arterial, 118/76' },
+      { hora: '10:10', texto: 'D4: Frequência cardíaca, 88 bpm' }
+    ]);
+    KZ.checklist(KZ.juntar(d, {
+      etapa: 3,
+      respostas: KZ.juntar(e[1], e[2], e['2b'], e[3]),
+      textos: { 'ch-acomp-quem': d.textosDia['ch-acomp-quem'], 'pu-dor-local': d.textosDia['pu-dor-local'], 'pu-med': d.textosDia['pu-med'] }
+    }));
+  })();
+</script>
+</body>
+</html>

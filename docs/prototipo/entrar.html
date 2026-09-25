@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Entrar · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/icones.js"></script>
+<!--
+  C7 · Entrar (docs/design/telas.md). Login sóbrio no creme, logo provisório como arquivo, MFA em segunda etapa (AAL2, PRD 13).
+  Sessão expira em 8 horas. No protótipo, qualquer senha com 8 ou mais caracteres passa; "123456" é o código que confere.
+-->
+<style>
+  .c7 { min-height: 100dvh; display: grid; place-items: start center; padding: var(--e-10) var(--margem-tela) var(--e-12); }
+  @media (min-width: 600px) { .c7 { place-items: center; } }
+  .c7__caixa { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: var(--e-6); }
+  .c7__logo { width: 132px; height: auto; }
+  .c7__lgpd { display: flex; gap: var(--e-2); align-items: flex-start; font-size: var(--tam-apoio); color: var(--texto-2); }
+  .c7__lgpd .icone { width: 16px; height: 16px; margin-top: 2px; flex: none; }
+  .c7-codigo { font-family: var(--fonte-dado); font-variant-numeric: tabular-nums; font-size: 1.5rem; letter-spacing: 0.4em; text-align: center; padding-left: 0.4em; }
+  .c7-senha { border: 0; background: transparent; min-height: calc(var(--toque-campo) - 3px); padding: 0 var(--e-4); color: var(--texto-2); font-size: var(--tam-apoio); font-weight: 600; border-radius: var(--raio-2); }
+  .c7-senha:hover { color: var(--texto); }
+
+  .c-estados { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--e-6); padding: var(--e-8) var(--margem-tela) var(--e-12); border-top: var(--borda-fina); }
+  .c-estados__grade { display: grid; gap: var(--e-6); }
+  @media (min-width: 720px) { .c-estados__grade { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .c-estado__titulo { font-size: var(--tam-apoio); font-weight: 600; color: var(--texto-2); margin-bottom: var(--e-2); }
+</style>
+</head>
+<body>
+<main class="c7" id="conteudo">
+  <div class="c7__caixa">
+    <img class="c7__logo" src="assets/logo-provisorio.png" alt="Kraamzorg Brasil" width="420" height="359">
+
+    <!-- Etapa 1: e-mail e senha -->
+    <form class="pilha pilha--6" id="etapa-1" novalidate>
+      <h1 class="t-display">Entrar</h1>
+      <div class="faixa faixa--imediato" id="erro-senha" role="alert" hidden>
+        <svg class="icone"><use href="#i-circle-alert"/></svg>
+        <p class="faixa__texto">E-mail ou senha não conferem. Confira e tente de novo.</p>
+      </div>
+      <div class="campo">
+        <label class="campo__rotulo" for="email">E-mail</label>
+        <div class="campo__caixa"><input class="campo__entrada" id="email" type="email" autocomplete="username" inputmode="email" placeholder="nome@exemplo.com.br"></div>
+      </div>
+      <div class="campo">
+        <label class="campo__rotulo" for="senha">Senha</label>
+        <div class="campo__caixa">
+          <input class="campo__entrada" id="senha" type="password" autocomplete="current-password">
+          <button class="c7-senha" type="button" id="mostrar" aria-pressed="false">Mostrar</button>
+        </div>
+      </div>
+      <button class="botao botao--primario botao--bloco" type="submit" id="entrar">Entrar</button>
+      <a class="botao botao--terciario botao--compacto" href="#" style="align-self: flex-start; margin-left: calc(-1 * var(--e-3))">Esqueci a senha</a>
+      <p class="c7__lgpd"><svg class="icone"><use href="#i-lock"/></svg><span>Aqui há dados de saúde de gestantes e bebês, e todo acesso fica registrado.</span></p>
+    </form>
+
+    <!-- Etapa 2: código de 6 dígitos -->
+    <form class="pilha pilha--6" id="etapa-2" novalidate hidden>
+      <div class="pilha pilha--2">
+        <h1 class="t-display">Confirme que é você</h1>
+        <p class="corpo">Digite o código de 6 dígitos do seu aplicativo autenticador.</p>
+      </div>
+      <div class="campo" id="campo-codigo">
+        <label class="campo__rotulo" for="codigo">Código</label>
+        <div class="campo__caixa"><input class="campo__entrada c7-codigo" id="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*"></div>
+        <span class="campo__ajuda" id="codigo-ajuda">O código muda a cada 30 segundos.</span>
+      </div>
+      <button class="botao botao--primario botao--bloco" type="submit" id="confirmar">Confirmar e entrar</button>
+      <button class="botao botao--terciario botao--compacto" type="button" id="voltar" style="align-self: flex-start; margin-left: calc(-1 * var(--e-3))"><svg class="icone"><use href="#i-arrow-left"/></svg>Usar outro e-mail</button>
+    </form>
+  </div>
+</main>
+
+<!-- ---------- Estados ---------- -->
+<section class="c-estados" aria-labelledby="t-estados">
+  <h2 class="t-2" id="t-estados">Estados</h2>
+  <div class="c-estados__grade">
+    <div>
+      <p class="c-estado__titulo">Senha errada</p>
+      <div class="faixa faixa--imediato">
+        <svg class="icone"><use href="#i-circle-alert"/></svg>
+        <p class="faixa__texto">E-mail ou senha não conferem. Confira e tente de novo.</p>
+      </div>
+    </div>
+    <div>
+      <p class="c-estado__titulo">Código errado</p>
+      <div class="campo" data-estado="erro">
+        <span class="campo__rotulo">Código</span>
+        <div class="campo__caixa"><span class="campo__entrada c7-codigo" style="display: flex; align-items: center; justify-content: center">482913</span></div>
+        <span class="campo__ajuda"><svg class="icone"><use href="#i-circle-alert"/></svg>Esse código não confere. Espere o próximo aparecer no aplicativo e digite de novo.</span>
+      </div>
+    </div>
+    <div>
+      <p class="c-estado__titulo">Sessão expirada</p>
+      <div class="faixa faixa--info">
+        <svg class="icone"><use href="#i-clock"/></svg>
+        <p class="faixa__texto">Sua sessão terminou depois de 8 horas. Entre de novo.</p>
+      </div>
+    </div>
+    <div>
+      <p class="c-estado__titulo">Sem sinal</p>
+      <div class="faixa faixa--info">
+        <svg class="icone"><use href="#i-wifi-off"/></svg>
+        <p class="faixa__texto">Sem sinal agora. Para entrar é preciso conexão, porque a senha e o código são conferidos no servidor. Quando o sinal voltar, toque em Entrar de novo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+  var e1 = document.getElementById('etapa-1'), e2 = document.getElementById('etapa-2');
+  var senha = document.getElementById('senha');
+  document.getElementById('mostrar').addEventListener('click', function () {
+    var ver = senha.type === 'password';
+    senha.type = ver ? 'text' : 'password';
+    this.textContent = ver ? 'Ocultar' : 'Mostrar';
+    this.setAttribute('aria-pressed', ver ? 'true' : 'false');
+  });
+  e1.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var b = document.getElementById('entrar');
+    var ok = /\S+@\S+/.test(document.getElementById('email').value) && senha.value.length >= 8;
+    b.setAttribute('aria-busy', 'true'); b.textContent = 'Entrando';
+    setTimeout(function () {
+      b.removeAttribute('aria-busy'); b.textContent = 'Entrar';
+      if (!ok) { document.getElementById('erro-senha').hidden = false; senha.focus(); return; }
+      e1.hidden = true; e2.hidden = false;
+      document.getElementById('codigo').focus();
+    }, 600);
+  });
+  document.getElementById('codigo').addEventListener('input', function () {
+    this.value = this.value.replace(/\D/g, '').slice(0, 6);
+  });
+  e2.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var c = document.getElementById('codigo').value;
+    var campo = document.getElementById('campo-codigo');
+    var ajuda = document.getElementById('codigo-ajuda');
+    if (c !== '123456') {
+      campo.dataset.estado = 'erro';
+      ajuda.innerHTML = '<svg class="icone"><use href="#i-circle-alert"/></svg>Esse código não confere. Espere o próximo aparecer no aplicativo e digite de novo.';
+      document.getElementById('codigo').focus();
+      return;
+    }
+    var b = document.getElementById('confirmar');
+    b.setAttribute('aria-busy', 'true'); b.textContent = 'Entrando';
+    setTimeout(function () { location.href = 'comercial-inicio.html'; }, 600);
+  });
+  document.getElementById('voltar').addEventListener('click', function () { e2.hidden = true; e1.hidden = false; document.getElementById('email').focus(); });
+})();
+</script>
+</body>
+</html>

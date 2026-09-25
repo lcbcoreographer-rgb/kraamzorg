@@ -1,0 +1,200 @@
+/*
+  Kraamzorg OS · composição do portal da enfermeira (grupo enfermeira do protótipo)
+  Carrega depois de tokens.css e base.css. Só usa variáveis de tokens.css: nenhuma cor, fonte,
+  raio ou sombra nova. Arquivo separado de base.css para não mexer no que as outras telas usam.
+  Itens que faltavam no kit e foram compostos aqui estão listados no retorno da construção:
+  cabeçalho compacto do checklist, lista de etapas, fila do aparelho, fundo da folha, pergunta
+  de três opções, trilha com etapa pendente e a seção de estados.
+*/
+
+/* ---------- Estrutura: sem barra lateral, conteúdo até 720 px ---------- */
+.app--enf { display: block; }
+.app--enf .app__principal { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+.app--enf.app--checklist .app__principal { padding-bottom: calc(168px + env(safe-area-inset-bottom)); }
+@media (min-width: 1024px) {
+  .app--enf { display: block; }
+  .app--enf .app__principal { max-width: calc(720px + 2 * var(--e-8)); padding-bottom: 112px; }
+  .app--enf.app--checklist .app__principal { padding-bottom: 184px; }
+  .app--enf .abas-inf,
+  .app--enf .barra-acao {
+    left: 50%; right: auto; width: calc(720px + 2 * var(--e-8)); transform: translateX(-50%);
+    border-left: var(--borda-fina); border-right: var(--borda-fina); border-radius: var(--raio-3) var(--raio-3) 0 0;
+  }
+  .app--enf .abas-inf { display: grid; }
+  .app--enf .barra-acao { padding-left: var(--e-8); padding-right: var(--e-8); }
+}
+.com-barra-alta .aviso-efemero { bottom: calc(176px + env(safe-area-inset-bottom)); }
+@media (min-width: 1024px) { .com-barra-alta .aviso-efemero { bottom: 196px; } }
+
+/* Topo das telas de lista (Hoje, Famílias, Alertas, Perfil) */
+.enf-topo { display: flex; align-items: flex-start; gap: var(--e-3); padding: var(--e-6) 0 var(--e-2); }
+.enf-topo__textos { display: flex; flex-direction: column; gap: var(--e-2); min-width: 0; }
+.enf-topo .sinc { margin-top: var(--e-1); }
+.enf-secao { display: flex; flex-direction: column; gap: var(--e-3); }
+.enf-secao__titulo { display: flex; align-items: baseline; gap: var(--e-3); }
+
+/* Indicador de sincronização como botão: abre a fila do aparelho. Área de toque de 44 px. */
+button.sinc { position: relative; border: 0; cursor: pointer; font-family: var(--fonte-ui); -webkit-tap-highlight-color: transparent; transition: background-color var(--dur-rapida) var(--curva-estado); }
+button.sinc::after { content: ""; position: absolute; inset: -6px -2px; }
+button.sinc:active { transform: scale(0.97); }
+.sinc__n { font-family: var(--fonte-dado); font-variant-numeric: tabular-nums; }
+
+/* ---------- Cartão de visita do dia ---------- */
+.visita { display: flex; flex-direction: column; gap: var(--e-4); }
+.visita__topo { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--e-1) var(--e-3); align-items: start; }
+.visita__hora { font-family: var(--fonte-dado); font-variant-numeric: tabular-nums; font-weight: 500; font-size: var(--tam-3); }
+.visita__nome { font-family: var(--fonte-titulo); font-weight: 500; font-size: var(--tam-1); line-height: var(--entre-titulo); letter-spacing: -0.015em; }
+.visita__endereco { display: flex; gap: var(--e-2); align-items: flex-start; color: var(--texto-2); font-size: var(--tam-apoio); }
+.visita__endereco .icone { margin-top: 1px; }
+.visita__marcas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-2); }
+.marca-hora { display: flex; flex-direction: column; gap: 2px; padding: var(--e-2) var(--e-3); border-radius: var(--raio-2); border: 1.5px dashed var(--marinho-50); }
+.marca-hora__rotulo { font-size: var(--tam-mini); color: var(--texto-2); }
+.marca-hora__valor { font-family: var(--fonte-dado); font-variant-numeric: tabular-nums; font-weight: 500; }
+.marca-hora[data-feito] { border: 1px solid var(--linha); background: var(--marinho-08); }
+.visita__pendencias { display: flex; flex-wrap: wrap; gap: var(--e-2); }
+.visita__acoes { display: flex; flex-direction: column; gap: var(--e-2); }
+
+/* Linha tocável dentro de lista (famílias, alertas, dias) */
+.linha-lista { display: flex; align-items: center; gap: var(--e-3); min-height: 56px; padding: var(--e-3) 0; border-bottom: var(--borda-fina); color: inherit; text-decoration: none; }
+.linha-lista:hover { text-decoration: none; background: var(--marinho-08); }
+.linha-lista__corpo { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+
+/* ---------- Checklist: cabeçalho compacto da família (areia, vira ameixa com o freio) ---------- */
+.cl-cab {
+  position: sticky; top: 0; z-index: var(--z-barra);
+  display: flex; flex-direction: column; gap: var(--e-2);
+  margin: 0 calc(-1 * var(--margem-tela)); padding: var(--e-2) var(--margem-tela) var(--e-3);
+  background: var(--superficie-2); color: var(--texto);
+}
+@media (min-width: 1024px) { .cl-cab { margin: 0 calc(-1 * var(--e-8)); padding: var(--e-3) var(--e-8) var(--e-4); } }
+.cl-cab__topo { display: flex; align-items: center; gap: var(--e-2); }
+.cl-cab__familia { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.cl-cab__familia .mini { color: var(--marinho-72); }
+.cl-cab__linha { display: flex; align-items: center; gap: var(--e-2); }
+.cl-cab__etapas { margin-left: auto; }
+.cl-cab__freio { font-size: var(--tam-apoio); }
+.cl-cab[data-freio="ativo"] { background: var(--sensivel); color: var(--texto-inverso); }
+.cl-cab[data-freio="ativo"] .cl-cab__familia .mini,
+.cl-cab[data-freio="ativo"] .cl-cab__voltar { color: var(--texto-inverso); }
+.cl-cab[data-freio="ativo"] .blocos__trilha > span { border-color: var(--creme-62); }
+.cl-cab[data-freio="ativo"] .blocos__trilha > span[data-estado="feito"] { background: var(--creme); border-color: var(--creme); }
+.blocos__trilha > span[data-estado="pendente"] { border: 1px solid var(--aviso-borda); background: repeating-linear-gradient(135deg, var(--aviso-lavado) 0 3px, var(--superficie) 3px 6px); }
+
+/* Conteúdo de uma etapa */
+.cl-etapa { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-5); }
+.cl-etapa__cab { display: flex; flex-direction: column; gap: var(--e-2); }
+.cl-etapa__cab h1:focus { outline: none; }
+.cl-etapa__cab h1:focus-visible { outline: 2px solid var(--foco); outline-offset: 4px; }
+.cl-grupo { display: flex; flex-direction: column; gap: var(--e-4); }
+.cl-grupo__titulo { display: flex; align-items: baseline; gap: var(--e-2); font-family: var(--fonte-titulo); font-weight: 500; font-size: var(--tam-2); letter-spacing: -0.01em; }
+.cl-grupo__titulo .mini { font-family: var(--fonte-ui); letter-spacing: 0; }
+.cl-grupo__titulo .dado { font-size: var(--tam-mini); }
+.faixa--compacta { padding: var(--e-3); gap: var(--e-2); }
+.faixa--compacta .faixa__titulo { font-size: var(--tam-corpo); }
+.faixa--compacta .faixa__meta { margin-top: 2px; }
+.faixa--compacta .faixa__acoes { margin-top: var(--e-2); flex-wrap: nowrap; }
+.cl-grupo .pergunta:last-child { border-bottom: 0; }
+.cl-grupo > .pergunta:first-of-type { border-top: var(--borda-fina); }
+.cl-pilha-campos { display: grid; gap: var(--e-5); }
+@media (min-width: 600px) { .cl-pilha-campos--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Controles do checklist: 52 px (DESIGN.md, densidade da enfermeira) */
+.cl .marcas label { min-height: var(--toque-campo); font-size: var(--tam-corpo); }
+.cl .marcas input:not(:checked) + label .icone { display: none; }
+.cl .marcas--dado label { font-family: var(--fonte-dado); font-variant-numeric: tabular-nums; }
+.cl-opcoes { display: flex; flex-direction: column; gap: var(--e-2); }
+.cl-opcoes .pergunta__detalhe { margin-top: var(--e-2); }
+.pergunta--tres { grid-template-columns: minmax(0, 1fr); }
+.pergunta--tres .sim-nao { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.pergunta--tres .sim-nao label { min-width: 0; padding: 0 var(--e-2); }
+.pergunta__detalhe { display: flex; flex-direction: column; gap: var(--e-4); padding: var(--e-2) 0 var(--e-1); }
+.escala--curta .escala__opcoes { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.escala .botao--terciario { align-self: flex-start; }
+.cl-pa { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--e-2); }
+.cl-pa__barra { font-family: var(--fonte-dado); font-size: var(--tam-2); color: var(--texto-2); }
+.cl-trazer { display: flex; flex-wrap: wrap; gap: var(--e-2); }
+.cl-ref { font-size: var(--tam-apoio); color: var(--texto-2); display: flex; gap: var(--e-2); align-items: flex-start; }
+.cl-ref .icone { width: 16px; height: 16px; margin-top: 2px; }
+.cl-lista-ok { display: flex; flex-direction: column; }
+.cl-lista-ok li { display: flex; align-items: center; gap: var(--e-3); min-height: 56px; padding: var(--e-2) 0; border-bottom: var(--borda-fina); }
+.cl-lista-ok li:last-child { border-bottom: 0; }
+.cl-lista-ok__corpo { flex: 1; min-width: 0; }
+.cl-lista-ok [data-ok="sim"] > .icone { color: var(--sucesso); }
+.cl-lista-ok [data-ok="nao"] > .icone { color: var(--aviso-texto); }
+.cl-assinado { display: flex; flex-direction: column; gap: var(--e-4); }
+
+/* Bebês em abas (gemelar): cada aba diz o estado do bebê */
+.cl-bebes .abas__item { min-height: var(--toque-campo); font-size: var(--tam-corpo); gap: var(--e-2); padding: 0 var(--e-3); }
+.cl-bebe__cab { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--e-2) var(--e-3); padding-top: var(--e-4); }
+
+/* Faixa de alerta presa no topo do checklist, logo abaixo do cabeçalho. O lugar da faixa não gera
+   caixa própria, para que ela fique presa enquanto o grupo do campo que a disparou estiver na tela. */
+[data-alerta-de] { display: contents; }
+.cl-fixa { position: sticky; top: calc(var(--cl-cab-h, 136px) + var(--e-2)); z-index: calc(var(--z-barra) - 1); box-shadow: var(--sombra-1); }
+#cl-faixa-fixa { position: sticky; top: var(--cl-cab-h, 136px); z-index: calc(var(--z-barra) - 1); background: var(--fundo); display: flex; flex-direction: column; gap: var(--e-2); }
+#cl-faixa-fixa:not(:empty) { padding: var(--e-3) 0 var(--e-2); }
+#cl-faixa-fixa .cl-fixa { position: static; }
+.cl-aviso-sinal { margin-top: var(--e-4); }
+
+/* Barra do checklist: sinal de alerta em cima, Voltar e Próxima etapa na zona do polegar */
+.cl-barra { flex-direction: column; gap: var(--e-2); padding-top: var(--e-2); }
+.cl-barra__nav { display: flex; gap: var(--e-3); }
+.cl-barra__nav > .botao--primario { flex: 1; }
+.cl-barra__sinal { align-self: center; }
+.cl-barra__razao { text-align: center; color: var(--aviso-texto); font-weight: 500; }
+
+/* Lista de etapas (folha) */
+.lista-etapas { display: flex; flex-direction: column; }
+.lista-etapas__item {
+  display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: var(--e-3);
+  width: 100%; min-height: 56px; padding: var(--e-2) var(--e-2); border: 0; border-bottom: var(--borda-fina);
+  background: transparent; text-align: left; border-radius: var(--raio-2);
+}
+.lista-etapas__item:hover { background: var(--marinho-08); }
+.lista-etapas__item[aria-current="step"] { background: var(--marinho-08); font-weight: 600; }
+.lista-etapas__item .dado { color: var(--texto-2); }
+
+/* Folha: topo com título e fechar; fundo que escurece a tela (mistura de marinho, sem cor nova) */
+.folha__topo { display: flex; align-items: center; gap: var(--e-3); margin-bottom: var(--e-3); }
+.folha__topo h2:focus { outline: none; }
+.folha__topo .botao--icone { margin-left: auto; }
+.folha__corpo { display: flex; flex-direction: column; gap: var(--e-4); }
+.folha__acoes { display: flex; flex-wrap: wrap; gap: var(--e-3); margin-top: var(--e-2); }
+.folha__acoes > .botao--primario { flex: 1; }
+.folha-fundo { position: fixed; inset: 0; z-index: calc(var(--z-folha) - 1); background: color-mix(in srgb, var(--marinho) 36%, transparent); animation: entrar var(--dur-media) var(--curva-saida) both; }
+.folha:not(.folha--estatica) { animation: entrar var(--dur-media) var(--curva-saida) both; }
+@media (min-width: 1024px) { .folha:not(.folha--estatica) { animation: none; } }
+.folha--estatica { border: var(--borda-fina); border-radius: var(--raio-3); box-shadow: var(--sombra-1); }
+
+/* Fila do aparelho */
+.fila-sinc { display: flex; flex-direction: column; }
+.fila-sinc li { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: var(--e-1) var(--e-3); padding: var(--e-3) 0; border-bottom: var(--borda-fina); }
+.fila-sinc li:last-child { border-bottom: 0; }
+.fila-sinc__hora { font-family: var(--fonte-dado); font-variant-numeric: tabular-nums; font-size: var(--tam-apoio); color: var(--texto-2); padding-top: 2px; }
+.fila-sinc__corpo { display: flex; flex-direction: column; gap: var(--e-1); min-width: 0; }
+
+/* Tabela LATCH e escala NTS (folha de consulta do DOC 4) */
+.latch { display: flex; flex-direction: column; gap: var(--e-4); }
+.latch__item { display: flex; flex-direction: column; gap: var(--e-2); }
+.latch__item .marcas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.latch__item .marcas label { justify-content: center; }
+.latch__total { display: flex; align-items: baseline; gap: var(--e-3); padding: var(--e-3) var(--e-4); border-radius: var(--raio-2); background: var(--marinho-08); }
+.nts { display: flex; flex-direction: column; }
+.nts li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: var(--e-3); padding: var(--e-2) 0; border-bottom: var(--borda-fina); }
+
+/* ---------- Seção de estados, abaixo da tela principal ---------- */
+.estados { display: flex; flex-direction: column; gap: var(--e-8); margin-top: var(--e-12); padding-top: var(--e-8); border-top: var(--borda-fina); }
+.estados__grade { display: grid; gap: var(--e-8); }
+@media (min-width: 1024px) { .estados__grade { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+.estado { display: flex; flex-direction: column; gap: var(--e-3); min-width: 0; }
+.estado__titulo { font-size: var(--tam-apoio); font-weight: 600; color: var(--texto-2); }
+.estado .aviso-efemero { position: static; animation: none; }
+.estado .barra-acao { position: static; box-shadow: none; border: var(--borda-fina); border-radius: var(--raio-3); transform: none; width: auto; }
+
+/* Semana da própria enfermeira (perfil) */
+.enf-semana { display: grid; grid-template-columns: 56px repeat(7, minmax(0, 1fr)); gap: var(--e-1); align-items: center; }
+.enf-semana__turno-rot { font-size: var(--tam-mini); color: var(--texto-2); }
+
+@media (prefers-reduced-motion: reduce) {
+  .folha-fundo, .folha:not(.folha--estatica) { animation: none; }
+}

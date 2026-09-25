@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Pipeline · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/icones.js"></script>
+<!--
+  C3 · Pipeline (docs/design/telas.md, fluxo D). Momento: quinta 24/09/2026, 15:24.
+  Celular: pílulas de estágio que levam ao grupo, lista agrupada por estágio. Computador: quadro por colunas.
+  Transições conforme PRD 7.1 e 7.2; o menu "Mover para" só oferece destinos válidos e o arrastar faz a mesma checagem.
+  IG sempre calculada da DPP na data de referência (nunca gravada). Contagens de estágio são do seed fictício;
+  só aparecem como cartão as famílias da tabela de dados fictícios de telas.md, o restante fica em "Ver as outras".
+-->
+<style>
+  .c3-topo { display: flex; flex-direction: column; gap: var(--e-4); padding-top: var(--e-5); }
+  .c3-filtros { display: flex; flex-wrap: wrap; gap: var(--e-2); align-items: center; }
+  .c3-filtros .marcas { gap: var(--e-2); }
+  .c3-pilulas { display: flex; gap: var(--e-2); overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--margem-tela)); padding: var(--e-1) var(--margem-tela); }
+  .c3-pilulas::-webkit-scrollbar { display: none; }
+  .c3-pilula { flex: none; display: inline-flex; align-items: center; gap: var(--e-2); min-height: var(--toque); padding: 0 var(--e-4); border: 1.5px solid var(--borda-campo); border-radius: var(--raio-pilula); background: var(--superficie); color: var(--texto); font-size: var(--tam-apoio); font-weight: 500; text-decoration: none; white-space: nowrap; }
+  .c3-pilula:hover { background: var(--marinho-08); }
+  .c3-pilula .dado { color: var(--texto-2); }
+  @media (min-width: 1024px) { .c3-pilulas { display: none; } }
+
+  .c3-quadro { display: flex; flex-direction: column; gap: var(--e-8); padding-top: var(--e-6); }
+  .c3-coluna { display: flex; flex-direction: column; gap: var(--e-3); scroll-margin-top: 80px; border-radius: var(--raio-3); transition: background-color var(--dur-rapida) var(--curva-estado), box-shadow var(--dur-rapida) var(--curva-estado); }
+  .c3-coluna__cab { display: flex; align-items: baseline; gap: var(--e-2); }
+  .c3-coluna__nome { font-family: var(--fonte-titulo); font-weight: 500; font-size: var(--tam-2); letter-spacing: -0.01em; }
+  .c3-coluna__n { font-family: var(--fonte-dado); font-size: var(--tam-apoio); color: var(--texto-2); }
+  .c3-coluna__lista { display: flex; flex-direction: column; gap: var(--e-3); }
+  .c3-coluna[data-alvo="sim"] { box-shadow: 0 0 0 2px var(--marinho), 0 0 0 6px var(--foco-halo); }
+  .c3-mais { display: inline-flex; align-items: center; gap: var(--e-1); min-height: var(--toque); font-size: var(--tam-apoio); font-weight: 500; }
+  @media (min-width: 1024px) {
+    .c3-quadro { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--e-3); align-items: start; padding-top: var(--e-5); }
+    .c3-coluna { background: var(--marinho-08); padding: var(--e-3); min-height: 420px; }
+    .c3-coluna__nome { font-size: var(--tam-3); font-family: var(--fonte-ui); font-weight: 600; letter-spacing: 0; }
+  }
+
+  .c3-cartao { position: relative; display: flex; flex-direction: column; gap: var(--e-2); padding: var(--e-4); background: var(--superficie); border-radius: var(--raio-2); box-shadow: var(--sombra-1); cursor: grab; transition: box-shadow var(--dur-rapida) var(--curva-estado), opacity var(--dur-rapida) var(--curva-estado); }
+  .c3-cartao:hover { box-shadow: var(--sombra-2); }
+  .c3-cartao[data-arrastando] { opacity: .45; }
+  .c3-cartao[data-freio="ativo"] { background: var(--sensivel-lavado); box-shadow: none; border: 1px solid var(--sensivel-borda); }
+  .c3-nome { font-weight: 600; font-size: var(--tam-corpo); line-height: 1.3; text-decoration: none; }
+  .c3-nome:hover { text-decoration: underline; }
+  .c3-linha { display: flex; flex-wrap: wrap; gap: 2px var(--e-3); font-size: var(--tam-apoio); color: var(--texto-2); }
+  .c3-sinais { display: flex; flex-wrap: wrap; gap: var(--e-1); }
+  .c3-sinais .selo { white-space: normal; max-width: 100%; line-height: 1.2; padding-top: var(--e-1); padding-bottom: var(--e-1); }
+  @media (min-width: 1024px) { .c3-cartao { padding: var(--e-3); } }
+  .c3-proximo { display: flex; gap: var(--e-2); align-items: flex-start; font-size: var(--tam-apoio); padding-top: var(--e-2); border-top: var(--borda-fina); }
+  .c3-proximo .icone { width: 16px; height: 16px; margin-top: 2px; flex: none; }
+  .c3-proximo[data-estado="hoje"] { color: var(--aviso-texto); font-weight: 500; }
+  .c3-mover { align-self: flex-start; margin-left: calc(-1 * var(--e-3)); }
+  .c3-destinos { display: flex; flex-direction: column; gap: var(--e-1); padding: var(--e-2); border: var(--borda-fina); border-radius: var(--raio-2); background: var(--fundo); }
+  .c3-destinos__titulo { font-size: var(--tam-mini); color: var(--texto-2); padding: 0 var(--e-2) var(--e-1); }
+  .c3-destino { display: flex; align-items: center; gap: var(--e-2); min-height: var(--toque); padding: 0 var(--e-3); border: 0; border-radius: var(--raio-pilula); background: transparent; font-size: var(--tam-apoio); font-weight: 500; text-align: left; }
+  .c3-destino:hover { background: var(--marinho-08); }
+  .c3-destino .icone { width: 16px; height: 16px; color: var(--texto-2); }
+
+  .c3-recusa { position: sticky; top: 72px; z-index: calc(var(--z-barra) - 1); box-shadow: var(--sombra-1); }
+
+  .c3-motivos { display: flex; flex-wrap: wrap; gap: var(--e-2); }
+  .c3-veu { position: fixed; inset: 0; z-index: calc(var(--z-folha) - 1); background: color-mix(in srgb, var(--marinho) 40%, transparent); }
+
+  .c-estados { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); margin-top: var(--e-8); border-top: var(--borda-fina); }
+  .c-estados__grade { display: grid; gap: var(--e-6); }
+  @media (min-width: 720px) { .c-estados__grade { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (min-width: 1024px) { .c-estados__grade { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .c-estado__titulo { font-size: var(--tam-apoio); font-weight: 600; color: var(--texto-2); margin-bottom: var(--e-2); }
+  @media (prefers-reduced-motion: reduce) { .c3-cartao, .c3-coluna, .c6-opcao label, .c2-resumo summary .icone { transition: none; } }
+</style>
+</head>
+<body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<div class="app">
+
+  <nav class="lateral" aria-label="Navegação principal">
+    <div class="lateral__marca">
+      <img src="assets/simbolo-provisorio.png" alt="" width="36" height="26">
+      <span class="lateral__nome">Kraamzorg OS</span>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Comercial</span>
+      <a class="lateral__item" href="comercial-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">1</span></a>
+      <a class="lateral__item" href="comercial-pipeline.html" aria-current="page"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
+      <a class="lateral__item" href="comercial-conversas.html"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
+      <a class="lateral__item" href="comercial-ficha.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Agente</span>
+      <a class="lateral__item" href="comercial-agente-regras.html"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Sistema</span>
+      <a class="lateral__item" href="_kit.html"><svg class="icone"><use href="#i-layout-dashboard"/></svg>Kit de componentes</a>
+      <a class="lateral__item" href="entrar.html"><svg class="icone"><use href="#i-log-out"/></svg>Sair</a>
+    </div>
+    <div class="lateral__pe">
+      <div class="forte">Otávio Lemos</div>
+      <div class="mini" style="color: var(--texto-inverso-2)">Comercial e diretoria</div>
+    </div>
+  </nav>
+
+  <main class="app__principal" id="conteudo">
+    <header class="cab-tela">
+      <h1 class="cab-tela__titulo t-display">Pipeline</h1>
+      <span class="sinc empurra" data-estado="sincronizado" role="status"><svg class="icone"><use href="#i-cloud-check"/></svg>Atualizado 15:24</span>
+    </header>
+
+    <div class="c3-topo">
+      <div class="abas" role="tablist" aria-label="Pipelines">
+        <button class="abas__item" role="tab" id="aba-p1" aria-selected="true" aria-controls="p1">Entrada e qualificação</button>
+        <button class="abas__item" role="tab" id="aba-p2" aria-selected="false" aria-controls="p2" tabindex="-1">Venda e pré-atendimento</button>
+      </div>
+
+      <div class="c3-filtros">
+        <fieldset class="marcas">
+          <legend class="sr">Praça</legend>
+          <input type="radio" name="praca" id="pr-todas" value="todas" checked><label for="pr-todas">Todas as praças</label>
+          <input type="radio" name="praca" id="pr-sp" value="sp"><label for="pr-sp">São Paulo</label>
+          <input type="radio" name="praca" id="pr-lon" value="lon"><label for="pr-lon">Londrina</label>
+        </fieldset>
+        <span class="marcas">
+          <input type="checkbox" id="f-hoje"><label for="f-hoje"><svg class="icone"><use href="#i-clock"/></svg>Prazo vence hoje</label>
+        </span>
+      </div>
+    </div>
+
+    <div class="faixa faixa--prioritario c3-recusa" id="recusa" role="alert" hidden style="margin-top: var(--e-4)">
+      <svg class="icone"><use href="#i-triangle-alert"/></svg>
+      <div>
+        <p class="faixa__titulo" data-titulo>Esse passo não existe</p>
+        <p class="faixa__texto" data-texto></p>
+        <div class="faixa__acoes"><button class="botao botao--compacto" type="button" id="fechar-recusa">Entendi</button></div>
+      </div>
+    </div>
+
+    <!-- Pipeline 1 -->
+    <section id="p1" role="tabpanel" aria-labelledby="aba-p1">
+      <nav class="c3-pilulas" aria-label="Estágios do pipeline de entrada" style="margin-top: var(--e-4)">
+        <a class="c3-pilula" href="#col-novo">Novo <span class="dado" data-n="novo">6</span></a>
+        <a class="c3-pilula" href="#col-em_conversa">Em conversa <span class="dado" data-n="em_conversa">9</span></a>
+        <a class="c3-pilula" href="#col-qualificado">Qualificado <span class="dado" data-n="qualificado">7</span></a>
+        <a class="c3-pilula" href="#col-sessao">Sessão agendada <span class="dado" data-n="sessao">4</span></a>
+        <a class="c3-pilula" href="#col-nutricao">Nutrição <span class="dado" data-n="nutricao">48</span></a>
+      </nav>
+
+      <div class="c3-quadro">
+        <section class="c3-coluna" id="col-novo" data-estagio="novo" aria-labelledby="h-novo">
+          <div class="c3-coluna__cab"><h2 class="c3-coluna__nome" id="h-novo">Novo</h2><span class="c3-coluna__n" data-n="novo">6</span></div>
+          <div class="c3-coluna__lista"></div>
+          <a class="c3-mais" href="#" data-mais="6">Ver as 6 famílias <svg class="icone icone--16"><use href="#i-chevron-right"/></svg></a>
+        </section>
+
+        <section class="c3-coluna" id="col-em_conversa" data-estagio="em_conversa" aria-labelledby="h-conv">
+          <div class="c3-coluna__cab"><h2 class="c3-coluna__nome" id="h-conv">Em conversa</h2><span class="c3-coluna__n" data-n="em_conversa">9</span></div>
+          <div class="c3-coluna__lista">
+            <article class="c3-cartao" draggable="true" data-id="garoa" data-estagio="em_conversa" data-praca="sp" data-hoje="sim" aria-labelledby="n-garoa">
+              <a class="c3-nome" id="n-garoa" href="comercial-conversas.html">Família Teste Garoa</a>
+              <p class="c3-linha"><span class="dado" title="Calculada da DPP 22/10/2026">36s0d</span><span>Santo André</span></p>
+              <p class="mini" data-tempo>Há 2 dias neste estágio</p>
+              <div class="c3-sinais">
+                <span class="selo selo--alerta"><svg class="icone"><use href="#i-siren"/></svg>Relato de saúde</span>
+              </div>
+              <p class="c3-proximo"><svg class="icone"><use href="#i-user-check"/></svg><span>Com a coordenação clínica. A Isadora está pausada.</span></p>
+              <button class="botao botao--terciario botao--compacto c3-mover" type="button" aria-expanded="false" data-mover>Mover para</button>
+            </article>
+          </div>
+          <a class="c3-mais" href="#">Ver as outras 8 <svg class="icone icone--16"><use href="#i-chevron-right"/></svg></a>
+        </section>
+
+        <section class="c3-coluna" id="col-qualificado" data-estagio="qualificado" aria-labelledby="h-qual">
+          <div class="c3-coluna__cab"><h2 class="c3-coluna__nome" id="h-qual">Qualificado</h2><span class="c3-coluna__n" data-n="qualificado">7</span></div>
+          <div class="c3-coluna__lista">
+            <article class="c3-cartao" draggable="true" data-id="dalia" data-estagio="qualificado" data-praca="sp" data-hoje="sim" aria-labelledby="n-dalia">
+              <a class="c3-nome" id="n-dalia" href="comercial-ficha.html">Família Teste Dália</a>
+              <p class="c3-linha"><span class="dado" title="Calculada da DPP 15/11/2026">32s4d</span><span>Pinheiros, São Paulo</span></p>
+              <p class="mini" data-tempo>Há 5 dias neste estágio</p>
+              <div class="c3-sinais">
+                <span class="selo selo--destaque">Quente</span>
+                <span class="selo"><svg class="icone"><use href="#i-file-text"/></svg>Apresentação enviada</span>
+                <span class="selo selo--aviso"><svg class="icone"><use href="#i-hourglass"/></svg>Transferência aberta</span>
+              </div>
+              <p class="c3-proximo" data-estado="hoje"><svg class="icone"><use href="#i-clock"/></svg><span>Quer contratar. Vence hoje, 16:02.</span></p>
+              <button class="botao botao--terciario botao--compacto c3-mover" type="button" aria-expanded="false" data-mover>Mover para</button>
+            </article>
+
+            <article class="c3-cartao" draggable="true" data-id="estrela" data-estagio="qualificado" data-praca="lon" data-hoje="sim" aria-labelledby="n-estrela">
+              <a class="c3-nome" id="n-estrela" href="comercial-ficha.html">Família Teste Estrela</a>
+              <p class="c3-linha"><span class="dado" title="Calculada da DPP 13/01/2027">24s1d</span><span>Londrina, PR</span></p>
+              <p class="mini" data-tempo>Há 3 dias neste estágio</p>
+              <div class="c3-sinais">
+                <span class="selo">Morno</span>
+                <span class="selo"><svg class="icone"><use href="#i-file-text"/></svg>Apresentação enviada</span>
+                <span class="selo selo--aviso"><svg class="icone"><use href="#i-hourglass"/></svg>Transferência aberta</span>
+              </div>
+              <p class="c3-proximo" data-estado="hoje"><svg class="icone"><use href="#i-clock"/></svg><span>Follow-up D+3 vence hoje, 17:00.</span></p>
+              <button class="botao botao--terciario botao--compacto c3-mover" type="button" aria-expanded="false" data-mover>Mover para</button>
+            </article>
+          </div>
+          <a class="c3-mais" href="#">Ver as outras 5 <svg class="icone icone--16"><use href="#i-chevron-right"/></svg></a>
+        </section>
+
+        <section class="c3-coluna" id="col-sessao" data-estagio="sessao" aria-labelledby="h-sessao">
+          <div class="c3-coluna__cab"><h2 class="c3-coluna__nome" id="h-sessao">Sessão agendada</h2><span class="c3-coluna__n" data-n="sessao">4</span></div>
+          <div class="c3-coluna__lista"></div>
+          <a class="c3-mais" href="#">Ver as 4 famílias <svg class="icone icone--16"><use href="#i-chevron-right"/></svg></a>
+        </section>
+
+        <section class="c3-coluna" id="col-nutricao" data-estagio="nutricao" aria-labelledby="h-nut">
+          <div class="c3-coluna__cab"><h2 class="c3-coluna__nome" id="h-nut">Nutrição</h2><span class="c3-coluna__n" data-n="nutricao">48</span></div>
+          <div class="c3-coluna__lista">
+            <article class="c3-cartao" draggable="true" data-id="ipe" data-estagio="nutricao" data-praca="sp" aria-labelledby="n-ipe">
+              <a class="c3-nome" id="n-ipe" href="comercial-conversas.html">Família Teste Ipê</a>
+              <p class="c3-linha"><span class="dado" title="Calculada da DPP 22/02/2027">18s3d</span><span>Tatuapé, São Paulo</span></p>
+              <p class="mini" data-tempo>Há 12 dias neste estágio</p>
+              <div class="c3-sinais">
+                <span class="selo">Frio</span>
+                <span class="selo selo--contorno"><svg class="icone"><use href="#i-bot"/></svg>Isadora conduzindo</span>
+              </div>
+              <p class="c3-proximo"><svg class="icone"><use href="#i-calendar-days"/></svg><span>Volta a qualificado com 20 semanas, em 03/10.</span></p>
+              <button class="botao botao--terciario botao--compacto c3-mover" type="button" aria-expanded="false" data-mover>Mover para</button>
+            </article>
+          </div>
+          <a class="c3-mais" href="#">Ver as outras 47 <svg class="icone icone--16"><use href="#i-chevron-right"/></svg></a>
+        </section>
+      </div>
+    </section>
+
+    <!-- Pipeline 2 -->
+    <section id="p2" role="tabpanel" aria-labelledby="aba-p2" hidden>
+      <nav class="c3-pilulas" aria-label="Estágios do pipeline de venda" style="margin-top: var(--e-4)">
+        <a class="c3-pilula" href="#col-proposta">Proposta <span class="dado" data-n="proposta">3</span></a>
+        <a class="c3-pilula" href="#col-negociacao">Negociação <span class="dado" data-n="negociacao">2</span></a>
+        <a class="c3-pilula" href="#col-contrato">Contrato <span class="dado" data-n="contrato">0</span></a>
+        <a class="c3-pilula" href="#col-pagamento">Pagamento <span class="dado" data-n="pagamento">3</span></a>
+        <a class="c3-pilula" href="#col-aguardando">Aguardando nascimento <span class="dado" data-n="aguardando">11</span></a>
+      </nav>
+      <div class="c3-quadro">
+        <section class="c3-coluna" id="col-proposta" data-estagio="proposta" aria-labelledby="h-prop">
+          <div class="c3-coluna__cab"><h2 class="c3-coluna__nome" id="h-prop">Proposta enviada</h2><span class="c3-coluna__n" data-n="proposta">3</span></div>
+          <div class="c3-coluna__lista"></div>
+          <a class="c3-mais" href="#">Ver as 3 famílias <svg class="icone icone--16"><use href="#i-chevron-right"/></svg></a>
+        </section>
+        <section class="c3-coluna" id="col-negociacao" data-estagio="negociacao" aria-labelledby="h-neg">
+          <div class="c3-coluna__cab"><h2 class="c3-coluna__nome" id="h-neg">Negociação</h2><span class="c3-coluna__n" data-n="negociacao">2</span></div>
+          <div class="c3-coluna__lista"></div>
+          <a class="c3-mais" href="#">Ver as 2 famílias <svg class="icone icone--16"><use href="#i-chevron-right"/></svg></a>
+        </section>
+        <section class="c3-coluna" id="col-contrato" data-estagio="contrato" aria-labelledby="h-cont">
+          <div class="c3-coluna__cab"><h2 class="c3-coluna__nome" id="h-cont">Contrato</h2><span class="c3-coluna__n" data-n="contrato">0</span></div>
+          <div class="c3-coluna__lista">
+            <div class="vazio" style="padding: var(--e-4)">
+              <p class="t-3">Nenhum contrato em andamento</p>
+              <p class="vazio__texto apoio">Quando uma negociação fechar, a família aparece aqui até a assinatura na Autentique.</p>
+            </div>
+          </div>
+        </section>
+        <section class="c3-coluna" id="col-pagamento" data-estagio="pagamento" aria-labelledby="h-pag">
+          <div class="c3-coluna__cab"><h2 class="c3-coluna__nome" id="h-pag">Pagamento</h2><span class="c3-coluna__n" data-n="pagamento">3</span></div>
+          <div class="c3-coluna__lista">
+            <article class="c3-cartao" draggable="true" data-id="horizonte" data-estagio="pagamento" data-praca="sp" aria-labelledby="n-hor">
+              <a class="c3-nome" id="n-hor" href="comercial-ficha.html">Família Teste Horizonte</a>
+              <p class="c3-linha"><span class="dado" title="Calculada da DPP 12/11/2026">33s0d</span><span>Moema, São Paulo</span></p>
+              <p class="mini" data-tempo>Pagamento confirmado há 2 dias</p>
+              <div class="c3-sinais"><span class="selo selo--aviso"><svg class="icone"><use href="#i-user-round"/></svg>Sem enfermeira titular</span></div>
+              <p class="c3-proximo"><svg class="icone"><use href="#i-hourglass"/></svg><span>Oferta com a coordenação até 26/09, 18:00.</span></p>
+              <button class="botao botao--terciario botao--compacto c3-mover" type="button" aria-expanded="false" data-mover>Mover para</button>
+            </article>
+            <article class="c3-cartao" draggable="true" data-id="jasmim" data-estagio="pagamento" data-praca="sp" aria-labelledby="n-jas">
+              <a class="c3-nome" id="n-jas" href="comercial-ficha.html">Família Teste Jasmim</a>
+              <p class="c3-linha"><span class="dado" title="Calculada da DPP 03/11/2026">34s2d</span><span>Alphaville, Barueri</span></p>
+              <p class="mini" data-tempo>Há 6 dias neste estágio</p>
+              <div class="c3-sinais"><span class="selo selo--contorno">Pré-natal em andamento</span></div>
+              <p class="c3-proximo"><svg class="icone"><use href="#i-clipboard-list"/></svg><span>A coordenação conduz a entrevista.</span></p>
+              <button class="botao botao--terciario botao--compacto c3-mover" type="button" aria-expanded="false" data-mover>Mover para</button>
+            </article>
+          </div>
+          <a class="c3-mais" href="#">Ver a outra família <svg class="icone icone--16"><use href="#i-chevron-right"/></svg></a>
+        </section>
+        <section class="c3-coluna" id="col-aguardando" data-estagio="aguardando" aria-labelledby="h-ag">
+          <div class="c3-coluna__cab"><h2 class="c3-coluna__nome" id="h-ag">Aguardando nascimento</h2><span class="c3-coluna__n" data-n="aguardando">11</span></div>
+          <div class="c3-coluna__lista">
+            <article class="c3-cartao" draggable="true" data-id="brisa" data-estagio="aguardando" data-praca="sp" data-freio="ativo" aria-labelledby="n-brisa">
+              <a class="c3-nome" id="n-brisa" href="comercial-ficha.html#estado-freio">Família Teste Brisa</a>
+              <p class="c3-linha"><span class="dado" title="Calculada da DPP 02/10/2026">38s6d</span><span>Pinheiros, São Paulo</span></p>
+              <div class="c3-sinais"><span class="selo selo--sensivel"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio em bloqueio total</span></div>
+              <p class="c3-proximo" style="color: var(--sensivel)"><svg class="icone"><use href="#i-hand"/></svg><span>Desde 24/09, 09:14. Nenhuma mensagem automática sai para esta família.</span></p>
+              <button class="botao botao--terciario botao--compacto c3-mover" type="button" aria-expanded="false" data-mover>Mover para</button>
+            </article>
+          </div>
+          <a class="c3-mais" href="#">Ver as outras 10 <svg class="icone icone--16"><use href="#i-chevron-right"/></svg></a>
+        </section>
+      </div>
+    </section>
+
+    <!-- ---------- Estados ---------- -->
+    <section class="c-estados" aria-labelledby="t-estados">
+      <h2 class="t-2" id="t-estados">Estados</h2>
+      <div class="c-estados__grade">
+        <div>
+          <p class="c-estado__titulo">Estágio vazio</p>
+          <div class="vazio">
+            <svg class="icone icone--24"><use href="#i-calendar-check"/></svg>
+            <p class="vazio__titulo">Nenhuma família em Sessão agendada</p>
+            <p class="vazio__texto">Quando você marcar uma conversa com a coordenação a partir das duas opções que a família passou, ela aparece aqui.</p>
+          </div>
+        </div>
+        <div>
+          <p class="c-estado__titulo">Carregando</p>
+          <div class="pilha pilha--2" aria-busy="true" aria-label="Carregando estágio">
+            <span class="esqueleto esqueleto--titulo" style="width: 40%"></span>
+            <div class="c3-cartao" style="cursor: default"><span class="esqueleto esqueleto--linha" style="width: 70%"></span><span class="esqueleto esqueleto--linha" style="width: 45%"></span><span class="esqueleto esqueleto--linha" style="width: 85%"></span></div>
+            <div class="c3-cartao" style="cursor: default"><span class="esqueleto esqueleto--linha" style="width: 60%"></span><span class="esqueleto esqueleto--linha" style="width: 40%"></span></div>
+          </div>
+        </div>
+        <div>
+          <p class="c-estado__titulo">Menu "Mover para" aberto</p>
+          <div class="c3-cartao" style="cursor: default">
+            <span class="c3-nome">Família Teste Dália</span>
+            <p class="c3-linha"><span class="dado">32s4d</span><span>Pinheiros, São Paulo</span></p>
+            <div class="c3-destinos">
+              <p class="c3-destinos__titulo">A partir de Qualificado</p>
+              <span class="c3-destino"><svg class="icone"><use href="#i-arrow-right"/></svg>Sessão agendada</span>
+              <span class="c3-destino"><svg class="icone"><use href="#i-arrow-right"/></svg>Proposta enviada</span>
+              <span class="c3-destino"><svg class="icone"><use href="#i-arrow-right"/></svg>Nutrição</span>
+              <span class="c3-destino"><svg class="icone"><use href="#i-arrow-right"/></svg>Fora de cobertura</span>
+              <span class="c3-destino"><svg class="icone"><use href="#i-arrow-right"/></svg>Perdido, com motivo</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="c-estado__titulo">Transição recusada</p>
+          <div class="faixa faixa--prioritario">
+            <svg class="icone"><use href="#i-triangle-alert"/></svg>
+            <div>
+              <p class="faixa__titulo">Esse passo não existe a partir de Qualificado</p>
+              <p class="faixa__texto">A Família Teste Dália voltou para Qualificado. Os caminhos possíveis são: Sessão agendada, Nutrição, Perdido, Fora de cobertura ou Proposta enviada.</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="c-estado__titulo">Família com freio no quadro</p>
+          <div class="c3-cartao" data-freio="ativo" style="cursor: default">
+            <span class="c3-nome">Família Teste Brisa</span>
+            <p class="c3-linha"><span class="dado">38s6d</span><span>Pinheiros, São Paulo</span></p>
+            <div class="c3-sinais"><span class="selo selo--sensivel"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio em bloqueio total</span></div>
+            <p class="c3-proximo" style="color: var(--sensivel)"><svg class="icone"><use href="#i-hand"/></svg><span>Sem follow-up nem régua. Só contato humano e nominal.</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="abas-inf" aria-label="Navegação principal">
+    <a class="abas-inf__item" href="comercial-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">1</span></a>
+    <a class="abas-inf__item" href="comercial-pipeline.html" aria-current="page"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
+    <a class="abas-inf__item" href="comercial-conversas.html"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
+    <a class="abas-inf__item" href="comercial-ficha.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="comercial.html"><svg class="icone"><use href="#i-ellipsis"/></svg>Mais</a>
+  </nav>
+
+  <div class="c3-veu" id="veu" hidden></div>
+  <section class="folha" id="folha-perda" role="dialog" aria-modal="true" aria-labelledby="fp-t" hidden>
+    <form class="pilha pilha--6" id="form-perda">
+      <div class="pilha pilha--2">
+        <h2 class="t-1" id="fp-t">Marcar como perdido</h2>
+        <p class="corpo" data-familia></p>
+      </div>
+      <fieldset class="pilha pilha--2">
+        <legend class="campo__rotulo" style="margin-bottom: var(--e-2)">Motivo da perda</legend>
+        <div class="marcas c3-motivos">
+          <input type="radio" name="motivo" id="m-preco" value="Preço"><label for="m-preco">Preço</label>
+          <input type="radio" name="motivo" id="m-retorno" value="Sem retorno"><label for="m-retorno">Sem retorno</label>
+          <input type="radio" name="motivo" id="m-outra" value="Escolheu outra opção"><label for="m-outra">Escolheu outra opção</label>
+          <input type="radio" name="motivo" id="m-janela" value="Fora da janela"><label for="m-janela">Fora da janela</label>
+          <input type="radio" name="motivo" id="m-outro" value="Outro"><label for="m-outro">Outro</label>
+        </div>
+        <p class="campo__ajuda" id="perda-erro" hidden style="color: var(--alerta); font-weight: 500"><svg class="icone"><use href="#i-circle-alert"/></svg>Escolha um motivo. Ele alimenta o relatório de perdas.</p>
+      </fieldset>
+      <div class="barra-acao barra-acao--estatica">
+        <button class="botao" type="button" id="perda-voltar">Voltar</button>
+        <button class="botao botao--primario" type="submit">Marcar como perdido</button>
+      </div>
+    </form>
+  </section>
+
+  <div class="aviso-efemero" id="aviso" role="status" hidden>
+    <svg class="icone"><use href="#i-check"/></svg>
+    <span data-texto></span>
+    <button class="botao botao--compacto empurra" type="button" data-desfazer>Desfazer</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  var NOMES = {
+    novo: 'Novo', em_conversa: 'Em conversa', qualificado: 'Qualificado', sessao: 'Sessão agendada',
+    realizada: 'Sessão realizada', nutricao: 'Nutrição', perdido: 'Perdido', fora: 'Fora de cobertura',
+    nao_qualificado: 'Não qualificado', proposta: 'Proposta enviada', negociacao: 'Negociação',
+    contrato: 'Contrato', pagamento: 'Pagamento', aguardando: 'Aguardando nascimento',
+    bebe_nasceu: 'Bebê nasceu', cancelado: 'Cancelado', intercorrencia: 'Intercorrência'
+  };
+  // PRD 7.1 e 7.2, recortado para as colunas do protótipo
+  var PODE = {
+    novo: ['em_conversa', 'nutricao', 'nao_qualificado', 'fora', 'perdido'],
+    em_conversa: ['qualificado', 'nutricao', 'nao_qualificado', 'fora', 'perdido'],
+    qualificado: ['sessao', 'proposta', 'nutricao', 'fora', 'perdido'],
+    sessao: ['realizada', 'qualificado'],
+    nutricao: ['em_conversa', 'qualificado', 'sessao', 'proposta'],
+    proposta: ['negociacao', 'perdido'],
+    negociacao: ['contrato', 'perdido'],
+    contrato: ['pagamento', 'cancelado'],
+    pagamento: ['aguardando', 'bebe_nasceu', 'cancelado'],
+    aguardando: ['bebe_nasceu', 'intercorrencia']
+  };
+  function listaHumana(itens) {
+    var n = itens.map(function (k) { return NOMES[k]; });
+    return n.length > 1 ? n.slice(0, -1).join(', ') + ' ou ' + n[n.length - 1] : n[0];
+  }
+
+  // Abas dos pipelines
+  var abas = [document.getElementById('aba-p1'), document.getElementById('aba-p2')];
+  abas.forEach(function (aba, i) {
+    aba.addEventListener('click', function () { escolherAba(i); });
+    aba.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { escolherAba(1 - i); abas[1 - i].focus(); }
+    });
+  });
+  function escolherAba(i) {
+    abas.forEach(function (a, j) {
+      a.setAttribute('aria-selected', i === j ? 'true' : 'false');
+      a.tabIndex = i === j ? 0 : -1;
+      document.getElementById(a.getAttribute('aria-controls')).hidden = i !== j;
+    });
+  }
+
+  // Filtros
+  function filtrar() {
+    var praca = document.querySelector('input[name="praca"]:checked').value;
+    var hoje = document.getElementById('f-hoje').checked;
+    document.querySelectorAll('.c3-cartao[data-id]').forEach(function (c) {
+      var ok = (praca === 'todas' || c.dataset.praca === praca) && (!hoje || c.dataset.hoje === 'sim');
+      c.hidden = !ok;
+    });
+  }
+  document.querySelectorAll('input[name="praca"], #f-hoje').forEach(function (i) { i.addEventListener('change', filtrar); });
+
+  // Aviso efêmero
+  var aviso = document.getElementById('aviso'), tempo, desfazer;
+  function avisar(texto, fn) {
+    aviso.querySelector('[data-texto]').textContent = texto;
+    aviso.querySelector('[data-desfazer]').hidden = !fn;
+    desfazer = fn; aviso.hidden = false;
+    clearTimeout(tempo); tempo = setTimeout(function () { aviso.hidden = true; }, 6000);
+  }
+  aviso.querySelector('[data-desfazer]').addEventListener('click', function () { if (desfazer) desfazer(); aviso.hidden = true; });
+
+  // Contagens
+  function somar(estagio, delta) {
+    document.querySelectorAll('[data-n="' + estagio + '"]').forEach(function (el) { el.textContent = String(Number(el.textContent) + delta); });
+  }
+
+  // Recusa
+  var recusa = document.getElementById('recusa');
+  function recusar(cartao, para) {
+    var de = cartao.dataset.estagio;
+    recusa.querySelector('[data-titulo]').textContent = 'Esse passo não existe a partir de ' + NOMES[de];
+    recusa.querySelector('[data-texto]').textContent = 'A ' + cartao.querySelector('.c3-nome').textContent + ' continua em ' + NOMES[de] + '. Os caminhos possíveis são: ' + listaHumana(PODE[de]) + '.';
+    recusa.hidden = false;
+  }
+  document.getElementById('fechar-recusa').addEventListener('click', function () { recusa.hidden = true; });
+
+  // Mover (menu ou arrastar)
+  function mover(cartao, para) {
+    var de = cartao.dataset.estagio;
+    if (PODE[de].indexOf(para) === -1) { recusar(cartao, para); return; }
+    recusa.hidden = true;
+    if (para === 'perdido') { abrirPerda(cartao); return; }
+    var nome = cartao.querySelector('.c3-nome').textContent;
+    var origem = cartao.parentElement, proximo = cartao.nextSibling;
+    var tempoTxt = cartao.querySelector('[data-tempo]');
+    var tempoAntes = tempoTxt ? tempoTxt.textContent : '';
+    var coluna = document.querySelector('.c3-coluna[data-estagio="' + para + '"] .c3-coluna__lista');
+    fecharMenus();
+    if (coluna) {
+      var vazio = coluna.querySelector('.vazio'); if (vazio) vazio.hidden = true;
+      coluna.prepend(cartao);
+    } else {
+      cartao.hidden = true;
+    }
+    cartao.dataset.estagio = para;
+    if (tempoTxt) tempoTxt.textContent = 'Chegou agora em ' + NOMES[para];
+    somar(de, -1); somar(para, 1);
+    avisar(nome + ' foi para ' + NOMES[para] + ' às 15:26.', function () {
+      origem.insertBefore(cartao, proximo); cartao.hidden = false;
+      cartao.dataset.estagio = de; if (tempoTxt) tempoTxt.textContent = tempoAntes;
+      somar(para, -1); somar(de, 1);
+    });
+  }
+
+  function fecharMenus(excecao) {
+    document.querySelectorAll('.c3-cartao [data-destinos]').forEach(function (m) {
+      if (m !== excecao) { m.previousElementSibling.setAttribute('aria-expanded', 'false'); m.remove(); }
+    });
+  }
+  document.querySelectorAll('[data-mover]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var cartao = b.closest('.c3-cartao');
+      if (b.getAttribute('aria-expanded') === 'true') { fecharMenus(); b.focus(); return; }
+      fecharMenus();
+      var de = cartao.dataset.estagio;
+      var menu = document.createElement('div');
+      menu.className = 'c3-destinos'; menu.dataset.destinos = '';
+      menu.innerHTML = '<p class="c3-destinos__titulo">A partir de ' + NOMES[de] + '</p>' + PODE[de].map(function (k) {
+        return '<button class="c3-destino" type="button" data-para="' + k + '"><svg class="icone"><use href="#i-arrow-right"/></svg>' + NOMES[k] + (k === 'perdido' ? ', com motivo' : '') + '</button>';
+      }).join('');
+      b.after(menu);
+      b.setAttribute('aria-expanded', 'true');
+      menu.querySelectorAll('[data-para]').forEach(function (d) { d.addEventListener('click', function () { mover(cartao, d.dataset.para); }); });
+      menu.querySelector('button').focus();
+    });
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { fecharMenus(); fecharPerda(); } });
+
+  // Arrastar no computador
+  var arrastado = null;
+  document.querySelectorAll('.c3-cartao[draggable]').forEach(function (c) {
+    c.addEventListener('dragstart', function (e) { arrastado = c; c.dataset.arrastando = ''; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', c.dataset.id); });
+    c.addEventListener('dragend', function () { delete c.dataset.arrastando; document.querySelectorAll('.c3-coluna').forEach(function (k) { delete k.dataset.alvo; }); });
+  });
+  document.querySelectorAll('.c3-coluna').forEach(function (col) {
+    col.addEventListener('dragover', function (e) { if (arrastado) { e.preventDefault(); col.dataset.alvo = 'sim'; } });
+    col.addEventListener('dragleave', function () { delete col.dataset.alvo; });
+    col.addEventListener('drop', function (e) {
+      e.preventDefault(); delete col.dataset.alvo;
+      if (arrastado && col.dataset.estagio !== arrastado.dataset.estagio) mover(arrastado, col.dataset.estagio);
+      arrastado = null;
+    });
+  });
+
+  // Folha de perda com motivo
+  var folha = document.getElementById('folha-perda'), veu = document.getElementById('veu'), cartaoPerda = null;
+  function abrirPerda(cartao) {
+    cartaoPerda = cartao;
+    folha.querySelector('[data-familia]').textContent = 'A ' + cartao.querySelector('.c3-nome').textContent + ' sai do pipeline e para de receber follow-up. Se a família voltar a escrever, ela reabre em Em conversa.';
+    folha.hidden = false; veu.hidden = false;
+    folha.querySelector('input').focus();
+  }
+  function fecharPerda() { folha.hidden = true; veu.hidden = true; document.getElementById('perda-erro').hidden = true; }
+  document.getElementById('perda-voltar').addEventListener('click', fecharPerda);
+  veu.addEventListener('click', fecharPerda);
+  document.getElementById('form-perda').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var m = folha.querySelector('input[name="motivo"]:checked');
+    if (!m) { document.getElementById('perda-erro').hidden = false; return; }
+    var c = cartaoPerda, de = c.dataset.estagio;
+    fecharPerda(); fecharMenus();
+    c.hidden = true; somar(de, -1);
+    avisar(c.querySelector('.c3-nome').textContent + ' marcada como perdida: ' + m.value.toLowerCase() + '.', function () { c.hidden = false; somar(de, 1); });
+  });
+})();
+</script>
+</body>
+</html>

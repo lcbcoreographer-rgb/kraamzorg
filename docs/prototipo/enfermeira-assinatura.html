@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Resumo e assinatura · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/enfermeira.css">
+<script src="assets/icones.js"></script>
+<!--
+  E5 · Etapa 8, resumo e assinatura do D4 da Família Teste Aurora.
+  Fonte: telas.md E5, fluxos.md fluxo A (passos 7 e 8, regra 6), PRD 9.2 (obrigatórios do dia e do último dia).
+  Etapas 1 a 7 completas; o acionamento do PU-01 foi registrado às 10:14. Falta só o resumo descritivo,
+  por isso "Assinar registro do D4" abre desabilitado com a razão escrita acima dele.
+  Escreva uma linha no resumo (ou grave o áudio) para liberar a assinatura e ver a folha de confirmação.
+  Com ?sinal=0 o resultado mostra "Assinado às 11:42. Sobe quando houver sinal."
+-->
+</head>
+<body data-hora="11:40" data-sinc-inicial="sincronizado" data-sinc-hora="11:31" class="com-barra-alta">
+<a class="pular" href="#cl-etapas">Pular para a etapa</a>
+<div class="app app--enf app--checklist">
+  <main class="app__principal cl" id="conteudo">
+
+    <header class="cl-cab" data-familia-cab data-familia="Família Teste Aurora">
+      <div class="cl-cab__topo">
+        <a class="botao botao--terciario botao--icone cl-cab__voltar" href="enfermeira-hoje.html" aria-label="Voltar para Hoje"><svg class="icone icone--24"><use href="#i-arrow-left"/></svg></a>
+        <div class="cl-cab__familia">
+          <p class="t-3">Família Teste Aurora</p>
+          <p class="mini"><span class="dado">D4</span> de 6, quinta 24/09</p>
+        </div>
+        <button class="botao-freio" type="button" data-freio-botao><svg class="icone"><use href="#i-hand"/></svg>Freio</button>
+      </div>
+      <p class="cl-cab__freio" data-freio-texto hidden></p>
+      <div class="cl-cab__linha">
+        <button class="sinc" type="button" data-sinc data-abre-fila></button>
+        <button class="botao botao--compacto cl-cab__etapas" type="button" data-abre-etapas><span data-etapa-rotulo>Etapa 8 de 8</span><svg class="icone"><use href="#i-chevron-down"/></svg></button>
+      </div>
+      <div class="blocos__trilha" style="--n: 8" aria-hidden="true" data-trilha></div>
+    </header>
+
+    <section class="faixa faixa--info cl-aviso-sinal" role="status" data-sem-sinal hidden>
+      <svg class="icone"><use href="#i-wifi-off"/></svg>
+      <div>
+        <p class="faixa__titulo">Sem sinal agora</p>
+        <p class="faixa__texto">O registro está salvo no aparelho e sobe sozinho quando a conexão voltar. Dá para assinar assim mesmo.</p>
+      </div>
+    </section>
+    <div id="cl-faixa-fixa"></div>
+    <div id="cl-etapas"></div>
+
+    <!-- ---------- Estados da assinatura ---------- -->
+    <section class="estados" aria-labelledby="estados-t">
+      <h2 class="t-2" id="estados-t">Estados da assinatura</h2>
+      <div class="estados__grade">
+
+        <div class="estado">
+          <p class="estado__titulo">Com pendências: assinar desabilitado, com a razão</p>
+          <div class="barra-acao cl-barra">
+            <p class="apoio cl-barra__razao" id="st-razao">Para assinar falta: sinais vitais e peso de Nina; resumo descritivo do dia.</p>
+            <div class="cl-barra__nav">
+              <button class="botao" type="button"><svg class="icone"><use href="#i-arrow-left"/></svg>Voltar</button>
+              <button class="botao botao--primario" type="button" aria-disabled="true" aria-describedby="st-razao"><svg class="icone"><use href="#i-pen-line"/></svg>Assinar registro do D4</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Tudo pronto: folha de confirmação</p>
+          <div class="folha folha--estatica" role="group" aria-labelledby="st-ass-t">
+            <div class="folha__topo"><h3 class="t-2" id="st-ass-t">Assinar o registro do D4?</h3></div>
+            <div class="folha__corpo">
+              <p class="corpo">Depois de assinado, o registro não muda. Se precisar corrigir, você faz um adendo com o motivo.</p>
+              <div class="folha__acoes"><button class="botao" type="button">Revisar</button><button class="botao botao--primario" type="button"><svg class="icone"><use href="#i-pen-line"/></svg>Assinar agora</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Assinando</p>
+          <div class="linha-flex">
+            <button class="botao botao--primario" type="button" aria-busy="true"><svg class="icone"><use href="#i-refresh-cw"/></svg>Assinando</button>
+          </div>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Assinado sem sinal</p>
+          <section class="faixa faixa--sucesso" aria-label="Assinado sem sinal">
+            <svg class="icone"><use href="#i-circle-check"/></svg>
+            <div>
+              <p class="faixa__titulo">Assinado às 11:42</p>
+              <p class="faixa__texto">Sobe quando houver sinal. Até lá, a régua mostra o D4 como ficha pendente.</p>
+            </div>
+          </section>
+          <ol class="regua" style="--dias: 6" aria-label="Régua da Família Teste Aurora depois de assinar sem sinal">
+            <li class="regua__dia" data-estado="feito"><span class="regua__n">D1</span><span class="regua__data">21/09</span></li>
+            <li class="regua__dia" data-estado="feito"><span class="regua__n">D2</span><span class="regua__data">22/09</span></li>
+            <li class="regua__dia" data-estado="pendente"><span class="regua__n">D3</span><span class="regua__data">ficha</span></li>
+            <li class="regua__dia" data-estado="pendente"><span class="regua__n">D4</span><span class="regua__data">sobe</span></li>
+            <li class="regua__dia"><span class="regua__n">D5</span><span class="regua__data">25/09</span></li>
+            <li class="regua__dia"><span class="regua__n">D6</span><span class="regua__data">26/09</span></li>
+          </ol>
+        </div>
+
+        <div class="estado" id="ultimo-dia">
+          <p class="estado__titulo">Último dia (D6): contatos dos médicos e resumo de encerramento</p>
+          <div class="cartao cartao--plano pilha pilha--6 cl">
+            <div class="pilha pilha--2">
+              <h3 class="t-2">Para encerrar o acompanhamento</h3>
+              <p class="apoio">No D6 a assinatura pede também o contato com o obstetra e com o pediatra. Se não conseguir, justifique.</p>
+            </div>
+
+            <div class="enf-secao" data-medico>
+              <div class="linha-flex">
+                <div class="linha-lista__corpo">
+                  <span class="t-3">Obstetra: Dr. Sérgio Fictício</span>
+                  <a class="dado" href="tel:+5511900000030">+55 11 90000-0030</a>
+                </div>
+                <a class="botao botao--compacto" href="tel:+5511900000030"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar</a>
+              </div>
+              <fieldset class="pergunta">
+                <legend class="pergunta__texto">Contato feito com o obstetra</legend>
+                <div class="sim-nao">
+                  <input type="radio" id="ud-ob-s" name="ud-ob" value="sim" checked><label for="ud-ob-s"><svg class="icone"><use href="#i-check"/></svg>Sim</label>
+                  <input type="radio" id="ud-ob-n" name="ud-ob" value="nao"><label for="ud-ob-n"><svg class="icone"><use href="#i-check"/></svg>Não</label>
+                </div>
+              </fieldset>
+              <button class="botao botao--terciario botao--compacto" type="button" data-justificar="ud-ob-j" hidden>Não consegui, justificar</button>
+              <div class="campo" data-justificativa="ud-ob-j" hidden>
+                <label class="campo__rotulo" for="ud-ob-j">Por que não foi possível falar com o obstetra</label>
+                <div class="campo__caixa"><textarea class="campo__entrada" id="ud-ob-j" rows="3" placeholder="Tentativas, horários e com quem falou"></textarea></div>
+              </div>
+            </div>
+
+            <div class="enf-secao" data-medico>
+              <div class="linha-flex">
+                <div class="linha-lista__corpo">
+                  <span class="t-3">Pediatra: Dra. Vera Fictícia</span>
+                  <a class="dado" href="tel:+5511900000031">+55 11 90000-0031</a>
+                </div>
+                <a class="botao botao--compacto" href="tel:+5511900000031"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar</a>
+              </div>
+              <fieldset class="pergunta">
+                <legend class="pergunta__texto">Contato feito com o pediatra</legend>
+                <div class="sim-nao">
+                  <input type="radio" id="ud-pe-s" name="ud-pe" value="sim"><label for="ud-pe-s"><svg class="icone"><use href="#i-check"/></svg>Sim</label>
+                  <input type="radio" id="ud-pe-n" name="ud-pe" value="nao" checked><label for="ud-pe-n"><svg class="icone"><use href="#i-check"/></svg>Não</label>
+                </div>
+              </fieldset>
+              <button class="botao botao--terciario botao--compacto" type="button" data-justificar="ud-pe-j" hidden>Não consegui, justificar</button>
+              <div class="campo" data-justificativa="ud-pe-j">
+                <label class="campo__rotulo" for="ud-pe-j">Por que não foi possível falar com a pediatra</label>
+                <div class="campo__caixa"><textarea class="campo__entrada" id="ud-pe-j" rows="3">Liguei às 11:05 e às 11:20, sem resposta. Deixei recado com a secretária e mandei o resumo pela coordenação.</textarea></div>
+                <p class="campo__ajuda"><svg class="icone"><use href="#i-check"/></svg>Justificativa salva no aparelho às 11:24.</p>
+              </div>
+            </div>
+
+            <div class="campo">
+              <label class="campo__rotulo" for="ud-enc">Resumo de encerramento</label>
+              <div class="campo__caixa"><textarea class="campo__entrada" id="ud-enc" rows="4" placeholder="Como a família termina o acompanhamento e o que foi combinado"></textarea></div>
+              <div class="cl-trazer"><button class="botao botao--compacto" type="button"><svg class="icone"><use href="#i-mic"/></svg>Gravar áudio</button></div>
+            </div>
+
+            <ul class="cl-lista-ok">
+              <li data-ok="sim"><svg class="icone"><use href="#i-circle-check"/></svg><span class="cl-lista-ok__corpo">Contato do obstetra</span></li>
+              <li data-ok="sim"><svg class="icone"><use href="#i-circle-check"/></svg><span class="cl-lista-ok__corpo">Contato do pediatra, justificado</span></li>
+              <li data-ok="nao"><svg class="icone"><use href="#i-clock-alert"/></svg><span class="cl-lista-ok__corpo">Resumo de encerramento</span></li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <div class="barra-acao cl-barra">
+    <button class="botao botao--terciario botao--compacto cl-barra__sinal" type="button" data-abre-seletor><svg class="icone"><use href="#i-triangle-alert"/></svg>Registrar outro sinal de alerta</button>
+    <p class="apoio cl-barra__razao" data-razao hidden></p>
+    <div class="cl-barra__nav">
+      <button class="botao" type="button" data-voltar><svg class="icone"><use href="#i-arrow-left"/></svg>Voltar</button>
+      <button class="botao botao--primario" type="button" data-proxima>Próxima etapa<svg class="icone"><use href="#i-arrow-right"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/enfermeira.js"></script>
+<script src="assets/enfermeira-dados.js"></script>
+<script>
+  (function () {
+    var d = KZ.DADOS.aurora, e = d.porEtapa;
+    KZ.checklist(KZ.juntar(d, {
+      etapa: 8, saida: '11:30',
+      respostas: KZ.juntar(e[1], e[2], e['2b'], e[3], e[4], e['4b'], e[5], e[6], e[7]),
+      textos: d.textosDia,
+      registrados: d.acionamento
+    }));
+    // Último dia: "Não" no contato abre a justificativa; "Sim" fecha.
+    document.querySelectorAll('[data-medico]').forEach(function (bloco) {
+      var pergunta = bloco.querySelector('.pergunta'), botao = bloco.querySelector('[data-justificar]');
+      var campo = bloco.querySelector('[data-justificativa]');
+      bloco.addEventListener('change', function (ev) {
+        if (!ev.target.matches('.sim-nao input')) return;
+        var nao = ev.target.value === 'nao';
+        if (nao) { botao.hidden = !campo.hidden; }
+        else { botao.hidden = true; campo.hidden = true; }
+        KZ.salvar('D6: ' + pergunta.querySelector('legend').textContent + ', ' + (nao ? 'não' : 'sim'));
+      });
+      botao.addEventListener('click', function () { botao.hidden = true; campo.hidden = false; campo.querySelector('textarea').focus(); });
+    });
+  })();
+</script>
+</body>
+</html>

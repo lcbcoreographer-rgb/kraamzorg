@@ -85,6 +85,48 @@ Os demais nós Postgres do capítulo 19 (`postgres`, `postgresTool`) não criam 
 
 **13. Split In Batches (Loop Over Items) trocou o nome de exibição, mas não o `type`.** O `type` no JSON continua `n8n-nodes-base.splitInBatches` mesmo depois de a interface passar a chamar o nó de "Loop Over Items"; e a ordem das saídas na v3 é `done` (índice 0) e `loop` (índice 1), então o build tem que casar a conexão pelo nome da saída no JSON de exportação, não confiar na posição.
 
+## Validação local
+
+O item 15 pedia um fluxo exportado de uma instância real. Como essa instância não existe ainda, a prova disponível hoje é outra: importar um fluxo de teste com exatamente os `type`/`typeVersion` de `versoes-nos.json` numa instância local de n8n, num banco SQLite limpo, e confirmar que a importação não falha e que o n8n não altera nenhum parâmetro silenciosamente.
+
+**Versão do n8n usada**: `2.40.6` (mesma versão do pacote principal listada em `pacotes.n8n` acima), instalada via `npm install n8n@2.40.6` (sem Docker, sem instância remota).
+
+**Requisito de Node.js**: n8n `2.40.6` exige Node `>=24`. O pacote nativo `isolated-vm` (motor de expressões) traz binários pré-compilados por versão de Node (`prebuilds/linux-x64/isolated-vm.abi147.glibc.node` é o do Node 24); se o `npm install` rodar numa versão de Node mais antiga (ex.: 22), a instalação completa mas o binário errado fica escolhido e o `import:workflow` falha com `Could not initialize the vm expression engine`. Solução: instalar/usar Node 24 antes de instalar o n8n (`nvm install 24 && nvm use 24`) ou, se o `npm install` já rodou com outra versão, forçar a escolha do binário certo com Node 24 ativo (`node -e "require('node-gyp-build')('node_modules/isolated-vm')"` dentro da pasta onde o n8n foi instalado).
+
+**Resultado obtido**: importação de um fluxo de teste (`fluxo-teste.json`, nesta seção) com os nós `webhook`, `code`, `postgres` (`executeQuery` com `options.queryReplacement` como expressão de array), `executeWorkflowTrigger`, `agent` + `lmChatOpenAi`, `memoryPostgresChat` e `vectorStorePGVector` em `retrieve-as-tool` (mais `embeddingsOpenAi`, exigido como entrada `ai_embedding` do vector store) terminou sem erro, e o `export:workflow --all` devolveu o mesmo fluxo sem nenhuma diferença de parâmetro em relação ao JSON de entrada: nenhum parâmetro sumiu, nenhum virou valor padrão diferente do que foi enviado, e nenhum `typeVersion` mudou. Isso confirma, contra uma instância real (ainda que local, não a de homologação da Kraamzorg), que o formato descrito em `versoes-nos.json` para esses nós é aceito como está.
+
+`fluxo-teste.json`, `validar.sh` e `comparar.mjs` (nesta mesma pasta) são o fluxo de teste e os dois scripts usados; eles não dependem de nenhum caminho específico de máquina, só de o n8n estar instalado ao lado de `validar.sh`/`comparar.mjs` (em `node_modules/.bin/n8n`) ou disponível via `npx n8n`.
+
+Duas observações práticas descobertas nesse processo, que não vêm do código-fonte dos pacotes e por isso não estavam nas armadilhas acima:
+
+- O JSON do workflow precisa de um campo `id` de nível raiz (ex.: `"id": "algum-id-string"`) para o `import:workflow` aceitar; sem ele, a importação falha com `SQLITE_CONSTRAINT: NOT NULL constraint failed: workflow_entity.id`. O `build.mjs` deve sempre gerar esse campo.
+- Credenciais referenciadas num nó (`credentials: { postgres: { id, name } }`, `credentials: { openAiApi: { id, name } }`) não precisam existir na instância para a importação ser aceita; o n8n só valida a credencial na hora de executar o nó, não na importação. Isso é o esperado (não seria possível testar localmente sem apontar para bancos e contas reais), mas significa que "importou sem erro" não é prova de que a credencial referenciada existe ou tem o escopo certo em produção; isso só um teste de fumaça contra a conta real (P25) confirma.
+
+### Como reproduzir
+
+`fluxo-teste.json`, `validar.sh` e `comparar.mjs` já estão nesta pasta (`n8n/referencia/`); só falta instalar o n8n ao lado deles.
+
+1. Garanta Node.js `>=24` disponível (`node -v`; instale com `nvm install 24 && nvm use 24` se precisar). Sem isso o `isolated-vm` (motor de expressões do n8n) carrega o binário nativo errado e o import falha com `Could not initialize the vm expression engine` (ver acima).
+2. Dentro de `n8n/referencia/`, instale o n8n dessa mesma versão, sem afetar o resto do repositório:
+   ```sh
+   npm init -y
+   npm install n8n@2.40.6
+   ```
+   (isso cria `node_modules/` e `package.json` nesta pasta; ambos podem ser apagados depois de terminar a validação, ou adicionados ao `.gitignore` do projeto se for algo para repetir com frequência.)
+3. Para só validar que um ou mais fluxos importam sem erro, cada um num banco SQLite limpo e descartável:
+   ```sh
+   ./validar.sh fluxo-teste.json caminho/para/outro-fluxo.json
+   ```
+   Sai com código 0 se todos importarem, código 1 se algum falhar (o script imprime qual). Variáveis usadas internamente: `N8N_USER_FOLDER` (uma pasta temporária nova por arquivo, apagada ao final), `DB_TYPE=sqlite`, `N8N_DIAGNOSTICS_ENABLED=false`, `N8N_VERSION_NOTIFICATIONS_ENABLED=false`, `N8N_RUNNERS_ENABLED=false`.
+4. Para importar um fluxo, exportar de volta e listar toda diferença de parâmetro entre o JSON de entrada e o exportado (não só se importou, mas se os valores ficaram exatamente como enviados):
+   ```sh
+   node comparar.mjs fluxo-teste.json
+   ```
+   Sai com código 0 e a mensagem "nenhuma diferenca de parametros encontrada" quando os dois JSON batem; código 1 e a lista de diferenças (nó, caminho do parâmetro, valor de entrada, valor exportado) quando não batem; código 2 em erro de uso ou de execução do n8n.
+5. `fluxo-teste.json` cobre um nó de cada tipo mais sensível do capítulo 19 (`webhook`, `code`, `postgres`, `executeWorkflowTrigger`, `agent`, `lmChatOpenAi`, `memoryPostgresChat`, `embeddingsOpenAi`, `vectorStorePGVector` em `retrieve-as-tool`), com os mesmos `type`/`typeVersion`/`parametros` de `versoes-nos.json`. Para testar outro nó da tabela, adicione-o a esse mesmo arquivo (ou crie um novo) seguindo o mesmo padrão: um campo `id` de nível raiz é obrigatório, senão a importação falha com `SQLITE_CONSTRAINT: NOT NULL constraint failed: workflow_entity.id`.
+
+Nenhum dos dois scripts toca em rede além de `registry.npmjs.org` (para instalar o n8n) e não depende de nenhuma instância ou credencial real: todo banco é SQLite local e descartável.
+
 ## Como usar este arquivo no `build.mjs`
 
 `versoes-nos.json` não substitui `n8n/config.{env}.json` (que traz ids de credencial e segredos reais); ele é só o formato esperado de cada tipo de nó, por versão, para o gerador montar o JSON de cada um dos três fluxos do capítulo 19 sem adivinhar nome de parâmetro. Quando a instância de homologação existir, o ideal é comparar um export real dela com este arquivo (mesma versão de pacote) e atualizar aqui qualquer divergência, junto com a data em `geradoEm`.

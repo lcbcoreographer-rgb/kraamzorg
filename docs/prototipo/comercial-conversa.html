@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Conversa · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/icones.js"></script>
+<!--
+  C2 · Conversa (docs/design/telas.md, fluxo E). Momento: 24/09/2026, 15:26, logo depois de Otávio Lemos assumir.
+  Regra da reunião de 24/09 (11:22): lead qualificado que caiu no comercial não volta para a Isadora. Não existe "devolver à Isadora".
+  Decisão pendente do cliente (telas.md, item 3): responder no app pelo adaptador de mensageria ou só pelo WhatsApp do aparelho.
+  A tela principal mostra as duas saídas; a variante "só WhatsApp" está em Estados.
+  Texto do formulário = mensagem_modelo formulario_contrato (PRD 23.2), com o nome fictício do comercial.
+-->
+<style>
+  .c2-cab { display: flex; align-items: center; gap: var(--e-2); min-width: 0; }
+  .c2-cab__nome { font-family: var(--fonte-titulo); font-weight: 500; font-size: var(--tam-2); letter-spacing: -0.01em; line-height: 1.15; }
+  .c2-cab__meta { display: flex; gap: var(--e-2); font-size: var(--tam-mini); color: var(--texto-2); }
+  .c2-cab[data-freio="ativo"] .c2-cab__nome { color: var(--sensivel); }
+
+  .c2-grade { display: grid; gap: var(--e-5); padding-top: var(--e-4); }
+  .c2-lado { order: -1; display: flex; flex-direction: column; gap: var(--e-3); }
+  @media (min-width: 1024px) {
+    .c2-grade { grid-template-columns: minmax(0, 62fr) minmax(0, 38fr); align-items: start; gap: var(--e-6); }
+    .c2-lado { order: 0; position: sticky; top: 88px; }
+  }
+  .c2-resumo { background: var(--superficie-2); border-radius: var(--raio-3); padding: var(--e-4); }
+  .c2-resumo summary { display: flex; align-items: center; gap: var(--e-2); min-height: var(--toque); cursor: pointer; font-weight: 600; list-style: none; border-radius: var(--raio-2); }
+  .c2-resumo summary::-webkit-details-marker { display: none; }
+  .c2-resumo summary .icone:last-child { margin-left: auto; transition: transform var(--dur-rapida) var(--curva-estado); }
+  .c2-resumo[open] summary .icone:last-child { transform: rotate(180deg); }
+  .c2-resumo .pares dt { color: var(--marinho-72); }
+  .c2-isadora-fora { display: flex; gap: var(--e-2); align-items: flex-start; font-size: var(--tam-apoio); }
+  .c2-isadora-fora .icone { width: 16px; height: 16px; margin-top: 2px; }
+
+  .c2-fio { display: flex; flex-direction: column; gap: var(--e-3); padding-bottom: var(--e-4); }
+  .c2-dia { align-self: center; font-family: var(--fonte-dado); font-size: var(--tam-mini); color: var(--texto-2); }
+  .bolha__estado { display: inline-flex; align-items: center; gap: var(--e-1); }
+  .bolha__estado .icone { width: 14px; height: 14px; }
+
+  .c2-compositor { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-barra); display: flex; flex-direction: column; gap: var(--e-2); padding: var(--e-3) var(--margem-tela) calc(var(--e-3) + env(safe-area-inset-bottom)); background: var(--superficie); border-top: var(--borda-fina); box-shadow: var(--sombra-2); }
+  .c2-compositor__linha { display: flex; gap: var(--e-2); align-items: flex-end; }
+  .c2-compositor .campo__caixa { flex: 1; min-height: 48px; }
+  .c2-compositor textarea.campo__entrada { min-height: 46px; max-height: 128px; padding: var(--e-3) var(--e-4); resize: none; }
+  .c2-atalhos { display: flex; gap: var(--e-2); overflow-x: auto; scrollbar-width: none; }
+  .c2-atalho { flex: none; display: inline-flex; align-items: center; gap: var(--e-2); min-height: var(--toque); padding: 0 var(--e-4); border: 1.5px solid var(--borda-campo); border-radius: var(--raio-pilula); background: var(--superficie); font-size: var(--tam-apoio); font-weight: 500; white-space: nowrap; }
+  .c2-atalho:hover { background: var(--marinho-08); }
+  .c2-atalho .icone { width: 16px; height: 16px; }
+  .app__principal { padding-bottom: 200px; }
+  .c2-sem-abas .abas-inf { display: none; }
+  @media (max-width: 1023px) { [data-acoes-lado] { display: none; } }
+  @media (min-width: 1024px) {
+    .c2-compositor { position: static; box-shadow: none; border: var(--borda-fina); border-radius: var(--raio-3); padding: var(--e-3) var(--e-4); }
+    #resolver-atalho { display: none; }
+    .app__principal { padding-bottom: var(--e-12); }
+  }
+
+  .c2-folha-veu { position: fixed; inset: 0; z-index: calc(var(--z-folha) - 1); background: color-mix(in srgb, var(--marinho) 40%, transparent); }
+  .c2-midia { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: var(--e-3); align-items: center; }
+  .c2-midia__mini { width: 64px; height: 64px; border-radius: var(--raio-2); background: repeating-linear-gradient(135deg, var(--marinho-14) 0 5px, var(--superficie) 5px 10px); display: grid; place-items: center; color: var(--texto-2); }
+
+  .c-estados { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); margin-top: var(--e-8); border-top: var(--borda-fina); }
+  .c-estados__grade { display: grid; gap: var(--e-6); }
+  @media (min-width: 900px) { .c-estados__grade { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .c-estado__titulo { font-size: var(--tam-apoio); font-weight: 600; color: var(--texto-2); margin-bottom: var(--e-2); }
+  .c-estados .c2-compositor { position: static; box-shadow: none; border: var(--borda-fina); border-radius: var(--raio-3); }
+  @media (prefers-reduced-motion: reduce) { .c3-cartao, .c3-coluna, .c6-opcao label, .c2-resumo summary .icone { transition: none; } }
+</style>
+</head>
+<body class="c2-sem-abas">
+<a class="pular" href="#conversa">Pular para a conversa</a>
+<div class="app">
+
+  <nav class="lateral" aria-label="Navegação principal">
+    <div class="lateral__marca">
+      <img src="assets/simbolo-provisorio.png" alt="" width="36" height="26">
+      <span class="lateral__nome">Kraamzorg OS</span>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Comercial</span>
+      <a class="lateral__item" href="comercial-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">1</span></a>
+      <a class="lateral__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
+      <a class="lateral__item" href="comercial-conversas.html" aria-current="page"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
+      <a class="lateral__item" href="comercial-ficha.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Agente</span>
+      <a class="lateral__item" href="comercial-agente-regras.html"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Sistema</span>
+      <a class="lateral__item" href="_kit.html"><svg class="icone"><use href="#i-layout-dashboard"/></svg>Kit de componentes</a>
+      <a class="lateral__item" href="entrar.html"><svg class="icone"><use href="#i-log-out"/></svg>Sair</a>
+    </div>
+    <div class="lateral__pe">
+      <div class="forte">Otávio Lemos</div>
+      <div class="mini" style="color: var(--texto-inverso-2)">Comercial e diretoria</div>
+    </div>
+  </nav>
+
+  <main class="app__principal" id="conteudo">
+    <header class="cab-tela">
+      <a class="botao botao--icone botao--terciario" href="comercial-conversas.html" aria-label="Voltar para as conversas"><svg class="icone"><use href="#i-arrow-left"/></svg></a>
+      <div class="c2-cab" id="cab">
+        <div style="min-width: 0">
+          <h1 class="c2-cab__nome"><a href="comercial-ficha.html" style="text-decoration: none">Família Teste Dália</a></h1>
+          <p class="c2-cab__meta"><span class="dado">32s4d</span><span>Qualificado</span></p>
+        </div>
+      </div>
+      <button class="botao-freio empurra" type="button" id="freio" aria-label="Freio: pausa na hora todas as mensagens automáticas para esta família"><svg class="icone"><use href="#i-hand"/></svg>Freio</button>
+    </header>
+
+    <div class="c2-grade">
+      <!-- Conversa -->
+      <section id="conversa" aria-label="Conversa no WhatsApp com a Família Teste Dália">
+        <div class="faixa faixa--sensivel" id="faixa-freio" hidden style="margin-bottom: var(--e-4)">
+          <svg class="icone"><use href="#i-octagon-pause"/></svg>
+          <div>
+            <p class="faixa__titulo">Freio em bloqueio total desde 15:27</p>
+            <p class="faixa__texto">Sem texto sugerido comercial. Se precisar falar com a família, escreva você, pelo nome.</p>
+          </div>
+        </div>
+
+        <div class="conversa c2-fio" id="fio" aria-live="polite">
+          <span class="c2-dia">24/09/2026</span>
+          <div class="bolha bolha--familia">Oi! Vi a apresentação de novo e conversei com meu marido.<div class="bolha__hora">13:48</div></div>
+          <div class="bolha bolha--familia">A gente quer fechar o Imersão. Dá para pagar no Pix?<div class="bolha__hora">13:49</div></div>
+          <div class="bolha bolha--isadora"><div class="bolha__autor"><svg class="icone icone--16"><use href="#i-bot"/></svg>Isadora (IA)</div>Que notícia boa, Bianca. Fico feliz que vocês decidiram com calma. Só para deixar tudo certo para a equipe: a DPP continua 15/11?<div class="bolha__hora">13:50</div></div>
+          <div class="bolha bolha--familia">Continua sim.<div class="bolha__hora">14:00</div></div>
+          <div class="bolha bolha--isadora"><div class="bolha__autor"><svg class="icone icone--16"><use href="#i-bot"/></svg>Isadora (IA)</div>Perfeito. O Otávio, do nosso comercial, vai seguir com vocês por aqui, começando por um formulário seguro para os dados do contrato. A forma de pagamento ele confirma com você.<div class="bolha__hora">14:01</div></div>
+          <span class="evento-conversa"><svg class="icone icone--16"><use href="#i-user-check"/></svg>Transferida ao comercial às 14:02. A Isadora não volta a responder nesta conversa.</span>
+          <div class="bolha bolha--familia">Combinado, fico aguardando.<div class="bolha__hora">15:10</div></div>
+          <span class="evento-conversa"><svg class="icone icone--16"><use href="#i-user-check"/></svg>Otávio Lemos assumiu às 15:25</span>
+        </div>
+
+        <form class="c2-compositor" id="compositor" aria-label="Responder à família">
+          <div class="c2-atalhos" id="atalhos">
+            <button class="c2-atalho" type="button" id="usar-formulario"><svg class="icone"><use href="#i-file-text"/></svg>Formulário do contrato</button>
+            <button class="c2-atalho" type="button" id="resolver-atalho"><svg class="icone"><use href="#i-circle-check"/></svg>Marcar como resolvida</button>
+          </div>
+          <div class="c2-compositor__linha">
+            <label class="sr" for="mensagem">Mensagem para a Família Teste Dália</label>
+            <div class="campo__caixa"><textarea class="campo__entrada" id="mensagem" rows="1" placeholder="Escreva para Bianca"></textarea></div>
+            <a class="botao botao--icone" id="abrir-wa" href="https://wa.me/5511900000014" target="_blank" rel="noopener" aria-label="Abrir no WhatsApp com este texto"><svg class="icone"><use href="#i-message-circle"/></svg></a>
+            <button class="botao botao--primario botao--icone" type="submit" id="enviar" aria-label="Enviar pelo app"><svg class="icone"><use href="#i-arrow-right"/></svg></button>
+          </div>
+          <p class="mini" id="compositor-ajuda">Sai pelo número da Kraamzorg. O botão ao lado abre no WhatsApp do seu celular.</p>
+        </form>
+      </section>
+
+      <!-- Painel da família: resumo recolhível no celular, coluna fixa no computador -->
+      <aside class="c2-lado" aria-label="Resumo da família">
+        <details class="c2-resumo" id="resumo">
+          <summary><svg class="icone"><use href="#i-bot"/></svg>Resumo da Isadora<svg class="icone"><use href="#i-chevron-down"/></svg></summary>
+          <dl class="pares" style="margin-top: var(--e-2)">
+            <dt>Quem</dt><dd>Bianca Teste, primeiro bebê</dd>
+            <dt>Semanas</dt><dd><span class="dado">32s4d</span>, DPP <span class="dado">15/11/2026</span></dd>
+            <dt>Onde</dt><dd>Pinheiros, cobertura confirmada, sem taxa</dd>
+            <dt>Apresentação</dt><dd>Enviada em <span class="dado">19/09</span></dd>
+            <dt>Plano</dt><dd>Imersão, <span class="dado">R$ 7.800</span></dd>
+            <dt>Pagamento</dt><dd>Pix</dd>
+            <dt>Próximo passo</dt><dd>Formulário, contrato e link</dd>
+          </dl>
+        </details>
+        <p class="c2-isadora-fora apoio"><svg class="icone"><use href="#i-bot"/></svg><span>A Isadora saiu desta conversa às 14:02 e não volta sozinha. Daqui em diante é com você.</span></p>
+        <div class="linha-flex" data-acoes-lado>
+          <a class="botao botao--compacto" href="https://wa.me/5511900000014" target="_blank" rel="noopener"><svg class="icone"><use href="#i-message-circle"/></svg>Abrir no WhatsApp</a>
+          <button class="botao botao--compacto" type="button" id="resolver"><svg class="icone"><use href="#i-circle-check"/></svg>Marcar como resolvida</button>
+        </div>
+      </aside>
+    </div>
+
+    <!-- ---------- Estados ---------- -->
+    <section class="c-estados" aria-labelledby="t-estados">
+      <h2 class="t-2" id="t-estados">Estados</h2>
+      <div class="c-estados__grade">
+        <div>
+          <p class="c-estado__titulo">A Isadora ainda conduz (antes de assumir)</p>
+          <div class="pilha pilha--2">
+            <div class="bolha bolha--isadora" style="align-self: flex-end"><div class="bolha__autor"><svg class="icone icone--16"><use href="#i-bot"/></svg>Isadora (IA)</div>Oi, Gabriela. Com 18 semanas ainda dá tempo de conhecer tudo com calma. Quer que eu te mande a apresentação?<div class="bolha__hora">15:02</div></div>
+            <div class="faixa faixa--info">
+              <svg class="icone"><use href="#i-bot"/></svg>
+              <div>
+                <p class="faixa__texto">A Isadora está conduzindo esta conversa. Se você assumir, ela para de responder aqui.</p>
+                <div class="faixa__acoes"><button class="botao botao--primario botao--compacto" type="button"><svg class="icone"><use href="#i-user-check"/></svg>Assumir conversa</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p class="c-estado__titulo">Freio ativo</p>
+          <div class="pilha pilha--2">
+            <div class="faixa faixa--sensivel">
+              <svg class="icone"><use href="#i-octagon-pause"/></svg>
+              <div>
+                <p class="faixa__titulo">Freio em bloqueio total desde 09:14</p>
+                <p class="faixa__texto">Família Teste Brisa. A Isadora está desligada para esta família e não há texto sugerido. Contato só humano e nominal.</p>
+              </div>
+            </div>
+            <div class="c2-compositor">
+              <div class="c2-compositor__linha">
+                <div class="campo__caixa"><textarea class="campo__entrada" rows="1" aria-label="Mensagem para a Família Teste Brisa" placeholder="Escreva com o seu nome"></textarea></div>
+                <button class="botao botao--primario botao--icone" type="button" aria-label="Enviar pelo app"><svg class="icone"><use href="#i-arrow-right"/></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p class="c-estado__titulo">Falha de envio</p>
+          <div class="conversa">
+            <div class="bolha bolha--pessoa"><div class="bolha__autor">Otávio Lemos</div>Oi, Bianca, aqui é o Otávio. Te mando o formulário agora.<div class="bolha__hora"><span class="bolha__estado"><svg class="icone"><use href="#i-circle-alert"/></svg>Não saiu, 15:27</span></div></div>
+            <div class="faixa faixa--imediato" role="alert">
+              <svg class="icone"><use href="#i-circle-alert"/></svg>
+              <div>
+                <p class="faixa__texto">Não saiu. A família não recebeu. Tente de novo ou abra no WhatsApp.</p>
+                <div class="faixa__acoes">
+                  <button class="botao botao--compacto" type="button"><svg class="icone"><use href="#i-refresh-cw"/></svg>Tentar de novo</button>
+                  <a class="botao botao--terciario botao--compacto" href="https://wa.me/5511900000014" target="_blank" rel="noopener">Abrir no WhatsApp</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p class="c-estado__titulo">Mídia recebida</p>
+          <div class="bolha bolha--familia" style="max-width: 100%">
+            <div class="c2-midia">
+              <span class="c2-midia__mini" aria-hidden="true"><svg class="icone icone--24"><use href="#i-file-text"/></svg></span>
+              <div>
+                <p class="forte">Foto recebida</p>
+                <p class="apoio">Pode conter informação de saúde. Abra com cuidado.</p>
+              </div>
+            </div>
+            <button class="botao botao--compacto" type="button" style="margin-top: var(--e-3)">Abrir foto</button>
+            <div class="bolha__hora">15:31</div>
+          </div>
+        </div>
+
+        <div>
+          <p class="c-estado__titulo">Resposta só pelo WhatsApp do aparelho</p>
+          <div class="c2-compositor">
+            <div class="c2-atalhos">
+              <button class="c2-atalho" type="button"><svg class="icone"><use href="#i-copy"/></svg>Copiar texto do formulário</button>
+            </div>
+            <a class="botao botao--primario botao--bloco" href="https://wa.me/5511900000014" target="_blank" rel="noopener"><svg class="icone"><use href="#i-message-circle"/></svg>Abrir no WhatsApp</a>
+            <p class="mini">A conversa segue no seu celular. As mensagens voltam para cá pelo número da Kraamzorg.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="c2-folha-veu" id="veu" hidden></div>
+  <section class="folha" id="folha" role="dialog" aria-modal="true" aria-labelledby="fr-t" hidden>
+    <form class="pilha pilha--6" id="form-resolver">
+      <div class="pilha pilha--2">
+        <h2 class="t-1" id="fr-t">Marcar a transferência como resolvida</h2>
+        <p class="corpo">A conversa continua com a equipe. A Isadora não volta a responder aqui.</p>
+      </div>
+      <fieldset>
+        <legend class="campo__rotulo" style="margin-bottom: var(--e-3)">Como terminou</legend>
+        <div class="marcas">
+          <input type="radio" name="desfecho" id="d-form" value="formulário enviado"><label for="d-form">Formulário enviado</label>
+          <input type="radio" name="desfecho" id="d-sessao" value="sessão marcada"><label for="d-sessao">Sessão marcada</label>
+          <input type="radio" name="desfecho" id="d-cond" value="condição negociada"><label for="d-cond">Condição negociada</label>
+          <input type="radio" name="desfecho" id="d-sem" value="sem retorno"><label for="d-sem">Sem retorno</label>
+        </div>
+        <p class="campo__ajuda" id="desfecho-erro" hidden style="color: var(--alerta); font-weight: 500; margin-top: var(--e-2)"><svg class="icone"><use href="#i-circle-alert"/></svg>Escolha como terminou. Isso entra no relatório de transferências.</p>
+      </fieldset>
+      <div class="barra-acao barra-acao--estatica">
+        <button class="botao" type="button" id="fechar-folha">Voltar</button>
+        <button class="botao botao--primario" type="submit">Marcar como resolvida</button>
+      </div>
+    </form>
+  </section>
+
+  <div class="aviso-efemero" id="aviso" role="status" hidden style="bottom: calc(172px + env(safe-area-inset-bottom))">
+    <svg class="icone"><use href="#i-octagon-pause"/></svg>
+    <span data-texto></span>
+    <button class="botao botao--compacto empurra" type="button" data-desfazer>Desfazer</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  var campo = document.getElementById('mensagem');
+  var fio = document.getElementById('fio');
+  var wa = document.getElementById('abrir-wa');
+  var FORM = 'Oi, Bianca, aqui é o Otávio. Que bom ter vocês com a gente! Para eu preparar o contrato, preenche os dados neste formulário seguro, leva uns 3 minutos: (link seguro, gerado no envio). Depois disso o contrato chega por e-mail pela Autentique, a plataforma de assinatura, e pode abrir com tranquilidade.';
+
+  // Resumo aberto no computador, recolhido no celular
+  if (window.matchMedia('(min-width: 1024px)').matches) document.getElementById('resumo').open = true;
+
+  function ajustar() {
+    campo.style.height = 'auto';
+    campo.style.height = Math.min(campo.scrollHeight, 128) + 'px';
+    wa.href = 'https://wa.me/5511900000014' + (campo.value ? '?text=' + encodeURIComponent(campo.value) : '');
+  }
+  campo.addEventListener('input', ajustar);
+  document.getElementById('usar-formulario').addEventListener('click', function () {
+    campo.value = FORM; ajustar(); campo.focus();
+  });
+
+  // Enviar pelo app: enviando, depois entregue
+  document.getElementById('compositor').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var texto = campo.value.trim();
+    if (!texto) { campo.focus(); return; }
+    var b = document.createElement('div');
+    b.className = 'bolha bolha--pessoa';
+    b.innerHTML = '<div class="bolha__autor">Otávio Lemos</div><span data-t></span><div class="bolha__hora"><span class="bolha__estado"><svg class="icone"><use href="#i-cloud-upload"/></svg>Enviando</span></div>';
+    b.querySelector('[data-t]').textContent = texto;
+    fio.appendChild(b);
+    campo.value = ''; ajustar();
+    b.scrollIntoView({ block: 'end', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    setTimeout(function () {
+      b.querySelector('.bolha__estado').innerHTML = '<svg class="icone"><use href="#i-check-check"/></svg>Entregue 15:27';
+    }, 1200);
+  });
+
+  // Freio em um toque
+  var aviso = document.getElementById('aviso'), tempo;
+  function acionarFreio() {
+    var botao = document.getElementById('freio');
+    botao.outerHTML = '<span class="freio-ativo empurra" id="freio" style="background: var(--sensivel); color: var(--texto-inverso)"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio ativo</span>';
+    document.getElementById('cab').dataset.freio = 'ativo';
+    document.getElementById('faixa-freio').hidden = false;
+    document.getElementById('usar-formulario').hidden = true;
+    campo.placeholder = 'Escreva para Bianca, com o seu nome';
+    aviso.querySelector('[data-texto]').textContent = 'Freio acionado. Nenhuma mensagem automática sai para a Família Teste Dália.';
+    aviso.hidden = false;
+    clearTimeout(tempo); tempo = setTimeout(function () { aviso.hidden = true; }, 10000);
+  }
+  document.getElementById('freio').addEventListener('click', acionarFreio);
+  aviso.querySelector('[data-desfazer]').addEventListener('click', function () {
+    aviso.hidden = true;
+    document.getElementById('freio').outerHTML = '<button class="botao-freio empurra" type="button" id="freio" aria-label="Freio: pausa na hora todas as mensagens automáticas para esta família"><svg class="icone"><use href="#i-hand"/></svg>Freio</button>';
+    document.getElementById('freio').addEventListener('click', acionarFreio);
+    delete document.getElementById('cab').dataset.freio;
+    document.getElementById('faixa-freio').hidden = true;
+    document.getElementById('usar-formulario').hidden = false;
+    campo.placeholder = 'Escreva para Bianca';
+  });
+
+  // Marcar como resolvida
+  var folha = document.getElementById('folha'), veu = document.getElementById('veu'), origem = null;
+  function abrir(e) { origem = e.currentTarget; folha.hidden = false; veu.hidden = false; folha.querySelector('input').focus(); }
+  function fechar() { folha.hidden = true; veu.hidden = true; document.getElementById('desfecho-erro').hidden = true; if (origem) origem.focus(); }
+  document.getElementById('resolver').addEventListener('click', abrir);
+  document.getElementById('resolver-atalho').addEventListener('click', abrir);
+  document.getElementById('fechar-folha').addEventListener('click', fechar);
+  veu.addEventListener('click', fechar);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !folha.hidden) fechar(); });
+  document.getElementById('form-resolver').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var d = folha.querySelector('input[name="desfecho"]:checked');
+    if (!d) { document.getElementById('desfecho-erro').hidden = false; return; }
+    fechar();
+    var ev = document.createElement('span');
+    ev.className = 'evento-conversa';
+    ev.innerHTML = '<svg class="icone icone--16"><use href="#i-circle-check"/></svg>Transferência resolvida às 15:30: ' + d.value + '. A conversa segue com a equipe.';
+    fio.appendChild(ev);
+    document.getElementById('resolver').hidden = true;
+    document.getElementById('resolver-atalho').hidden = true;
+    ev.scrollIntoView({ block: 'end', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  });
+})();
+</script>
+</body>
+</html>

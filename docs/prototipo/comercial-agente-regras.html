@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Regras da Isadora · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/icones.js"></script>
+<!--
+  C6 · Agente, regras de follow-up (docs/design/telas.md, fluxo E). Reunião de 24/09, 11:20: janela configurável de 24 a 48 h,
+  pré-configurada, "de 48 pra cima". Padrão 48 h, mínimo 24 h. Textos: followup_d1_pos_pdf e followup_d1_pos_abertura (PRD 23.1),
+  mostrados sem emoji; seguem como rascunho até a aprovação da diretoria. Só a diretoria altera (PRD 13, parâmetros).
+  D+3 e D+14 continuam como tarefa humana (PRD 22.2, C-12).
+-->
+<style>
+  .c6-opcoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-2); }
+  @media (min-width: 600px) { .c6-opcoes { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .c6-opcao { position: relative; }
+  .c6-opcao input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .c6-opcao label { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 64px; padding: var(--e-2); border: 1.5px solid var(--borda-campo); border-radius: var(--raio-2); background: var(--superficie); cursor: pointer; transition: background-color var(--dur-rapida) var(--curva-estado); }
+  .c6-opcao label:hover { background: var(--marinho-08); }
+  .c6-opcao label:active { transform: scale(0.98); }
+  .c6-opcao .dado { font-size: 1.125rem; }
+  .c6-opcao input:checked + label { background: var(--acao); border-color: var(--acao); color: var(--acao-texto); }
+  .c6-opcao input:checked + label .mini { color: var(--texto-inverso-2); }
+  .c6-opcao input:focus-visible + label { outline: 2px solid var(--foco); outline-offset: 2px; box-shadow: 0 0 0 5px var(--foco-halo); }
+
+  /* Linha do tempo da retomada: régua de horas da última mensagem até o follow-up */
+  .c6-regua { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; }
+  .c6-regua > span { height: 10px; border-radius: var(--raio-pilula); border: 1px dashed var(--marinho-50); }
+  .c6-regua > span[data-f] { background: var(--marinho); border: 1px solid var(--marinho); }
+  .c6-regua__legenda { display: flex; justify-content: space-between; font-size: var(--tam-mini); color: var(--texto-2); margin-top: var(--e-1); }
+
+  .c6-texto { padding: var(--e-4); background: var(--superficie-2); border-radius: var(--raio-3); border-bottom-right-radius: var(--raio-1); }
+  .c6-texto__cab { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); margin-bottom: var(--e-2); }
+  .c6-chave { font-family: var(--fonte-dado); font-size: var(--tam-mini); color: var(--marinho-72); }
+
+  .c6-salvar { display: flex; flex-wrap: wrap; gap: var(--e-3); align-items: center; }
+
+  .c-estados { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); margin-top: var(--e-8); border-top: var(--borda-fina); }
+  .c-estados__grade { display: grid; gap: var(--e-6); }
+  @media (min-width: 900px) { .c-estados__grade { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .c-estado__titulo { font-size: var(--tam-apoio); font-weight: 600; color: var(--texto-2); margin-bottom: var(--e-2); }
+  @media (prefers-reduced-motion: reduce) { .c3-cartao, .c3-coluna, .c6-opcao label, .c2-resumo summary .icone { transition: none; } }
+</style>
+</head>
+<body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<div class="app">
+
+  <nav class="lateral" aria-label="Navegação principal">
+    <div class="lateral__marca">
+      <img src="assets/simbolo-provisorio.png" alt="" width="36" height="26">
+      <span class="lateral__nome">Kraamzorg OS</span>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Comercial</span>
+      <a class="lateral__item" href="comercial-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">1</span></a>
+      <a class="lateral__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
+      <a class="lateral__item" href="comercial-conversas.html"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
+      <a class="lateral__item" href="comercial-ficha.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Agente</span>
+      <a class="lateral__item" href="comercial-agente-regras.html" aria-current="page"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Sistema</span>
+      <a class="lateral__item" href="_kit.html"><svg class="icone"><use href="#i-layout-dashboard"/></svg>Kit de componentes</a>
+      <a class="lateral__item" href="entrar.html"><svg class="icone"><use href="#i-log-out"/></svg>Sair</a>
+    </div>
+    <div class="lateral__pe">
+      <div class="forte">Otávio Lemos</div>
+      <div class="mini" style="color: var(--texto-inverso-2)">Comercial e diretoria</div>
+    </div>
+  </nav>
+
+  <main class="app__principal" id="conteudo">
+    <header class="cab-tela">
+      <a class="botao botao--icone botao--terciario" href="comercial-conversas.html" aria-label="Voltar para as conversas"><svg class="icone"><use href="#i-arrow-left"/></svg></a>
+      <h1 class="cab-tela__titulo">Retomada da Isadora</h1>
+    </header>
+
+    <form class="duas-colunas" id="form" style="padding-top: var(--e-6)" novalidate>
+      <div class="pilha pilha--8">
+        <fieldset class="pilha">
+          <legend class="t-2" style="margin-bottom: var(--e-2)">Retomar quem parou de responder depois de</legend>
+          <p class="apoio" style="margin-bottom: var(--e-2)">A Isadora manda uma única mensagem de retomada. D+3 e D+14 continuam como tarefa sua, com texto sugerido.</p>
+          <div class="c6-opcoes">
+            <div class="c6-opcao"><input type="radio" name="janela" id="j24" value="24"><label for="j24"><span class="dado">24 h</span><span class="mini">mínimo</span></label></div>
+            <div class="c6-opcao"><input type="radio" name="janela" id="j36" value="36"><label for="j36"><span class="dado">36 h</span><span class="mini">&nbsp;</span></label></div>
+            <div class="c6-opcao"><input type="radio" name="janela" id="j48" value="48" checked><label for="j48"><span class="dado">48 h</span><span class="mini">padrão</span></label></div>
+            <div class="c6-opcao"><input type="radio" name="janela" id="j72" value="72"><label for="j72"><span class="dado">72 h</span><span class="mini">&nbsp;</span></label></div>
+          </div>
+          <div>
+            <div class="c6-regua" id="regua" aria-hidden="true"></div>
+            <p class="c6-regua__legenda"><span>Última mensagem da família</span><span id="regua-fim">Retomada em 48 h</span></p>
+          </div>
+          <p class="corpo" id="exemplo">Exemplo: se a família parou de responder na segunda às 20:00, a Isadora retoma na quarta às 20:00, dentro da janela de envio das 8h às 20h.</p>
+        </fieldset>
+
+        <section class="pilha" aria-labelledby="t-textos">
+          <h2 class="t-2" id="t-textos">O que sai em cada caso</h2>
+          <div class="c6-texto">
+            <div class="c6-texto__cab"><span class="forte">Depois da apresentação</span><span class="c6-chave">followup_d1_pos_pdf</span><span class="selo selo--aviso empurra">Rascunho para aprovação</span></div>
+            <p class="corpo">Oi, {nome}. Conseguiu dar uma olhadinha na apresentação? Se ficou alguma dúvida sobre os formatos, me conta.</p>
+          </div>
+          <div class="c6-texto">
+            <div class="c6-texto__cab"><span class="forte">Depois só da abertura</span><span class="c6-chave">followup_d1_pos_abertura</span><span class="selo selo--aviso empurra">Rascunho para aprovação</span></div>
+            <p class="corpo">Oi, tudo bem? Vi que você entrou em contato com a Kraamzorg Brasil. Se ainda fizer sentido conhecer o nosso cuidado pós-parto, me conta de quantas semanas você está.</p>
+          </div>
+        </section>
+      </div>
+
+      <div class="pilha pilha--6">
+        <div class="faixa faixa--sensivel">
+          <svg class="icone"><use href="#i-octagon-pause"/></svg>
+          <div>
+            <p class="faixa__titulo">Quando a Isadora nunca retoma</p>
+            <p class="faixa__texto">A Isadora nunca retoma conversa de família com freio nem conversa já assumida pela equipe.</p>
+          </div>
+        </div>
+        <dl class="pares cartao cartao--plano">
+          <dt>Janela de envio</dt><dd>8h às 20h, uma mensagem de conteúdo por dia</dd>
+          <dt>Máximo de contatos</dt><dd>3, cada um com motivo novo</dd>
+          <dt>Última alteração</dt><dd id="ultima">20/09/2026, 10:12, por Otávio Lemos</dd>
+        </dl>
+        <div class="c6-salvar">
+          <button class="botao botao--primario" type="submit" id="salvar" disabled>Salvar regra de retomada</button>
+          <span class="apoio" id="estado-salvo" role="status">Nenhuma alteração.</span>
+        </div>
+      </div>
+    </form>
+
+    <!-- ---------- Estados ---------- -->
+    <section class="c-estados" aria-labelledby="t-estados">
+      <h2 class="t-2" id="t-estados">Estados</h2>
+      <div class="c-estados__grade">
+        <div>
+          <p class="c-estado__titulo">Alteração não salva</p>
+          <div class="faixa faixa--prioritario">
+            <svg class="icone"><use href="#i-triangle-alert"/></svg>
+            <div>
+              <p class="faixa__texto">Você mudou de 48&nbsp;h para 24&nbsp;h e ainda não salvou. Até salvar, vale 48&nbsp;h.</p>
+              <div class="faixa__acoes"><button class="botao botao--compacto" type="button">Salvar regra de retomada</button></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="c-estado__titulo">Salvo</p>
+          <div class="faixa faixa--sucesso">
+            <svg class="icone"><use href="#i-circle-check"/></svg>
+            <p class="faixa__texto">Alteração salva às 15:20 por Otávio Lemos. Vale para as próximas retomadas.</p>
+          </div>
+        </div>
+        <div>
+          <p class="c-estado__titulo">Sem permissão</p>
+          <div class="faixa faixa--info">
+            <svg class="icone"><use href="#i-lock"/></svg>
+            <div>
+              <p class="faixa__titulo">Só a diretoria altera esta regra</p>
+              <p class="faixa__texto">Hoje a retomada acontece 48&nbsp;h depois da última mensagem. Para mudar, fale com a diretoria.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="abas-inf" aria-label="Navegação principal">
+    <a class="abas-inf__item" href="comercial-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">1</span></a>
+    <a class="abas-inf__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
+    <a class="abas-inf__item" href="comercial-conversas.html"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
+    <a class="abas-inf__item" href="comercial-ficha.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="comercial.html" aria-current="page"><svg class="icone"><use href="#i-ellipsis"/></svg>Mais</a>
+  </nav>
+</div>
+
+<script>
+(function () {
+  var salvo = '48';
+  var DIAS = { 24: 'na terça às 20:00', 36: 'na quarta às 08:00, primeiro horário da janela', 48: 'na quarta às 20:00', 72: 'na quinta às 20:00' };
+  var regua = document.getElementById('regua');
+  var botao = document.getElementById('salvar');
+  var estado = document.getElementById('estado-salvo');
+
+  function desenhar(h) {
+    // 12 blocos de 6 h: 72 h no total
+    var cheios = h / 6;
+    regua.innerHTML = '';
+    for (var i = 0; i < 12; i++) {
+      var s = document.createElement('span');
+      if (i < cheios) s.dataset.f = '';
+      regua.appendChild(s);
+    }
+    document.getElementById('regua-fim').textContent = 'Retomada em ' + h + ' h';
+    document.getElementById('exemplo').textContent = 'Exemplo: se a família parou de responder na segunda às 20:00, a Isadora retoma ' + DIAS[h] + ', dentro da janela de envio das 8h às 20h.';
+  }
+  function atual() { return document.querySelector('input[name="janela"]:checked').value; }
+
+  document.querySelectorAll('input[name="janela"]').forEach(function (i) {
+    i.addEventListener('change', function () {
+      desenhar(Number(atual()));
+      var mudou = atual() !== salvo;
+      botao.disabled = !mudou;
+      estado.textContent = mudou ? 'Alteração não salva. Até salvar, vale ' + salvo + '\u00a0h.' : 'Nenhuma alteração.';
+      estado.style.color = mudou ? 'var(--aviso-texto)' : '';
+    });
+  });
+  document.getElementById('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    botao.setAttribute('aria-busy', 'true');
+    botao.textContent = 'Salvando';
+    setTimeout(function () {
+      salvo = atual();
+      botao.removeAttribute('aria-busy');
+      botao.textContent = 'Salvar regra de retomada';
+      botao.disabled = true;
+      estado.textContent = 'Alteração salva às 15:20 por Otávio Lemos.';
+      estado.style.color = 'var(--sucesso)';
+      document.getElementById('ultima').textContent = '24/09/2026, 15:20, por Otávio Lemos';
+    }, 700);
+  });
+  desenhar(48);
+})();
+</script>
+</body>
+</html>

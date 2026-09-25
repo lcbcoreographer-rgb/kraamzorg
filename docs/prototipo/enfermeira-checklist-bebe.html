@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Checklist, bebês · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/enfermeira.css">
+<script src="assets/icones.js"></script>
+<!--
+  E4 · Checklist, etapa 5 (recém-nascido) em gemelar: uma aba por bebê, cada uma com o próprio estado.
+  Fonte: telas.md E4, fluxos.md fluxo A, PRD 9.2 blocos 3, 3.1 e 3.2 (campos repetem por bebê), Apêndice B.
+  Bento abre completo (aba ativa); Lia está com pendência (peso, fraldas, coto e vestimenta sem resposta).
+  Peso: o valor do D6 aparece só como referência, e o ganho é calculado enquanto se digita.
+  "Última diurese" e "Estado do coto" são desdobramentos propostos para as regras RN-04 e RN-07.
+-->
+</head>
+<body data-hora="15:02" data-sinc-inicial="sincronizado" data-sinc-hora="15:01" class="com-barra-alta">
+<a class="pular" href="#cl-etapas">Pular para a etapa</a>
+<div class="app app--enf app--checklist">
+  <main class="app__principal cl" id="conteudo">
+
+    <header class="cl-cab" data-familia-cab data-familia="Família Teste Cedro">
+      <div class="cl-cab__topo">
+        <a class="botao botao--terciario botao--icone cl-cab__voltar" href="enfermeira-hoje.html" aria-label="Voltar para Hoje"><svg class="icone icone--24"><use href="#i-arrow-left"/></svg></a>
+        <div class="cl-cab__familia">
+          <p class="t-3">Família Teste Cedro</p>
+          <p class="mini"><span class="dado">D7</span> de 12, gêmeos</p>
+        </div>
+        <button class="botao-freio" type="button" data-freio-botao><svg class="icone"><use href="#i-hand"/></svg>Freio</button>
+      </div>
+      <p class="cl-cab__freio" data-freio-texto hidden></p>
+      <div class="cl-cab__linha">
+        <button class="sinc" type="button" data-sinc data-abre-fila></button>
+        <button class="botao botao--compacto cl-cab__etapas" type="button" data-abre-etapas><span data-etapa-rotulo>Etapa 5 de 8</span><svg class="icone"><use href="#i-chevron-down"/></svg></button>
+      </div>
+      <div class="blocos__trilha" style="--n: 8" aria-hidden="true" data-trilha></div>
+    </header>
+
+    <section class="faixa faixa--info cl-aviso-sinal" role="status" data-sem-sinal hidden>
+      <svg class="icone"><use href="#i-wifi-off"/></svg>
+      <div>
+        <p class="faixa__titulo">Sem sinal agora</p>
+        <p class="faixa__texto">O registro está salvo no aparelho e sobe sozinho quando a conexão voltar.</p>
+      </div>
+    </section>
+    <div id="cl-faixa-fixa"></div>
+    <div id="cl-etapas"></div>
+
+    <!-- ---------- Estados da etapa 5 ---------- -->
+    <section class="estados" aria-labelledby="estados-t">
+      <h2 class="t-2" id="estados-t">Estados desta etapa</h2>
+      <div class="estados__grade">
+
+        <div class="estado">
+          <p class="estado__titulo">Bebê com RN-04: sem diurese há 4 horas ou mais</p>
+          <fieldset class="cl-opcoes">
+            <legend class="campo__rotulo">Última diurese</legend>
+            <div class="marcas">
+              <input type="radio" name="st-diu" id="st-diu-1"><label for="st-diu-1"><svg class="icone"><use href="#i-check"/></svg>Há menos de 4 h</label>
+              <input type="radio" name="st-diu" id="st-diu-2" checked><label for="st-diu-2"><svg class="icone"><use href="#i-check"/></svg>Há 4 h ou mais</label>
+            </div>
+          </fieldset>
+          <section class="faixa faixa--imediato" aria-label="Alerta RN-04">
+            <svg class="icone"><use href="#i-siren"/></svg>
+            <div>
+              <p class="faixa__titulo"><span class="faixa__codigo">RN-04</span>Sem diurese há 4 horas ou mais em Lia</p>
+              <p class="faixa__texto">Acione a supervisão médica agora e oriente a família a procurar emergência pediátrica.</p>
+              <p class="faixa__meta">Antes de fechar: sinal, horário do acionamento, orientação médica recebida e conduta adotada.</p>
+              <div class="faixa__acoes">
+                <a class="botao botao--alerta" href="tel:+5511900000001"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para a supervisão</a>
+                <button class="botao" type="button"><svg class="icone"><use href="#i-clipboard-pen"/></svg>Registrar acionamento</button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Aba do outro bebê incompleta</p>
+          <div class="abas cl-bebes" role="tablist" aria-label="Exemplo de abas dos bebês">
+            <button class="abas__item" type="button" role="tab" aria-selected="false" tabindex="-1">Bento <span class="selo selo--sucesso"><svg class="icone"><use href="#i-circle-check"/></svg>Completa</span></button>
+            <button class="abas__item" type="button" role="tab" aria-selected="true">Lia <span class="selo selo--aviso">Faltam 4</span></button>
+          </div>
+          <p class="apoio">O estado de cada bebê fica na própria aba. Assinar pede sinais vitais e peso dos dois.</p>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Peso fora do esperado: aviso de digitação</p>
+          <div class="campo" data-estado="aviso">
+            <label class="campo__rotulo" for="st-peso">Peso</label>
+            <div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="st-peso" inputmode="numeric" value="28.150" aria-describedby="st-peso-a"><span class="campo__unidade">g</span></div>
+            <p class="cl-ref"><svg class="icone"><use href="#i-clock"/></svg><span>No D6: 2.790 g.</span></p>
+            <p class="campo__ajuda" id="st-peso-a"><svg class="icone"><use href="#i-circle-alert"/></svg>28.150 g parece ter um zero a mais. Confira e digite de novo.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <div class="barra-acao cl-barra">
+    <button class="botao botao--terciario botao--compacto cl-barra__sinal" type="button" data-abre-seletor><svg class="icone"><use href="#i-triangle-alert"/></svg>Registrar outro sinal de alerta</button>
+    <p class="apoio cl-barra__razao" data-razao hidden></p>
+    <div class="cl-barra__nav">
+      <button class="botao" type="button" data-voltar><svg class="icone"><use href="#i-arrow-left"/></svg>Voltar</button>
+      <button class="botao botao--primario" type="button" data-proxima>Próxima etapa<svg class="icone"><use href="#i-arrow-right"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/enfermeira.js"></script>
+<script src="assets/enfermeira-dados.js"></script>
+<script>
+  (function () {
+    var d = KZ.DADOS.cedro, e = d.porEtapa;
+    KZ.checklist(KZ.juntar(d, {
+      etapa: 5,
+      respostas: KZ.juntar(e[1], e[2], e[3], e[4], e.bento, e.lia),
+      textos: d.textosDia
+    }));
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Checklist, puérpera e amamentação · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/enfermeira.css">
+<script src="assets/icones.js"></script>
+<!--
+  E3 · Checklist, etapa 2 (puérpera) e etapa 4 (mamas e amamentação).
+  Fonte: telas.md E3, fluxos.md fluxo A (regras 1 a 3), PRD 9.2 blocos 2, 2.2 a 2.13 e 9.4 (DOC 4).
+  Abre na etapa 2. A etapa 4 fica em enfermeira-checklist-perguntas.html#etapa-4 (ou pela lista de etapas).
+  Medicações em uso abre com "Trazer o texto do D3" já acionado e ainda sem confirmação.
+  Autocuidado (bloco 2.4) está sem resposta de propósito: é o estado "pergunta sem resposta".
+-->
+</head>
+<body data-hora="08:31" data-sinc-inicial="sincronizado" data-sinc-hora="08:30" class="com-barra-alta">
+<a class="pular" href="#cl-etapas">Pular para a etapa</a>
+<div class="app app--enf app--checklist">
+  <main class="app__principal cl" id="conteudo">
+
+    <header class="cl-cab" data-familia-cab data-familia="Família Teste Aurora">
+      <div class="cl-cab__topo">
+        <a class="botao botao--terciario botao--icone cl-cab__voltar" href="enfermeira-hoje.html" aria-label="Voltar para Hoje"><svg class="icone icone--24"><use href="#i-arrow-left"/></svg></a>
+        <div class="cl-cab__familia">
+          <p class="t-3">Família Teste Aurora</p>
+          <p class="mini"><span class="dado">D4</span> de 6, quinta 24/09</p>
+        </div>
+        <button class="botao-freio" type="button" data-freio-botao><svg class="icone"><use href="#i-hand"/></svg>Freio</button>
+      </div>
+      <p class="cl-cab__freio" data-freio-texto hidden></p>
+      <div class="cl-cab__linha">
+        <button class="sinc" type="button" data-sinc data-abre-fila></button>
+        <button class="botao botao--compacto cl-cab__etapas" type="button" data-abre-etapas><span data-etapa-rotulo>Etapa 2 de 8</span><svg class="icone"><use href="#i-chevron-down"/></svg></button>
+      </div>
+      <div class="blocos__trilha" style="--n: 8" aria-hidden="true" data-trilha></div>
+    </header>
+
+    <section class="faixa faixa--info cl-aviso-sinal" role="status" data-sem-sinal hidden>
+      <svg class="icone"><use href="#i-wifi-off"/></svg>
+      <div>
+        <p class="faixa__titulo">Sem sinal agora</p>
+        <p class="faixa__texto">O registro está salvo no aparelho e sobe sozinho quando a conexão voltar.</p>
+      </div>
+    </section>
+    <div id="cl-faixa-fixa"></div>
+    <div id="cl-etapas"></div>
+
+    <!-- ---------- Estados das etapas 2 e 4 ---------- -->
+    <section class="estados" aria-labelledby="estados-t">
+      <h2 class="t-2" id="estados-t">Estados destas etapas</h2>
+      <div class="estados__grade">
+
+        <div class="estado">
+          <p class="estado__titulo">Pergunta sem resposta: nenhuma opção marcada</p>
+          <fieldset class="pergunta">
+            <legend class="pergunta__texto">Higiene íntima orientada</legend>
+            <div class="sim-nao">
+              <input type="radio" id="st-h-s" name="st-h"><label for="st-h-s"><svg class="icone"><use href="#i-check"/></svg>Sim</label>
+              <input type="radio" id="st-h-n" name="st-h"><label for="st-h-n"><svg class="icone"><use href="#i-check"/></svg>Não</label>
+            </div>
+          </fieldset>
+          <p class="apoio">Sem resposta padrão e sem “tudo normal”. A etapa fica com pendência na lista de etapas.</p>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Resposta que dispara prioritário: EVN 7</p>
+          <fieldset class="escala">
+            <legend class="campo__rotulo">EVN, dor ao amamentar de 0 a 10</legend>
+            <div class="escala__opcoes">
+              <input type="radio" name="st-evn" id="st-e0"><label for="st-e0">0</label>
+              <input type="radio" name="st-evn" id="st-e1"><label for="st-e1">1</label>
+              <input type="radio" name="st-evn" id="st-e2"><label for="st-e2">2</label>
+              <input type="radio" name="st-evn" id="st-e3"><label for="st-e3">3</label>
+              <input type="radio" name="st-evn" id="st-e4"><label for="st-e4">4</label>
+              <input type="radio" name="st-evn" id="st-e5"><label for="st-e5">5</label>
+              <input type="radio" name="st-evn" id="st-e6"><label for="st-e6">6</label>
+              <input type="radio" name="st-evn" id="st-e7" checked><label for="st-e7">7</label>
+              <input type="radio" name="st-evn" id="st-e8"><label for="st-e8">8</label>
+              <input type="radio" name="st-evn" id="st-e9"><label for="st-e9">9</label>
+              <input type="radio" name="st-evn" id="st-e10"><label for="st-e10">10</label>
+            </div>
+            <div class="escala__extremos"><span>0 · sem dor</span><span>10 · pior dor possível</span></div>
+          </fieldset>
+          <section class="faixa faixa--prioritario" aria-label="Alerta AM-05">
+            <svg class="icone"><use href="#i-triangle-alert"/></svg>
+            <div>
+              <p class="faixa__titulo"><span class="faixa__codigo">AM-05</span>Dor persistente ao amamentar (EVN 7)</p>
+              <p class="faixa__texto">Comunique a supervisão médica ainda hoje e avalie consultoria especializada.</p>
+              <div class="faixa__acoes">
+                <a class="botao" href="tel:+5511900000001"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para a supervisão</a>
+                <button class="botao" type="button"><svg class="icone"><use href="#i-clipboard-pen"/></svg>Registrar acionamento</button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Colagem que cita outra família</p>
+          <div class="campo" data-estado="aviso">
+            <label class="campo__rotulo" for="st-cola">Intervenções realizadas para dor</label>
+            <div class="campo__caixa"><textarea class="campo__entrada" id="st-cola" rows="3" aria-describedby="st-cola-a">Compressa fria depois da mamada. Paula Teste pediu para rever a pega dos gêmeos amanhã.</textarea></div>
+            <p class="campo__ajuda" id="st-cola-a"><svg class="icone"><use href="#i-triangle-alert"/></svg>O texto colado cita Paula Teste, da Família Teste Cedro, que não é esta família. Confira antes de salvar.</p>
+          </div>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Cópia ainda não confirmada, na lista do que falta</p>
+          <ul class="cl-lista-ok cartao cartao--plano">
+            <li data-ok="nao"><svg class="icone"><use href="#i-clock-alert"/></svg><span class="cl-lista-ok__corpo">Confirmar o texto trazido do D3 em medicações em uso</span><button class="botao botao--compacto" type="button">Ir para a etapa 2</button></li>
+            <li data-ok="sim"><svg class="icone"><use href="#i-circle-check"/></svg><span class="cl-lista-ok__corpo">Sinais vitais da puérpera</span></li>
+          </ul>
+          <p class="apoio">Sem “Vale para hoje”, o campo não conta como respondido e o registro não pode ser assinado.</p>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <div class="barra-acao cl-barra">
+    <button class="botao botao--terciario botao--compacto cl-barra__sinal" type="button" data-abre-seletor><svg class="icone"><use href="#i-triangle-alert"/></svg>Registrar outro sinal de alerta</button>
+    <p class="apoio cl-barra__razao" data-razao hidden></p>
+    <div class="cl-barra__nav">
+      <button class="botao" type="button" data-voltar><svg class="icone"><use href="#i-arrow-left"/></svg>Voltar</button>
+      <button class="botao botao--primario" type="button" data-proxima>Próxima etapa<svg class="icone"><use href="#i-arrow-right"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/enfermeira.js"></script>
+<script src="assets/enfermeira-dados.js"></script>
+<script>
+  (function () {
+    var d = KZ.DADOS.aurora, e = d.porEtapa;
+    KZ.checklist(KZ.juntar(d, {
+      etapa: 2,
+      respostas: KZ.juntar(e[1], e[2], e[4]),
+      textos: { 'ch-acomp-quem': d.textosDia['ch-acomp-quem'], 'pu-dor-local': d.textosDia['pu-dor-local'] },
+      copiasPendentes: ['pu-med']
+    }));
+  })();
+</script>
+</body>
+</html>
