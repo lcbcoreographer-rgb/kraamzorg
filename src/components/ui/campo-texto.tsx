@@ -1,11 +1,32 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { AjudaCampo, classeCaixaPorEstado, RotuloCampo, type EstadoCampo } from "./campo";
+import {
+  AjudaCampo,
+  classeCaixaPorEstado,
+  RotuloCampo,
+  type EstadoCampo,
+} from "./campo";
 
-type CamposComuns = "className" | "id" | "value" | "defaultValue" | "onChange" | "onBlur" | "placeholder" | "disabled" | "required" | "name" | "readOnly" | "maxLength" | "autoFocus" | "autoComplete";
+type CamposComuns =
+  | "className"
+  | "id"
+  | "value"
+  | "defaultValue"
+  | "onChange"
+  | "onBlur"
+  | "placeholder"
+  | "disabled"
+  | "required"
+  | "name"
+  | "readOnly"
+  | "maxLength"
+  | "autoFocus"
+  | "autoComplete";
 
-export interface CampoTextoProps
-  extends Pick<React.InputHTMLAttributes<HTMLInputElement>, CamposComuns> {
+export interface CampoTextoProps extends Pick<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  CamposComuns
+> {
   /** Texto do rótulo, sempre visível em cima do campo. */
   rotulo: React.ReactNode;
   /** Texto de ajuda abaixo do campo (referência do dia anterior, dica). */
@@ -24,7 +45,10 @@ export interface CampoTextoProps
   type?: React.HTMLInputTypeAttribute;
 }
 
-export const CampoTexto = React.forwardRef<HTMLInputElement | HTMLTextAreaElement, CampoTextoProps>(
+export const CampoTexto = React.forwardRef<
+  HTMLInputElement | HTMLTextAreaElement,
+  CampoTextoProps
+>(
   (
     {
       rotulo,
@@ -47,7 +71,10 @@ export const CampoTexto = React.forwardRef<HTMLInputElement | HTMLTextAreaElemen
     const idAjuda = `${idCampo}-ajuda`;
     const idErro = `${idCampo}-erro`;
     const estado: EstadoCampo = erro ? "erro" : (estadoProp ?? "normal");
-    const descrevePor = [descricao ? idAjuda : null, erro ? idErro : null].filter(Boolean).join(" ") || undefined;
+    const descrevePor =
+      [descricao ? idAjuda : null, erro ? idErro : null]
+        .filter(Boolean)
+        .join(" ") || undefined;
 
     return (
       <div className={cn("flex flex-col gap-2", containerClassName)}>
@@ -56,7 +83,7 @@ export const CampoTexto = React.forwardRef<HTMLInputElement | HTMLTextAreaElemen
         </RotuloCampo>
         <div
           className={cn(
-            "flex items-center rounded-2 bg-superficie transition-[border-color,box-shadow] duration-140 ease-estado",
+            "rounded-2 bg-superficie ease-estado flex items-center transition-[border-color,box-shadow] duration-140",
             multilinha ? "items-stretch" : "min-h-toque-campo",
             classeCaixaPorEstado(estado, props.disabled),
           )}
@@ -69,7 +96,7 @@ export const CampoTexto = React.forwardRef<HTMLInputElement | HTMLTextAreaElemen
               aria-describedby={descrevePor}
               aria-invalid={estado === "erro" || undefined}
               className={cn(
-                "min-h-[120px] w-full min-w-0 resize-y rounded-2 border-0 bg-transparent px-4 py-3 text-corpo leading-normal text-texto placeholder:text-texto-3 focus-visible:outline-none",
+                "rounded-2 text-corpo text-texto placeholder:text-texto-3 min-h-[120px] w-full min-w-0 resize-y border-0 bg-transparent px-4 py-3 leading-normal focus-visible:outline-none",
                 className,
               )}
               {...(props as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
@@ -82,7 +109,7 @@ export const CampoTexto = React.forwardRef<HTMLInputElement | HTMLTextAreaElemen
               aria-describedby={descrevePor}
               aria-invalid={estado === "erro" || undefined}
               className={cn(
-                "min-h-[calc(var(--spacing-toque-campo)-3px)] w-full min-w-0 rounded-2 border-0 bg-transparent px-4 text-corpo text-texto placeholder:text-texto-3 focus-visible:outline-none",
+                "rounded-2 text-corpo text-texto placeholder:text-texto-3 min-h-[calc(var(--spacing-toque-campo)-3px)] w-full min-w-0 border-0 bg-transparent px-4 focus-visible:outline-none",
                 className,
               )}
               {...props}

@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Início do comercial · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/icones.js"></script>
+<!--
+  C1 · Início do comercial (docs/design/telas.md). Momento do protótipo: quinta 24/09/2026, 15:24.
+  Fila de transferências da Isadora por prioridade e prazo (PRD 11.4) e tarefas do dia com texto sugerido (PRD 23.2).
+  Faixa vermelha no cartão = handoff.notificacao_ok = false (o aviso ao grupo interno do WhatsApp não saiu).
+  Os textos sugeridos trocam "Leonardo" e "Edilaine" pelos nomes fictícios Otávio Lemos e Beatriz Falcão, e saem sem emoji.
+-->
+<style>
+  .c1-intro { color: var(--texto-2); margin-top: var(--e-2); }
+  .c1-secao { display: flex; flex-direction: column; gap: var(--e-3); }
+  .c1-secao__cab { display: flex; align-items: baseline; gap: var(--e-3); }
+  .c1-item { display: flex; flex-direction: column; align-items: stretch; gap: var(--e-3); }
+  .c1-item__topo { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--e-1) var(--e-3); align-items: start; }
+  .c1-item__familia { font-weight: 600; text-decoration: none; }
+  .c1-item__familia:hover { text-decoration: underline; }
+  .c1-item__dados { display: flex; flex-wrap: wrap; gap: var(--e-1) var(--e-3); font-size: var(--tam-apoio); color: var(--texto-2); }
+  .c1-acoes { display: flex; flex-wrap: wrap; gap: var(--e-2); }
+  .c1-colheu { padding: var(--e-3) var(--e-4); background: var(--fundo); border-radius: var(--raio-2); }
+  .c1-colheu__titulo { display: flex; align-items: center; gap: var(--e-2); font-size: var(--tam-mini); font-weight: 600; color: var(--texto-2); margin-bottom: var(--e-2); }
+  .c1-assumida { display: flex; flex-direction: column; gap: var(--e-2); }
+
+  /* Prazo em blocos: a régua de dias aplicada ao tempo da transferência */
+  .c-sla { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; }
+  .c-sla > span { height: 8px; border-radius: var(--raio-pilula); border: 1px dashed var(--marinho-50); }
+  .c-sla > span[data-f] { background: var(--marinho); border: 1px solid var(--marinho); }
+  .c-sla[data-estado="perto"] > span[data-f] { background: var(--aviso); border-color: var(--aviso); }
+  .c-sla[data-estado="vencido"] > span { background: var(--alerta); border: 1px solid var(--alerta); }
+  .c-sla__legenda { display: flex; justify-content: space-between; gap: var(--e-3); font-size: var(--tam-mini); color: var(--texto-2); margin-top: var(--e-1); }
+
+  .c1-tarefa { display: flex; flex-direction: column; gap: var(--e-3); }
+  .c1-tarefa__topo { display: flex; align-items: flex-start; gap: var(--e-3); }
+  .c1-tarefa textarea.campo__entrada { min-height: 132px; }
+  .c1-feita { display: flex; align-items: center; gap: var(--e-3); padding: var(--e-3) var(--e-4); border: var(--borda-fina); border-radius: var(--raio-2); }
+  .c1-feita .icone { color: var(--sucesso); }
+
+  .c-estados { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); margin-top: var(--e-8); border-top: var(--borda-fina); }
+  .c-estados__grade { display: grid; gap: var(--e-6); }
+  @media (min-width: 720px) { .c-estados__grade { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .c-estado__titulo { font-size: var(--tam-apoio); font-weight: 600; color: var(--texto-2); margin-bottom: var(--e-2); }
+</style>
+</head>
+<body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<div class="app">
+
+  <nav class="lateral" aria-label="Navegação principal">
+    <div class="lateral__marca">
+      <img src="assets/simbolo-provisorio.png" alt="" width="36" height="26">
+      <span class="lateral__nome">Kraamzorg OS</span>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Comercial</span>
+      <a class="lateral__item" href="comercial-inicio.html" aria-current="page"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">1</span></a>
+      <a class="lateral__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
+      <a class="lateral__item" href="comercial-conversas.html"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
+      <a class="lateral__item" href="comercial-ficha.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Agente</span>
+      <a class="lateral__item" href="comercial-agente-regras.html"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Sistema</span>
+      <a class="lateral__item" href="_kit.html"><svg class="icone"><use href="#i-layout-dashboard"/></svg>Kit de componentes</a>
+      <a class="lateral__item" href="entrar.html"><svg class="icone"><use href="#i-log-out"/></svg>Sair</a>
+    </div>
+    <div class="lateral__pe">
+      <div class="forte">Otávio Lemos</div>
+      <div class="mini" style="color: var(--texto-inverso-2)">Comercial e diretoria</div>
+    </div>
+  </nav>
+
+  <main class="app__principal" id="conteudo">
+    <header class="cab-tela">
+      <h1 class="cab-tela__titulo t-display">Início</h1>
+      <span class="sinc empurra" data-estado="sincronizado" role="status"><svg class="icone"><use href="#i-cloud-check"/></svg>Atualizado 15:24</span>
+    </header>
+    <p class="c1-intro apoio">Quinta, 24/09. Três transferências abertas e duas tarefas com prazo hoje.</p>
+
+    <div class="duas-colunas" style="padding-top: var(--e-6)">
+
+      <!-- Fila de transferências, por prioridade e depois por prazo -->
+      <section class="c1-secao" aria-labelledby="t-fila">
+        <div class="c1-secao__cab">
+          <h2 class="t-2" id="t-fila">Transferências da Isadora</h2>
+          <span class="apoio empurra">por prioridade</span>
+        </div>
+
+        <div class="fila">
+          <!-- Prioridade máxima: saúde. Destino coordenação clínica, visível aqui e nunca some por filtro. -->
+          <article class="fila-item c1-item" data-prioridade="maxima" aria-labelledby="f-garoa">
+            <div class="c1-item__topo">
+              <h3 class="fila-item__motivo" id="f-garoa" style="color: var(--alerta)">Relato de saúde</h3>
+              <span class="prazo" data-estado="vencido"><svg class="icone icone--16"><use href="#i-siren"/></svg>imediato</span>
+              <div class="c1-item__dados" style="grid-column: 1 / -1">
+                <span class="forte" style="color: var(--texto)">Família Teste Garoa</span>
+                <span class="dado">36s0d</span><span>Santo André</span>
+              </div>
+            </div>
+            <p class="corpo">É da coordenação clínica. A Isadora respondeu com o texto aprovado de saúde às 13:52 e está pausada nesta conversa. Ninguém da coordenação assumiu ainda.</p>
+            <div class="c1-acoes">
+              <a class="botao botao--alerta botao--compacto" href="tel:+5511900000002"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para a coordenação</a>
+              <a class="botao botao--terciario botao--compacto" href="comercial-conversas.html">Ver conversa</a>
+            </div>
+          </article>
+
+          <!-- Alta: quer contratar -->
+          <article class="fila-item c1-item" id="item-dalia" aria-labelledby="f-dalia">
+            <div class="c1-item__topo">
+              <h3 class="fila-item__motivo" id="f-dalia">Quer contratar</h3>
+              <span class="prazo" data-estado="normal" id="prazo-dalia"><svg class="icone icone--16"><use href="#i-hourglass"/></svg>vence em 38 min</span>
+              <div class="c1-item__dados" style="grid-column: 1 / -1">
+                <a class="c1-item__familia" href="comercial-ficha.html">Família Teste Dália</a>
+                <span class="dado">32s4d</span><span>Pinheiros, São Paulo</span>
+              </div>
+            </div>
+            <div class="c1-colheu">
+              <p class="c1-colheu__titulo"><svg class="icone icone--16"><use href="#i-bot"/></svg>O que a Isadora colheu</p>
+              <dl class="pares">
+                <dt>Plano</dt><dd>Imersão, <span class="dado">R$ 7.800</span></dd>
+                <dt>Pagamento</dt><dd>Pix</dd>
+                <dt>DPP</dt><dd><span class="dado">15/11/2026</span> (estimativa)</dd>
+                <dt>Cobertura</dt><dd>Confirmada, sem taxa</dd>
+              </dl>
+            </div>
+            <div data-sla>
+              <div class="c-sla" data-estado="normal" aria-hidden="true"><span data-f></span><span data-f></span><span data-f></span><span data-f></span><span data-f></span><span></span><span></span><span></span></div>
+              <p class="c-sla__legenda"><span>Aberta às 14:02</span><span>Prazo de 2 h úteis</span></p>
+            </div>
+            <div class="c1-acoes" data-acoes>
+              <button class="botao botao--primario" type="button" id="assumir-dalia"><svg class="icone"><use href="#i-user-check"/></svg>Assumir conversa</button>
+            </div>
+          </article>
+
+          <!-- Normal: condição comercial, com falha no aviso ao grupo -->
+          <article class="fila-item c1-item" aria-labelledby="f-estrela">
+            <div class="faixa faixa--imediato" data-falha role="alert" style="margin: calc(-1 * var(--e-1)) calc(-1 * var(--e-1)) 0">
+              <svg class="icone"><use href="#i-circle-alert"/></svg>
+              <div>
+                <p class="faixa__titulo">O aviso ao grupo do comercial não saiu</p>
+                <p class="faixa__texto">Tentamos às 14:34 e o WhatsApp recusou. Quem está fora do app ainda não sabe desta transferência.</p>
+                <div class="faixa__acoes">
+                  <button class="botao botao--alerta botao--compacto" type="button" id="reenviar"><svg class="icone"><use href="#i-refresh-cw"/></svg>Reenviar aviso</button>
+                </div>
+              </div>
+            </div>
+            <div class="c1-item__topo">
+              <h3 class="fila-item__motivo" id="f-estrela">Pediu desconto</h3>
+              <span class="prazo"><svg class="icone icone--16"><use href="#i-hourglass"/></svg>vence em 3 h 10 min</span>
+              <div class="c1-item__dados" style="grid-column: 1 / -1">
+                <span class="forte" style="color: var(--texto)">Família Teste Estrela</span>
+                <span class="dado">24s1d</span><span>Londrina, PR</span>
+              </div>
+            </div>
+            <p class="corpo">"Existe algum desconto se eu pagar tudo no Pix?" A Isadora disse que quem confirma condição é você e não citou valores.</p>
+            <div>
+              <div class="c-sla" aria-hidden="true"><span data-f></span><span data-f></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+              <p class="c-sla__legenda"><span>Aberta às 14:34</span><span>Prazo de 4 h úteis</span></p>
+            </div>
+            <div class="c1-acoes">
+              <button class="botao botao--compacto" type="button"><svg class="icone"><use href="#i-user-check"/></svg>Assumir conversa</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Tarefas do dia -->
+      <section class="c1-secao" aria-labelledby="t-tarefas">
+        <div class="c1-secao__cab">
+          <h2 class="t-2" id="t-tarefas">Tarefas de hoje</h2>
+          <span class="apoio empurra">por prazo</span>
+        </div>
+
+        <article class="cartao c1-tarefa" id="tarefa-estrela" aria-labelledby="t-estrela">
+          <div class="c1-tarefa__topo">
+            <div>
+              <h3 class="t-3" id="t-estrela">Follow-up D+3</h3>
+              <p class="apoio">Família Teste Estrela. Apresentação enviada em 21/09.</p>
+            </div>
+            <span class="prazo empurra"><svg class="icone icone--16"><use href="#i-clock"/></svg>até 17:00</span>
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="texto-estrela">Texto sugerido</label>
+            <div class="campo__caixa"><textarea class="campo__entrada" id="texto-estrela" data-telefone="5511900000015">Oi, Carla! Se ajudar na decisão, a Beatriz pode conversar com vocês uns 15 minutos e mostrar como o cuidado funciona na rotina de vocês. Me passa dois dias e horários bons que eu vejo com ela?</textarea></div>
+            <span class="campo__ajuda" data-ajuda>Edite à vontade. O WhatsApp abre com este texto; nada sai antes de você tocar em enviar lá.</span>
+          </div>
+          <div class="c1-acoes">
+            <a class="botao botao--compacto" id="wa-estrela" href="#" target="_blank" rel="noopener"><svg class="icone"><use href="#i-message-circle"/></svg>Abrir no WhatsApp</a>
+            <button class="botao botao--compacto" type="button" id="enviei-estrela"><svg class="icone"><use href="#i-check"/></svg>Enviei</button>
+            <button class="botao botao--terciario botao--compacto" type="button" id="restaurar-estrela" hidden>Voltar ao texto sugerido</button>
+          </div>
+        </article>
+
+        <article class="cartao c1-tarefa" id="tarefa-brisa" aria-labelledby="t-brisa">
+          <div class="c1-tarefa__topo">
+            <div>
+              <h3 class="t-3" id="t-brisa">Justificar o freio</h3>
+              <p class="apoio">Família Teste Brisa. Você acionou o freio hoje às 09:14.</p>
+            </div>
+            <span class="prazo empurra"><svg class="icone icone--16"><use href="#i-clock"/></svg>até 18:00</span>
+          </div>
+          <span class="selo selo--sensivel" style="align-self: flex-start"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio em bloqueio total</span>
+          <p class="apoio">Sem texto sugerido: com o freio, só contato humano e nominal.</p>
+          <div class="c1-acoes" data-abrir>
+            <button class="botao botao--compacto" type="button" id="abrir-justificativa"><svg class="icone"><use href="#i-pen-line"/></svg>Escrever justificativa</button>
+          </div>
+          <form class="pilha" data-form hidden>
+            <div class="campo" id="campo-justificativa">
+              <label class="campo__rotulo" for="justificativa">Por que o freio foi acionado</label>
+              <div class="campo__caixa"><textarea class="campo__entrada" id="justificativa" placeholder="Exemplo: a família contou sobre uma perda na conversa das 09:10."></textarea></div>
+              <span class="campo__ajuda" hidden data-erro><svg class="icone"><use href="#i-circle-alert"/></svg>Escreva o motivo antes de salvar. A coordenação lê este texto.</span>
+            </div>
+            <div class="c1-acoes">
+              <button class="botao botao--compacto" type="submit">Salvar justificativa</button>
+            </div>
+          </form>
+        </article>
+
+        <div class="pilha pilha--2" id="feitas" hidden>
+          <h3 class="apoio forte">Feitas hoje</h3>
+        </div>
+      </section>
+    </div>
+
+    <!-- ---------- Estados ---------- -->
+    <section class="c-estados" aria-labelledby="t-estados">
+      <h2 class="t-2" id="t-estados">Estados</h2>
+      <div class="c-estados__grade">
+        <div>
+          <p class="c-estado__titulo">Fila vazia</p>
+          <div class="vazio">
+            <svg class="icone icone--24"><use href="#i-inbox"/></svg>
+            <p class="vazio__titulo">Nenhuma conversa esperando você</p>
+            <p class="vazio__texto">A Isadora continua a triagem e avisa aqui quando alguém quiser contratar, marcar a conversa com a coordenação ou falar com uma pessoa.</p>
+            <a class="botao botao--compacto" href="comercial-conversas.html">Ver conversas da Isadora</a>
+          </div>
+        </div>
+
+        <div>
+          <p class="c-estado__titulo">Carregando</p>
+          <div class="pilha pilha--2" aria-busy="true" aria-label="Carregando transferências">
+            <div class="cartao pilha pilha--2">
+              <span class="esqueleto esqueleto--titulo" style="width: 45%"></span>
+              <span class="esqueleto esqueleto--linha" style="width: 70%"></span>
+              <span class="esqueleto esqueleto--linha" style="width: 100%; height: 8px"></span>
+            </div>
+            <div class="cartao pilha pilha--2">
+              <span class="esqueleto esqueleto--titulo" style="width: 35%"></span>
+              <span class="esqueleto esqueleto--linha" style="width: 60%"></span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p class="c-estado__titulo">Prazo perto</p>
+          <article class="fila-item c1-item">
+            <div class="c1-item__topo">
+              <h3 class="fila-item__motivo">Quer contratar</h3>
+              <span class="prazo" data-estado="perto"><svg class="icone icone--16"><use href="#i-clock-alert"/></svg>vence em 22 min</span>
+              <div class="c1-item__dados" style="grid-column: 1 / -1"><span class="forte" style="color: var(--texto)">Família Teste Dália</span><span class="dado">32s4d</span></div>
+            </div>
+            <div>
+              <div class="c-sla" data-estado="perto" aria-hidden="true"><span data-f></span><span data-f></span><span data-f></span><span data-f></span><span data-f></span><span data-f></span><span data-f></span><span></span></div>
+              <p class="c-sla__legenda"><span>Aberta às 14:02</span><span>Falta menos de um quarto do prazo</span></p>
+            </div>
+            <div class="c1-acoes"><button class="botao botao--compacto" type="button">Assumir conversa</button></div>
+          </article>
+        </div>
+
+        <div>
+          <p class="c-estado__titulo">Vencida</p>
+          <article class="fila-item c1-item">
+            <div class="c1-item__topo">
+              <h3 class="fila-item__motivo">Quer contratar</h3>
+              <span class="prazo" data-estado="vencido"><svg class="icone icone--16"><use href="#i-clock-alert"/></svg>venceu há 8 min</span>
+              <div class="c1-item__dados" style="grid-column: 1 / -1"><span class="forte" style="color: var(--texto)">Família Teste Dália</span><span class="dado">32s4d</span></div>
+            </div>
+            <div>
+              <div class="c-sla" data-estado="vencido" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+              <p class="c-sla__legenda"><span>Aberta às 14:02</span><span>Já aparece no Início da diretoria</span></p>
+            </div>
+            <div class="c1-acoes"><button class="botao botao--compacto" type="button">Assumir conversa</button></div>
+          </article>
+        </div>
+
+        <div>
+          <p class="c-estado__titulo">Assumida por outra pessoa</p>
+          <article class="fila-item c1-item">
+            <div class="c1-item__topo">
+              <h3 class="fila-item__motivo">Quer contratar</h3>
+              <span class="selo selo--sucesso"><svg class="icone"><use href="#i-user-check"/></svg>Assumida</span>
+              <div class="c1-item__dados" style="grid-column: 1 / -1"><span class="forte" style="color: var(--texto)">Família Teste Dália</span><span class="dado">32s4d</span></div>
+            </div>
+            <p class="corpo">Otávio Lemos assumiu às 15:25. A conversa segue com ele.</p>
+            <div class="c1-acoes"><a class="botao botao--terciario botao--compacto" href="comercial-conversa.html">Ler a conversa</a></div>
+          </article>
+        </div>
+
+        <div>
+          <p class="c-estado__titulo">Sem sinal</p>
+          <div class="faixa faixa--info">
+            <svg class="icone"><use href="#i-wifi-off"/></svg>
+            <div>
+              <p class="faixa__texto">Sem sinal agora. A fila mostrada é de 15:24; prazos e novas transferências voltam a atualizar quando a conexão voltar.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="abas-inf" aria-label="Navegação principal">
+    <a class="abas-inf__item" href="comercial-inicio.html" aria-current="page"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">1</span></a>
+    <a class="abas-inf__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
+    <a class="abas-inf__item" href="comercial-conversas.html"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
+    <a class="abas-inf__item" href="comercial-ficha.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="comercial.html"><svg class="icone"><use href="#i-ellipsis"/></svg>Mais</a>
+  </nav>
+
+  <div class="aviso-efemero" id="aviso" role="status" hidden>
+    <svg class="icone"><use href="#i-check"/></svg>
+    <span data-texto></span>
+    <button class="botao botao--compacto empurra" type="button" data-desfazer>Desfazer</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  var agora = '15:25';
+  var aviso = document.getElementById('aviso');
+  var desfazerAcao = null, tempo = null;
+  function avisar(texto, desfazer) {
+    aviso.querySelector('[data-texto]').textContent = texto;
+    aviso.querySelector('[data-desfazer]').hidden = !desfazer;
+    desfazerAcao = desfazer || null;
+    aviso.hidden = false;
+    clearTimeout(tempo);
+    tempo = setTimeout(function () { aviso.hidden = true; desfazerAcao = null; }, 6000);
+  }
+  aviso.querySelector('[data-desfazer]').addEventListener('click', function () {
+    if (desfazerAcao) desfazerAcao();
+    aviso.hidden = true;
+  });
+
+  // Assumir a transferência da Família Teste Dália
+  var assumir = document.getElementById('assumir-dalia');
+  assumir.addEventListener('click', function () {
+    assumir.setAttribute('aria-busy', 'true');
+    assumir.innerHTML = '<svg class="icone"><use href="#i-refresh-cw"/></svg>Assumindo';
+    setTimeout(function () {
+      var item = document.getElementById('item-dalia');
+      document.getElementById('prazo-dalia').outerHTML = '<span class="selo selo--sucesso"><svg class="icone"><use href="#i-user-check"/></svg>Com você</span>';
+      item.querySelector('[data-sla]').remove();
+      item.querySelector('[data-acoes]').outerHTML =
+        '<div class="c1-assumida"><p class="corpo">Você assumiu às ' + agora + '. A Isadora não volta a responder nesta conversa.</p>' +
+        '<div class="c1-acoes"><a class="botao botao--primario" href="comercial-conversa.html"><svg class="icone"><use href="#i-message-circle"/></svg>Abrir conversa</a></div></div>';
+      item.querySelector('.c1-assumida a').focus();
+    }, 700);
+  });
+
+  // Reenviar o aviso ao grupo que falhou
+  var reenviar = document.getElementById('reenviar');
+  reenviar.addEventListener('click', function () {
+    reenviar.setAttribute('aria-busy', 'true');
+    reenviar.lastChild.textContent = 'Reenviando';
+    setTimeout(function () {
+      var faixa = document.querySelector('[data-falha]');
+      faixa.outerHTML = '<p class="apoio" role="status"><svg class="icone icone--16" style="display:inline; vertical-align:-3px; color: var(--sucesso)"><use href="#i-check"/></svg> Aviso ao grupo do comercial enviado às ' + agora + '.</p>';
+    }, 900);
+  });
+
+  // Tarefa com texto sugerido: editar, abrir no WhatsApp, marcar como enviada
+  var texto = document.getElementById('texto-estrela');
+  var original = texto.value;
+  var wa = document.getElementById('wa-estrela');
+  var restaurar = document.getElementById('restaurar-estrela');
+  function atualizarLink() {
+    wa.href = 'https://wa.me/' + texto.dataset.telefone + '?text=' + encodeURIComponent(texto.value);
+    restaurar.hidden = texto.value === original;
+  }
+  texto.addEventListener('input', atualizarLink);
+  restaurar.addEventListener('click', function () { texto.value = original; atualizarLink(); texto.focus(); });
+  atualizarLink();
+
+  var feitas = document.getElementById('feitas');
+  document.getElementById('enviei-estrela').addEventListener('click', function () {
+    var cartao = document.getElementById('tarefa-estrela');
+    cartao.hidden = true;
+    var linha = document.createElement('div');
+    linha.className = 'c1-feita';
+    linha.innerHTML = '<svg class="icone"><use href="#i-circle-check"/></svg><span class="apoio"><span class="forte" style="color: var(--texto)">Follow-up D+3 da Família Teste Estrela</span><br>Enviado por você às ' + agora + '. O próximo contato vira tarefa em 05/10/2026.</span>';
+    feitas.appendChild(linha);
+    feitas.hidden = false;
+    avisar('Follow-up D+3 marcado como enviado às ' + agora + '.', function () {
+      linha.remove(); cartao.hidden = false; feitas.hidden = feitas.children.length < 2;
+    });
+  });
+
+  // Justificativa do freio
+  var formJ = document.querySelector('#tarefa-brisa [data-form]');
+  document.getElementById('abrir-justificativa').addEventListener('click', function () {
+    document.querySelector('#tarefa-brisa [data-abrir]').hidden = true;
+    formJ.hidden = false;
+    document.getElementById('justificativa').focus();
+  });
+  formJ.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var campo = document.getElementById('campo-justificativa');
+    var valor = document.getElementById('justificativa').value.trim();
+    if (!valor) {
+      campo.dataset.estado = 'erro';
+      campo.querySelector('[data-erro]').hidden = false;
+      document.getElementById('justificativa').focus();
+      return;
+    }
+    campo.removeAttribute('data-estado');
+    var cartao = document.getElementById('tarefa-brisa');
+    cartao.hidden = true;
+    var linha = document.createElement('div');
+    linha.className = 'c1-feita';
+    linha.innerHTML = '<svg class="icone"><use href="#i-circle-check"/></svg><span class="apoio"><span class="forte" style="color: var(--texto)">Freio da Família Teste Brisa justificado</span><br>Salvo às ' + agora + '. A coordenação decide se o estado continua.</span>';
+    feitas.appendChild(linha);
+    feitas.hidden = false;
+    avisar('Justificativa do freio salva às ' + agora + '.');
+  });
+})();
+</script>
+</body>
+</html>

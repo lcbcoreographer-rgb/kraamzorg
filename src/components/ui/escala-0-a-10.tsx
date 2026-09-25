@@ -38,7 +38,7 @@ export function Escala0a10({
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      <span id={idGrupo} className="text-apoio font-semibold text-texto">
+      <span id={idGrupo} className="text-apoio text-texto font-semibold">
         {rotulo}
       </span>
       <div
@@ -64,10 +64,10 @@ export function Escala0a10({
               <label
                 htmlFor={idOpcao}
                 className={cn(
-                  "flex min-h-toque-campo cursor-pointer items-center justify-center rounded-2 border-[1.5px] border-borda-campo bg-superficie font-mono text-[1.0625rem] font-medium text-texto select-none",
+                  "min-h-toque-campo rounded-2 border-borda-campo bg-superficie text-texto flex cursor-pointer items-center justify-center border-[1.5px] font-mono text-[1.0625rem] font-medium select-none",
                   "hover:bg-marinho-08",
                   "peer-checked:border-acao peer-checked:bg-acao peer-checked:text-acao-texto",
-                  "peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-foco peer-focus-visible:shadow-[0_0_0_5px_var(--foco-halo)]",
+                  "peer-focus-visible:outline-foco peer-focus-visible:shadow-[0_0_0_5px_var(--foco-halo)] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2",
                   disabled && "cursor-not-allowed opacity-60",
                 )}
               >
@@ -78,7 +78,7 @@ export function Escala0a10({
         })}
       </div>
       {extremoMin || extremoMax ? (
-        <div className="flex justify-between text-mini text-texto-2">
+        <div className="text-mini text-texto-2 flex justify-between">
           <span>{extremoMin}</span>
           <span>{extremoMax}</span>
         </div>

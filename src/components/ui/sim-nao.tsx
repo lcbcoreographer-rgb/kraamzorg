@@ -59,14 +59,16 @@ export function SimNao({
         <label
           htmlFor={idOpcao}
           className={cn(
-            "flex min-h-toque-campo min-w-[76px] cursor-pointer items-center justify-center gap-1.5 rounded-pilula border-[1.5px] border-borda-campo bg-superficie px-4 font-semibold text-texto transition-[background-color,color,transform] duration-140 ease-estado select-none",
+            "min-h-toque-campo rounded-pilula border-borda-campo bg-superficie text-texto ease-estado flex min-w-[76px] cursor-pointer items-center justify-center gap-1.5 border-[1.5px] px-4 font-semibold transition-[background-color,color,transform] duration-140 select-none",
             "hover:bg-marinho-08 active:scale-[0.96]",
             "peer-checked:border-acao peer-checked:bg-acao peer-checked:text-acao-texto",
-            "peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-foco peer-focus-visible:shadow-[0_0_0_5px_var(--foco-halo)]",
+            "peer-focus-visible:outline-foco peer-focus-visible:shadow-[0_0_0_5px_var(--foco-halo)] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2",
             disabled && "cursor-not-allowed opacity-60",
           )}
         >
-          {marcado ? <Check className="size-[18px]" aria-hidden="true" /> : null}
+          {marcado ? (
+            <Check className="size-[18px]" aria-hidden="true" />
+          ) : null}
           {rotulo}
         </label>
       </span>
@@ -76,7 +78,7 @@ export function SimNao({
   return (
     <div
       className={cn(
-        "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 border-b border-linha py-3",
+        "border-linha grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 border-b py-3",
         className,
       )}
     >
@@ -89,7 +91,11 @@ export function SimNao({
       >
         {pergunta}
       </span>
-      <div role="radiogroup" aria-labelledby={idPergunta} className="inline-grid grid-cols-2 gap-2">
+      <div
+        role="radiogroup"
+        aria-labelledby={idPergunta}
+        className="inline-grid grid-cols-2 gap-2"
+      >
         {opcao(rotuloSim, "sim")}
         {opcao(rotuloNao, "nao")}
       </div>

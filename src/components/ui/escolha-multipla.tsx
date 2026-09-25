@@ -35,12 +35,14 @@ export function EscolhaMultipla({
   function alternar(valor: string) {
     if (!onMudar) return;
     const marcado = valores.includes(valor);
-    onMudar(marcado ? valores.filter((item) => item !== valor) : [...valores, valor]);
+    onMudar(
+      marcado ? valores.filter((item) => item !== valor) : [...valores, valor],
+    );
   }
 
   return (
     <fieldset className={cn("flex flex-col gap-2 border-0 p-0", className)}>
-      <legend id={idGrupo} className="text-apoio font-semibold text-texto">
+      <legend id={idGrupo} className="text-apoio text-texto font-semibold">
         {rotulo}
       </legend>
       <div className="flex flex-wrap gap-2">
@@ -62,21 +64,27 @@ export function EscolhaMultipla({
               <label
                 htmlFor={idOpcao}
                 className={cn(
-                  "flex min-h-toque cursor-pointer items-center gap-2 rounded-pilula border-[1.5px] border-borda-campo bg-superficie px-4 text-apoio font-medium text-texto select-none",
+                  "min-h-toque rounded-pilula border-borda-campo bg-superficie text-apoio text-texto flex cursor-pointer items-center gap-2 border-[1.5px] px-4 font-medium select-none",
                   "hover:bg-marinho-08",
                   "peer-checked:border-acao peer-checked:bg-acao peer-checked:text-acao-texto",
-                  "peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-foco peer-focus-visible:shadow-[0_0_0_5px_var(--foco-halo)]",
+                  "peer-focus-visible:outline-foco peer-focus-visible:shadow-[0_0_0_5px_var(--foco-halo)] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2",
                   disabled && "cursor-not-allowed opacity-60",
                 )}
               >
-                {marcado ? <Check className="size-4" aria-hidden="true" /> : opcao.icone}
+                {marcado ? (
+                  <Check className="size-4" aria-hidden="true" />
+                ) : (
+                  opcao.icone
+                )}
                 {opcao.rotulo}
               </label>
             </span>
           );
         })}
       </div>
-      {descricao ? <p className="text-apoio text-texto-2">{descricao}</p> : null}
+      {descricao ? (
+        <p className="text-apoio text-texto-2">{descricao}</p>
+      ) : null}
     </fieldset>
   );
 }

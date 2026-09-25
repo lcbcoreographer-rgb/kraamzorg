@@ -21,7 +21,8 @@ const seloVariantes = cva(
         sensivel: "bg-sensivel-lavado text-sensivel",
         marinho: "bg-marinho text-texto-inverso",
         destaque: "bg-dourado text-marinho",
-        contorno: "border-[1.5px] border-dashed border-marinho-50 bg-transparent text-texto-2",
+        contorno:
+          "border-[1.5px] border-dashed border-marinho-50 bg-transparent text-texto-2",
       },
     },
     defaultVariants: { variante: "neutro" },
@@ -29,12 +30,19 @@ const seloVariantes = cva(
 );
 
 export interface SeloProps
-  extends React.HTMLAttributes<HTMLSpanElement>,
+  extends
+    React.HTMLAttributes<HTMLSpanElement>,
     VariantProps<typeof seloVariantes> {
   icone?: React.ReactNode;
 }
 
-export function Selo({ variante, icone, className, children, ...props }: SeloProps) {
+export function Selo({
+  variante,
+  icone,
+  className,
+  children,
+  ...props
+}: SeloProps) {
   return (
     <span className={cn(seloVariantes({ variante }), className)} {...props}>
       {icone ? (

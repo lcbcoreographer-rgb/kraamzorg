@@ -1,5 +1,11 @@
 import * as React from "react";
-import { CircleCheck, Info, OctagonPause, Siren, TriangleAlert } from "lucide-react";
+import {
+  CircleCheck,
+  Info,
+  OctagonPause,
+  Siren,
+  TriangleAlert,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -10,14 +16,42 @@ import { cn } from "@/lib/utils";
  * até ser registrada. `role="alert"` só na primeira aparição
  * (`anunciar={true}`, o consumidor decide quando é a primeira vez).
  */
-export type VarianteFaixa = "imediato" | "prioritario" | "sensivel" | "info" | "sucesso";
+export type VarianteFaixa =
+  "imediato" | "prioritario" | "sensivel" | "info" | "sucesso";
 
-const config: Record<VarianteFaixa, { classe: string; iconeClasse: string; Icone: React.ComponentType<{ className?: string }> }> = {
-  imediato: { classe: "bg-alerta-lavado border-alerta-borda", iconeClasse: "text-alerta", Icone: Siren },
-  prioritario: { classe: "bg-aviso-lavado border-aviso-borda", iconeClasse: "text-aviso-texto", Icone: TriangleAlert },
-  sensivel: { classe: "bg-sensivel-lavado border-sensivel-borda", iconeClasse: "text-sensivel", Icone: OctagonPause },
-  info: { classe: "bg-superficie border-linha", iconeClasse: "text-texto-2", Icone: Info },
-  sucesso: { classe: "bg-sucesso-lavado border-sucesso-borda", iconeClasse: "text-sucesso", Icone: CircleCheck },
+const config: Record<
+  VarianteFaixa,
+  {
+    classe: string;
+    iconeClasse: string;
+    Icone: React.ComponentType<{ className?: string }>;
+  }
+> = {
+  imediato: {
+    classe: "bg-alerta-lavado border-alerta-borda",
+    iconeClasse: "text-alerta",
+    Icone: Siren,
+  },
+  prioritario: {
+    classe: "bg-aviso-lavado border-aviso-borda",
+    iconeClasse: "text-aviso-texto",
+    Icone: TriangleAlert,
+  },
+  sensivel: {
+    classe: "bg-sensivel-lavado border-sensivel-borda",
+    iconeClasse: "text-sensivel",
+    Icone: OctagonPause,
+  },
+  info: {
+    classe: "bg-superficie border-linha",
+    iconeClasse: "text-texto-2",
+    Icone: Info,
+  },
+  sucesso: {
+    classe: "bg-sucesso-lavado border-sucesso-borda",
+    iconeClasse: "text-sucesso",
+    Icone: CircleCheck,
+  },
 };
 
 export interface FaixaAlertaProps {
@@ -50,28 +84,39 @@ export function FaixaAlerta({
   className,
 }: FaixaAlertaProps) {
   const { classe, iconeClasse, Icone } = config[variante];
-  const risco = variante === "imediato" || variante === "prioritario" || variante === "sensivel";
+  const risco =
+    variante === "imediato" ||
+    variante === "prioritario" ||
+    variante === "sensivel";
   const deveAnunciar = anunciar ?? risco;
 
   return (
     <div
       role={deveAnunciar ? "alert" : risco ? undefined : "status"}
       className={cn(
-        "grid grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-2 border p-4",
+        "rounded-2 grid grid-cols-[auto_minmax(0,1fr)] gap-3 border p-4",
         classe,
-        fixa && "sticky top-[72px] z-10 shadow-1",
+        fixa && "shadow-1 sticky top-[72px] z-10",
         className,
       )}
     >
       <Icone className={cn("mt-0.5 size-6 shrink-0", iconeClasse)} />
       <div>
         <p className={cn("text-3 leading-snug font-semibold", iconeClasse)}>
-          {codigo ? <span className="mr-2 font-mono text-apoio font-medium">{codigo}</span> : null}
+          {codigo ? (
+            <span className="text-apoio mr-2 font-mono font-medium">
+              {codigo}
+            </span>
+          ) : null}
           {titulo}
         </p>
-        {children ? <p className="mt-1 text-corpo text-texto">{children}</p> : null}
-        {meta ? <p className="mt-2 text-apoio text-texto-2">{meta}</p> : null}
-        {acoes ? <div className="mt-4 flex flex-wrap gap-2">{acoes}</div> : null}
+        {children ? (
+          <p className="text-corpo text-texto mt-1">{children}</p>
+        ) : null}
+        {meta ? <p className="text-apoio text-texto-2 mt-2">{meta}</p> : null}
+        {acoes ? (
+          <div className="mt-4 flex flex-wrap gap-2">{acoes}</div>
+        ) : null}
       </div>
     </div>
   );

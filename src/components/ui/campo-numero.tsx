@@ -1,6 +1,11 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { AjudaCampo, classeCaixaPorEstado, RotuloCampo, type EstadoCampo } from "./campo";
+import {
+  AjudaCampo,
+  classeCaixaPorEstado,
+  RotuloCampo,
+  type EstadoCampo,
+} from "./campo";
 
 export interface CampoNumeroProps {
   /** Texto do rótulo, sempre visível em cima do campo. */
@@ -55,7 +60,10 @@ export const CampoNumero = React.forwardRef<HTMLInputElement, CampoNumeroProps>(
     const idAjuda = `${idCampo}-ajuda`;
     const idErro = `${idCampo}-erro`;
     const estado: EstadoCampo = erro ? "erro" : (estadoProp ?? "normal");
-    const descrevePor = [descricao ? idAjuda : null, erro ? idErro : null].filter(Boolean).join(" ") || undefined;
+    const descrevePor =
+      [descricao ? idAjuda : null, erro ? idErro : null]
+        .filter(Boolean)
+        .join(" ") || undefined;
 
     return (
       <div className={cn("flex flex-col gap-2", containerClassName)}>
@@ -64,7 +72,7 @@ export const CampoNumero = React.forwardRef<HTMLInputElement, CampoNumeroProps>(
         </RotuloCampo>
         <div
           className={cn(
-            "flex min-h-toque-campo items-center rounded-2 bg-superficie transition-[border-color,box-shadow] duration-140 ease-estado",
+            "min-h-toque-campo rounded-2 bg-superficie ease-estado flex items-center transition-[border-color,box-shadow] duration-140",
             classeCaixaPorEstado(estado, props.disabled),
           )}
         >
@@ -73,18 +81,21 @@ export const CampoNumero = React.forwardRef<HTMLInputElement, CampoNumeroProps>(
             id={idCampo}
             type="text"
             inputMode="decimal"
+            min={min}
+            max={max}
+            step={step}
             aria-describedby={descrevePor}
             aria-invalid={estado === "erro" || undefined}
-            aria-valuemin={min}
-            aria-valuemax={max}
             className={cn(
-              "min-h-[calc(var(--spacing-toque-campo)-3px)] w-full min-w-0 rounded-2 border-0 bg-transparent px-4 font-mono text-dado-lg font-medium tabular-nums text-texto placeholder:font-sans placeholder:text-base placeholder:font-normal placeholder:text-texto-3 focus-visible:outline-none",
+              "rounded-2 text-dado-lg text-texto placeholder:text-texto-3 min-h-[calc(var(--spacing-toque-campo)-3px)] w-full min-w-0 border-0 bg-transparent px-4 font-mono font-medium tabular-nums placeholder:font-sans placeholder:text-base placeholder:font-normal focus-visible:outline-none",
               className,
             )}
             {...props}
           />
           {unidade ? (
-            <span className="pr-4 pl-0 font-mono text-apoio text-texto-2">{unidade}</span>
+            <span className="text-apoio text-texto-2 pr-4 pl-0 font-mono">
+              {unidade}
+            </span>
           ) : null}
         </div>
         {erro ? (

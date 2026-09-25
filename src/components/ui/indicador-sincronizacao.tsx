@@ -9,9 +9,13 @@ import { cn } from "@/lib/utils";
  * texto fixo: o rótulo (com contagem, hora ou motivo) vem sempre por
  * propriedade, formatado por quem chama.
  */
-export type EstadoSincronizacao = "local" | "enviando" | "sincronizado" | "erro";
+export type EstadoSincronizacao =
+  "local" | "enviando" | "sincronizado" | "erro";
 
-const iconePorEstado: Record<EstadoSincronizacao, React.ComponentType<{ className?: string }>> = {
+const iconePorEstado: Record<
+  EstadoSincronizacao,
+  React.ComponentType<{ className?: string }>
+> = {
   local: Smartphone,
   enviando: CloudUpload,
   sincronizado: CloudCheck,
@@ -49,18 +53,21 @@ export function IndicadorSincronizacao({
     <div
       role="status"
       className={cn(
-        "inline-flex min-h-8 items-center gap-2 rounded-pilula px-3 text-mini font-semibold whitespace-nowrap",
+        "rounded-pilula text-mini inline-flex min-h-8 items-center gap-2 px-3 font-semibold whitespace-nowrap",
         classePorEstado[estado],
         className,
       )}
     >
-      <Icone className={cn("size-[18px]", estado === "enviando" && "animate-pulse")} aria-hidden="true" />
+      <Icone
+        className={cn("size-[18px]", estado === "enviando" && "animate-pulse")}
+        aria-hidden="true"
+      />
       <span>{texto}</span>
       {estado === "erro" && aoTentarNovamente ? (
         <button
           type="button"
           onClick={aoTentarNovamente}
-          className="ml-1 rounded-pilula underline underline-offset-2 hover:no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-foco"
+          className="rounded-pilula focus-visible:outline-foco ml-1 underline underline-offset-2 hover:no-underline focus-visible:outline focus-visible:outline-2"
         >
           {rotuloTentarNovamente}
         </button>

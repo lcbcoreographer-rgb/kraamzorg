@@ -19,9 +19,12 @@ const botaoVariantes = cva(
   {
     variants: {
       variante: {
-        primario: "border-acao bg-acao text-acao-texto hover:border-acao-hover hover:bg-acao-hover",
-        secundario: "border-borda-campo bg-superficie text-texto hover:bg-marinho-08",
-        perigo: "border-alerta bg-alerta text-texto-inverso hover:bg-[color-mix(in_srgb,var(--alerta)_86%,var(--marinho))]",
+        primario:
+          "border-acao bg-acao text-acao-texto hover:border-acao-hover hover:bg-acao-hover",
+        secundario:
+          "border-borda-campo bg-superficie text-texto hover:bg-marinho-08",
+        perigo:
+          "border-alerta bg-alerta text-texto-inverso hover:bg-[color-mix(in_srgb,var(--alerta)_86%,var(--marinho))]",
         fantasma:
           "border-transparent bg-transparent text-texto underline decoration-1 underline-offset-4 hover:bg-marinho-08",
       },
@@ -38,12 +41,17 @@ const botaoVariantes = cva(
       { variante: "fantasma", tamanho: "padrao", class: "px-3" },
       { variante: "fantasma", tamanho: "compacto", class: "px-3" },
     ],
-    defaultVariants: { variante: "primario", tamanho: "padrao", largaTotal: false },
+    defaultVariants: {
+      variante: "primario",
+      tamanho: "padrao",
+      largaTotal: false,
+    },
   },
 );
 
 export interface BotaoProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof botaoVariantes> {
   /** Renderiza como o filho (ex: um `<a>`), no padrão do Radix Slot. */
   asChild?: boolean;
@@ -82,13 +90,19 @@ export const Botao = React.forwardRef<HTMLButtonElement, BotaoProps>(
       <Comp
         ref={ref}
         type={asChild ? undefined : type}
-        className={cn(botaoVariantes({ variante, tamanho, largaTotal }), className)}
+        className={cn(
+          botaoVariantes({ variante, tamanho, largaTotal }),
+          className,
+        )}
         disabled={disabled || carregando}
         aria-busy={carregando || undefined}
         {...props}
       >
         {carregando ? (
-          <LoaderCircle className="size-[1.1em] shrink-0 animate-spin" aria-hidden="true" />
+          <LoaderCircle
+            className="size-[1.1em] shrink-0 animate-spin"
+            aria-hidden="true"
+          />
         ) : (
           iconeEsquerda
         )}

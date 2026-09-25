@@ -47,21 +47,32 @@ export function CabecalhoFamilia({
     <div
       className={cn(
         "-mx-4 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-3 px-4 pt-4 pb-5 lg:-mx-8 lg:px-8 lg:pt-6",
-        freioAtivo ? "bg-sensivel text-texto-inverso" : "bg-superficie-2 text-texto",
+        freioAtivo
+          ? "bg-sensivel text-texto-inverso"
+          : "bg-superficie-2 text-texto",
         className,
       )}
     >
       <div>
-        <h3 className="font-titulo text-1 leading-tight font-medium tracking-[-0.015em]">{nome}</h3>
+        <h3 className="font-titulo text-1 leading-tight font-medium tracking-[-0.015em]">
+          {nome}
+        </h3>
         {freioAtivo ? (
-          <p className="mt-2 text-apoio">{textoFreioAtivo}</p>
+          <p className="text-apoio mt-2">{textoFreioAtivo}</p>
         ) : (
-          <div className={cn("mt-2 flex flex-wrap items-center gap-2 text-apoio", "text-marinho-72")}>{meta}</div>
+          <div
+            className={cn(
+              "text-apoio mt-2 flex flex-wrap items-center gap-2",
+              "text-marinho-72",
+            )}
+          >
+            {meta}
+          </div>
         )}
       </div>
 
       {freioAtivo ? (
-        <span className="inline-flex min-h-toque items-center gap-2 rounded-pilula bg-superficie px-4 py-0 pl-3 text-apoio font-semibold text-sensivel">
+        <span className="min-h-toque rounded-pilula bg-superficie text-apoio text-sensivel inline-flex items-center gap-2 px-4 py-0 pl-3 font-semibold">
           <OctagonPause className="size-[18px]" aria-hidden="true" />
           {rotuloFreioAtivo}
         </span>
@@ -76,14 +87,19 @@ export function CabecalhoFamilia({
               <dt className="text-mini text-marinho-72">{data.rotulo}</dt>
               <dd
                 className={cn(
-                  "font-mono text-corpo font-medium tabular-nums text-texto",
-                  data.tipo === "ausente" && "border-b border-dashed border-marinho-50 text-texto-2",
+                  "text-corpo text-texto font-mono font-medium tabular-nums",
+                  data.tipo === "ausente" &&
+                    "border-marinho-50 text-texto-2 border-b border-dashed",
                 )}
               >
                 {data.valor}
               </dd>
               <dd className="text-mini text-marinho-72 italic">
-                {data.tipo === "estimativa" ? "estimativa" : data.tipo === "fato" ? "fato" : null}
+                {data.tipo === "estimativa"
+                  ? "estimativa"
+                  : data.tipo === "fato"
+                    ? "fato"
+                    : null}
               </dd>
             </div>
           ))}

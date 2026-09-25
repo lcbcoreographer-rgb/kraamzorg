@@ -7,9 +7,13 @@ import { cn } from "@/lib/utils";
  * como exemplo. Estados por `data-estado`: erro, aviso, alerta-clinico,
  * copiado, desabilitado. Usado por CampoTexto e CampoNumero.
  */
-export type EstadoCampo = "normal" | "erro" | "aviso" | "alerta-clinico" | "copiado";
+export type EstadoCampo =
+  "normal" | "erro" | "aviso" | "alerta-clinico" | "copiado";
 
-export function classeCaixaPorEstado(estado: EstadoCampo, desabilitado?: boolean): string {
+export function classeCaixaPorEstado(
+  estado: EstadoCampo,
+  desabilitado?: boolean,
+): string {
   if (desabilitado) {
     return "border-linha bg-marinho-08";
   }
@@ -50,9 +54,11 @@ export function RotuloCampo({
   children: React.ReactNode;
 }) {
   return (
-    <label htmlFor={htmlFor} className="text-apoio font-semibold text-texto">
+    <label htmlFor={htmlFor} className="text-apoio text-texto font-semibold">
       {children}
-      {opcional ? <span className="font-normal text-texto-2"> (opcional)</span> : null}
+      {opcional ? (
+        <span className="text-texto-2 font-normal"> (opcional)</span>
+      ) : null}
     </label>
   );
 }
@@ -74,9 +80,14 @@ export function AjudaCampo({
     <p
       id={id}
       role={mensagem && ehErro ? "alert" : undefined}
-      className={cn("flex items-start gap-2 text-apoio", classeAjudaPorEstado(estado))}
+      className={cn(
+        "text-apoio flex items-start gap-2",
+        classeAjudaPorEstado(estado),
+      )}
     >
-      {ehErro ? <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" /> : null}
+      {ehErro ? (
+        <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+      ) : null}
       <span>{children}</span>
     </p>
   );

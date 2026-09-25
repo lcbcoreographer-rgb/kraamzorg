@@ -38,14 +38,46 @@
 
   /* 2. Derivados: mistura fixa de um primitivo com creme ou branco. Nenhum
         matiz novo (DESIGN.md, seção 4). Contraste medido em WCAG 2.x. */
-  --marinho-72: color-mix(in srgb, var(--marinho) 72%, var(--creme)); /* 6,4:1 creme */
-  --marinho-62: color-mix(in srgb, var(--marinho) 62%, var(--creme)); /* 4,7:1 creme, nunca sobre areia */
-  --marinho-50: color-mix(in srgb, var(--marinho) 50%, var(--creme)); /* borda de campo, 3,2:1 creme */
-  --marinho-14: color-mix(in srgb, var(--marinho) 14%, var(--creme)); /* divisória fina */
-  --marinho-08: color-mix(in srgb, var(--marinho) 8%, var(--creme)); /* hover neutro, selo neutro */
-  --marinho-claro: color-mix(in srgb, var(--marinho) 84%, var(--creme)); /* hover do primário, item ativo da lateral */
-  --creme-62: color-mix(in srgb, var(--creme) 62%, var(--marinho)); /* texto de apoio sobre marinho, 6,7:1 */
-  --aviso-texto: color-mix(in srgb, var(--aviso) 60%, var(--marinho)); /* texto de estado pendente, 6,1:1 creme */
+  --marinho-72: color-mix(
+    in srgb,
+    var(--marinho) 72%,
+    var(--creme)
+  ); /* 6,4:1 creme */
+  --marinho-62: color-mix(
+    in srgb,
+    var(--marinho) 62%,
+    var(--creme)
+  ); /* 4,7:1 creme, nunca sobre areia */
+  --marinho-50: color-mix(
+    in srgb,
+    var(--marinho) 50%,
+    var(--creme)
+  ); /* borda de campo, 3,2:1 creme */
+  --marinho-14: color-mix(
+    in srgb,
+    var(--marinho) 14%,
+    var(--creme)
+  ); /* divisória fina */
+  --marinho-08: color-mix(
+    in srgb,
+    var(--marinho) 8%,
+    var(--creme)
+  ); /* hover neutro, selo neutro */
+  --marinho-claro: color-mix(
+    in srgb,
+    var(--marinho) 84%,
+    var(--creme)
+  ); /* hover do primário, item ativo da lateral */
+  --creme-62: color-mix(
+    in srgb,
+    var(--creme) 62%,
+    var(--marinho)
+  ); /* texto de apoio sobre marinho, 6,7:1 */
+  --aviso-texto: color-mix(
+    in srgb,
+    var(--aviso) 60%,
+    var(--marinho)
+  ); /* texto de estado pendente, 6,1:1 creme */
   --alerta-lavado: color-mix(in srgb, var(--alerta) 12%, var(--branco));
   --aviso-lavado: color-mix(in srgb, var(--aviso) 14%, var(--branco));
   --sucesso-lavado: color-mix(in srgb, var(--sucesso) 12%, var(--branco));
@@ -70,15 +102,19 @@
   --acao: var(--marinho);
   --acao-texto: var(--creme);
   --acao-hover: var(--marinho-claro);
-  --destaque: var(--dourado); /* borda ativa, marcador, trilha. Texto sobre dourado: sempre marinho. */
+  --destaque: var(
+    --dourado
+  ); /* borda ativa, marcador, trilha. Texto sobre dourado: sempre marinho. */
   --foco: var(--marinho);
   --foco-halo: color-mix(in srgb, var(--dourado) 55%, transparent);
 
   /* Sombras, tingidas de marinho (DESIGN.md, seção 4). */
-  --sombra-1: 0 1px 2px color-mix(in srgb, var(--marinho) 6%, transparent), 0 6px 16px -10px
-    color-mix(in srgb, var(--marinho) 18%, transparent);
-  --sombra-2: 0 2px 6px color-mix(in srgb, var(--marinho) 8%, transparent), 0 18px 40px -16px
-    color-mix(in srgb, var(--marinho) 30%, transparent);
+  --sombra-1:
+    0 1px 2px color-mix(in srgb, var(--marinho) 6%, transparent),
+    0 6px 16px -10px color-mix(in srgb, var(--marinho) 18%, transparent);
+  --sombra-2:
+    0 2px 6px color-mix(in srgb, var(--marinho) 8%, transparent),
+    0 18px 40px -16px color-mix(in srgb, var(--marinho) 30%, transparent);
 
   /* Camadas, movimento e estrutura: variáveis simples (não geram utilitário
      Tailwind; usadas via arbitrário, ex. z-[var(--z-barra)]). */
@@ -245,9 +281,7 @@
 
   body {
     @apply bg-fundo text-texto;
-    font-feature-settings:
-      "cv11",
-      "ss01";
+    font-feature-settings: "cv11", "ss01";
     caret-color: var(--marinho);
     accent-color: var(--marinho);
   }

@@ -14,13 +14,18 @@ function paraDate(valor: string | Date): Date {
   return typeof valor === "string" ? new Date(valor) : valor;
 }
 
-function partesEmBrasilia(data: Date, comHora: boolean): Intl.DateTimeFormatPart[] {
+function partesEmBrasilia(
+  data: Date,
+  comHora: boolean,
+): Intl.DateTimeFormatPart[] {
   return new Intl.DateTimeFormat("pt-BR", {
     timeZone: "America/Sao_Paulo",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-    ...(comHora ? { hour: "2-digit", minute: "2-digit", hourCycle: "h23" as const } : {}),
+    ...(comHora
+      ? { hour: "2-digit", minute: "2-digit", hourCycle: "h23" as const }
+      : {}),
   }).formatToParts(data);
 }
 

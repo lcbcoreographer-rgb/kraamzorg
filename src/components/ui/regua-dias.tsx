@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils";
  * Toda noção de tempo do produto herda desta forma (acompanhamento D1 a
  * D12, progresso do checklist, semana da equipe, prazo de SLA).
  */
-export type EstadoDia = "feito" | "hoje" | "pendente" | "futuro" | "alerta" | "sensivel";
+export type EstadoDia =
+  "feito" | "hoje" | "pendente" | "futuro" | "alerta" | "sensivel";
 
 export interface DiaRegua {
   numero: number;
@@ -30,7 +31,8 @@ const classePorEstado: Record<EstadoDia, string> = {
   hoje: "bg-superficie border-2 border-dourado text-texto shadow-[0_0_0_3px_var(--dourado-lavado)]",
   pendente:
     "border-[1.5px] border-aviso-borda text-aviso-texto bg-[repeating-linear-gradient(135deg,var(--aviso-lavado)_0_5px,var(--superficie)_5px_9px)]",
-  futuro: "border-[1.5px] border-dashed border-marinho-50 text-texto-2 bg-transparent",
+  futuro:
+    "border-[1.5px] border-dashed border-marinho-50 text-texto-2 bg-transparent",
   alerta: "border-[1.5px] border-alerta text-alerta bg-alerta-lavado",
   sensivel: "border-[1.5px] border-sensivel text-sensivel bg-sensivel-lavado",
 };
@@ -50,18 +52,29 @@ export function ReguaDias({ dias, rotulo, fina, className }: ReguaDiasProps) {
         <li
           key={dia.numero}
           className={cn(
-            "flex flex-col items-center justify-center rounded-2 font-mono tabular-nums",
-            fina ? "min-h-[10px] rounded-pilula border" : "min-h-12 gap-0 border py-1",
+            "rounded-2 flex flex-col items-center justify-center font-mono tabular-nums",
+            fina
+              ? "rounded-pilula min-h-[10px] border"
+              : "min-h-12 gap-0 border py-1",
             classePorEstado[dia.estado],
           )}
           aria-current={dia.estado === "hoje" ? "date" : undefined}
         >
           {!fina ? (
             <>
-              <span className={cn("text-apoio leading-tight", dia.estado === "hoje" && "font-semibold")}>
+              <span
+                className={cn(
+                  "text-apoio leading-tight",
+                  dia.estado === "hoje" && "font-semibold",
+                )}
+              >
                 D{dia.numero}
               </span>
-              {dia.rotuloData ? <span className="text-[11px] leading-tight opacity-90">{dia.rotuloData}</span> : null}
+              {dia.rotuloData ? (
+                <span className="text-[11px] leading-tight opacity-90">
+                  {dia.rotuloData}
+                </span>
+              ) : null}
             </>
           ) : (
             <span className="sr-only">

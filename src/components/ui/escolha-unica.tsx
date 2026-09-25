@@ -38,10 +38,14 @@ export function EscolhaUnica({
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      <span id={idGrupo} className="text-apoio font-semibold text-texto">
+      <span id={idGrupo} className="text-apoio text-texto font-semibold">
         {rotulo}
       </span>
-      <div role="radiogroup" aria-labelledby={idGrupo} className="flex flex-wrap gap-2">
+      <div
+        role="radiogroup"
+        aria-labelledby={idGrupo}
+        className="flex flex-wrap gap-2"
+      >
         {opcoes.map((opcao) => {
           const idOpcao = `${idGrupo}-${opcao.valor}`;
           const marcado = valor === opcao.valor;
@@ -60,10 +64,10 @@ export function EscolhaUnica({
               <label
                 htmlFor={idOpcao}
                 className={cn(
-                  "flex min-h-toque cursor-pointer items-center gap-2 rounded-pilula border-[1.5px] border-borda-campo bg-superficie px-4 text-apoio font-medium text-texto select-none",
+                  "min-h-toque rounded-pilula border-borda-campo bg-superficie text-apoio text-texto flex cursor-pointer items-center gap-2 border-[1.5px] px-4 font-medium select-none",
                   "hover:bg-marinho-08",
                   "peer-checked:border-acao peer-checked:bg-acao peer-checked:text-acao-texto",
-                  "peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-foco peer-focus-visible:shadow-[0_0_0_5px_var(--foco-halo)]",
+                  "peer-focus-visible:outline-foco peer-focus-visible:shadow-[0_0_0_5px_var(--foco-halo)] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2",
                   disabled && "cursor-not-allowed opacity-60",
                 )}
               >
@@ -74,7 +78,9 @@ export function EscolhaUnica({
           );
         })}
       </div>
-      {descricao ? <p className="text-apoio text-texto-2">{descricao}</p> : null}
+      {descricao ? (
+        <p className="text-apoio text-texto-2">{descricao}</p>
+      ) : null}
     </div>
   );
 }
