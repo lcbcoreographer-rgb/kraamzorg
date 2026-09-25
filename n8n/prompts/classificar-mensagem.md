@@ -1,6 +1,6 @@
 # Classificador de mensagem recebida (fluxo 3, nó 18)
 
-Versão 4.1-rc2 · 24/09/2026
+Versão 4.2-rc3 · 25/09/2026
 
 ## Como o sistema usa este arquivo
 
@@ -10,12 +10,13 @@ Versão 4.1-rc2 · 24/09/2026
 - `internacao = true` troca a mensagem padrão de saúde por `alerta_internacao`, e `saude_mental = true` por `alerta_emocional`, cada uma só quando o parâmetro de ativação estiver ligado (PRD 11.11, itens 2a e 2b).
 - `perda_temporalidade` não muda o que a família recebe nem o freio. Só entra no aviso ao grupo, para a coordenação conferir e reverter o freio se a perda for de outra gestação (PRD 11.11, item 1).
 - `tipo_contato` só é usado nas primeiras mensagens de uma conversa ainda não classificada (nó 22).
+- [v4.2] Mudança no texto do prompt: o campo "perda" passou a valer para qualquer perda relatada, desta gestação ou de uma anterior (PRD 11.11 item 2, K-21); antes, "já perdi um bebê antes" levava a `perda = false`. As marcas de revisão ficam só neste cabeçalho, nunca entre as marcas do prompt, porque o texto entre elas vai inteiro para o modelo.
 
 | Variável | Conteúdo |
 | :-- | :-- |
 | `{{historico}}` | Até 12 mensagens anteriores, "Família: ..." e "Kraamzorg: ..." |
 | `{{mensagem}}` | Mensagens novas da família, já agrupadas e com CPF e cartão mascarados |
-| `{{modo}}` | `vendas`, `cliente`, `pausado`, `nao_lead` ou `humano_nominal` |
+| `{{modo}}` | `vendas`, `cliente`, `pausado`, `nao_lead`, `humano_nominal` ou [v4.2] `humano_comercial` |
 
 Saída: `{"tipo_contato": "...", "saude": "...", "perda": false, "perda_temporalidade": "...", "internacao": false, "saude_mental": false, "porque": "..."}`
 
@@ -49,7 +50,7 @@ Classifique em JSON com estes campos:
 - "urgencia": relato com sinal de gravidade ou pedido de socorro. Exemplos: "sangrando muito", "o bebê está roxo", "não consegue respirar", "convulsão", "desmaiei", "socorro".
 Na dúvida entre "pergunta_geral" e "relato_sintoma", escolha "relato_sintoma". Na dúvida entre "relato_sintoma" e "urgencia", escolha "urgencia". Aviso de que vai ser internada para o parto, de que o bebê nasceu ou de previsão de alta, sem queixa de saúde, é "nenhum". Histórico de outra gestação contado como informação ("tive pressão alta na primeira gravidez"), sem nada acontecendo agora, é "nenhum".
 
-"perda": true se a mensagem conta perda desta gestação, bebê que nasceu sem vida ou morte do bebê, com qualquer palavra ("perdi o bebê", "o coração parou", "não resistiu", "natimorto", "a gestação foi interrompida"). Na dúvida, true.
+"perda": true para qualquer perda relatada, desta gestação ou de uma gestação anterior, bebê que nasceu sem vida ou morte do bebê, com qualquer palavra ("perdi o bebê", "o coração parou", "não resistiu", "natimorto", "a gestação foi interrompida", "já perdi um bebê antes", "tive um aborto"). `perda_temporalidade` separa quando foi e nunca faz este campo descer para false. Na dúvida, true.
 
 "perda_temporalidade": "atual" quando a perda é desta gestação ou deste bebê; "anterior" quando a pessoa conta a perda de uma gestação passada ("já perdi um bebê antes", "tive um aborto ano passado"); "incerta" quando não dá para saber. Sem perda na mensagem, "nenhuma".
 

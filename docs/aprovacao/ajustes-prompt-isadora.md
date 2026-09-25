@@ -1,22 +1,25 @@
 # Ajustes no prompt da Isadora para aprovação
 
 Para: Leonardo (conteúdo e tom) e Edilaine (itens marcados como clínicos)
-Arquivo novo: `n8n/prompts/isadora-system.md` (versão 4.1-rc2, 24/09/2026)
+Arquivo novo: `n8n/prompts/isadora-system.md` (versão 4.2-rc3, 25/09/2026)
 Base: Prompt de Sistema v4.0 (23/09) e Treinamento da Isadora (24/09)
 
 O prompt v4.0 continua sendo a base: persona, tom, princípios, textos aprovados, objeções, situações especiais e lista do que a Isadora nunca faz foram mantidos. As mudanças abaixo vêm de três fontes: as decisões do treinamento de 24/09, o que o sistema passou a garantir sozinho (e por isso saiu do texto) e o método de copy da Drop. Nada vai ao ar antes da aprovação registrada no CRM.
+
+**[v4.2] Atualização de 25/09/2026.** Esta revisão corrige os itens 2, 13 e L, que ainda não batiam com o que os prompts em 4.2-rc3 fazem de fato, acrescenta os itens 17 e 18 e escreve a exceção da regra de uma pergunta por vez na seção 6. Nenhum item já numerado foi renumerado; o que é novo entrou com número ou letra nova no fim da lista.
 
 ## 1. Decisões do treinamento de 24/09 aplicadas
 
 | # | O que mudou | Antes (v4.0) | Agora |
 | :-: | :-- | :-- | :-- |
 | 2 | Agendamento da conversa com a Edilaine | A Isadora oferecia horários e confirmava: "Ficou marcado {dia}, às {hora}" | A Isadora pede duas opções de dia e horário e passa para a equipe marcar. Nunca escreve que ficou marcado. |
-| 2 | Follow-up sem resposta | Isadora em 1, 3 e 14 dias | Isadora só no dia seguinte (automático). Os contatos de 3 e 14 dias viram tarefa sua no CRM, com o texto sugerido. |
+| 2 | Follow-up sem resposta | Isadora em 1, 3 e 14 dias | [v4.2] Isadora chama a família depois de uma janela configurável, com padrão de 48 horas e mínimo de 24 horas, editável no CRM. Os contatos de D+3 e D+14 continuam como tarefa sua no CRM, com o texto sugerido, contados a partir desse primeiro retorno. Decisão da reunião de 24/09 (11:20): janela de 24 a 48 horas ou mais, configurável. [confirmar: Leonardo confirma o valor exato do padrão e se D+3 e D+14 continuam sendo tarefa sua] |
 | 3 | Lembrete na véspera da conversa e "não compareceu" | Isadora | Tarefa do comercial. Dá para passar para a Isadora depois mudando uma configuração no CRM. |
 | 4 | Fechamento | A Isadora dizia que você seguiria com contrato e condições | Ela confirma só o que falta entre plano, DPP e forma de pagamento preferida, passa o resumo e avisa que você segue com o formulário seguro. Nunca pede CPF, endereço ou data de nascimento. Se a família não responder às confirmações, o sistema abre a transferência para você 2 horas úteis depois, para nenhuma decisão de compra ficar parada. |
 | 5 | Pedido de desconto ou condição | "Essa condição eu vou confirmar com o Leonardo, tá? Posso encaminhar para ele?" e esperava resposta | Ela avisa que quem confirma é você e já transfere, sem pedir licença. Sem citar percentual. |
 | 6 | Parcelamento | Só "3x sem juros" | Pix ou cartão em até 3x ela confirma sozinha (como na simulação da Carla, cartão em 2x). Desconto no Pix, mais parcelas ou cupom vão para você. |
 | 7 | Presente | Encaminhava para explicar a contratação | Ela já explica que o contrato fica no nome de quem recebe o cuidado, o pagamento com quem presenteia, e que existe o cartão-presente. |
+| 17 | Isadora sai da conversa depois da transferência comercial | Depois de 48 horas, ou quando você clicava em "resolver" no CRM, a Isadora voltava a responder, mesmo em negociação com você | [v4.2] Depois que um lead qualificado é transferido para você, seja para marcar reunião, para contratar ou para tratar de condição comercial, a Isadora não volta a responder nem manda follow-up. O filtro de saúde continua lendo as mensagens: se aparecer sinal de saúde, a família recebe a mensagem aprovada de saúde e a equipe é avisada com prioridade máxima, como em qualquer conversa. Ela só volta a atender pelo botão "Devolver à Isadora" no CRM. Decisão da reunião de 24/09: agente focado na triagem, para você atender depois (11:19), e se já qualificou e caiu com você, não entra mais na conversa (11:22). [confirmar: Leonardo confirma a lista exata dos motivos que contam como "caiu com você"] |
 
 ## 2. O que saiu do texto porque o sistema passou a garantir
 
@@ -27,10 +30,11 @@ O prompt v4.0 continua sendo a base: persona, tom, princípios, textos aprovados
 | 10 | Cidades atendidas | Vêm da ferramenta de cobertura. O DDD nunca conta como cidade. |
 | 11 | "Tem vaga para a minha data?" | A ferramenta de disponibilidade devolve só "disponível" ou "confirmar com a equipe". Ela nunca garante vaga. |
 | 12 | Status comercial (seção 22 do v4.0) | Sai do prompt. O sistema move as etapas do CRM a partir do que ela registra. |
-| 13 | Sinais de saúde | Uma lista de termos e um classificador leem toda mensagem antes da IA, inclusive legenda de foto e áudio transcrito, e inclusive quando a IA está pausada porque alguém da equipe assumiu a conversa. Se aparecer sinal de saúde, a família recebe a mensagem aprovada, a equipe é avisada com prioridade máxima e a IA pausa. A mensagem de saúde é sempre enviada pelo sistema; a IA nunca escreve esse texto. |
+| 13 | Sinais de saúde | [v4.2] Uma lista de termos e um classificador leem toda mensagem antes da IA, inclusive áudio transcrito, e inclusive quando a IA está pausada porque alguém da equipe assumiu a conversa. Se aparecer sinal de saúde, a família recebe a mensagem aprovada, a equipe é avisada com prioridade máxima e a IA pausa. A mensagem de saúde é sempre enviada pelo sistema; a IA nunca escreve esse texto. Quando o áudio não pode ser transcrito, o sistema não lê o conteúdo: a família recebe um aviso de que não conseguimos ouvir o áudio, orientada a escrever de novo ou a procurar urgência se for algo grave, e a equipe também é avisada. [confirmar: Edilaine confirma o texto desse aviso e o prazo de resposta da equipe] Para quem já está em bloqueio total por uma perda e escreve um sintoma novo, a equipe é avisada com prioridade máxima, mas nenhum texto sai para a família até a aprovação de um texto próprio. O texto proposto é: "{nome}, isso precisa ser avaliado agora. Procure um serviço de urgência ou ligue para o SAMU pelo 192. A equipe já está sabendo." [confirmar: Edilaine confirma se essa família recebe um texto de urgência próprio ou continua recebendo só o aviso à equipe, sem nenhum texto] |
 | 14 | Perda gestacional | Além da mensagem aprovada, a família entra em bloqueio total: nenhuma automação sai para ela e só uma pessoa da equipe fala com ela. O v4.0 marcava "Não contatar", que é mais fraco. |
 | 15 | Número do WhatsApp no texto | Saiu. Se o agente for para um número novo (item T-01 do PRD), o prompt não precisa mudar. O e-mail de contato continua no prompt. |
 | 16 | "Não tenho mais interesse" | Ela agradece, encerra e o sistema tira a família da cadência de retorno, para ninguém receber mensagem depois de recusar. |
+| 18 | Foto ou vídeo com legenda | [v4.2] Toda foto, vídeo ou documento que a família manda avisa a equipe, com legenda ou sem. Sem legenda, a Isadora avisa que alguém da equipe vai olhar e para por aí. Com legenda, ela pode responder à pergunta que estiver na legenda, mas nunca comenta o que a imagem mostra nem diz se está tudo bem: quem avalia é sempre a equipe. |
 
 ## 3. Pontos que precisam da sua decisão
 
@@ -52,7 +56,7 @@ O prompt v4.0 continua sendo a base: persona, tom, princípios, textos aprovados
 | H | Termos de alerta | Entram os dez termos aprovados no onboarding. Proposta de sinônimos, que só ficam ativos com a sua aprovação: óbito, natimorto, faleceu, não resistiu, sem batimento, desmaiou, desmaio, ficou roxo, não respira. Termos soltos como "febre" e "sangramento" vão pegar também perguntas gerais ("vocês atendem se tiver febre?"). A regra prefere errar para o lado da segurança; revisamos os casos juntos depois de 30 dias. |
 | I | Chupeta | O treinamento diz que "pode ser uma aliada" em uso pontual e o roteiro de seleção trata como prática não recomendada. Enquanto não houver uma posição única, a Isadora não opina e diz que a orientação é da enfermeira. |
 | J | Tristeza intensa ou pensamento de se machucar | A mensagem padrão de saúde é correta, mas fria para quem conta um sofrimento emocional. Proposta de texto: "{nome}, obrigada por me contar. O que você está sentindo merece cuidado agora, e você não precisa passar por isso sozinha. Se houver risco, ligue para o SAMU no 192 ou procure um serviço de urgência. Você também pode falar com o CVV pelo 188, a qualquer hora. Estou avisando a nossa equipe." O aviso à coordenação é de prioridade máxima, como no SM-01 do DOC 3. Fica desligado até a sua aprovação; a recomendação é aprovar antes de a Isadora ir para produção. |
-| L | Perda contada de uma gestação anterior | "Já perdi um bebê antes" dispara o mesmo caminho de perda: "Sinto muito, de coração", freio e aviso máximo. A mensagem serve nos dois casos, e o aviso ao grupo sinaliza que pode ser gestação anterior, para você reverter o freio em um toque depois de falar com a família. Tratar uma perda atual como antiga seria muito pior. |
+| L | Perda contada de uma gestação anterior | [v4.2] "Já perdi um bebê antes" ou qualquer perda relatada de uma gestação anterior dispara o mesmo caminho de perda: "Sinto muito, de coração", freio total e aviso máximo. O classificador agora reconhece qualquer perda relatada, desta gestação ou de uma anterior, e guarda em separado quando foi, sem nunca baixar o alerta por causa disso. O aviso ao grupo sinaliza que pode ser gestação anterior, para você reverter o freio em um toque depois de falar com a família. Tratar uma perda atual como antiga seria muito pior. [confirmar: Edilaine e Leonardo confirmam manter este caminho, o mais protegido, também para a perda anterior] |
 
 ## 5. Ajustes de texto pelo método de copy da Drop
 
@@ -77,11 +81,11 @@ A intenção de cada frase aprovada foi mantida. As mudanças deixam a conversa 
 
 ## 6. O que continua igual
 
-Persona e nome, apresentação, transparência quando perguntam se é robô, os seis princípios, tom de voz, expressões permitidas e proibidas, regra de uma pergunta por vez, emojis (no máximo um, nunca em saúde, perda, reclamação ou valores), mensagem de saúde, mensagem de perda, objeções (com "A Kraamzorg vem para somar" de volta), gêmeos só com planos gemelares, mãe solo, fora da área, não lead, cliente que já contratou, prioridade das regras e regra de ouro. A lista do que ela nunca confirma, nunca diz, nunca pede e nunca envia é a do v4.0, com os acréscimos deste documento: nada de endereço, CEP, data de nascimento, e-mail ou nome completo, e nenhuma crítica a serviço noturno.
+Persona e nome, apresentação, transparência quando perguntam se é robô, os seis princípios, tom de voz, expressões permitidas e proibidas, regra de uma pergunta por vez ([v4.2] com uma exceção: no fechamento da venda, as confirmações que faltarem entre plano, DPP e forma de pagamento podem vir juntas numa mensagem só, como já descrito no item 4), emojis (no máximo um, nunca em saúde, perda, reclamação ou valores), mensagem de saúde, mensagem de perda, objeções (com "A Kraamzorg vem para somar" de volta), gêmeos só com planos gemelares, mãe solo, fora da área, não lead, cliente que já contratou, prioridade das regras e regra de ouro. A lista do que ela nunca confirma, nunca diz, nunca pede e nunca envia é a do v4.0, com os acréscimos deste documento: nada de endereço, CEP, data de nascimento, e-mail ou nome completo, e nenhuma crítica a serviço noturno.
 
 ## Aprovação
 
 | Quem | Itens | Data | Observações |
 | :-- | :-- | :-- | :-- |
-| Leonardo | 1 a 16, A a F, K, seção 5 | | |
-| Edilaine | G, H, I, J, L | | |
+| Leonardo | 1 a 17, A a F, K, L (decisão conjunta com Edilaine), seção 5 | | |
+| Edilaine | G, H, I, J, L (decisão conjunta com Leonardo), 13 (partes marcadas [confirmar]), 18 | | |
