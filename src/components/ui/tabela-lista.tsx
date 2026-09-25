@@ -40,13 +40,17 @@ export function TabelaLista({
   className,
 }: TabelaListaProps) {
   return (
-    <table className={cn("text-apoio w-full border-collapse", className)}>
+    <table
+      role="table"
+      className={cn("text-apoio w-full border-collapse", className)}
+    >
       <caption className="sr-only">{rotulo}</caption>
-      <thead className="max-[719px]:sr-only">
-        <tr>
+      <thead role="rowgroup" className="max-[719px]:sr-only">
+        <tr role="row">
           {colunas.map((coluna) => (
             <th
               key={coluna.chave}
+              role="columnheader"
               scope="col"
               className={cn(
                 "border-linha text-texto-2 border-b px-3 py-2 text-left font-medium whitespace-nowrap",
@@ -59,10 +63,11 @@ export function TabelaLista({
           ))}
         </tr>
       </thead>
-      <tbody>
+      <tbody role="rowgroup">
         {linhas.map((linha) => (
           <tr
             key={linha.id}
+            role="row"
             className={cn(
               "border-linha ease-estado min-[720px]:hover:bg-marinho-08 border-b transition-colors duration-140",
               "max-[719px]:rounded-3 max-[719px]:bg-superficie max-[719px]:shadow-1 max-[719px]:mb-3 max-[719px]:grid max-[719px]:grid-cols-[minmax(0,1fr)_auto] max-[719px]:gap-x-3 max-[719px]:gap-y-1 max-[719px]:border-0 max-[719px]:p-4",
@@ -71,6 +76,7 @@ export function TabelaLista({
             {colunas.map((coluna) => (
               <td
                 key={coluna.chave}
+                role="cell"
                 className={cn(
                   "h-12 px-3 align-middle",
                   (coluna.alinhamento === "direita" || coluna.numerica) &&
@@ -87,7 +93,16 @@ export function TabelaLista({
                 )}
               >
                 {!coluna.principal && !coluna.canto ? (
-                  <span className="text-texto-2 min-[720px]:hidden">
+                  // sr-only no computador não muda nada (o cabeçalho real já
+                  // está visível); no celular, sem aria-hidden, o leitor de
+                  // tela lia o rótulo duas vezes: uma vez aqui, outra no
+                  // cabeçalho sr-only da tabela (achado da auditoria da P10
+                  // parcial). font-sans porque o rótulo não é dado: sem
+                  // isto, herdava o font-mono da coluna numérica.
+                  <span
+                    aria-hidden="true"
+                    className="text-texto-2 font-sans min-[720px]:hidden"
+                  >
                     {coluna.rotulo}{" "}
                   </span>
                 ) : null}

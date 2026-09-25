@@ -33,8 +33,13 @@ function parte(partes: Intl.DateTimeFormatPart[], tipo: string): string {
   return partes.find((p) => p.type === tipo)?.value ?? "";
 }
 
-/** "24/09/2026" a partir de uma data de calendário ou de um instante. */
-export function formatarData(valor: string | Date): string {
+/**
+ * "24/09/2026" a partir de uma data de calendário ou de um instante.
+ * Devolve `null` quando `valor` não é uma data válida: "Data inválida" é
+ * texto de interface, e este arquivo só formata, não decide o que a tela
+ * mostra no lugar (CLAUDE.md, "nenhum texto de negócio no código").
+ */
+export function formatarData(valor: string | Date): string | null {
   if (typeof valor === "string" && DATA_SIMPLES.test(valor)) {
     const [ano, mes, dia] = valor.split("-");
     return `${dia}/${mes}/${ano}`;
@@ -42,18 +47,21 @@ export function formatarData(valor: string | Date): string {
 
   const data = paraDate(valor);
   if (Number.isNaN(data.getTime())) {
-    return "Data inválida";
+    return null;
   }
 
   const partes = partesEmBrasilia(data, false);
   return `${parte(partes, "day")}/${parte(partes, "month")}/${parte(partes, "year")}`;
 }
 
-/** "24/09/2026, 09:14" (PRD 20.4, cabeçalho da família), fuso de Brasília. */
-export function formatarDataHora(valor: string | Date): string {
+/**
+ * "24/09/2026, 09:14" (PRD 20.4, cabeçalho da família), fuso de Brasília.
+ * Devolve `null` para instante inválido, pelo mesmo motivo de `formatarData`.
+ */
+export function formatarDataHora(valor: string | Date): string | null {
   const data = paraDate(valor);
   if (Number.isNaN(data.getTime())) {
-    return "Data inválida";
+    return null;
   }
 
   const partes = partesEmBrasilia(data, true);

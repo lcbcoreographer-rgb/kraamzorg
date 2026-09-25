@@ -1,5 +1,8 @@
+"use client";
+
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { useEstadoControlavel } from "@/lib/hooks/estado-controlavel";
 
 export interface OpcaoEscolha {
   valor: string;
@@ -12,7 +15,10 @@ export interface EscolhaUnicaProps {
   rotulo: React.ReactNode;
   name: string;
   opcoes: OpcaoEscolha[];
+  /** Controlado se passado. */
   valor?: string;
+  /** Valor inicial quando não controlado. */
+  valorPadrao?: string;
   onMudar?: (valor: string) => void;
   descricao?: React.ReactNode;
   disabled?: boolean;
@@ -29,12 +35,18 @@ export function EscolhaUnica({
   name,
   opcoes,
   valor,
+  valorPadrao,
   onMudar,
   descricao,
   disabled,
   className,
 }: EscolhaUnicaProps) {
   const idGrupo = React.useId();
+  const [valorAtual, definirValorAtual] = useEstadoControlavel(
+    valor,
+    valorPadrao,
+    onMudar,
+  );
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
@@ -48,7 +60,7 @@ export function EscolhaUnica({
       >
         {opcoes.map((opcao) => {
           const idOpcao = `${idGrupo}-${opcao.valor}`;
-          const marcado = valor === opcao.valor;
+          const marcado = valorAtual === opcao.valor;
           return (
             <span key={opcao.valor} className="relative">
               <input
@@ -58,7 +70,7 @@ export function EscolhaUnica({
                 value={opcao.valor}
                 checked={marcado}
                 disabled={disabled}
-                onChange={() => onMudar?.(opcao.valor)}
+                onChange={() => definirValorAtual(opcao.valor)}
                 className="peer absolute size-px overflow-hidden opacity-0"
               />
               <label
@@ -68,7 +80,8 @@ export function EscolhaUnica({
                   "hover:bg-marinho-08",
                   "peer-checked:border-acao peer-checked:bg-acao peer-checked:text-acao-texto",
                   "peer-focus-visible:outline-foco peer-focus-visible:shadow-[0_0_0_5px_var(--foco-halo)] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2",
-                  disabled && "cursor-not-allowed opacity-60",
+                  disabled &&
+                    "bg-marinho-08 text-marinho-62 cursor-not-allowed",
                 )}
               >
                 {opcao.icone}

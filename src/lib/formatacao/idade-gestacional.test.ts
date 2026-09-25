@@ -21,4 +21,14 @@ describe("formatarIdadeGestacional", () => {
   it("não quebra com entrada não finita", () => {
     expect(formatarIdadeGestacional(Number.NaN, Number.NaN)).toBe("0s0d");
   });
+
+  it("lança erro com dias fora de 0 a 6", () => {
+    expect(() => formatarIdadeGestacional(38, 9)).toThrow();
+    expect(() => formatarIdadeGestacional(38, 7)).toThrow();
+  });
+
+  it("lança erro com valores negativos", () => {
+    expect(() => formatarIdadeGestacional(-1, 2)).toThrow();
+    expect(() => formatarIdadeGestacional(38, -1)).toThrow();
+  });
 });

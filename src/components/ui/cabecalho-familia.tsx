@@ -1,15 +1,17 @@
+"use client";
+
 import * as React from "react";
 import { OctagonPause } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
  * Cabeçalho da família com freio (DESIGN.md, seção 6; PRD 20.4). Faixa de
- * areia de ponta a ponta: nome, selo do estágio, dia do acompanhamento,
- * bairro e as quatro datas (DPP "estimativa"; nascimento, alta e início
- * "fato"). O espaço do botão de freio fica reservado no canto superior
- * direito em toda tela da família. Quando o freio está puxado, a faixa
- * inteira vira ameixa (`sensivel`) e mostra a frase de bloqueio no lugar
- * das datas.
+ * areia: nome, selo do estágio, dia do acompanhamento, bairro e as quatro
+ * datas (DPP "estimativa"; nascimento, alta e início "fato"). O botão de
+ * freio fica no canto superior direito em toda tela da família. Quando o
+ * freio está puxado, a faixa inteira vira ameixa (`sensivel`); as quatro
+ * datas continuam visíveis (PRD 20.4: "sempre visíveis na ficha"), só a
+ * linha de meta dá lugar à frase de bloqueio.
  */
 export interface DataChaveFamilia {
   rotulo: string;
@@ -24,12 +26,27 @@ export interface CabecalhoFamiliaProps {
   meta?: React.ReactNode;
   datas: DataChaveFamilia[];
   freioAtivo?: boolean;
-  /** Botão de freio (mostrado só quando `freioAtivo` é falso). */
+  /** Botão de freio (mostrado só quando `freioAtivo` é falso). Ex: `BotaoFreio`. */
   acaoFreio?: React.ReactNode;
-  /** Frase de bloqueio, mostrada no lugar das datas quando ativo. */
+  /** Frase de bloqueio, mostrada na linha de meta quando ativo. */
   textoFreioAtivo?: React.ReactNode;
   /** Rótulo do selo estático "Freio ativo" mostrado no canto quando ativo. */
   rotuloFreioAtivo?: string;
+  /**
+   * Ação do selo "Freio ativo" (ex: abre a folha de reversão, que exige
+   * coordenação ou diretoria). Sem esta prop, o selo é só informativo, do
+   * mesmo tamanho de um `Selo` comum (28 px), não um alvo de toque de 44 px
+   * sem função.
+   */
+  acaoFreioAtivo?: () => void;
+  /** Título da seção (`h1` na ficha da família, `h3` num cartão de lista). */
+  nivelTitulo?: "h1" | "h2" | "h3";
+  /**
+   * Estica a faixa com margem negativa até a borda do contêiner pai
+   * ("de ponta a ponta"). Sem isto, o padding interno do componente fica
+   * de pé sozinho: quem precisa do efeito pede explicitamente.
+   */
+  sangrar?: boolean;
   className?: string;
 }
 
@@ -41,12 +58,30 @@ export function CabecalhoFamilia({
   acaoFreio,
   textoFreioAtivo,
   rotuloFreioAtivo,
+  acaoFreioAtivo,
+  nivelTitulo = "h3",
+  sangrar,
   className,
 }: CabecalhoFamiliaProps) {
+  const Titulo = nivelTitulo;
+  const refSelo = React.useRef<HTMLButtonElement | HTMLSpanElement>(null);
+  const freioAtivoAnterior = React.useRef(freioAtivo);
+
+  React.useEffect(() => {
+    // O botão de freio (que tinha o foco) some do DOM quando o freio liga;
+    // sem isto, o foco cai no <body> (achado da auditoria da P10 parcial).
+    // Leva o foco para o selo "Freio ativo" que aparece no lugar dele.
+    if (freioAtivo && !freioAtivoAnterior.current) {
+      refSelo.current?.focus();
+    }
+    freioAtivoAnterior.current = freioAtivo;
+  }, [freioAtivo]);
+
   return (
     <div
       className={cn(
-        "-mx-4 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-3 px-4 pt-4 pb-5 lg:-mx-8 lg:px-8 lg:pt-6",
+        "grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-3 px-4 pt-4 pb-5 lg:px-8 lg:pt-6",
+        sangrar && "-mx-4 lg:-mx-8",
         freioAtivo
           ? "bg-sensivel text-texto-inverso"
           : "bg-superficie-2 text-texto",
@@ -54,57 +89,83 @@ export function CabecalhoFamilia({
       )}
     >
       <div>
-        <h3 className="font-titulo text-1 leading-tight font-medium tracking-[-0.015em]">
+        <Titulo className="font-titulo text-1 leading-tight font-medium tracking-[-0.015em]">
           {nome}
-        </h3>
-        {freioAtivo ? (
-          <p className="text-apoio mt-2">{textoFreioAtivo}</p>
-        ) : (
-          <div
-            className={cn(
-              "text-apoio mt-2 flex flex-wrap items-center gap-2",
-              "text-marinho-72",
-            )}
-          >
-            {meta}
-          </div>
-        )}
+        </Titulo>
+        <div
+          role="status"
+          className={cn(
+            "text-apoio mt-2 flex flex-wrap items-center gap-2",
+            freioAtivo ? undefined : "text-marinho-72",
+          )}
+        >
+          {freioAtivo ? textoFreioAtivo : meta}
+        </div>
       </div>
 
       {freioAtivo ? (
-        <span className="min-h-toque rounded-pilula bg-superficie text-apoio text-sensivel inline-flex items-center gap-2 px-4 py-0 pl-3 font-semibold">
-          <OctagonPause className="size-[18px]" aria-hidden="true" />
-          {rotuloFreioAtivo}
-        </span>
+        acaoFreioAtivo ? (
+          <button
+            ref={refSelo as React.Ref<HTMLButtonElement>}
+            type="button"
+            onClick={acaoFreioAtivo}
+            className="rounded-pilula bg-superficie text-mini text-sensivel inline-flex min-h-[28px] items-center gap-1.5 px-3 font-semibold whitespace-nowrap"
+          >
+            <OctagonPause className="size-4" aria-hidden="true" />
+            {rotuloFreioAtivo}
+          </button>
+        ) : (
+          <span
+            ref={refSelo as React.Ref<HTMLSpanElement>}
+            tabIndex={-1}
+            className="rounded-pilula bg-superficie text-mini text-sensivel inline-flex min-h-[28px] items-center gap-1.5 px-3 font-semibold whitespace-nowrap"
+          >
+            <OctagonPause className="size-4" aria-hidden="true" />
+            {rotuloFreioAtivo}
+          </span>
+        )
       ) : (
         acaoFreio
       )}
 
-      {!freioAtivo ? (
-        <dl className="col-span-full grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
-          {datas.map((data) => (
-            <div key={data.rotulo} className="flex flex-col gap-0.5">
-              <dt className="text-mini text-marinho-72">{data.rotulo}</dt>
+      <dl className="tablet:grid-cols-4 col-span-full grid grid-cols-2 gap-x-4 gap-y-2">
+        {datas.map((data) => (
+          <div key={data.rotulo} className="flex flex-col gap-0.5">
+            <dt
+              className={cn(
+                "text-mini",
+                freioAtivo ? "text-texto-inverso" : "text-marinho-72",
+              )}
+            >
+              {data.rotulo}
+            </dt>
+            <dd
+              className={cn(
+                "text-corpo font-mono font-medium tabular-nums",
+                freioAtivo ? "text-texto-inverso" : "text-texto",
+                data.tipo === "ausente" &&
+                  !freioAtivo &&
+                  "border-marinho-50 text-texto-2 border-b border-dashed",
+              )}
+            >
+              {data.valor}
+            </dd>
+            {/* Sem <dd> vazio no tipo "ausente": não há rótulo de
+                "estimativa"/"fato" para mostrar (achado da auditoria da
+                P10 parcial). */}
+            {data.tipo === "ausente" ? null : (
               <dd
                 className={cn(
-                  "text-corpo text-texto font-mono font-medium tabular-nums",
-                  data.tipo === "ausente" &&
-                    "border-marinho-50 text-texto-2 border-b border-dashed",
+                  "text-mini italic",
+                  freioAtivo ? "text-texto-inverso" : "text-marinho-72",
                 )}
               >
-                {data.valor}
+                {data.tipo === "estimativa" ? "estimativa" : "fato"}
               </dd>
-              <dd className="text-mini text-marinho-72 italic">
-                {data.tipo === "estimativa"
-                  ? "estimativa"
-                  : data.tipo === "fato"
-                    ? "fato"
-                    : null}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      ) : null}
+            )}
+          </div>
+        ))}
+      </dl>
     </div>
   );
 }

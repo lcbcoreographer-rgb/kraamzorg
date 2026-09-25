@@ -96,7 +96,7 @@ export const CampoTexto = React.forwardRef<
               aria-describedby={descrevePor}
               aria-invalid={estado === "erro" || undefined}
               className={cn(
-                "rounded-2 text-corpo text-texto placeholder:text-texto-3 min-h-[120px] w-full min-w-0 resize-y border-0 bg-transparent px-4 py-3 leading-normal focus-visible:outline-none",
+                "rounded-2 text-corpo text-texto placeholder:text-texto-3 min-h-[120px] w-full min-w-0 resize-y border-0 bg-transparent px-4 py-3 leading-normal focus-visible:shadow-none focus-visible:outline-none",
                 className,
               )}
               {...(props as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
@@ -109,20 +109,26 @@ export const CampoTexto = React.forwardRef<
               aria-describedby={descrevePor}
               aria-invalid={estado === "erro" || undefined}
               className={cn(
-                "rounded-2 text-corpo text-texto placeholder:text-texto-3 min-h-[calc(var(--spacing-toque-campo)-3px)] w-full min-w-0 border-0 bg-transparent px-4 focus-visible:outline-none",
+                "rounded-2 text-corpo text-texto placeholder:text-texto-3 min-h-[calc(var(--spacing-toque-campo)-3px)] w-full min-w-0 border-0 bg-transparent px-4 focus-visible:shadow-none focus-visible:outline-none",
                 className,
               )}
               {...props}
             />
           )}
         </div>
+        {/* Erro e descrição aparecem juntos: a referência do dia anterior
+            (ou outra ajuda) não pode sumir quando o campo entra em erro
+            (achado da auditoria da P10 parcial). O `aria-describedby` já
+            aponta pros dois ids o tempo todo, então os dois precisam
+            existir no DOM. */}
+        {descricao ? (
+          <AjudaCampo id={idAjuda} estado={estado}>
+            {descricao}
+          </AjudaCampo>
+        ) : null}
         {erro ? (
           <AjudaCampo id={idErro} estado="erro" mensagem>
             {erro}
-          </AjudaCampo>
-        ) : descricao ? (
-          <AjudaCampo id={idAjuda} estado={estado}>
-            {descricao}
           </AjudaCampo>
         ) : null}
       </div>

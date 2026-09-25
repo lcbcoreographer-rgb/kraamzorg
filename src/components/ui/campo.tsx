@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CircleAlert } from "lucide-react";
+import { CircleAlert, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -10,6 +10,18 @@ import { cn } from "@/lib/utils";
 export type EstadoCampo =
   "normal" | "erro" | "aviso" | "alerta-clinico" | "copiado";
 
+/**
+ * Foco consistente nos cinco estados: antes, só o normal tinha regra de
+ * foco própria; nos outros, sobrava o halo global do `<input>` (dourado a
+ * 55%) por cima da borda de estado, o que deixava o erro com cara de
+ * "marrom" quando focado (achado da auditoria da P10 parcial). Agora todo
+ * estado ganha `has-[:focus-visible]:outline` na caixa, sem mudar a cor da
+ * borda de estado; o halo do `<input>` é desligado em `campo-texto.tsx` e
+ * `campo-numero.tsx` (`focus-visible:shadow-none`) para não dobrar.
+ */
+const FOCO_CAIXA =
+  "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-foco has-[:focus-visible]:outline-offset-2";
+
 export function classeCaixaPorEstado(
   estado: EstadoCampo,
   desabilitado?: boolean,
@@ -19,15 +31,21 @@ export function classeCaixaPorEstado(
   }
   switch (estado) {
     case "erro":
-      return "border-2 border-alerta";
+      return cn("border-2 border-alerta", FOCO_CAIXA);
     case "aviso":
-      return "border-2 border-aviso";
+      return cn("border-2 border-aviso", FOCO_CAIXA);
     case "alerta-clinico":
-      return "border-2 border-alerta bg-alerta-lavado";
+      return cn("border-2 border-alerta bg-alerta-lavado", FOCO_CAIXA);
     case "copiado":
-      return "border-2 border-dashed border-dourado bg-dourado-lavado";
+      return cn(
+        "border-2 border-dashed border-dourado bg-dourado-lavado",
+        FOCO_CAIXA,
+      );
     default:
-      return "border-[1.5px] border-borda-campo hover:border-marinho-72 has-[:focus-visible]:border-foco has-[:focus-visible]:shadow-[0_0_0_4px_var(--foco-halo)]";
+      return cn(
+        "border-[1.5px] border-borda-campo hover:border-marinho-72",
+        FOCO_CAIXA,
+      );
   }
 }
 
@@ -76,6 +94,7 @@ export function AjudaCampo({
   children: React.ReactNode;
 }) {
   const ehErro = estado === "erro" || estado === "alerta-clinico";
+  const ehAviso = estado === "aviso";
   return (
     <p
       id={id}
@@ -87,6 +106,8 @@ export function AjudaCampo({
     >
       {ehErro ? (
         <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+      ) : ehAviso ? (
+        <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
       ) : null}
       <span>{children}</span>
     </p>

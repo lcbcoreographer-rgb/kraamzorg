@@ -6,7 +6,7 @@ import { extendTailwindMerge } from "tailwind-merge";
  * "red", tamanhos de fonte como "sm"). Sem isto, um token nosso que ele não
  * reconhece (ex: `text-corpo`, um tamanho) cai no mesmo grupo ambíguo de
  * outro que também não reconhece (ex: `text-texto-inverso`, uma cor), e o
- * `cn()` apaga um dos dois na hora de resolver o conflito — silenciosamente,
+ * `cn()` apaga um dos dois na hora de resolver o conflito, silenciosamente,
  * sem erro de tipo nem de lint. Foi assim que o botão "perigo" perdeu o
  * texto creme (ficou com o texto escuro do corpo da página, contraste
  * 2,6:1: achado do axe no P10). Esta lista ensina os nomes de
@@ -39,6 +39,8 @@ const CORES_DO_TEMA = [
   "aviso-borda",
   "sensivel-borda",
   "sucesso-borda",
+  "alerta-hover",
+  "lateral-hover",
   "fundo",
   "superficie",
   "superficie-2",
@@ -55,25 +57,6 @@ const CORES_DO_TEMA = [
   "destaque",
   "foco",
   "foco-halo",
-  "background",
-  "foreground",
-  "card",
-  "card-foreground",
-  "popover",
-  "popover-foreground",
-  "primary",
-  "primary-foreground",
-  "secondary",
-  "secondary-foreground",
-  "muted",
-  "muted-foreground",
-  "accent",
-  "accent-foreground",
-  "destructive",
-  "destructive-foreground",
-  "border",
-  "input",
-  "ring",
 ] as const;
 
 const TAMANHOS_DE_TEXTO = [
@@ -85,8 +68,10 @@ const TAMANHOS_DE_TEXTO = [
   "corpo",
   "apoio",
   "mini",
+  "micro",
   "dado",
   "dado-lg",
+  "marca",
 ] as const;
 
 const mesclarClasses = extendTailwindMerge({
@@ -94,7 +79,7 @@ const mesclarClasses = extendTailwindMerge({
     theme: {
       color: [...CORES_DO_TEMA],
       radius: ["1", "2", "3", "pilula"],
-      shadow: ["1", "2"],
+      shadow: ["1", "2", "anel-hoje"],
       spacing: ["toque", "toque-campo", "margem-tela"],
       container: ["conteudo", "leitura", "lateral"],
       ease: ["saida", "estado"],

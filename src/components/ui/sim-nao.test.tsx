@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { SimNao } from "./sim-nao";
 
@@ -50,7 +51,7 @@ describe("SimNao", () => {
     expect(screen.getByRole("radio", { name: "Sim" })).not.toBeChecked();
   });
 
-  it("pinta a pergunta de alerta quando o estado é alerta-clinico", () => {
+  it("marca o estado alerta-clinico na pergunta, sem depender só da cor", () => {
     render(
       <SimNao
         pergunta="Sangramento fora do esperado?"
@@ -62,9 +63,52 @@ describe("SimNao", () => {
       />,
     );
 
-    expect(screen.getByText("Sangramento fora do esperado?")).toHaveClass(
-      "text-alerta",
+    expect(screen.getByText("Sangramento fora do esperado?")).toHaveAttribute(
+      "data-estado",
+      "alerta-clinico",
     );
+  });
+
+  it("funciona não controlado, com valorPadrao e sem valor de fora", async () => {
+    const usuario = userEvent.setup();
+    const aoMudar = vi.fn();
+    render(
+      <SimNao
+        pergunta="Febre nas últimas 24 horas?"
+        name="febre"
+        rotuloSim="Sim"
+        rotuloNao="Não"
+        valorPadrao="nao"
+        onMudar={aoMudar}
+      />,
+    );
+
+    expect(screen.getByRole("radio", { name: "Não" })).toBeChecked();
+
+    await usuario.click(screen.getByRole("radio", { name: "Sim" }));
+
+    expect(screen.getByRole("radio", { name: "Sim" })).toBeChecked();
+    expect(aoMudar).toHaveBeenCalledWith("sim");
+  });
+
+  it("navega entre as opções pelo teclado (Tab e setas do radiogroup)", async () => {
+    const usuario = userEvent.setup();
+    render(
+      <SimNao
+        pergunta="Febre nas últimas 24 horas?"
+        name="febre"
+        rotuloSim="Sim"
+        rotuloNao="Não"
+        valorPadrao="sim"
+      />,
+    );
+
+    await usuario.tab();
+    expect(screen.getByRole("radio", { name: "Sim" })).toHaveFocus();
+
+    await usuario.keyboard("{ArrowRight}");
+    expect(screen.getByRole("radio", { name: "Não" })).toHaveFocus();
+    expect(screen.getByRole("radio", { name: "Não" })).toBeChecked();
   });
 
   it("associa a pergunta ao grupo de opções por aria-labelledby", () => {

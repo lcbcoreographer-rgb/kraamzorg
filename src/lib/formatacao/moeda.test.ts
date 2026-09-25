@@ -30,9 +30,9 @@ describe("formatarMoeda", () => {
     expect(formatarMoeda(100.4)).toBe("R$ 1");
   });
 
-  it("não quebra com entrada não finita", () => {
-    expect(formatarMoeda(Number.NaN)).toBe("R$ 0");
-    expect(formatarMoeda(Number.POSITIVE_INFINITY)).toBe("R$ 0");
+  it("lança erro com entrada não finita, em vez de esconder o dado corrompido", () => {
+    expect(() => formatarMoeda(Number.NaN)).toThrow();
+    expect(() => formatarMoeda(Number.POSITIVE_INFINITY)).toThrow();
   });
 
   it("formata valores grandes com separador de milhar", () => {

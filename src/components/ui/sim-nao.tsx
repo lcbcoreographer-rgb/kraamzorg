@@ -1,6 +1,9 @@
+"use client";
+
 import * as React from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useEstadoControlavel } from "@/lib/hooks/estado-controlavel";
 
 /**
  * Pergunta com seletor sim ou não em um toque (DESIGN.md, seção 6). Pergunta
@@ -15,8 +18,10 @@ export interface SimNaoProps {
   pergunta: React.ReactNode;
   /** Nome do grupo de rádio (agrupa as duas pílulas). */
   name: string;
-  /** "sim" | "nao" | undefined (sem resposta ainda). Controlado. */
+  /** "sim" | "nao" | undefined (sem resposta ainda). Controlado se passado. */
   valor?: "sim" | "nao";
+  /** Valor inicial quando não controlado (sem `valor`). */
+  valorPadrao?: "sim" | "nao";
   onMudar?: (valor: "sim" | "nao") => void;
   /** Texto da pílula "sim" (ex: "Sim"). Sem padrão fixo: vem sempre da tela. */
   rotuloSim: string;
@@ -32,6 +37,7 @@ export function SimNao({
   pergunta,
   name,
   valor,
+  valorPadrao,
   onMudar,
   rotuloSim,
   rotuloNao,
@@ -40,9 +46,14 @@ export function SimNao({
   className,
 }: SimNaoProps) {
   const idPergunta = React.useId();
+  const [valorAtual, definirValorAtual] = useEstadoControlavel(
+    valor,
+    valorPadrao,
+    onMudar,
+  );
 
   function opcao(rotulo: string, valorOpcao: "sim" | "nao") {
-    const marcado = valor === valorOpcao;
+    const marcado = valorAtual === valorOpcao;
     const idOpcao = `${idPergunta}-${valorOpcao}`;
     return (
       <span className="relative">
@@ -53,7 +64,7 @@ export function SimNao({
           value={valorOpcao}
           checked={marcado}
           disabled={disabled}
-          onChange={() => onMudar?.(valorOpcao)}
+          onChange={() => definirValorAtual(valorOpcao)}
           className="peer absolute size-px overflow-hidden opacity-0"
         />
         <label
@@ -84,6 +95,7 @@ export function SimNao({
     >
       <span
         id={idPergunta}
+        data-estado={estado}
         className={cn(
           "text-corpo leading-snug font-medium",
           estado === "alerta-clinico" ? "text-alerta" : "text-texto",

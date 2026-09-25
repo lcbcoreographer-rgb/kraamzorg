@@ -22,6 +22,7 @@ export function DialogoConteudo({
   tituloOculto,
   descricao,
   rotuloFechar,
+  "aria-describedby": ariaDescribedby,
   ...props
 }: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
   /** Título obrigatório para acessibilidade (o Radix exige um). */
@@ -32,17 +33,24 @@ export function DialogoConteudo({
   /** Rótulo acessível do botão de fechar (aria-label). */
   rotuloFechar: string;
 }) {
+  const idDescricao = React.useId();
+
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="bg-marinho/40 data-[state=open]:animate-in data-[state=open]:fade-in data-[state=closed]:animate-out data-[state=closed]:fade-out fixed inset-0 z-40" />
       <DialogPrimitive.Content
         className={cn(
-          "rounded-t-3 bg-superficie shadow-2 fixed inset-x-0 bottom-0 z-40 max-h-[88dvh] overflow-y-auto p-4 pb-8",
+          "rounded-t-3 bg-superficie shadow-2 fixed inset-x-0 bottom-0 z-40 max-h-[88dvh] overflow-y-auto p-4 pb-[calc(2rem+env(safe-area-inset-bottom))]",
           "data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom",
-          "lg:rounded-3 lg:top-1/2 lg:right-auto lg:bottom-auto lg:left-1/2 lg:max-h-none lg:w-[520px] lg:-translate-x-1/2 lg:-translate-y-1/2",
+          "lg:rounded-3 lg:top-1/2 lg:right-auto lg:bottom-auto lg:left-1/2 lg:max-h-none lg:w-[520px] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:pb-8",
           "lg:data-[state=open]:zoom-in-95 lg:data-[state=closed]:zoom-out-95 lg:data-[state=open]:slide-in-from-bottom-0",
           className,
         )}
+        // Sem descrição, o próprio Radix já não aponta pra nenhum id: uma
+        // <Description className="sr-only" /> vazia era só gambiarra pra
+        // silenciar o aviso do Radix, sem texto nenhum atrás do id
+        // (achado da auditoria da P10 parcial).
+        aria-describedby={descricao ? idDescricao : ariaDescribedby}
         {...props}
       >
         <span
@@ -66,12 +74,10 @@ export function DialogoConteudo({
           </DialogPrimitive.Close>
         </div>
         {descricao ? (
-          <DialogPrimitive.Description className="text-apoio text-texto-2 mt-2">
+          <p id={idDescricao} className="text-apoio text-texto-2 mt-2">
             {descricao}
-          </DialogPrimitive.Description>
-        ) : (
-          <DialogPrimitive.Description className="sr-only" />
-        )}
+          </p>
+        ) : null}
         <div className="mt-4">{children}</div>
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>

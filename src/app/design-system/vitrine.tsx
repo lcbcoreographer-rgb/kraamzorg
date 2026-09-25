@@ -2,9 +2,7 @@
 
 import * as React from "react";
 import {
-  Bot,
   CalendarDays,
-  Hand,
   House,
   Kanban,
   LayoutDashboard,
@@ -18,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { Botao } from "@/components/ui/botao";
+import { BotaoFreio } from "@/components/ui/botao-freio";
 import { CampoTexto } from "@/components/ui/campo-texto";
 import { CampoNumero } from "@/components/ui/campo-numero";
 import { SimNao } from "@/components/ui/sim-nao";
@@ -27,6 +26,7 @@ import { EscolhaMultipla } from "@/components/ui/escolha-multipla";
 import { Cartao } from "@/components/ui/cartao";
 import { Selo } from "@/components/ui/selo";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
+import { AvisoEfemero } from "@/components/ui/aviso-efemero";
 import {
   IndicadorSincronizacao,
   type EstadoSincronizacao,
@@ -146,24 +146,64 @@ const ESTADOS_SINCRONIZACAO: { estado: EstadoSincronizacao; texto: string }[] =
   ];
 
 const DIAS_REGUA: DiaRegua[] = [
-  { numero: 1, rotuloData: "18/09", estado: "feito" },
-  { numero: 2, rotuloData: "19/09", estado: "feito" },
-  { numero: 3, rotuloData: "20/09", estado: "feito" },
-  { numero: 4, rotuloData: "21/09", estado: "hoje" },
-  { numero: 5, rotuloData: "22/09", estado: "pendente" },
-  { numero: 6, rotuloData: "23/09", estado: "futuro" },
-  { numero: 7, rotuloData: "24/09", estado: "futuro" },
-  { numero: 8, rotuloData: "25/09", estado: "futuro" },
-  { numero: 9, rotuloData: "26/09", estado: "alerta" },
-  { numero: 10, rotuloData: "27/09", estado: "sensivel" },
-  { numero: 11, rotuloData: "28/09", estado: "futuro" },
-  { numero: 12, rotuloData: "29/09", estado: "futuro" },
+  { numero: 1, rotuloData: "18/09", estado: "feito", rotuloEstado: "feito" },
+  { numero: 2, rotuloData: "19/09", estado: "feito", rotuloEstado: "feito" },
+  { numero: 3, rotuloData: "20/09", estado: "feito", rotuloEstado: "feito" },
+  { numero: 4, rotuloData: "21/09", estado: "hoje", rotuloEstado: "hoje" },
+  {
+    numero: 5,
+    rotuloData: "22/09",
+    estado: "pendente",
+    rotuloEstado: "pendente",
+  },
+  {
+    numero: 6,
+    rotuloData: "23/09",
+    estado: "futuro",
+    rotuloEstado: "futuro",
+  },
+  {
+    numero: 7,
+    rotuloData: "24/09",
+    estado: "futuro",
+    rotuloEstado: "futuro",
+  },
+  {
+    numero: 8,
+    rotuloData: "25/09",
+    estado: "futuro",
+    rotuloEstado: "futuro",
+  },
+  {
+    numero: 9,
+    rotuloData: "26/09",
+    estado: "alerta",
+    rotuloEstado: "alerta",
+  },
+  {
+    numero: 10,
+    rotuloData: "27/09",
+    estado: "sensivel",
+    rotuloEstado: "sensível",
+  },
+  {
+    numero: 11,
+    rotuloData: "28/09",
+    estado: "futuro",
+    rotuloEstado: "futuro",
+  },
+  {
+    numero: 12,
+    rotuloData: "29/09",
+    estado: "futuro",
+    rotuloEstado: "futuro",
+  },
 ];
 
 const COLUNAS_TABELA: ColunaTabela[] = [
   { chave: "familia", rotulo: "Família", principal: true },
   { chave: "estado", rotulo: "Estado", canto: true },
-  { chave: "ig", rotulo: "IG" },
+  { chave: "ig", rotulo: "IG", numerica: true },
   { chave: "bairro", rotulo: "Bairro" },
   { chave: "valor", rotulo: "Valor", numerica: true },
 ];
@@ -173,7 +213,7 @@ const LINHAS_TABELA: LinhaTabela[] = [
     id: "aurora",
     valores: {
       familia: "Família Teste Aurora",
-      estado: <Selo variante="sucesso">Em atendimento</Selo>,
+      estado: <Selo variante="marinho">Em atendimento</Selo>,
       ig: formatarIdadeGestacional(38, 2),
       bairro: "Moema, São Paulo",
       valor: formatarMoeda(420000),
@@ -204,7 +244,13 @@ const LINHAS_TABELA: LinhaTabela[] = [
 const ITENS_ABAS: ItemAbaInferior[] = [
   { rotulo: "Hoje", href: "#", icone: <House />, ativo: true },
   { rotulo: "Famílias", href: "#", icone: <Users /> },
-  { rotulo: "Alertas", href: "#", icone: <Siren />, contador: 2 },
+  {
+    rotulo: "Alertas",
+    href: "#",
+    icone: <Siren />,
+    contador: 2,
+    rotuloContador: "2 alertas",
+  },
   { rotulo: "Perfil", href: "#", icone: <UserRound /> },
 ];
 
@@ -229,6 +275,7 @@ const GRUPOS_LATERAL: GrupoBarraLateral[] = [
         icone: <Siren />,
         contador: 2,
         contadorAlerta: true,
+        rotuloContador: "2 alertas",
       },
     ],
   },
@@ -260,6 +307,7 @@ export function VitrineDesignSystem() {
     "amamentacao",
   ]);
   const [freioAtivo, definirFreioAtivo] = React.useState(false);
+  const [avisoFreioAberto, definirAvisoFreioAberto] = React.useState(false);
   const [tentativas, definirTentativas] = React.useState(0);
 
   return (
@@ -300,7 +348,7 @@ export function VitrineDesignSystem() {
             <div key={nome} className="flex items-center gap-3">
               <span
                 className="rounded-2 border-linha size-12 shrink-0 border"
-                style={{ background: `var(--color-${nome})` }}
+                style={{ background: `var(--${nome})` }}
               />
               <span className="text-mini text-texto-2 font-mono">{nome}</span>
             </div>
@@ -402,17 +450,14 @@ export function VitrineDesignSystem() {
           <CampoNumero
             rotulo="Temperatura"
             unidade="°C"
-            min={34}
-            max={42}
-            step={0.1}
+            faixa={{ min: 34, max: 42 }}
             defaultValue="36,8"
             descricao="Ontem: 36,6 °C."
           />
           <CampoNumero
             rotulo="Frequência cardíaca"
             unidade="bpm"
-            min={40}
-            max={220}
+            faixa={{ min: 40, max: 220 }}
             defaultValue="78"
             estado="alerta-clinico"
             descricao="Acima da faixa esperada para a puérpera."
@@ -693,31 +738,31 @@ export function VitrineDesignSystem() {
               textoFreioAtivo={`Freio em bloqueio total desde ${formatarDataHora("2026-09-24T12:14:00Z")}. Só contato humano e nominal.`}
               rotuloFreioAtivo="Freio ativo"
               acaoFreio={
-                <Botao
-                  variante="secundario"
-                  tamanho="compacto"
-                  iconeEsquerda={
-                    <Hand className="size-[18px]" aria-hidden="true" />
-                  }
-                  onClick={() => definirFreioAtivo(true)}
+                <BotaoFreio
+                  onClick={() => {
+                    definirFreioAtivo(true);
+                    definirAvisoFreioAberto(true);
+                  }}
                   aria-label="Acionar freio: pausa todas as mensagens automáticas para esta família"
                 >
                   Freio
-                </Botao>
+                </BotaoFreio>
               }
             />
           </div>
-          {freioAtivo ? (
-            <Botao
-              variante="fantasma"
-              className="self-start"
-              onClick={() => definirFreioAtivo(false)}
-            >
-              Desfazer (só para este exemplo; reverter de verdade exige
-              coordenação)
-            </Botao>
-          ) : null}
         </div>
+        {/* Aviso efêmero (P10 item 2, PRD 20.6 decisão 1): some sozinho, com
+            "Desfazer" por alguns segundos. O valor real vem de
+            `freio_desfazer_segundos` (config_sistema); aqui, 10, só como
+            exemplo fixo da vitrine. */}
+        <AvisoEfemero
+          aberto={avisoFreioAberto}
+          aoFechar={() => definirAvisoFreioAberto(false)}
+          texto="Freio acionado."
+          rotuloAcao="Desfazer"
+          aoAcionarAcao={() => definirFreioAtivo(false)}
+          duracaoSegundos={10}
+        />
       </Secao>
 
       <Secao
@@ -727,7 +772,9 @@ export function VitrineDesignSystem() {
       >
         <Dialogo>
           <DialogoGatilho asChild>
-            <Botao variante="secundario">Assinar registro do D4</Botao>
+            <Botao variante="secundario" className="self-start">
+              Assinar registro do D4
+            </Botao>
           </DialogoGatilho>
           <DialogoConteudo
             titulo="Assinar registro do D4"
@@ -757,7 +804,9 @@ export function VitrineDesignSystem() {
       >
         <PainelLateral>
           <PainelLateralGatilho asChild>
-            <Botao variante="secundario">Ver contexto da família</Botao>
+            <Botao variante="secundario" className="self-start">
+              Ver contexto da família
+            </Botao>
           </PainelLateralGatilho>
           <PainelLateralConteudo
             titulo="Família Teste Aurora"
@@ -831,9 +880,10 @@ export function VitrineDesignSystem() {
             nomeMarca="Kraamzorg OS"
             simboloSrc="/brand/simbolo-provisorio.png"
             grupos={GRUPOS_LATERAL}
+            rotulo="Exemplo de navegação"
             rodape={
               <div className="flex items-center gap-2">
-                <Bot
+                <UserRound
                   className="text-texto-inverso-2 size-4"
                   aria-hidden="true"
                 />
@@ -849,8 +899,10 @@ export function VitrineDesignSystem() {
           />
         </div>
         <p className="text-apoio text-texto-2 flex items-center gap-2">
-          <MapPin className="size-4" aria-hidden="true" /> Visível só a partir
-          de 1024 px (por isso pode não aparecer nesta captura de celular).
+          <MapPin className="size-4" aria-hidden="true" /> No app de verdade, a
+          casca mostra a barra lateral só a partir do computador
+          (`visivelEm=&quot;computador&quot;`); aqui ela fica sempre visível,
+          para caber na captura do celular.
         </p>
       </Secao>
     </main>

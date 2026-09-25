@@ -4,10 +4,16 @@
  *
  * Formato brasileiro (CLAUDE.md, "formatação brasileira"): "R$ 4.200" sem
  * casas quando os centavos são zero, "R$ 1.433,33" quando não são.
+ *
+ * Entrada inválida (não finita) lança erro em vez de devolver "R$ 0": um
+ * valor financeiro corrompido não pode virar silenciosamente um zero visível
+ * (achado da auditoria da P10 parcial).
  */
 export function formatarMoeda(centavos: number): string {
   if (!Number.isFinite(centavos)) {
-    return "R$ 0";
+    throw new RangeError(
+      `formatarMoeda: valor em centavos não finito (${String(centavos)})`,
+    );
   }
 
   const inteiro = Math.round(centavos);

@@ -21,6 +21,10 @@ export default defineConfig({
     url: "http://127.0.0.1:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // /design-system só existe em desenvolvimento e homologação (P10 item
+    // 4): sem isto, `vitrineLiberada()` recusa por omissão e os testes de
+    // design-system.spec.ts e overflow.spec.ts quebram.
+    env: { NEXT_PUBLIC_APP_ENV: "desenvolvimento" },
   },
   use: {
     baseURL: "http://127.0.0.1:3000",

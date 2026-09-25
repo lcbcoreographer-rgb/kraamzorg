@@ -23,6 +23,7 @@ export function PainelLateralConteudo({
   tituloOculto,
   descricao,
   rotuloFechar,
+  "aria-describedby": ariaDescribedby,
   ...props
 }: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
   titulo: React.ReactNode;
@@ -30,6 +31,8 @@ export function PainelLateralConteudo({
   descricao?: React.ReactNode;
   rotuloFechar: string;
 }) {
+  const idDescricao = React.useId();
+
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="bg-marinho/40 data-[state=open]:animate-in data-[state=open]:fade-in data-[state=closed]:animate-out data-[state=closed]:fade-out fixed inset-0 z-40" />
@@ -39,6 +42,9 @@ export function PainelLateralConteudo({
           "data-[state=open]:animate-in data-[state=open]:slide-in-from-right data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right",
           className,
         )}
+        // Mesmo motivo do Dialogo: sem descrição, nada de <Description>
+        // vazia só pra silenciar o aviso do Radix.
+        aria-describedby={descricao ? idDescricao : ariaDescribedby}
         {...props}
       >
         <div className="flex items-start justify-between gap-3">
@@ -58,12 +64,10 @@ export function PainelLateralConteudo({
           </DialogPrimitive.Close>
         </div>
         {descricao ? (
-          <DialogPrimitive.Description className="text-apoio text-texto-2">
+          <p id={idDescricao} className="text-apoio text-texto-2">
             {descricao}
-          </DialogPrimitive.Description>
-        ) : (
-          <DialogPrimitive.Description className="sr-only" />
-        )}
+          </p>
+        ) : null}
         <div className="flex-1">{children}</div>
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>

@@ -11,6 +11,10 @@ import { cn } from "@/lib/utils";
  * Este componente é estático (sem papel): os itens vêm sempre por
  * propriedade. A navegação por papel (quais abas cada papel vê) é da casca
  * do app, depois do P07.
+ *
+ * A visibilidade por tamanho de tela (`lg:hidden`) não mora mais aqui: a
+ * casca decide isso (`visivelEm`), pelo mesmo motivo de `BarraLateral`
+ * (achado da auditoria da P10 parcial: caixa vazia em 1280 na vitrine).
  */
 export interface ItemAbaInferior {
   rotulo: string;
@@ -19,25 +23,31 @@ export interface ItemAbaInferior {
   ativo?: boolean;
   /** Contador em destaque (alerta clínico, transferência vencendo). */
   contador?: number;
+  /** Rótulo completo do contador para o leitor de tela (ex: "2 alertas"). Sem isto, "Alertas" e "2" viram um nome acessível só "Alertas2". */
+  rotuloContador?: string;
 }
 
 export interface AbasInferioresProps {
   itens: ItemAbaInferior[];
   /** Rótulo acessível da navegação (ex: "Navegação principal"). */
   rotulo: string;
+  /** Quando mostrar as abas: "sempre" (padrão) ou só até o tablet. */
+  visivelEm?: "sempre" | "celular";
   className?: string;
 }
 
 export function AbasInferiores({
   itens,
   rotulo,
+  visivelEm = "sempre",
   className,
 }: AbasInferioresProps) {
   return (
     <nav
       aria-label={rotulo}
       className={cn(
-        "border-linha bg-superficie fixed inset-x-0 bottom-0 z-20 grid auto-cols-fr grid-flow-col border-t px-2 py-1 lg:hidden",
+        "border-linha bg-superficie fixed inset-x-0 bottom-0 z-20 grid auto-cols-fr grid-flow-col border-t px-2 py-1",
+        visivelEm === "celular" && "lg:hidden",
         className,
       )}
       style={{ paddingBottom: "calc(4px + env(safe-area-inset-bottom))" }}
@@ -61,9 +71,15 @@ export function AbasInferiores({
           <span className="[&>svg]:size-6">{item.icone}</span>
           <span>{item.rotulo}</span>
           {item.contador ? (
-            <span className="rounded-pilula bg-alerta text-texto-inverso absolute top-1 left-[calc(50%+6px)] flex h-5 min-w-5 items-center justify-center px-1.5 font-mono text-[12px] leading-5">
+            <span
+              aria-hidden="true"
+              className="rounded-pilula bg-alerta text-texto-inverso text-mini absolute top-1 left-[calc(50%+6px)] flex h-5 min-w-5 items-center justify-center px-1.5 font-mono leading-5"
+            >
               {item.contador}
             </span>
+          ) : null}
+          {item.contador && item.rotuloContador ? (
+            <span className="sr-only">, {item.rotuloContador}</span>
           ) : null}
         </Link>
       ))}

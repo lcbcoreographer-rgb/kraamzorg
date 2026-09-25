@@ -23,8 +23,8 @@ describe("formatarData", () => {
     expect(formatarData(new Date("2026-09-24T12:00:00Z"))).toBe("24/09/2026");
   });
 
-  it("devolve aviso para data inválida em vez de quebrar", () => {
-    expect(formatarData("não é uma data")).toBe("Data inválida");
+  it("devolve null para data inválida, em vez de fixar um texto de interface", () => {
+    expect(formatarData("não é uma data")).toBeNull();
   });
 });
 
@@ -37,7 +37,7 @@ describe("formatarDataHora", () => {
     expect(formatarDataHora("2026-01-05T03:05:00Z")).toBe("05/01/2026, 00:05");
   });
 
-  it("devolve aviso para data inválida", () => {
-    expect(formatarDataHora("xyz")).toBe("Data inválida");
+  it("devolve null para data inválida", () => {
+    expect(formatarDataHora("xyz")).toBeNull();
   });
 });

@@ -4,8 +4,9 @@
  * subconjunto "latin": cobre todo acento do português (U+00C0 a U+00FF), então
  * o subconjunto "latin-ext" não entra aqui.
  *
- * As variáveis geradas (--font-jost, --font-inter, --font-mono) são consumidas
- * pelo @theme de globals.css. Nenhuma outra tela importa fonte diretamente.
+ * As variáveis geradas (--font-jost, --font-inter, --font-plex-mono) são
+ * consumidas pelo @theme de globals.css. Nenhuma outra tela importa fonte
+ * diretamente.
  */
 import localFont from "next/font/local";
 

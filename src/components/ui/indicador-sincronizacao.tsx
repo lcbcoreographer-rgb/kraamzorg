@@ -51,23 +51,27 @@ export function IndicadorSincronizacao({
 
   return (
     <div
-      role="status"
       className={cn(
-        "rounded-pilula text-mini inline-flex min-h-8 items-center gap-2 px-3 font-semibold whitespace-nowrap",
+        "rounded-pilula text-mini inline-flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 px-3 py-1 font-semibold",
         classePorEstado[estado],
         className,
       )}
     >
-      <Icone
-        className={cn("size-[18px]", estado === "enviando" && "animate-pulse")}
-        aria-hidden="true"
-      />
-      <span>{texto}</span>
+      <span role="status" className="inline-flex min-w-0 items-center gap-2">
+        <Icone
+          className={cn(
+            "size-[18px] shrink-0",
+            estado === "enviando" && "animate-pulse",
+          )}
+          aria-hidden="true"
+        />
+        <span className="min-w-0">{texto}</span>
+      </span>
       {estado === "erro" && aoTentarNovamente ? (
         <button
           type="button"
           onClick={aoTentarNovamente}
-          className="rounded-pilula focus-visible:outline-foco ml-1 underline underline-offset-2 hover:no-underline focus-visible:outline focus-visible:outline-2"
+          className="rounded-pilula focus-visible:outline-foco min-h-toque -my-1 ml-1 px-3 underline underline-offset-2 hover:no-underline focus-visible:outline focus-visible:outline-2"
         >
           {rotuloTentarNovamente}
         </button>
