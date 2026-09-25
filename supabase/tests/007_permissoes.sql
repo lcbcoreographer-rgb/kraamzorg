@@ -551,8 +551,12 @@ select throws_ok($s$ insert into parametro (chave, valor) values ('teste_p07', '
   'coordenação não grava parametro');
 select lives_ok($s$ insert into termo_alerta (termo) values ('outro termo teste p07') $s$,
   'coordenação inclui termo de alerta');
+-- chave = 'teste_p07_medico': sem isso, o update atingiria também os
+-- textos de destinatario 'medico' que o seed.sql (P08) semeia (capítulo
+-- 23.5 e os textos evo_* da evolução).
 select is(
-  testes.afetadas($s$ update mensagem_modelo set texto = 'Texto sintético alterado.' where destinatario = 'medico' $s$), 1,
+  testes.afetadas($s$ update mensagem_modelo set texto = 'Texto sintético alterado.'
+                       where destinatario = 'medico' and chave = 'teste_p07_medico' $s$), 1,
   'coordenação altera texto para médico');
 select is(
   testes.afetadas($s$ update mensagem_modelo set texto = 'Texto sintético alterado.' where destinatario = 'familia' $s$), 0,

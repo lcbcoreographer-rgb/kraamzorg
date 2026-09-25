@@ -359,17 +359,26 @@ select ok(
 
 insert into pessoa_dados_contrato (pessoa_id, cpf) values (current_setting('testes.pessoa')::uuid, '111.444.777-35');
 
+-- "order by criado_em desc limit 1": o P08 semeia pessoa_dados_contrato
+-- também (famílias com contrato), e cada insert daquele seed já passou pelo
+-- gatilho privado.auditar; sem essa ordem, a subconsulta escalar pegaria
+-- mais de uma linha de log_auditoria pela mesma entidade/ação e falharia com
+-- "more than one row returned". Filtra pela linha mais recente, que é
+-- sempre a que este insert acabou de gravar.
 select ok(
   (select valor_depois::text not like '%111.444.777-35%' and valor_depois::text not like '%11144477735%'
-     from log_auditoria where entidade = 'pessoa_dados_contrato' and acao = 'insert'),
+     from log_auditoria where entidade = 'pessoa_dados_contrato' and acao = 'insert'
+     order by criado_em desc limit 1),
   'pessoa_dados_contrato: o CPF não aparece no log, nem formatado nem corrido');
 select ok(
   (select valor_depois -> '_hmac' ->> 'cpf' not in (encode(extensions.digest('111.444.777-35', 'sha256'), 'hex'),
                                                     encode(extensions.digest('11144477735', 'sha256'), 'hex'))
-     from log_auditoria where entidade = 'pessoa_dados_contrato' and acao = 'insert'),
+     from log_auditoria where entidade = 'pessoa_dados_contrato' and acao = 'insert'
+     order by criado_em desc limit 1),
   'o HMAC do CPF não bate com sha256(cpf), formatado ou corrido');
 select is(
-  (select valor_depois -> '_hmac' ->> 'cpf' from log_auditoria where entidade = 'pessoa_dados_contrato' and acao = 'insert'),
+  (select valor_depois -> '_hmac' ->> 'cpf' from log_auditoria where entidade = 'pessoa_dados_contrato' and acao = 'insert'
+     order by criado_em desc limit 1),
   (select encode(extensions.hmac('111.444.777-35', decrypted_secret, 'sha256'), 'hex')
      from vault.decrypted_secrets where name = 'auditoria_hmac'),
   'o HMAC do CPF é HMAC-SHA256 com a chave auditoria_hmac do Vault');
@@ -408,14 +417,20 @@ declare
 begin
   insert into conversa (wa_jid, telefone_e164, nome_whatsapp) values ('5511900000055@s.whatsapp.net', '+5511900000055', 'Contato Sintético')
     returning id into v_conversa;
+  perform set_config('testes.conversa_p05', v_conversa::text, true);
   insert into mensagem (conversa_id, direcao, enviado_por, conteudo, wa_message_id)
     values (v_conversa, 'entrada', 'cliente', 'Conteúdo sintético da mensagem', 'wamid-p05-1');
 end $$;
+-- entidade_id = a própria conversa criada acima (id, capturado por
+-- set_config): sem isso, o filtro por wa_jid ou nome_whatsapp mascarados
+-- pegaria também as conversas sintéticas do seed.sql (P08), que têm as
+-- mesmas colunas ocultadas no log.
 select ok(
   (select valor_depois ->> 'conteudo' = '[oculto]' and valor_depois::text not like '%Conteúdo sintético%'
      from log_auditoria where entidade = 'mensagem' and acao = 'insert' and valor_depois ->> 'wa_message_id' = 'wamid-p05-1')
   and (select valor_depois::text not like '%5511900000055%'
-     from log_auditoria where entidade = 'conversa' and acao = 'insert' and valor_depois ->> 'nome_whatsapp' = '[oculto]'),
+     from log_auditoria where entidade = 'conversa' and acao = 'insert'
+       and entidade_id = current_setting('testes.conversa_p05')),
   'mensagem.conteudo e o telefone da conversa (telefone_e164, wa_jid) entram ocultos no log (PRD 13)');
 
 

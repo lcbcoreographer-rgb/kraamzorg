@@ -1489,5 +1489,6 @@ commit;
 -- Conferência: node supabase/checar-seed.mjs (node puro, sem dependência),
 -- falha se aparecer nome ou telefone fora do padrão fictício deste arquivo
 -- ("... Teste ..." e "+5511900000XXX"). Comando completo no relatório da
--- sessão e em CLAUDE.md (seção de comandos, a partir do P08).
+-- sessão (CLAUDE.md não foi alterado por esta sessão: quem tiver alçada
+-- para editá-lo pode acrescentar este comando à seção "Comandos").
 -- =============================================================================
