@@ -12,7 +12,15 @@
 <script src="assets/icones.js"></script>
 <style>
   /* Grade do radar: cabeçalho de semanas + uma faixa por família. Mesma ideia de grid
-     de semana.js, com uma coluna de rótulo maior porque o nome da família é mais longo. */
+     de semana.js, com uma coluna de rótulo maior porque o nome da família é mais longo.
+     Só a partir de 720px: abaixo disso a grade rola de lado (regra do DESIGN contra
+     rolagem horizontal da página), então vira lista (.radar-lista-mobile). */
+  .radar-grade-wrap { display: none; }
+  .radar-lista-mobile { display: flex; flex-direction: column; gap: var(--e-4); }
+  @media (min-width: 720px) {
+    .radar-grade-wrap { display: block; }
+    .radar-lista-mobile { display: none; }
+  }
   .radar-grade { display: grid; grid-template-columns: minmax(160px, 1fr) repeat(9, minmax(64px, 1fr)); gap: var(--e-1); align-items: center; }
   .radar-cab { font-family: var(--fonte-dado); font-size: var(--tam-mini); color: var(--texto-2); text-align: center; padding-bottom: var(--e-2); border-bottom: var(--borda-fina); }
   .radar-cab--hoje { color: var(--texto); font-weight: 600; }
@@ -26,10 +34,18 @@
     background: repeating-linear-gradient(135deg, var(--marinho-50) 0 2px, var(--superficie) 2px 5px);
     font-size: var(--tam-mini); white-space: nowrap; overflow: hidden;
   }
+  a.radar-faixa { text-decoration: none; color: inherit; }
   .radar-faixa--sem-titular { border-color: var(--aviso-borda); background: repeating-linear-gradient(135deg, var(--aviso-borda) 0 2px, var(--aviso-lavado) 2px 5px); }
+  /* Marco de hoje (24/09) e da DPP: único acento dourado desta tela, dentro de cada faixa. */
+  .radar-hoje-linha { position: absolute; top: -6px; bottom: -6px; left: 4.76%; width: 2px; background: var(--dourado); z-index: 2; }
+  /* Perto do rodapé da faixa (não no centro), para não cair em cima do texto. */
+  .radar-marca-dpp { position: absolute; bottom: 2px; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%; background: var(--dourado); border: 1.5px solid var(--marinho); z-index: 2; }
   .radar-secao { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); border-top: var(--borda-fina); margin-top: var(--e-8); }
   .radar-secao__titulo { font-size: var(--tam-mini); font-weight: 600; color: var(--texto-2); }
   .radar-ocupacao { display: flex; flex-direction: column; gap: var(--e-2); }
+  /* Lista mobile: uma família por linha, trilha fina de 9 semanas em 100% de largura. */
+  .radar-linha { display: flex; flex-direction: column; gap: var(--e-2); }
+  .radar-linha__topo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); }
 </style>
 </head>
 <body>
@@ -37,78 +53,168 @@
 <div class="app">
 
   <nav class="lateral" aria-label="Navegação principal">
-    <div class="lateral__marca">
-      <img src="assets/simbolo-provisorio.png" alt="" width="36" height="31">
-      <span class="lateral__nome">Kraamzorg OS</span>
-    </div>
-    <div class="lateral__grupo">
-      <span class="lateral__titulo-grupo">Operação</span>
-      <a class="lateral__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">2</span></a>
-      <a class="lateral__item" href="coordenacao-radar.html" aria-current="page"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
-      <a class="lateral__item" href="coordenacao-equipe.html"><svg class="icone"><use href="#i-user-check"/></svg>Equipe</a>
-    </div>
-    <div class="lateral__pe">
-      <div class="forte">Beatriz Falcão</div>
-      <div class="mini" style="color: var(--texto-inverso-2)">Coordenação clínica · perfil fictício</div>
+    <div class="lateral__corpo">
+      <div class="lateral__marca">
+        <img src="assets/simbolo-provisorio.png" alt="" width="36" height="31">
+        <span class="lateral__nome">Kraamzorg OS</span>
+      </div>
+      <div class="lateral__grupo">
+        <span class="lateral__titulo-grupo">Operação</span>
+        <a class="lateral__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">3</span></a>
+        <a class="lateral__item" href="coordenacao-radar.html" aria-current="page"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+        <a class="lateral__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
+        <a class="lateral__item" href="coordenacao-equipe.html"><svg class="icone"><use href="#i-user-check"/></svg>Equipe</a>
+      </div>
+      <div class="lateral__grupo">
+        <span class="lateral__titulo-grupo">Experiência</span>
+        <a class="lateral__item" href="#"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+        <a class="lateral__item" href="coordenacao-entrevista.html"><svg class="icone"><use href="#i-clipboard-list"/></svg>Entrevistas</a>
+      </div>
+      <div class="lateral__grupo">
+        <span class="lateral__titulo-grupo">Sistema</span>
+        <a class="lateral__item" href="#"><svg class="icone"><use href="#i-settings"/></svg>Configurações</a>
+      </div>
+      <div class="lateral__pe">
+        <div class="forte">Beatriz Falcão</div>
+        <div class="mini" style="color: var(--texto-inverso-2)">Coordenação clínica</div>
+      </div>
     </div>
   </nav>
 
   <main class="app__principal" id="conteudo">
     <header class="cab-tela">
-      <span class="cab-tela__titulo t-display">Radar de nascimentos</span>
-      <span class="sinc empurra" data-estado="sincronizado" role="status"><svg class="icone"><use href="#i-cloud-check"/></svg>Sincronizado 08:02</span>
+      <h1 class="cab-tela__titulo t-display">Radar de nascimentos</h1>
+      <span class="sinc empurra" data-estado="sincronizado" role="status"><svg class="icone"><use href="#i-cloud-check"/></svg>Sincronizado 19:52</span>
     </header>
 
     <div class="pilha pilha--8" style="padding-top: var(--e-6)">
 
       <section>
         <p class="apoio" style="margin-bottom: var(--e-4)">21/09/2026 a 16/11/2026. A faixa mostra a janela da DPP, de 21 dias antes a 14 dias depois. Hachurada porque é provável, ainda não é fato.</p>
-        <div class="radar-grade">
-          <span></span>
-          <span class="radar-cab radar-cab--hoje">21/09</span><span class="radar-cab">28/09</span><span class="radar-cab">05/10</span>
-          <span class="radar-cab">12/10</span><span class="radar-cab">19/10</span><span class="radar-cab">26/10</span>
-          <span class="radar-cab">02/11</span><span class="radar-cab">09/11</span><span class="radar-cab">16/11</span>
 
-          <div class="radar-familia">
-            <div class="forte">Família Teste Brisa</div>
-            <span class="mini">DPP 02/10/2026</span>
-          </div>
-          <div class="radar-trilha">
-            <div class="radar-faixa" style="grid-column: 1 / 5; left: 0; right: 60%">
-              <svg class="icone icone--16"><use href="#i-user-check"/></svg>Priscila Andrade, titular
+        <!-- ---------- 720px ou mais: grade ---------- -->
+        <div class="radar-grade-wrap">
+          <div class="radar-grade">
+            <span></span>
+            <span class="radar-cab radar-cab--hoje">21/09</span><span class="radar-cab">28/09</span><span class="radar-cab">05/10</span>
+            <span class="radar-cab">12/10</span><span class="radar-cab">19/10</span><span class="radar-cab">26/10</span>
+            <span class="radar-cab">02/11</span><span class="radar-cab">09/11</span><span class="radar-cab">16/11</span>
+
+            <div class="radar-familia">
+              <div class="forte">Família Teste Brisa</div>
+              <span class="mini">DPP 02/10/2026</span>
             </div>
-          </div>
-
-          <div class="radar-familia">
-            <div class="forte">Família Teste Garoa</div>
-            <span class="mini">DPP 22/10/2026</span>
-          </div>
-          <div class="radar-trilha">
-            <div class="radar-faixa radar-faixa--sem-titular" style="left: 11.1%; right: 22.2%">
-              <span class="selo selo--aviso" style="background:transparent; padding:0"><svg class="icone icone--16"><use href="#i-triangle-alert"/></svg>Sem titular</span>
+            <div class="radar-trilha">
+              <span class="radar-hoje-linha" aria-hidden="true"></span>
+              <div class="radar-faixa" style="grid-column: 1 / 5; left: 0; right: 60%">
+                <svg class="icone icone--16"><use href="#i-user-check"/></svg>Priscila Andrade, titular
+                <span class="selo selo--aviso" style="background: var(--superficie)"><svg class="icone icone--16"><use href="#i-triangle-alert"/></svg>Sobreposição</span>
+              </div>
+              <span class="radar-marca-dpp" style="left: 17.46%" aria-hidden="true"></span>
             </div>
-          </div>
 
-          <div class="radar-familia">
-            <div class="forte">Família Teste Jasmim</div>
-            <span class="mini">DPP 03/11/2026</span>
-          </div>
-          <div class="radar-trilha">
-            <div class="radar-faixa" style="left: 33.3%; right: 0">
-              <svg class="icone icone--16"><use href="#i-user-check"/></svg>Priscila Andrade, titular
+            <div class="radar-familia">
+              <div class="forte">Família Teste Garoa</div>
+              <span class="mini">DPP 22/10/2026</span>
             </div>
-          </div>
+            <div class="radar-trilha">
+              <span class="radar-hoje-linha" aria-hidden="true"></span>
+              <a class="radar-faixa radar-faixa--sem-titular" href="coordenacao-designar.html" style="left: 11.1%; right: 22.2%">
+                <span class="selo selo--aviso" style="background: var(--superficie)"><svg class="icone icone--16"><use href="#i-triangle-alert"/></svg>Sem titular</span>
+              </a>
+              <span class="radar-marca-dpp" style="left: 49.2%" aria-hidden="true"></span>
+            </div>
 
-          <div class="radar-familia">
-            <div class="forte">Família Teste Horizonte</div>
-            <span class="mini">DPP 12/11/2026</span>
-          </div>
-          <div class="radar-trilha">
-            <div class="radar-faixa radar-faixa--sem-titular" style="left: 44.4%; right: 0">
-              <span class="selo selo--aviso" style="background:transparent; padding:0"><svg class="icone icone--16"><use href="#i-triangle-alert"/></svg>Sem titular</span>
+            <div class="radar-familia">
+              <div class="forte">Família Teste Jasmim</div>
+              <span class="mini">DPP 03/11/2026</span>
+            </div>
+            <div class="radar-trilha">
+              <span class="radar-hoje-linha" aria-hidden="true"></span>
+              <div class="radar-faixa" style="left: 33.3%; right: 0">
+                <svg class="icone icone--16"><use href="#i-user-check"/></svg>Priscila Andrade, titular
+                <span class="selo selo--aviso" style="background: var(--superficie)"><svg class="icone icone--16"><use href="#i-triangle-alert"/></svg>Sobreposição</span>
+              </div>
+              <span class="radar-marca-dpp" style="left: 68.25%" aria-hidden="true"></span>
+            </div>
+
+            <div class="radar-familia">
+              <div class="forte">Família Teste Horizonte</div>
+              <span class="mini">DPP 12/11/2026</span>
+            </div>
+            <div class="radar-trilha">
+              <span class="radar-hoje-linha" aria-hidden="true"></span>
+              <div class="radar-faixa" style="left: 44.4%; right: 0">
+                <span class="selo selo--destaque">Oferta pendente: Rosana Vieira, até 26/09</span>
+              </div>
+              <span class="radar-marca-dpp" style="left: 82.5%" aria-hidden="true"></span>
             </div>
           </div>
         </div>
+
+        <!-- ---------- Abaixo de 720px: lista, uma família por linha ---------- -->
+        <ul class="radar-lista-mobile">
+          <li class="cartao cartao--plano radar-linha">
+            <div class="radar-linha__topo">
+              <span class="forte">Família Teste Brisa</span>
+              <span class="selo"><svg class="icone icone--16"><use href="#i-user-check"/></svg>Priscila Andrade, titular</span>
+            </div>
+            <div class="linha-flex">
+              <span class="mini">DPP 02/10/2026</span>
+              <span class="mini">Janela 11/09 a 16/10</span>
+              <span class="selo selo--aviso"><svg class="icone icone--16"><use href="#i-triangle-alert"/></svg>Sobreposição</span>
+            </div>
+            <div class="regua regua--fina" style="--dias: 9" aria-hidden="true">
+              <span class="regua__dia" data-estado="hoje"></span><span class="regua__dia" data-estado="feito"></span><span class="regua__dia" data-estado="feito"></span><span class="regua__dia" data-estado="feito"></span>
+              <span class="regua__dia"></span><span class="regua__dia"></span><span class="regua__dia"></span><span class="regua__dia"></span><span class="regua__dia"></span>
+            </div>
+          </li>
+          <li>
+            <a class="cartao cartao--plano cartao--tocavel radar-linha" href="coordenacao-designar.html" style="text-decoration: none; color: inherit; display: flex">
+              <div class="radar-linha__topo">
+                <span class="forte">Família Teste Garoa</span>
+                <span class="selo selo--aviso"><svg class="icone icone--16"><use href="#i-triangle-alert"/></svg>Sem titular</span>
+              </div>
+              <div class="linha-flex">
+                <span class="mini">DPP 22/10/2026</span>
+                <span class="mini">Janela 01/10 a 05/11</span>
+              </div>
+              <div class="regua regua--fina" style="--dias: 9" aria-hidden="true">
+                <span class="regua__dia" data-estado="hoje"></span><span class="regua__dia"></span><span class="regua__dia" data-estado="pendente"></span><span class="regua__dia" data-estado="pendente"></span>
+                <span class="regua__dia" data-estado="pendente"></span><span class="regua__dia" data-estado="pendente"></span><span class="regua__dia" data-estado="pendente"></span><span class="regua__dia" data-estado="pendente"></span><span class="regua__dia"></span>
+              </div>
+            </a>
+          </li>
+          <li class="cartao cartao--plano radar-linha">
+            <div class="radar-linha__topo">
+              <span class="forte">Família Teste Jasmim</span>
+              <span class="selo"><svg class="icone icone--16"><use href="#i-user-check"/></svg>Priscila Andrade, titular</span>
+            </div>
+            <div class="linha-flex">
+              <span class="mini">DPP 03/11/2026</span>
+              <span class="mini">Janela 13/10 a 17/11</span>
+              <span class="selo selo--aviso"><svg class="icone icone--16"><use href="#i-triangle-alert"/></svg>Sobreposição</span>
+            </div>
+            <div class="regua regua--fina" style="--dias: 9" aria-hidden="true">
+              <span class="regua__dia" data-estado="hoje"></span><span class="regua__dia"></span><span class="regua__dia"></span><span class="regua__dia"></span>
+              <span class="regua__dia" data-estado="feito"></span><span class="regua__dia" data-estado="feito"></span><span class="regua__dia" data-estado="feito"></span><span class="regua__dia" data-estado="feito"></span><span class="regua__dia" data-estado="feito"></span>
+            </div>
+          </li>
+          <li class="cartao cartao--plano radar-linha">
+            <div class="radar-linha__topo">
+              <span class="forte">Família Teste Horizonte</span>
+              <span class="selo selo--destaque">Oferta pendente: Rosana Vieira, até 26/09</span>
+            </div>
+            <div class="linha-flex">
+              <span class="mini">DPP 12/11/2026</span>
+              <span class="mini">Janela 22/10 a 26/11</span>
+            </div>
+            <div class="regua regua--fina" style="--dias: 9" aria-hidden="true">
+              <span class="regua__dia" data-estado="hoje"></span><span class="regua__dia"></span><span class="regua__dia"></span><span class="regua__dia"></span>
+              <span class="regua__dia" data-estado="pendente"></span><span class="regua__dia" data-estado="pendente"></span><span class="regua__dia" data-estado="pendente"></span><span class="regua__dia" data-estado="pendente"></span><span class="regua__dia" data-estado="pendente"></span>
+            </div>
+          </li>
+        </ul>
       </section>
 
       <section>
@@ -117,7 +223,7 @@
           <div class="radar-ocupacao cartao cartao--plano">
             <div class="linha-flex">
               <span class="forte">São Paulo</span>
-              <span class="dado empurra">4 de 5</span>
+              <span class="empurra" style="display: flex; align-items: baseline; gap: 4px"><span class="dado">4 de 5</span><span class="apoio">famílias</span></span>
             </div>
             <div class="blocos">
               <div class="blocos__trilha" style="--n: 5">
@@ -128,7 +234,7 @@
           <div class="radar-ocupacao cartao cartao--plano">
             <div class="linha-flex">
               <span class="forte">Londrina</span>
-              <span class="dado empurra">1 de 3</span>
+              <span class="empurra" style="display: flex; align-items: baseline; gap: 4px"><span class="dado">1 de 3</span><span class="apoio">famílias</span></span>
             </div>
             <div class="blocos">
               <div class="blocos__trilha" style="--n: 3">
@@ -145,8 +251,8 @@
           <p class="radar-secao__titulo">Nascimento informado, com designação urgente</p>
           <div class="fila-item" data-prioridade="maxima">
             <div>
-              <div class="fila-item__motivo">Família Teste Aurora: nascimento informado</div>
-              <div class="fila-item__meta">A janela hachurada virou fato. Precisa de designação agora.</div>
+              <div class="fila-item__motivo">Família Teste Garoa: nascimento informado</div>
+              <div class="fila-item__meta">A janela hachurada virou fato, com a data do nascimento. Precisa de designação agora.</div>
             </div>
             <a class="botao botao--alerta botao--compacto" href="coordenacao-designar.html">Designar agora</a>
           </div>
@@ -157,7 +263,7 @@
           <div class="radar-ocupacao cartao cartao--plano" style="max-width: 320px">
             <div class="linha-flex">
               <span class="forte">São Paulo</span>
-              <span class="dado empurra">5 de 5</span>
+              <span class="empurra" style="display: flex; align-items: baseline; gap: 4px"><span class="dado">5 de 5</span><span class="apoio">famílias</span></span>
             </div>
             <div class="blocos">
               <div class="blocos__trilha" style="--n: 5">
@@ -181,7 +287,7 @@
   </main>
 
   <nav class="abas-inf" aria-label="Navegação principal">
-    <a class="abas-inf__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">2</span></a>
+    <a class="abas-inf__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">3</span></a>
     <a class="abas-inf__item" href="coordenacao-radar.html" aria-current="page"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
     <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
     <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>

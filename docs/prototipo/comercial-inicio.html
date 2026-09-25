@@ -22,7 +22,8 @@
   .c1-secao__cab { display: flex; align-items: baseline; gap: var(--e-3); }
   .c1-item { display: flex; flex-direction: column; align-items: stretch; gap: var(--e-3); }
   .c1-item__topo { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--e-1) var(--e-3); align-items: start; }
-  .c1-item__familia { font-weight: 600; text-decoration: none; }
+  /* Correção 13: o link do nome da família precisa dos 44 px mínimos de alvo de toque. */
+  .c1-item__familia { display: inline-flex; align-items: center; min-height: var(--toque); font-weight: 600; text-decoration: none; }
   .c1-item__familia:hover { text-decoration: underline; }
   .c1-item__dados { display: flex; flex-wrap: wrap; gap: var(--e-1) var(--e-3); font-size: var(--tam-apoio); color: var(--texto-2); }
   .c1-acoes { display: flex; flex-wrap: wrap; gap: var(--e-2); }
@@ -48,6 +49,8 @@
   .c-estados__grade { display: grid; gap: var(--e-6); }
   @media (min-width: 720px) { .c-estados__grade { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .c-estado__titulo { font-size: var(--tam-apoio); font-weight: 600; color: var(--texto-2); margin-bottom: var(--e-2); }
+  /* Correção 31: o contador do Início é do relato de saúde; mesma cor de alerta na lateral e nas abas. */
+  .lateral__contador--alerta { color: var(--texto-inverso); background: var(--alerta); }
 </style>
 </head>
 <body>
@@ -64,15 +67,13 @@
       <a class="lateral__item" href="comercial-inicio.html" aria-current="page"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">1</span></a>
       <a class="lateral__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
       <a class="lateral__item" href="comercial-conversas.html"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
-      <a class="lateral__item" href="comercial-ficha.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+      <a class="lateral__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
     </div>
-    <div class="lateral__grupo">
-      <span class="lateral__titulo-grupo">Agente</span>
-      <a class="lateral__item" href="comercial-agente-regras.html"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
-    </div>
+    <!-- Correção 30: "Agente" não é grupo do PRD 20.4; Regras da Isadora entra em Sistema,
+         e o Kit de componentes (nota de construção) sai da navegação do app. -->
     <div class="lateral__grupo">
       <span class="lateral__titulo-grupo">Sistema</span>
-      <a class="lateral__item" href="_kit.html"><svg class="icone"><use href="#i-layout-dashboard"/></svg>Kit de componentes</a>
+      <a class="lateral__item" href="comercial-agente-regras.html"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
       <a class="lateral__item" href="entrar.html"><svg class="icone"><use href="#i-log-out"/></svg>Sair</a>
     </div>
     <div class="lateral__pe">
@@ -86,7 +87,7 @@
       <h1 class="cab-tela__titulo t-display">Início</h1>
       <span class="sinc empurra" data-estado="sincronizado" role="status"><svg class="icone"><use href="#i-cloud-check"/></svg>Atualizado 15:24</span>
     </header>
-    <p class="c1-intro apoio">Quinta, 24/09. Três transferências abertas e duas tarefas com prazo hoje.</p>
+    <p class="c1-intro apoio">Quinta, 24/09. Quatro transferências abertas e duas tarefas com prazo hoje.</p>
 
     <div class="duas-colunas" style="padding-top: var(--e-6)">
 
@@ -102,13 +103,13 @@
           <article class="fila-item c1-item" data-prioridade="maxima" aria-labelledby="f-garoa">
             <div class="c1-item__topo">
               <h3 class="fila-item__motivo" id="f-garoa" style="color: var(--alerta)">Relato de saúde</h3>
-              <span class="prazo" data-estado="vencido"><svg class="icone icone--16"><use href="#i-siren"/></svg>imediato</span>
+              <span class="prazo" data-estado="vencido"><svg class="icone icone--16"><use href="#i-siren"/></svg>sem resposta há 1 h 32 min</span>
               <div class="c1-item__dados" style="grid-column: 1 / -1">
                 <span class="forte" style="color: var(--texto)">Família Teste Garoa</span>
                 <span class="dado">36s0d</span><span>Santo André</span>
               </div>
             </div>
-            <p class="corpo">É da coordenação clínica. A Isadora respondeu com o texto aprovado de saúde às 13:52 e está pausada nesta conversa. Ninguém da coordenação assumiu ainda.</p>
+            <p class="corpo">É da coordenação clínica. A Isadora respondeu com o texto aprovado de saúde às 13:52 e está pausada nesta conversa. Ninguém da coordenação assumiu ainda. Já aparece no Início da diretoria.</p>
             <div class="c1-acoes">
               <a class="botao botao--alerta botao--compacto" href="tel:+5511900000002"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para a coordenação</a>
               <a class="botao botao--terciario botao--compacto" href="comercial-conversas.html">Ver conversa</a>
@@ -143,18 +144,43 @@
             </div>
           </article>
 
-          <!-- Normal: condição comercial, com falha no aviso ao grupo -->
-          <article class="fila-item c1-item" aria-labelledby="f-estrela">
-            <div class="faixa faixa--imediato" data-falha role="alert" style="margin: calc(-1 * var(--e-1)) calc(-1 * var(--e-1)) 0">
-              <svg class="icone"><use href="#i-circle-alert"/></svg>
-              <div>
-                <p class="faixa__titulo">O aviso ao grupo do comercial não saiu</p>
-                <p class="faixa__texto">Tentamos às 14:34 e o WhatsApp recusou. Quem está fora do app ainda não sabe desta transferência.</p>
-                <div class="faixa__acoes">
-                  <button class="botao botao--alerta botao--compacto" type="button" id="reenviar"><svg class="icone"><use href="#i-refresh-cw"/></svg>Reenviar aviso</button>
-                </div>
+          <!-- Alta: agendamento é humano (correção 5; PRD 11.4 motivo "reuniao"; fluxos.md, fluxo E,
+               item 4: "Agendamento apenas com o humano", reunião de 24/09, 11:19). A Isadora só
+               colhe as duas opções e transfere; quem marca é a pessoa da equipe. -->
+          <article class="fila-item c1-item" aria-labelledby="f-cedro">
+            <div class="c1-item__topo">
+              <h3 class="fila-item__motivo" id="f-cedro">Quer a conversa com a coordenação</h3>
+              <span class="prazo"><svg class="icone icone--16"><use href="#i-hourglass"/></svg>vence em 1 h 34 min</span>
+              <div class="c1-item__dados" style="grid-column: 1 / -1">
+                <span class="forte" style="color: var(--texto)">Família Teste Cedro</span>
+                <span class="dado">27s2d</span><span>Moema, São Paulo</span>
               </div>
             </div>
+            <div class="c1-colheu">
+              <p class="c1-colheu__titulo"><svg class="icone icone--16"><use href="#i-bot"/></svg>Opções que a família passou</p>
+              <dl class="pares">
+                <dt>Opção 1</dt><dd>Terça, 29/09, <span class="dado">10:00</span></dd>
+                <dt>Opção 2</dt><dd>Quarta, 30/09, <span class="dado">15:00</span></dd>
+              </dl>
+            </div>
+            <div>
+              <div class="c-sla" aria-hidden="true"><span data-f></span><span data-f></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+              <p class="c-sla__legenda"><span>Aberta às 14:58</span><span>Prazo de 2 h úteis</span></p>
+            </div>
+            <div class="campo">
+              <label class="campo__rotulo" for="texto-cedro">Texto sugerido, depois de marcar</label>
+              <div class="campo__caixa"><textarea class="campo__entrada" id="texto-cedro" data-telefone="5511900000031">Oi, Camila! Amanhã, às 10:00, é a sua conversa com a Beatriz. O acesso é este: (link seguro, gerado ao marcar). Se precisar mudar o horário, é só me avisar por aqui.</textarea></div>
+              <span class="campo__ajuda" data-ajuda>A Isadora nunca confirma horário; o texto sai depois de você marcar uma das duas opções na agenda.</span>
+            </div>
+            <div class="c1-acoes">
+              <button class="botao botao--primario botao--compacto" type="button"><svg class="icone"><use href="#i-calendar-days"/></svg>Marcar na agenda</button>
+            </div>
+          </article>
+
+          <!-- Normal: condição comercial, com falha no aviso ao grupo. Correções 7 e 8: a faixa
+               vermelha não compete mais em peso com o relato de saúde (sem role="alert" na carga
+               da página, mais compacta, abaixo do pedido) e mora junto do motivo, não acima dele. -->
+          <article class="fila-item c1-item" aria-labelledby="f-estrela">
             <div class="c1-item__topo">
               <h3 class="fila-item__motivo" id="f-estrela">Pediu desconto</h3>
               <span class="prazo"><svg class="icone icone--16"><use href="#i-hourglass"/></svg>vence em 3 h 10 min</span>
@@ -163,7 +189,16 @@
                 <span class="dado">24s1d</span><span>Londrina, PR</span>
               </div>
             </div>
-            <p class="corpo">"Existe algum desconto se eu pagar tudo no Pix?" A Isadora disse que quem confirma condição é você e não citou valores.</p>
+            <p class="corpo">"Existe algum desconto se eu pagar tudo no Pix?" A Isadora disse que quem confirma condição é você e não citou valores. A Isadora não volta a esta conversa.</p>
+            <div class="faixa faixa--imediato" data-falha>
+              <svg class="icone"><use href="#i-circle-alert"/></svg>
+              <div>
+                <p class="faixa__texto">O aviso ao grupo não saiu às 14:34.</p>
+                <div class="faixa__acoes">
+                  <button class="botao botao--compacto" type="button" id="reenviar"><svg class="icone"><use href="#i-refresh-cw"/></svg>Reenviar aviso</button>
+                </div>
+              </div>
+            </div>
             <div>
               <div class="c-sla" aria-hidden="true"><span data-f></span><span data-f></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
               <p class="c-sla__legenda"><span>Aberta às 14:34</span><span>Prazo de 4 h úteis</span></p>
@@ -190,7 +225,16 @@
             </div>
             <span class="prazo empurra"><svg class="icone icone--16"><use href="#i-clock"/></svg>até 17:00</span>
           </div>
-          <div class="campo">
+          <!-- Correção 4: a Carla respondeu às 14:34 (transferência "Pediu desconto" acima); o
+               D+3 automático deixou de fazer sentido e pede decisão antes de sair. -->
+          <div class="faixa faixa--prioritario" id="d3-obsoleto">
+            <svg class="icone"><use href="#i-triangle-alert"/></svg>
+            <div>
+              <p class="faixa__texto">A Carla respondeu às 14:34 (transferência acima). Responda a ela antes; o D+3 pode não fazer mais sentido.</p>
+              <div class="faixa__acoes"><button class="botao botao--compacto" type="button" id="cancelar-d3">Cancelar o D+3</button></div>
+            </div>
+          </div>
+          <div class="campo" id="campo-d3-estrela">
             <label class="campo__rotulo" for="texto-estrela">Texto sugerido</label>
             <div class="campo__caixa"><textarea class="campo__entrada" id="texto-estrela" data-telefone="5511900000015">Oi, Carla! Se ajudar na decisão, a Beatriz pode conversar com vocês uns 15 minutos e mostrar como o cuidado funciona na rotina de vocês. Me passa dois dias e horários bons que eu vejo com ela?</textarea></div>
             <span class="campo__ajuda" data-ajuda>Edite à vontade. O WhatsApp abre com este texto; nada sai antes de você tocar em enviar lá.</span>
@@ -302,7 +346,7 @@
               <span class="selo selo--sucesso"><svg class="icone"><use href="#i-user-check"/></svg>Assumida</span>
               <div class="c1-item__dados" style="grid-column: 1 / -1"><span class="forte" style="color: var(--texto)">Família Teste Dália</span><span class="dado">32s4d</span></div>
             </div>
-            <p class="corpo">Otávio Lemos assumiu às 15:25. A conversa segue com ele.</p>
+            <p class="corpo">Beatriz Falcão assumiu às 14:05. A conversa segue com ela.</p>
             <div class="c1-acoes"><a class="botao botao--terciario botao--compacto" href="comercial-conversa.html">Ler a conversa</a></div>
           </article>
         </div>
@@ -324,7 +368,7 @@
     <a class="abas-inf__item" href="comercial-inicio.html" aria-current="page"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">1</span></a>
     <a class="abas-inf__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
     <a class="abas-inf__item" href="comercial-conversas.html"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
-    <a class="abas-inf__item" href="comercial-ficha.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
     <a class="abas-inf__item" href="comercial.html"><svg class="icone"><use href="#i-ellipsis"/></svg>Mais</a>
   </nav>
 
@@ -394,6 +438,21 @@
   atualizarLink();
 
   var feitas = document.getElementById('feitas');
+
+  // Correção 4: cancelar o D+3 automático porque a família já respondeu à transferência
+  document.getElementById('cancelar-d3').addEventListener('click', function () {
+    var cartao = document.getElementById('tarefa-estrela');
+    cartao.hidden = true;
+    var linha = document.createElement('div');
+    linha.className = 'c1-feita';
+    linha.innerHTML = '<svg class="icone"><use href="#i-circle-check"/></svg><span class="apoio"><span class="forte" style="color: var(--texto)">Follow-up D+3 da Família Teste Estrela cancelado</span><br>Por você às ' + agora + ', porque a Carla já respondeu à transferência "Pediu desconto".</span>';
+    feitas.appendChild(linha);
+    feitas.hidden = false;
+    avisar('D+3 da Família Teste Estrela cancelado às ' + agora + '.', function () {
+      linha.remove(); cartao.hidden = false; feitas.hidden = feitas.children.length < 2;
+    });
+  });
+
   document.getElementById('enviei-estrela').addEventListener('click', function () {
     var cartao = document.getElementById('tarefa-estrela');
     cartao.hidden = true;

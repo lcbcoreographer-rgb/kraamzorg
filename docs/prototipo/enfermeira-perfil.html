@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Perfil e semana · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/enfermeira.css">
+<script src="assets/icones.js"></script>
+<!--
+  E9 · Perfil e semana da enfermeira Talita Moreno, às 10:30, em visita.
+  Fonte: telas.md E9, fluxos.md fluxo C (estados calculados das designações), PRD 15 (cache de 24 h,
+  limpeza no logout, fila enviada antes de sair).
+  Com ?sinal=0 o aparelho tem 2 respostas na fila e "Sair" mostra o bloqueio com a fila pendente.
+  Documentos e validades são fictícios.
+-->
+</head>
+<body data-hora="10:30" data-sinc-inicial="sincronizado" data-sinc-hora="10:29">
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<div class="app app--enf">
+  <main class="app__principal" id="conteudo">
+    <header class="enf-topo enf-topo--hoje">
+      <p class="apoio">Perfil</p>
+      <button class="sinc empurra" type="button" data-sinc data-abre-fila></button>
+      <h1 class="t-display">Talita Moreno</h1>
+      <p class="apoio">Enfermeira obstétrica, São Paulo. <span class="dado">COREN-SP 000.001</span> (fictício).</p>
+    </header>
+
+    <div class="pilha pilha--8">
+      <section class="enf-secao" aria-labelledby="agora-t">
+        <h2 class="sr" id="agora-t">Estado de hoje</h2>
+        <p class="linha-flex"><span class="selo selo--marinho">Em visita</span><span class="corpo">Na Família Teste Aurora desde 08:03.</span></p>
+        <p class="apoio">O estado vem das suas visitas e designações. Ninguém precisa marcar à mão.</p>
+      </section>
+
+      <section class="enf-secao" aria-labelledby="semana-t">
+        <div class="enf-secao__titulo"><h2 class="t-2" id="semana-t">Semana de 21 a 27/09</h2></div>
+        <div class="enf-semana" role="table" aria-label="Seus turnos de 21 a 27/09/2026. Manhã em cima, tarde embaixo.">
+          <div role="row" style="display: contents">
+            <span role="columnheader"><span class="sr">Turno</span></span>
+            <span class="semana__cab" role="columnheader">seg<br>21</span>
+            <span class="semana__cab" role="columnheader">ter<br>22</span>
+            <span class="semana__cab" role="columnheader">qua<br>23</span>
+            <span class="semana__cab semana__cab--hoje" role="columnheader">qui<br>24</span>
+            <span class="semana__cab" role="columnheader">sex<br>25</span>
+            <span class="semana__cab" role="columnheader">sáb<br>26</span>
+            <span class="semana__cab" role="columnheader">dom<br>27</span>
+          </div>
+          <div role="row" style="display: contents">
+            <span class="enf-semana__turno-rot" role="rowheader">Manhã</span>
+            <span class="semana__turno" data-estado="visita" role="cell" aria-label="Visita, Família Teste Aurora, D1"></span>
+            <span class="semana__turno" data-estado="visita" role="cell" aria-label="Visita, Família Teste Aurora, D2"></span>
+            <span class="semana__turno" data-estado="visita" role="cell" aria-label="Visita, Família Teste Aurora, D3"></span>
+            <span class="semana__turno" data-estado="visita" role="cell" aria-label="Visita, Família Teste Aurora, D4"></span>
+            <span class="semana__turno" data-estado="visita" role="cell" aria-label="Visita, Família Teste Aurora, D5"></span>
+            <span class="semana__turno" data-estado="visita" role="cell" aria-label="Visita, Família Teste Aurora, D6"></span>
+            <span class="semana__turno" role="cell" aria-label="Livre"></span>
+          </div>
+          <div role="row" style="display: contents">
+            <span class="enf-semana__turno-rot" role="rowheader">Tarde</span>
+            <span class="semana__turno" data-estado="visita" role="cell" aria-label="Visita, Família Teste Cedro, D4"></span>
+            <span class="semana__turno" data-estado="visita" role="cell" aria-label="Visita, Família Teste Cedro, D5"></span>
+            <span class="semana__turno" data-estado="visita" role="cell" aria-label="Visita, Família Teste Cedro, D6"></span>
+            <span class="semana__turno" data-estado="visita" role="cell" aria-label="Visita, Família Teste Cedro, D7"></span>
+            <span class="semana__turno" data-estado="visita" role="cell" aria-label="Visita, Família Teste Cedro, D8"></span>
+            <span class="semana__turno" data-estado="visita" role="cell" aria-label="Visita, Família Teste Cedro, D9"></span>
+            <span class="semana__turno" data-estado="visita" role="cell" aria-label="Visita, Família Teste Cedro, D10"></span>
+          </div>
+        </div>
+        <div class="legenda" aria-hidden="true">
+          <span class="legenda__item"><span class="semana__turno" data-estado="visita"></span>Visita</span>
+          <span class="legenda__item"><span class="semana__turno" data-estado="reservada"></span>Reservada</span>
+          <span class="legenda__item"><span class="semana__turno" data-estado="backup"></span>Backup</span>
+          <span class="legenda__item"><span class="semana__turno" data-estado="oferta"></span>Oferta</span>
+          <span class="legenda__item"><span class="semana__turno" data-estado="folga"></span>Folga</span>
+          <span class="legenda__item"><span class="semana__turno"></span>Livre</span>
+        </div>
+        <p class="corpo">Manhã com a Família Teste Aurora até sábado 26/09 (<span class="dado">D6</span>). Tarde com a Família Teste Cedro até terça 29/09 (<span class="dado">D12</span>). Domingo de manhã está livre.</p>
+      </section>
+
+      <section class="enf-secao" aria-labelledby="reservas-t">
+        <h2 class="t-2" id="reservas-t">Reservas e ofertas</h2>
+        <div class="cartao cartao--plano pilha pilha--2">
+          <p class="linha-flex"><span class="t-3">Família Teste Horizonte</span><span class="selo selo--contorno">Reservada</span></p>
+          <p class="apoio">Moema, manhã. DPP <span class="dado">12/11/2026</span> (estimativa); janela de 22/10 a 26/11.</p>
+        </div>
+        <p class="apoio">Nenhuma oferta esperando sua resposta. Quando chegar, ela aparece no topo do Hoje.</p>
+      </section>
+
+      <section class="enf-secao" aria-labelledby="docs-t">
+        <h2 class="t-2" id="docs-t">Documentos</h2>
+        <ul class="cl-lista-ok">
+          <li data-ok="sim"><svg class="icone"><use href="#i-circle-check"/></svg><span class="cl-lista-ok__corpo">COREN-SP<br><span class="apoio">Válido até 31/03/2027</span></span></li>
+          <li data-ok="nao"><svg class="icone"><use href="#i-clock-alert"/></svg><span class="cl-lista-ok__corpo">Seguro de responsabilidade civil<br><span class="apoio">Vence em 10/10/2026, daqui a 16 dias. Mande o novo para a coordenação.</span></span><span class="selo selo--aviso">Vence logo</span></li>
+          <li data-ok="sim"><svg class="icone"><use href="#i-circle-check"/></svg><span class="cl-lista-ok__corpo">Certificado de laserterapia<br><span class="apoio">Válido até 15/06/2027</span></span></li>
+        </ul>
+      </section>
+
+      <section class="enf-secao" aria-labelledby="aparelho-t">
+        <h2 class="t-2" id="aparelho-t">Este aparelho</h2>
+        <p class="corpo">Guarda só as famílias de hoje, por 24 horas. Ao sair, tudo é apagado depois que a fila subir.</p>
+        <button class="botao" type="button" data-sair style="align-self: flex-start"><svg class="icone"><use href="#i-log-out"/></svg>Sair deste aparelho</button>
+      </section>
+    </div>
+
+    <div class="folha" id="folha-sair" role="dialog" aria-modal="true" aria-labelledby="folha-sair-t" hidden>
+      <div class="folha__topo"><h2 class="t-2" id="folha-sair-t" tabindex="-1">Sair deste aparelho?</h2><button class="botao botao--icone botao--terciario" type="button" data-fecha-folha aria-label="Fechar"><svg class="icone"><use href="#i-x"/></svg></button></div>
+      <div class="folha__corpo">
+        <p class="corpo">As famílias de hoje saem do aparelho. Para voltar, entre de novo com e-mail, senha e código.</p>
+        <div class="folha__acoes"><button class="botao" type="button" data-fecha-folha>Ficar</button><a class="botao botao--primario" href="index.html"><svg class="icone"><use href="#i-log-out"/></svg>Sair agora</a></div>
+      </div>
+    </div>
+    <div class="folha" id="folha-sair-fila" role="dialog" aria-modal="true" aria-labelledby="folha-sair-fila-t" hidden>
+      <div class="folha__topo"><h2 class="t-2" id="folha-sair-fila-t" tabindex="-1">Ainda há respostas no aparelho</h2><button class="botao botao--icone botao--terciario" type="button" data-fecha-folha aria-label="Fechar"><svg class="icone"><use href="#i-x"/></svg></button></div>
+      <div class="folha__corpo">
+        <p class="corpo" data-sair-texto>Ainda há 2 respostas no aparelho. Conecte-se para enviar antes de sair.</p>
+        <div class="folha__acoes"><button class="botao" type="button" data-fecha-folha>Ficar</button><button class="botao botao--primario" type="button" data-abre-fila><svg class="icone"><use href="#i-cloud-upload"/></svg>Ver a fila</button></div>
+      </div>
+    </div>
+
+    <!-- ---------- Estados ---------- -->
+    <section class="estados" aria-labelledby="estados-t">
+      <h2 class="t-2" id="estados-t">Estados do perfil</h2>
+      <div class="estados__grade">
+        <div class="estado">
+          <p class="estado__titulo">Documento vencendo</p>
+          <section class="faixa faixa--prioritario" aria-label="Documento vencendo">
+            <svg class="icone"><use href="#i-clock-alert"/></svg>
+            <div>
+              <p class="faixa__titulo">Seguro de responsabilidade civil vence em 10/10/2026</p>
+              <p class="faixa__texto">Mande o documento novo para a coordenação. Sem ele, a agenda fica bloqueada a partir dessa data.</p>
+            </div>
+          </section>
+        </div>
+        <div class="estado">
+          <p class="estado__titulo">Sair com a fila pendente</p>
+          <div class="folha folha--estatica" role="group" aria-labelledby="st-sair-t">
+            <div class="folha__topo"><h3 class="t-2" id="st-sair-t">Ainda há respostas no aparelho</h3></div>
+            <div class="folha__corpo">
+              <p class="corpo">Ainda há 2 respostas no aparelho. Conecte-se para enviar antes de sair.</p>
+              <div class="folha__acoes"><button class="botao" type="button">Ficar</button><button class="botao botao--primario" type="button"><svg class="icone"><use href="#i-cloud-upload"/></svg>Ver a fila</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="abas-inf" aria-label="Navegação principal">
+    <a class="abas-inf__item" href="enfermeira-hoje.html"><svg class="icone"><use href="#i-house"/></svg>Hoje</a>
+    <a class="abas-inf__item" href="enfermeira-familias.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="enfermeira-alertas.html"><svg class="icone"><use href="#i-siren"/></svg>Alertas<span class="abas-inf__contador">1<span class="sr"> alerta aberto</span></span></a>
+    <a class="abas-inf__item" href="enfermeira-perfil.html" aria-current="page"><svg class="icone"><use href="#i-user-round"/></svg>Perfil</a>
+  </nav>
+</div>
+<script src="assets/enfermeira.js"></script>
+<script>
+  (function () {
+    if (!KZ.online()) KZ.semearFila([
+      { hora: '10:24', texto: 'D4: Orientações ao parceiro ou parceira, sim' },
+      { hora: '10:25', texto: 'D4: Dúvidas esclarecidas, sim' }
+    ]);
+    document.querySelector('[data-sair]').addEventListener('click', function () {
+      var n = KZ.tamanhoFila();
+      if (n) {
+        var f = document.getElementById('folha-sair-fila');
+        f.querySelector('[data-sair-texto]').textContent = 'Ainda há ' + n + (n === 1 ? ' resposta' : ' respostas') + ' no aparelho. Conecte-se para enviar antes de sair.';
+        KZ.abrirFolha(f);
+      } else KZ.abrirFolha(document.getElementById('folha-sair'));
+    });
+  })();
+</script>
+</body>
+</html>

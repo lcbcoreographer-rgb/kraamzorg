@@ -55,7 +55,9 @@
   .c2-sem-abas .abas-inf { display: none; }
   @media (max-width: 1023px) { [data-acoes-lado] { display: none; } }
   @media (min-width: 1024px) {
-    .c2-compositor { position: static; box-shadow: none; border: var(--borda-fina); border-radius: var(--raio-3); padding: var(--e-3) var(--e-4); }
+    /* Correção 14: sem sticky, o compositor fica preso no fim de .c2-fio, abaixo da dobra
+       quando a conversa é longa. */
+    .c2-compositor { position: sticky; bottom: 0; box-shadow: var(--sombra-1); border: var(--borda-fina); border-radius: var(--raio-3); padding: var(--e-3) var(--e-4); background: var(--superficie); }
     #resolver-atalho { display: none; }
     .app__principal { padding-bottom: var(--e-12); }
   }
@@ -70,6 +72,8 @@
   .c-estado__titulo { font-size: var(--tam-apoio); font-weight: 600; color: var(--texto-2); margin-bottom: var(--e-2); }
   .c-estados .c2-compositor { position: static; box-shadow: none; border: var(--borda-fina); border-radius: var(--raio-3); }
   @media (prefers-reduced-motion: reduce) { .c3-cartao, .c3-coluna, .c6-opcao label, .c2-resumo summary .icone { transition: none; } }
+  /* Correção 31: o contador do Início é do relato de saúde; mesma cor de alerta na lateral e nas abas. */
+  .lateral__contador--alerta { color: var(--texto-inverso); background: var(--alerta); }
 </style>
 </head>
 <body class="c2-sem-abas">
@@ -86,15 +90,13 @@
       <a class="lateral__item" href="comercial-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">1</span></a>
       <a class="lateral__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
       <a class="lateral__item" href="comercial-conversas.html" aria-current="page"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
-      <a class="lateral__item" href="comercial-ficha.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+      <a class="lateral__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
     </div>
-    <div class="lateral__grupo">
-      <span class="lateral__titulo-grupo">Agente</span>
-      <a class="lateral__item" href="comercial-agente-regras.html"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
-    </div>
+    <!-- Correção 30: "Agente" não é grupo do PRD 20.4; Regras da Isadora entra em Sistema,
+         e o Kit de componentes (nota de construção) sai da navegação do app. -->
     <div class="lateral__grupo">
       <span class="lateral__titulo-grupo">Sistema</span>
-      <a class="lateral__item" href="_kit.html"><svg class="icone"><use href="#i-layout-dashboard"/></svg>Kit de componentes</a>
+      <a class="lateral__item" href="comercial-agente-regras.html"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
       <a class="lateral__item" href="entrar.html"><svg class="icone"><use href="#i-log-out"/></svg>Sair</a>
     </div>
     <div class="lateral__pe">
@@ -168,9 +170,14 @@
           </dl>
         </details>
         <p class="c2-isadora-fora apoio"><svg class="icone"><use href="#i-bot"/></svg><span>A Isadora saiu desta conversa às 14:02 e não volta sozinha. Daqui em diante é com você.</span></p>
-        <div class="linha-flex" data-acoes-lado>
-          <a class="botao botao--compacto" href="https://wa.me/5511900000014" target="_blank" rel="noopener"><svg class="icone"><use href="#i-message-circle"/></svg>Abrir no WhatsApp</a>
-          <button class="botao botao--compacto" type="button" id="resolver"><svg class="icone"><use href="#i-circle-check"/></svg>Marcar como resolvida</button>
+        <!-- Correção 14: a ação principal (mandar o formulário) fica visível no painel fixo,
+             sem depender de rolar até o fim da conversa para achar o atalho no compositor. -->
+        <div class="pilha pilha--2" data-acoes-lado>
+          <button class="botao botao--primario botao--bloco" type="button" id="usar-formulario-lado"><svg class="icone"><use href="#i-file-text"/></svg>Enviar formulário do contrato</button>
+          <div class="linha-flex">
+            <a class="botao botao--compacto" href="https://wa.me/5511900000014" target="_blank" rel="noopener"><svg class="icone"><use href="#i-message-circle"/></svg>Abrir no WhatsApp</a>
+            <button class="botao botao--compacto" type="button" id="resolver"><svg class="icone"><use href="#i-circle-check"/></svg>Marcar como resolvida</button>
+          </div>
         </div>
       </aside>
     </div>
@@ -186,20 +193,20 @@
             <div class="faixa faixa--info">
               <svg class="icone"><use href="#i-bot"/></svg>
               <div>
-                <p class="faixa__texto">A Isadora está conduzindo esta conversa. Se você assumir, ela para de responder aqui.</p>
+                <p class="faixa__texto">A Isadora está conduzindo esta conversa. Se você assumir, ela para de responder aqui até você devolver.</p>
                 <div class="faixa__acoes"><button class="botao botao--primario botao--compacto" type="button"><svg class="icone"><use href="#i-user-check"/></svg>Assumir conversa</button></div>
               </div>
             </div>
           </div>
         </div>
 
-        <div>
+        <div id="estado-freio-conversa">
           <p class="c-estado__titulo">Freio ativo</p>
           <div class="pilha pilha--2">
             <div class="faixa faixa--sensivel">
               <svg class="icone"><use href="#i-octagon-pause"/></svg>
               <div>
-                <p class="faixa__titulo">Freio em bloqueio total desde 09:14</p>
+                <p class="faixa__titulo">Freio em bloqueio total desde 24/09/2026, 09:14</p>
                 <p class="faixa__texto">Família Teste Brisa. A Isadora está desligada para esta família e não há texto sugerido. Contato só humano e nominal.</p>
               </div>
             </div>
@@ -215,7 +222,7 @@
         <div>
           <p class="c-estado__titulo">Falha de envio</p>
           <div class="conversa">
-            <div class="bolha bolha--pessoa"><div class="bolha__autor">Otávio Lemos</div>Oi, Bianca, aqui é o Otávio. Te mando o formulário agora.<div class="bolha__hora"><span class="bolha__estado"><svg class="icone"><use href="#i-circle-alert"/></svg>Não saiu, 15:27</span></div></div>
+            <div class="bolha bolha--pessoa"><div class="bolha__autor">Otávio Lemos</div>Oi, Bianca, aqui é o Otávio. Te mando o formulário agora.<div class="bolha__hora"><span class="bolha__estado"><svg class="icone"><use href="#i-circle-alert"/></svg>Não saiu, <span class="dado">15:27</span></span></div></div>
             <div class="faixa faixa--imediato" role="alert">
               <svg class="icone"><use href="#i-circle-alert"/></svg>
               <div>
@@ -307,6 +314,12 @@
   campo.addEventListener('input', ajustar);
   document.getElementById('usar-formulario').addEventListener('click', function () {
     campo.value = FORM; ajustar(); campo.focus();
+  });
+  var usarFormularioLado = document.getElementById('usar-formulario-lado');
+  if (usarFormularioLado) usarFormularioLado.addEventListener('click', function () {
+    campo.value = FORM; ajustar();
+    campo.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    campo.focus();
   });
 
   // Enviar pelo app: enviando, depois entregue

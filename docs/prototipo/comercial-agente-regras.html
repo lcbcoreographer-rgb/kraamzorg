@@ -37,15 +37,25 @@
 
   .c6-texto { padding: var(--e-4); background: var(--superficie-2); border-radius: var(--raio-3); border-bottom-right-radius: var(--raio-1); }
   .c6-texto__cab { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2); margin-bottom: var(--e-2); }
-  .c6-chave { font-family: var(--fonte-dado); font-size: var(--tam-mini); color: var(--marinho-72); }
 
   .c6-salvar { display: flex; flex-wrap: wrap; gap: var(--e-3); align-items: center; }
+  /* Correção 18: no celular, "Salvar" vive longe da escolha (fim da coluna empilhada).
+     Vira barra fixa no rodapé, visível só quando há alteração para salvar. */
+  @media (max-width: 1023px) {
+    #barra-salvar { display: none; flex-direction: column; align-items: stretch; gap: var(--e-2); position: fixed; left: 0; right: 0; bottom: calc(56px + env(safe-area-inset-bottom)); z-index: var(--z-barra); background: var(--superficie); border-top: var(--borda-fina); box-shadow: var(--sombra-2); padding: var(--e-3) var(--margem-tela); }
+    #barra-salvar[data-visivel] { display: flex; }
+    #barra-salvar #salvar { width: 100%; }
+    #barra-salvar #estado-salvo { text-align: center; }
+    body[data-barra-salvar] .app__principal { padding-bottom: calc(88px + 92px); }
+  }
 
   .c-estados { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); margin-top: var(--e-8); border-top: var(--borda-fina); }
   .c-estados__grade { display: grid; gap: var(--e-6); }
   @media (min-width: 900px) { .c-estados__grade { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   .c-estado__titulo { font-size: var(--tam-apoio); font-weight: 600; color: var(--texto-2); margin-bottom: var(--e-2); }
   @media (prefers-reduced-motion: reduce) { .c3-cartao, .c3-coluna, .c6-opcao label, .c2-resumo summary .icone { transition: none; } }
+  /* Correção 31: o contador do Início é do relato de saúde; mesma cor de alerta na lateral e nas abas. */
+  .lateral__contador--alerta { color: var(--texto-inverso); background: var(--alerta); }
 </style>
 </head>
 <body>
@@ -62,15 +72,13 @@
       <a class="lateral__item" href="comercial-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">1</span></a>
       <a class="lateral__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
       <a class="lateral__item" href="comercial-conversas.html"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
-      <a class="lateral__item" href="comercial-ficha.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+      <a class="lateral__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
     </div>
-    <div class="lateral__grupo">
-      <span class="lateral__titulo-grupo">Agente</span>
-      <a class="lateral__item" href="comercial-agente-regras.html" aria-current="page"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
-    </div>
+    <!-- Correção 30: "Agente" não é grupo do PRD 20.4; Regras da Isadora entra em Sistema,
+         e o Kit de componentes (nota de construção) sai da navegação do app. -->
     <div class="lateral__grupo">
       <span class="lateral__titulo-grupo">Sistema</span>
-      <a class="lateral__item" href="_kit.html"><svg class="icone"><use href="#i-layout-dashboard"/></svg>Kit de componentes</a>
+      <a class="lateral__item" href="comercial-agente-regras.html" aria-current="page"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
       <a class="lateral__item" href="entrar.html"><svg class="icone"><use href="#i-log-out"/></svg>Sair</a>
     </div>
     <div class="lateral__pe">
@@ -100,25 +108,33 @@
             <div class="c6-regua" id="regua" aria-hidden="true"></div>
             <p class="c6-regua__legenda"><span>Última mensagem da família</span><span id="regua-fim">Retomada em 48 h</span></p>
           </div>
-          <p class="corpo" id="exemplo">Exemplo: se a família parou de responder na segunda às 20:00, a Isadora retoma na quarta às 20:00, dentro da janela de envio das 8h às 20h.</p>
+          <!-- Correção 19: o exemplo antigo caía bem na borda da janela (20:00); a segunda às 10:00
+           mostra um caso normal, e a opção de 36 h (abaixo) mostra o caso fora da janela. -->
+      <p class="corpo" id="exemplo">Exemplo: se a família parou de responder na segunda às 10:00, a Isadora retoma na quarta às 10:00, dentro da janela de envio das 8h às 20h.</p>
         </fieldset>
 
         <section class="pilha" aria-labelledby="t-textos">
           <h2 class="t-2" id="t-textos">O que sai em cada caso</h2>
+          <!-- Correção 19: followup_d1_pos_pdf e followup_d1_pos_abertura são chaves internas
+               (PRD 23.1); não aparecem na tela para quem edita o texto, só em comentário. -->
           <div class="c6-texto">
-            <div class="c6-texto__cab"><span class="forte">Depois da apresentação</span><span class="c6-chave">followup_d1_pos_pdf</span><span class="selo selo--aviso empurra">Rascunho para aprovação</span></div>
+            <!-- chave: followup_d1_pos_pdf -->
+            <div class="c6-texto__cab"><span class="forte">Depois da apresentação</span><span class="selo selo--aviso empurra">Rascunho para aprovação</span></div>
             <p class="corpo">Oi, {nome}. Conseguiu dar uma olhadinha na apresentação? Se ficou alguma dúvida sobre os formatos, me conta.</p>
           </div>
           <div class="c6-texto">
-            <div class="c6-texto__cab"><span class="forte">Depois só da abertura</span><span class="c6-chave">followup_d1_pos_abertura</span><span class="selo selo--aviso empurra">Rascunho para aprovação</span></div>
+            <!-- chave: followup_d1_pos_abertura -->
+            <div class="c6-texto__cab"><span class="forte">Depois só da abertura</span><span class="selo selo--aviso empurra">Rascunho para aprovação</span></div>
             <p class="corpo">Oi, tudo bem? Vi que você entrou em contato com a Kraamzorg Brasil. Se ainda fizer sentido conhecer o nosso cuidado pós-parto, me conta de quantas semanas você está.</p>
           </div>
         </section>
       </div>
 
       <div class="pilha pilha--6">
-        <div class="faixa faixa--sensivel">
-          <svg class="icone"><use href="#i-octagon-pause"/></svg>
+        <!-- Correção 19: ameixa (faixa--sensivel) é reservada a estado de família (freio, perda);
+             esta é uma regra do próprio agente, não um estado sensível de uma família. -->
+        <div class="faixa faixa--info">
+          <svg class="icone"><use href="#i-bot"/></svg>
           <div>
             <p class="faixa__titulo">Quando a Isadora nunca retoma</p>
             <p class="faixa__texto">A Isadora nunca retoma conversa de família com freio nem conversa já assumida pela equipe.</p>
@@ -129,7 +145,8 @@
           <dt>Máximo de contatos</dt><dd>3, cada um com motivo novo</dd>
           <dt>Última alteração</dt><dd id="ultima">20/09/2026, 10:12, por Otávio Lemos</dd>
         </dl>
-        <div class="c6-salvar">
+        <!-- Correção 18: no celular o salvar vira barra fixa, e só aparece quando há mudança. -->
+        <div class="c6-salvar" id="barra-salvar">
           <button class="botao botao--primario" type="submit" id="salvar" disabled>Salvar regra de retomada</button>
           <span class="apoio" id="estado-salvo" role="status">Nenhuma alteração.</span>
         </div>
@@ -146,7 +163,7 @@
             <svg class="icone"><use href="#i-triangle-alert"/></svg>
             <div>
               <p class="faixa__texto">Você mudou de 48&nbsp;h para 24&nbsp;h e ainda não salvou. Até salvar, vale 48&nbsp;h.</p>
-              <div class="faixa__acoes"><button class="botao botao--compacto" type="button">Salvar regra de retomada</button></div>
+              <div class="faixa__acoes"><button class="botao botao--primario botao--compacto" type="button">Salvar regra de retomada</button></div>
             </div>
           </div>
         </div>
@@ -175,7 +192,7 @@
     <a class="abas-inf__item" href="comercial-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">1</span></a>
     <a class="abas-inf__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
     <a class="abas-inf__item" href="comercial-conversas.html"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
-    <a class="abas-inf__item" href="comercial-ficha.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
     <a class="abas-inf__item" href="comercial.html" aria-current="page"><svg class="icone"><use href="#i-ellipsis"/></svg>Mais</a>
   </nav>
 </div>
@@ -183,10 +200,18 @@
 <script>
 (function () {
   var salvo = '48';
-  var DIAS = { 24: 'na terça às 20:00', 36: 'na quarta às 08:00, primeiro horário da janela', 48: 'na quarta às 20:00', 72: 'na quinta às 20:00' };
+  // Correção 19: exemplos a partir de segunda às 10:00. A marca de 36 h cai às 22:00 de terça,
+  // fora da janela de envio (8h às 20h), então esse caso mostra o adiamento para o dia seguinte.
+  var DIAS = {
+    24: 'na terça às 10:00, dentro da janela de envio',
+    36: 'na quarta às 08:00. A marca de 36 h cairia às 22:00 de terça, fora da janela das 8h às 20h, então a mensagem espera e vai no primeiro horário do dia seguinte',
+    48: 'na quarta às 10:00, dentro da janela de envio',
+    72: 'na quinta às 10:00, dentro da janela de envio'
+  };
   var regua = document.getElementById('regua');
   var botao = document.getElementById('salvar');
   var estado = document.getElementById('estado-salvo');
+  var barraSalvar = document.getElementById('barra-salvar');
 
   function desenhar(h) {
     // 12 blocos de 6 h: 72 h no total
@@ -198,7 +223,7 @@
       regua.appendChild(s);
     }
     document.getElementById('regua-fim').textContent = 'Retomada em ' + h + ' h';
-    document.getElementById('exemplo').textContent = 'Exemplo: se a família parou de responder na segunda às 20:00, a Isadora retoma ' + DIAS[h] + ', dentro da janela de envio das 8h às 20h.';
+    document.getElementById('exemplo').textContent = 'Exemplo: se a família parou de responder na segunda às 10:00, a Isadora retoma ' + DIAS[h] + '.';
   }
   function atual() { return document.querySelector('input[name="janela"]:checked').value; }
 
@@ -209,6 +234,8 @@
       botao.disabled = !mudou;
       estado.textContent = mudou ? 'Alteração não salva. Até salvar, vale ' + salvo + '\u00a0h.' : 'Nenhuma alteração.';
       estado.style.color = mudou ? 'var(--aviso-texto)' : '';
+      if (mudou) { barraSalvar.setAttribute('data-visivel', ''); document.body.setAttribute('data-barra-salvar', ''); }
+      else { barraSalvar.removeAttribute('data-visivel'); document.body.removeAttribute('data-barra-salvar'); }
     });
   });
   document.getElementById('form').addEventListener('submit', function (e) {
@@ -223,6 +250,8 @@
       estado.textContent = 'Alteração salva às 15:20 por Otávio Lemos.';
       estado.style.color = 'var(--sucesso)';
       document.getElementById('ultima').textContent = '24/09/2026, 15:20, por Otávio Lemos';
+      barraSalvar.removeAttribute('data-visivel');
+      document.body.removeAttribute('data-barra-salvar');
     }, 700);
   });
   desenhar(48);

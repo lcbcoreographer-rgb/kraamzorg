@@ -4,29 +4,77 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FCF8ED">
-<title>Coordenação · Kraamzorg OS</title>
+<title>Mais · Kraamzorg OS</title>
 <link rel="icon" href="assets/simbolo-provisorio.png">
 <link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="assets/base.css">
 <script src="assets/icones.js"></script>
 <style>
-  .indice { display: flex; flex-direction: column; gap: var(--e-3); max-width: 640px; }
+  .k-mais-indice { display: flex; flex-direction: column; gap: var(--e-3); max-width: 640px; }
 </style>
 </head>
 <body>
-<main class="app__principal" style="max-width: 720px; margin: 0 auto; padding: var(--e-8) var(--margem-tela)">
-  <p class="apoio" style="margin-bottom: var(--e-2)">docs/design/telas.md define sete telas para o grupo coordenacao, não uma só. Esta página é só o índice entre elas.</p>
-  <h1 class="t-display" style="margin-bottom: var(--e-6)">Coordenação</h1>
-  <nav class="indice" aria-label="Telas da coordenação">
-    <a class="cartao cartao--tocavel linha-flex" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg><span><span class="forte">K1 · Início</span><br><span class="apoio">O que pede decisão hoje</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
-    <a class="cartao cartao--tocavel linha-flex" href="coordenacao-equipe.html"><svg class="icone"><use href="#i-user-check"/></svg><span><span class="forte">K2 · Equipe</span><br><span class="apoio">Estado de cada enfermeira, hoje e na semana</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
-    <a class="cartao cartao--tocavel linha-flex" href="coordenacao-designar.html"><svg class="icone"><use href="#i-users"/></svg><span><span class="forte">K3 · Designar enfermeira</span><br><span class="apoio">Titular e backup para uma família</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
-    <a class="cartao cartao--tocavel linha-flex" href="coordenacao-entrevista.html"><svg class="icone"><use href="#i-clipboard-list"/></svg><span><span class="forte">K4 · Entrevista pré-natal</span><br><span class="apoio">DOC 1, em sequência lógica</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
-    <a class="cartao cartao--tocavel linha-flex" href="coordenacao-alerta.html"><svg class="icone"><use href="#i-siren"/></svg><span><span class="forte">K5 · Alerta clínico</span><br><span class="apoio">Acompanhar e fechar um alerta</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
-    <a class="cartao cartao--tocavel linha-flex" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg><span><span class="forte">K6 · Radar de nascimentos</span><br><span class="apoio">Janelas de DPP e ocupação por praça</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
-    <a class="cartao cartao--tocavel linha-flex" href="coordenacao-freio.html"><svg class="icone"><use href="#i-octagon-pause"/></svg><span><span class="forte">K7 · Freio: reverter ou ajustar</span><br><span class="apoio">Tirar ou mudar o estado sensível</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<div class="app">
+
+  <nav class="lateral" aria-label="Navegação principal">
+    <div class="lateral__corpo">
+      <div class="lateral__marca">
+        <img src="assets/simbolo-provisorio.png" alt="" width="36" height="31">
+        <span class="lateral__nome">Kraamzorg OS</span>
+      </div>
+      <div class="lateral__grupo">
+        <span class="lateral__titulo-grupo">Operação</span>
+        <a class="lateral__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">3</span></a>
+        <a class="lateral__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+        <a class="lateral__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
+        <a class="lateral__item" href="coordenacao-equipe.html"><svg class="icone"><use href="#i-user-check"/></svg>Equipe</a>
+      </div>
+      <div class="lateral__grupo">
+        <span class="lateral__titulo-grupo">Experiência</span>
+        <a class="lateral__item" href="#"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+        <a class="lateral__item" href="coordenacao-entrevista.html"><svg class="icone"><use href="#i-clipboard-list"/></svg>Entrevistas</a>
+      </div>
+      <div class="lateral__grupo">
+        <span class="lateral__titulo-grupo">Sistema</span>
+        <a class="lateral__item" href="#"><svg class="icone"><use href="#i-settings"/></svg>Configurações</a>
+      </div>
+      <div class="lateral__pe">
+        <div class="forte">Beatriz Falcão</div>
+        <div class="mini" style="color: var(--texto-inverso-2)">Coordenação clínica</div>
+      </div>
+    </div>
   </nav>
-</main>
+
+  <main class="app__principal" id="conteudo">
+    <header class="cab-tela">
+      <h1 class="cab-tela__titulo t-display">Mais</h1>
+    </header>
+
+    <div class="pilha pilha--6" style="padding-top: var(--e-6)">
+      <div class="cartao cartao--plano linha-flex">
+        <div>
+          <div class="forte">Beatriz Falcão</div>
+          <div class="apoio">Coordenação clínica</div>
+        </div>
+      </div>
+
+      <nav class="k-mais-indice" aria-label="Mais opções">
+        <a class="cartao cartao--tocavel linha-flex" href="coordenacao-equipe.html"><svg class="icone"><use href="#i-user-check"/></svg><div><div class="forte">Equipe</div><div class="apoio">Estado de cada enfermeira, hoje e na semana</div></div><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+        <a class="cartao cartao--tocavel linha-flex" href="coordenacao-entrevista.html"><svg class="icone"><use href="#i-clipboard-list"/></svg><div><div class="forte">Entrevistas pré-natal</div><div class="apoio">Conduzir e retomar o DOC 1 em sequência lógica</div></div><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+        <a class="cartao cartao--tocavel linha-flex" href="#"><svg class="icone"><use href="#i-settings"/></svg><div><div class="forte">Configurações</div><div class="apoio">Perfil, notificações e preferências da conta</div></div><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+      </nav>
+    </div>
+  </main>
+
+  <nav class="abas-inf" aria-label="Navegação principal">
+    <a class="abas-inf__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">3</span></a>
+    <a class="abas-inf__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+    <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
+    <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="coordenacao.html" aria-current="page"><svg class="icone"><use href="#i-ellipsis"/></svg>Mais</a>
+  </nav>
+</div>
 </body>
 </html>

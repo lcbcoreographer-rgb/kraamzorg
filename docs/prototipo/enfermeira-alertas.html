@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Alertas · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/enfermeira.css">
+<script src="assets/icones.js"></script>
+<!--
+  E8 · Alertas da enfermeira Talita Moreno às 12:05.
+  Fonte: telas.md E8, PRD 9.3 (registro obrigatório; a coordenação fecha), coordenacao-alerta.html (K5).
+  A enfermeira registra o acionamento; quem fecha o alerta é a coordenação.
+-->
+</head>
+<body data-hora="12:05" data-sinc-inicial="sincronizado" data-sinc-hora="12:04">
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<div class="app app--enf">
+  <main class="app__principal" id="conteudo">
+    <header class="enf-topo enf-topo--hoje">
+      <p class="apoio">Talita Moreno</p>
+      <button class="sinc empurra" type="button" data-sinc data-abre-fila></button>
+      <h1 class="t-display">Alertas</h1>
+      <p class="apoio">Um alerta aberto, com o acionamento já registrado.</p>
+    </header>
+
+    <div class="pilha pilha--8">
+      <section class="faixa faixa--info" role="status" data-sem-sinal hidden>
+        <svg class="icone"><use href="#i-wifi-off"/></svg>
+        <div><p class="faixa__titulo">Sem sinal agora</p><p class="faixa__texto">Estes alertas estão salvos no aparelho. Se for urgente, ligue para a supervisão: o telefone funciona sem dados.</p></div>
+      </section>
+
+      <section class="enf-secao" aria-labelledby="abertos-t">
+        <h2 class="t-2" id="abertos-t">Abertos</h2>
+        <article class="cartao pilha" aria-labelledby="a1-t">
+          <div class="cartao__topo">
+            <div class="pilha pilha--2">
+              <p class="t-3" id="a1-t"><span class="faixa__codigo">PU-01</span>Febre de 38,2 °C na puérpera</p>
+              <p class="apoio">Família Teste Aurora, <span class="dado">D4</span>, hoje às 10:09.</p>
+            </div>
+            <span class="selo selo--alerta cartao__acao"><svg class="icone"><use href="#i-siren"/></svg>Imediato</span>
+          </div>
+          <ul class="cl-lista-ok">
+            <li data-ok="sim"><svg class="icone"><use href="#i-circle-check"/></svg><span class="cl-lista-ok__corpo">Acionamento registrado por você às 10:14, com orientação médica e conduta</span></li>
+            <li data-ok="nao"><svg class="icone"><use href="#i-hourglass"/></svg><span class="cl-lista-ok__corpo">Aguardando a coordenação fechar o alerta</span></li>
+          </ul>
+          <div class="linha-flex">
+            <a class="botao botao--compacto" href="enfermeira-checklist-vitais.html">Ver onde disparou</a>
+            <a class="botao botao--terciario botao--compacto" href="tel:+5511900000002"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para a coordenação</a>
+          </div>
+        </article>
+      </section>
+
+      <section class="enf-secao" aria-labelledby="fechados-t">
+        <h2 class="t-2" id="fechados-t">Fechados nos últimos 7 dias</h2>
+        <article class="cartao cartao--plano pilha" aria-labelledby="a2-t">
+          <div class="cartao__topo">
+            <div class="pilha pilha--2">
+              <p class="t-3" id="a2-t"><span class="faixa__codigo">RN-10</span>Icterícia em zona III em Lia</p>
+              <p class="apoio">Família Teste Cedro, <span class="dado">D5</span>, 22/09 às 14:36.</p>
+            </div>
+            <span class="selo selo--sucesso cartao__acao"><svg class="icone"><use href="#i-circle-check"/></svg>Fechado</span>
+          </div>
+          <p class="apoio">Fechado pela coordenação em 22/09/2026, 16:40, com o registro completo.</p>
+        </article>
+      </section>
+    </div>
+
+    <!-- ---------- Estados ---------- -->
+    <section class="estados" aria-labelledby="estados-t">
+      <h2 class="t-2" id="estados-t">Estados de Alertas</h2>
+      <div class="estados__grade">
+        <div class="estado">
+          <p class="estado__titulo">Alerta sem registro</p>
+          <section class="faixa faixa--imediato" aria-label="Alerta PU-01 sem registro">
+            <svg class="icone"><use href="#i-siren"/></svg>
+            <div>
+              <p class="faixa__titulo"><span class="faixa__codigo">PU-01</span>Febre de 38,2 °C na puérpera</p>
+              <p class="faixa__texto">Família Teste Aurora, hoje às 10:09. Acione a supervisão médica agora e oriente a família a procurar atendimento de emergência.</p>
+              <p class="faixa__meta">Antes de fechar: sinal, horário do acionamento, orientação médica recebida e conduta adotada.</p>
+              <div class="faixa__acoes">
+                <a class="botao botao--alerta" href="tel:+5511900000001"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para a supervisão</a>
+                <a class="botao" href="enfermeira-checklist-vitais.html"><svg class="icone"><use href="#i-clipboard-pen"/></svg>Registrar acionamento</a>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Nenhum alerta aberto</p>
+          <div class="vazio">
+            <p class="vazio__titulo">Nenhum alerta aberto</p>
+            <p class="vazio__texto">Quando um valor do checklist passar do limite, o alerta aparece aqui e na tela da visita.</p>
+            <a class="botao" href="enfermeira-hoje.html"><svg class="icone"><use href="#i-house"/></svg>Voltar para Hoje</a>
+          </div>
+        </div>
+
+        <div class="estado">
+          <p class="estado__titulo">Sem sinal</p>
+          <section class="faixa faixa--info" aria-label="Sem sinal">
+            <svg class="icone"><use href="#i-wifi-off"/></svg>
+            <div>
+              <p class="faixa__titulo">Sem sinal agora</p>
+              <p class="faixa__texto">O registro do acionamento está salvo no aparelho. A coordenação recebe quando a conexão voltar. Se for urgente agora, ligue.</p>
+              <div class="faixa__acoes"><a class="botao botao--compacto" href="tel:+5511900000001"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para a supervisão</a></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="abas-inf" aria-label="Navegação principal">
+    <a class="abas-inf__item" href="enfermeira-hoje.html"><svg class="icone"><use href="#i-house"/></svg>Hoje</a>
+    <a class="abas-inf__item" href="enfermeira-familias.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="enfermeira-alertas.html" aria-current="page"><svg class="icone"><use href="#i-siren"/></svg>Alertas<span class="abas-inf__contador">1<span class="sr"> alerta aberto</span></span></a>
+    <a class="abas-inf__item" href="enfermeira-perfil.html"><svg class="icone"><use href="#i-user-round"/></svg>Perfil</a>
+  </nav>
+</div>
+<script src="assets/enfermeira.js"></script>
+</body>
+</html>

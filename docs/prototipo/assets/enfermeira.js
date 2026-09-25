@@ -55,10 +55,12 @@
     estado = 'local';
     renderSinc(); renderFila(); agendar();
   };
+  KZ.tamanhoFila = function () { return fila.length; };
   KZ.semearFila = function (itens) {
     itens.forEach(function (i) { fila.push({ hora: i.hora, texto: i.texto, alerta: !!i.alerta }); });
     if (fila.length) estado = 'local';
     renderSinc();
+    agendar(); // corrigido: a fila semeada precisa mesmo tentar subir, senão "N registros subindo agora" nunca sobe de fato
   };
   function agendar() {
     clearTimeout(tEnvio);
@@ -134,6 +136,20 @@
 
   /* ---------- 3. Folha, aviso efêmero, freio ---------- */
   var fundo = null, pilhaFoco = [];
+  // Correção: todas as folhas (estáticas no HTML ou criadas pelo JS) são filhas diretas de <body>,
+  // então prender o foco só precisa tornar inert os outros filhos de <body>; nada fica destravado
+  // por engano dentro de uma folha aninhada em .app.
+  function prenderTab(e) {
+    if (e.key !== 'Tab') return;
+    var abertas = folhasAbertas(); var topo = abertas[abertas.length - 1];
+    if (!topo) return;
+    var focaveis = $$('a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])', topo)
+      .filter(function (el) { return el.offsetParent !== null; });
+    if (!focaveis.length) return;
+    var primeiro = focaveis[0], ultimo = focaveis[focaveis.length - 1];
+    if (e.shiftKey && document.activeElement === primeiro) { e.preventDefault(); ultimo.focus(); }
+    else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primeiro.focus(); }
+  }
   KZ.abrirFolha = function (f) {
     if (!f) return;
     if (!fundo) {
@@ -143,15 +159,25 @@
     }
     pilhaFoco.push(document.activeElement);
     fundo.hidden = false; f.hidden = false;
+    $$(':scope > *', document.body).forEach(function (el) { el.inert = (el !== fundo && el !== f); });
     var alvo = $('[tabindex="-1"]', f) || $('h2, h3', f) || f;
     if (!alvo.hasAttribute('tabindex')) alvo.setAttribute('tabindex', '-1');
     alvo.focus({ preventScroll: true });
+    document.addEventListener('keydown', prenderTab, true);
   };
   function folhasAbertas() { return $$('.folha:not(.folha--estatica)').filter(function (f) { return !f.hidden; }); }
   KZ.fecharFolha = function (f) {
     if (!f) return;
     f.hidden = true;
-    if (!folhasAbertas().length && fundo) fundo.hidden = true;
+    var abertas = folhasAbertas();
+    if (abertas.length) {
+      var topo = abertas[abertas.length - 1];
+      $$(':scope > *', document.body).forEach(function (el) { el.inert = (el !== fundo && el !== topo); });
+    } else {
+      $$(':scope > *', document.body).forEach(function (el) { el.removeAttribute('inert'); });
+      if (fundo) fundo.hidden = true;
+      document.removeEventListener('keydown', prenderTab, true);
+    }
     var volta = pilhaFoco.pop();
     if (volta && volta.focus && document.contains(volta)) volta.focus({ preventScroll: true });
   };
@@ -313,7 +339,15 @@
         { cod: '2.1', campos: [
           { tipo: 'num', id: 'pu-temp', rotulo: 'Temperatura', unidade: '°C', decimal: true, exemplo: '36,5',
             validar: function (n, s) { if (n > 45) return { e: 'erro', t: s + ' °C não é possível. Faltou a vírgula? Confira e digite de novo.' }; if (n < 30) return { e: 'erro', t: s + ' °C parece baixo demais. Confira e digite de novo.' }; },
-            regra: function (n) { return n >= 38 ? { cod: 'PU-01', sev: 'imediato', titulo: 'Febre de ' + fmt1(n) + ' °C na puérpera' } : null; } },
+            regra: function (n) {
+              if (n >= 38) return { cod: 'PU-01', sev: 'imediato', titulo: 'Febre de ' + fmt1(n) + ' °C na puérpera' };
+              // Apêndice B, PU-08: 37,5 a 37,9 °C em duas visitas seguidas.
+              if (n >= 37.5 && n <= 37.9) {
+                var ant = num(cfg.anterior['pu-temp']);
+                if (!isNaN(ant) && ant >= 37.5 && ant <= 37.9) return { cod: 'PU-08', sev: 'prioritario', titulo: 'Febre baixa persistente, ' + fmt1(n) + ' °C hoje e ' + fmt1(ant) + ' °C no D' + (cfg.dia - 1) };
+              }
+              return null;
+            } },
           { tipo: 'pa', id: 'pu-pa', rotulo: 'Pressão arterial' },
           { tipo: 'num', id: 'pu-fc', rotulo: 'Frequência cardíaca', unidade: 'bpm', exemplo: '80',
             validar: function (n, s) { if (n < 30) return { e: 'erro', t: s + ' bpm parece um dígito a menos. Confira e digite de novo.' }; if (n > 220) return { e: 'erro', t: s + ' bpm parece um dígito a mais. Confira e digite de novo.' }; } }
@@ -442,16 +476,18 @@
       } else if (c.tipo === 'num') {
         var ref = cfg.anterior[id];
         var refTxt = ref ? 'No ' + DIA_ANT + ' foi ' + ref + (c.unidade === 'g' ? ' g' : ' ' + c.unidade) + '.' : 'Sem valor do ' + DIA_ANT + ' para comparar.';
+        // Sem placeholder: um campo clínico numérico vazio precisa parecer vazio, nunca com um valor de exemplo dentro.
         h += '<div class="campo" data-campo="' + id + '"><label class="campo__rotulo" for="' + id + '">' + esc(c.rotulo) + '</label>' +
-          '<div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="' + id + '" inputmode="' + (c.decimal ? 'decimal' : 'numeric') + '" autocomplete="off" enterkeyhint="next" placeholder="' + (c.exemplo || '') + '" aria-describedby="' + id + '-ref ' + id + '-msg"><span class="campo__unidade">' + c.unidade + '</span></div>' +
+          '<div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="' + id + '" inputmode="' + (c.decimal ? 'decimal' : 'numeric') + '" autocomplete="off" enterkeyhint="next" aria-describedby="' + id + '-ref ' + id + '-msg"><span class="campo__unidade">' + c.unidade + '</span></div>' +
           '<p class="cl-ref" id="' + id + '-ref">' + ic('clock') + '<span data-ref-de="' + id + '">' + refTxt + '</span></p>' +
           '<p class="campo__ajuda" id="' + id + '-msg" data-msg-de="' + id + '" hidden></p></div><div data-alerta-de="' + id + '"></div>';
       } else if (c.tipo === 'pa') {
         var r = cfg.anterior[id];
         h += '<div class="campo" data-campo="' + id + '" role="group" aria-labelledby="' + id + '-rot"><span class="campo__rotulo" id="' + id + '-rot">' + esc(c.rotulo) + ' <span class="campo__opcional">(mmHg)</span></span>' +
-          '<div class="cl-pa"><div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="' + id + '-s" inputmode="numeric" autocomplete="off" enterkeyhint="next" placeholder="120" aria-label="Pressão sistólica, mmHg"></div><span class="cl-pa__barra" aria-hidden="true">/</span>' +
-          '<div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="' + id + '-d" inputmode="numeric" autocomplete="off" enterkeyhint="next" placeholder="80" aria-label="Pressão diastólica, mmHg"></div></div>' +
-          '<p class="cl-ref">' + ic('clock') + '<span>' + (r ? 'No ' + DIA_ANT + ' foi ' + r + ' mmHg.' : 'Sem valor do ' + DIA_ANT + ' para comparar.') + ' Sem regra automática por enquanto.</span></p>' +
+          '<div class="cl-pa"><div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="' + id + '-s" inputmode="numeric" autocomplete="off" enterkeyhint="next" aria-label="Pressão sistólica, mmHg"></div><span class="cl-pa__barra" aria-hidden="true">/</span>' +
+          '<div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="' + id + '-d" inputmode="numeric" autocomplete="off" enterkeyhint="next" aria-label="Pressão diastólica, mmHg"></div></div>' +
+          '<p class="cl-ref">' + ic('clock') + '<span>' + (r ? 'No ' + DIA_ANT + ' foi ' + r + ' mmHg.' : 'Sem valor do ' + DIA_ANT + ' para comparar.') + '</span></p>' +
+          '<!-- Sem regra automática do DOC 3 para pressão arterial por enquanto: nota de construção, não aparece na tela. -->' +
           '<p class="campo__ajuda" data-msg-de="' + id + '" hidden></p></div>';
       } else if (c.tipo === 'texto') {
         var entrada = c.curto
@@ -515,31 +551,53 @@
       '<div class="cl-trazer"><button class="botao botao--compacto" type="button" data-audio="ac-ori">' + ic('mic') + 'Gravar áudio</button></div><p class="campo__ajuda" hidden></p></div>' +
       '<div class="campo" data-ac-campo="con"><label class="campo__rotulo" for="ac-con">Conduta adotada</label><div class="campo__caixa"><textarea class="campo__entrada" id="ac-con" rows="3" placeholder="O que foi feito com a família"></textarea></div><p class="campo__ajuda" hidden></p></div>' +
       '<div class="folha__acoes"><button class="botao" type="button" data-fecha-folha>Agora não</button><button class="botao botao--primario" type="button" data-salvar-acion>Salvar registro</button></div>');
+    // Correção: linhas de largura total (52 px ou mais), código em mono numa coluna fixa e selo de
+    // severidade; imediatos primeiro dentro de cada grupo; ações presas no rodapé da folha.
     var fSel = folha('folha-seletor', 'Registrar outro sinal de alerta',
       '<p class="apoio">Sinais do DOC 3 que não têm campo próprio no checklist. Escolha um e siga a conduta que aparece.</p>' +
       (cfg.bebes.length > 1 ? '<fieldset class="cl-opcoes"><legend class="campo__rotulo">Se for sinal do bebê, qual</legend><div class="marcas">' + cfg.bebes.map(function (b, k) { return '<input type="radio" name="sel-bebe" id="sel-b-' + b.id + '" value="' + b.id + '"' + (k ? '' : ' checked') + '><label for="sel-b-' + b.id + '">' + ic('check') + esc(b.nome) + '</label>'; }).join('') + '</div></fieldset>' : '') +
       SELETOR.map(function (g) {
-        return '<fieldset class="cl-opcoes"><legend class="t-3">' + g.grupo + '</legend><div class="marcas">' + g.itens.map(function (s) {
-          return '<input type="radio" name="sel-sinal" id="sel-' + s[0] + '" value="' + s[0] + '"><label for="sel-' + s[0] + '"><span class="dado">' + s[0] + '</span> ' + esc(s[2]) + '</label>';
+        var itens = g.itens.slice().sort(function (a, b) { return (a[1] === 'imediato' ? 0 : 1) - (b[1] === 'imediato' ? 0 : 1); });
+        return '<fieldset class="sel-grupo"><legend class="t-3">' + g.grupo + '</legend><div class="sel-lista">' + itens.map(function (s) {
+          return '<input class="sel-lista__input" type="radio" name="sel-sinal" id="sel-' + s[0] + '" value="' + s[0] + '">' +
+            '<label class="sel-lista__item" for="sel-' + s[0] + '"><span class="dado sel-lista__cod">' + s[0] + '</span><span class="sel-lista__texto">' + esc(s[2]) + '</span>' +
+            '<span class="selo ' + (s[1] === 'imediato' ? 'selo--alerta' : 'selo--aviso') + ' sel-lista__sev">' + (s[1] === 'imediato' ? 'Imediato' : 'Prioritário') + '</span></label>';
         }).join('') + '</div></fieldset>';
       }).join('') +
       '<p class="campo__ajuda" data-sel-erro hidden>' + ic('circle-alert') + 'Escolha um sinal antes de registrar.</p>' +
-      '<div class="folha__acoes"><button class="botao" type="button" data-fecha-folha>Cancelar</button><button class="botao botao--primario" type="button" data-registrar-sinal>Registrar este sinal</button></div>');
-    var latchItens = [['L', 'Pega'], ['A', 'Deglutição audível'], ['T', 'Tipo de mamilo'], ['C', 'Conforto'], ['H', 'Colo e posicionamento']];
+      '<div class="folha__acoes folha__acoes--presa"><button class="botao" type="button" data-fecha-folha>Cancelar</button><button class="botao botao--primario" type="button" data-registrar-sinal>Registrar este sinal</button></div>');
+    // Correção: descrição curta de 0, 1 e 2 por item (como na folha NTS) e classificação do PRD 9.2
+    // (0 a 10, ótimo, regular ou ruim) ao lado do total.
+    var latchItens = [
+      ['L', 'Pega', ['Muito sonolenta ou reluta, não pega', 'Pega repetida, mantém com estímulo', 'Pega espontânea, boca bem aberta']],
+      ['A', 'Deglutição audível', ['Nenhuma', 'Poucas, com estímulo', 'Espontânea e intermitente']],
+      ['T', 'Tipo de mamilo', ['Invertido', 'Plano', 'Protruso']],
+      ['C', 'Conforto da mama e do mamilo', ['Ingurgitada, com fissura ou sangramento, dor intensa', 'Desconforto leve ou moderado', 'Mama macia, sem dor']],
+      ['H', 'Colo e posicionamento', ['Precisa de ajuda total da equipe', 'Ajuda mínima, com orientação verbal', 'Consegue posicionar sozinha']]
+    ];
+    function classeLatch(v) { return v >= 8 ? 'ótimo' : v >= 5 ? 'regular' : 'ruim'; }
     var fLatch = folha('folha-latch', 'Tabela LATCH',
       '<p class="apoio">DOC 4. Toque a nota de cada item, de 0 a 2. A soma vai para o campo quando você confirmar.</p><div class="latch">' +
       latchItens.map(function (it) {
         return '<fieldset class="latch__item"><legend class="campo__rotulo"><span class="dado">' + it[0] + '</span> ' + it[1] + '</legend><div class="marcas marcas--dado">' +
-          [0, 1, 2].map(function (v) { return '<input type="radio" name="latch-' + it[0] + '" id="latch-' + it[0] + v + '" value="' + v + '"><label for="latch-' + it[0] + v + '">' + v + '</label>'; }).join('') + '</div></fieldset>';
+          [0, 1, 2].map(function (v) { return '<input type="radio" name="latch-' + it[0] + '" id="latch-' + it[0] + v + '" value="' + v + '"><label for="latch-' + it[0] + v + '">' + v + '</label>'; }).join('') + '</div>' +
+          '<ul class="latch__legenda">' + it[2].map(function (t, v) { return '<li><span class="dado">' + v + '</span><span>' + esc(t) + '</span></li>'; }).join('') + '</ul></fieldset>';
       }).join('') +
-      '<p class="latch__total" aria-live="polite"><span class="t-3">Total</span><span class="dado dado--corpo" data-latch-total>faltam 5 itens</span></p></div>' +
-      '<p class="apoio">0 a 7: apoio necessário. 8 a 10: amamentação eficaz.</p>' +
+      '<p class="latch__total" aria-live="polite"><span class="t-3">Total</span><span class="dado dado--corpo" data-latch-total>faltam 5 itens</span><span class="selo" data-latch-classe hidden></span></p></div>' +
+      '<p class="apoio">Classificação do PRD 9.2: 8 a 10 ótimo, 5 a 7 regular, 0 a 4 ruim.</p>' +
       '<div class="folha__acoes"><button class="botao" type="button" data-fecha-folha>Fechar</button><button class="botao botao--primario" type="button" data-usar-latch disabled>Usar no campo</button></div>');
     fLatch.addEventListener('change', function () {
       var marcados = latchItens.map(function (it) { var m = $('input[name="latch-' + it[0] + '"]:checked', fLatch); return m ? +m.value : null; });
       var faltam = marcados.filter(function (x) { return x === null; }).length;
       var total = marcados.reduce(function (a, b) { return a + (b || 0); }, 0);
       $('[data-latch-total]', fLatch).textContent = faltam ? 'faltam ' + faltam + (faltam === 1 ? ' item' : ' itens') : total + ' de 10';
+      var classeEl = $('[data-latch-classe]', fLatch);
+      if (faltam) { classeEl.hidden = true; }
+      else {
+        var c = classeLatch(total);
+        classeEl.hidden = false; classeEl.textContent = c.charAt(0).toUpperCase() + c.slice(1);
+        classeEl.className = 'selo ' + (c === 'ótimo' ? 'selo--sucesso' : c === 'regular' ? 'selo--aviso' : 'selo--alerta');
+      }
       var usar = $('[data-usar-latch]', fLatch); usar.disabled = !!faltam; usar.dataset.total = total;
       usar.textContent = faltam ? 'Usar no campo' : 'Usar LATCH ' + total + ' no campo';
     });
@@ -557,6 +615,15 @@
     var fAss = folha('folha-assinar', 'Assinar o registro do ' + DIA + '?',
       '<p class="corpo">Depois de assinado, o registro não muda. Se precisar corrigir, você faz um adendo com o motivo.</p>' +
       '<div class="folha__acoes"><button class="botao" type="button" data-fecha-folha>Revisar</button><button class="botao botao--primario" type="button" data-assinar-agora>' + ic('pen-line') + 'Assinar agora</button></div>');
+    var fResumo = folha('folha-alertas', 'Alertas sem registro', '<ul class="cl-lista-ok" data-lista-alertas></ul>');
+    function abrirResumoAlertas() {
+      $('[data-lista-alertas]', fResumo).innerHTML = pendentesForaDaEtapa().map(function (a) {
+        var priv = ehSM(a);
+        return '<li data-ok="nao">' + ic(a.sev === 'imediato' ? 'siren' : 'triangle-alert') + '<span class="cl-lista-ok__corpo"><span class="dado">' + (priv ? 'SM' : a.cod) + '</span> ' + esc(priv ? 'Ocorrência privada para a coordenação' : a.titulo) + '</span>' +
+          '<button class="botao botao--compacto" type="button" data-registrar="' + esc(a.chave) + '">Registrar</button></li>';
+      }).join('');
+      KZ.abrirFolha(fResumo);
+    }
 
     /* Valor atual de um campo */
     function lerCampo(id) {
@@ -674,32 +741,44 @@
         etapa: s ? s.etapa : atual, bebe: s && s.bebe, hora: KZ.agora(), novo: !montando, registrado: false };
       var pre = cfg.registrados && cfg.registrados[a.cod];
       if (pre) { A[chave].registrado = true; A[chave].registro = pre; A[chave].novo = false; }
-      if (!montando) KZ.salvar('Alerta ' + a.cod + ' para a coordenação: ' + a.titulo, { alerta: true });
+      // Saúde mental é ocorrência privada: nem a fila do aparelho mostra o código nem o título.
+      if (!montando) KZ.salvar(a.cod.slice(0, 2) === 'SM' ? 'Ocorrência privada para a coordenação' : ('Alerta ' + a.cod + ' para a coordenação: ' + a.titulo), { alerta: true });
       desenharAlertas();
     }
     function limparAlerta(chave) {
       if (A[chave] && !A[chave].registrado) { delete A[chave]; desenharAlertas(); }
     }
+    function ehSM(a) { return a.cod.slice(0, 2) === 'SM'; }
     function faixaHTML(a, compacta) {
+      var priv = ehSM(a);
       if (a.registrado) {
-        return '<section class="faixa faixa--sucesso" aria-label="Acionamento registrado">' + ic('circle-check') + '<div><p class="faixa__titulo"><span class="faixa__codigo">' + a.cod + '</span>Acionamento registrado às ' + esc(a.registro.hora) + '</p>' +
-          '<p class="faixa__texto">' + esc(a.titulo) + '. A coordenação acompanha e fecha o alerta.</p></div></section>';
+        return '<section class="faixa faixa--sucesso" aria-label="Acionamento registrado">' + ic('circle-check') + '<div><p class="faixa__titulo">' + (priv ? '' : '<span class="faixa__codigo">' + a.cod + '</span>') +
+          'Acionamento registrado às ' + esc(a.registro.hora) + '</p>' +
+          '<p class="faixa__texto">' + (priv ? 'Ocorrência privada' : esc(a.titulo)) + '. A coordenação acompanha e fecha o alerta.</p></div></section>';
       }
       var imed = a.sev === 'imediato';
       if (compacta) {
-        return '<section class="faixa ' + (imed ? 'faixa--imediato' : 'faixa--prioritario') + ' faixa--compacta cl-fixa" aria-label="Alerta ' + a.cod + ' aberto">' +
-          ic(imed ? 'siren' : 'triangle-alert') + '<div><p class="faixa__titulo"><span class="faixa__codigo">' + a.cod + '</span>' + esc(a.titulo) + '</p>' +
-          '<p class="faixa__meta">Da etapa ' + a.etapa + '. Registre o acionamento antes de assinar.</p>' +
-          '<div class="faixa__acoes"><a class="botao botao--compacto' + (imed ? ' botao--alerta' : '') + '" href="' + SUPERVISAO.tel + '" aria-label="Ligar para a supervisão">' + ic('phone-call') + 'Ligar</a>' +
-          '<button class="botao botao--compacto" type="button" data-registrar="' + esc(a.chave) + '">Registrar acionamento</button></div></div></section>';
+        // Correção: uma linha só, de no máximo 64 px, sem "Da etapa N..." nem botão Ligar (fica na faixa cheia e na folha).
+        var cod = priv ? 'SM' : a.cod;
+        var tit = priv ? 'Ocorrência privada. Registre o acionamento.' : a.titulo;
+        return '<button class="faixa-mini ' + (imed ? 'faixa-mini--imediato' : 'faixa-mini--prioritario') + '" type="button" data-registrar="' + esc(a.chave) + '" aria-label="' + esc(cod + ', ' + tit + '. Registrar acionamento') + '">' +
+          ic(imed ? 'siren' : 'triangle-alert') + '<span class="dado">' + esc(cod) + '</span><span class="faixa-mini__titulo">' + esc(tit) + '</span>' +
+          '<span class="botao botao--compacto" aria-hidden="true">Registrar</span></button>';
       }
-      return '<section class="faixa ' + (imed ? 'faixa--imediato' : 'faixa--prioritario') + ' cl-fixa"' + (a.novo ? ' role="alert"' : '') + ' aria-labelledby="fx-' + a.chave.replace(/[^a-z0-9]/gi, '') + (compacta ? '-c' : '') + '">' +
-        ic(imed ? 'siren' : 'triangle-alert') + '<div><p class="faixa__titulo" id="fx-' + a.chave.replace(/[^a-z0-9]/gi, '') + (compacta ? '-c' : '') + '"><span class="faixa__codigo">' + a.cod + '</span>' + esc(a.titulo) + '</p>' +
-        (compacta ? '<p class="faixa__texto">Registre o acionamento antes de assinar. Etapa ' + a.etapa + '.</p>'
-          : '<p class="faixa__texto">' + esc(a.conduta) + '</p>' + (a.meta ? '<p class="faixa__meta">' + esc(a.meta) + '</p>' : '') + '<p class="faixa__meta">' + REGISTRO + '</p>') +
+      return '<section class="faixa ' + (imed ? 'faixa--imediato' : 'faixa--prioritario') + ' cl-fixa"' + (a.novo ? ' role="alert"' : '') + ' aria-labelledby="fx-' + a.chave.replace(/[^a-z0-9]/gi, '') + '">' +
+        ic(imed ? 'siren' : 'triangle-alert') + '<div><p class="faixa__titulo" id="fx-' + a.chave.replace(/[^a-z0-9]/gi, '') + '">' + (priv ? '' : '<span class="faixa__codigo">' + a.cod + '</span>') + esc(priv ? 'SM · Ocorrência privada' : a.titulo) + '</p>' +
+        '<p class="faixa__texto">' + esc(a.conduta) + '</p>' + (a.meta ? '<p class="faixa__meta">' + esc(a.meta) + '</p>' : '') + '<p class="faixa__meta">' + REGISTRO + '</p>' +
         (KZ.online() ? '' : '<p class="faixa__meta">Sem sinal: a coordenação recebe o alerta quando a conexão voltar. Se for urgente agora, ligue.</p>') +
         '<div class="faixa__acoes"><a class="botao' + (imed ? ' botao--alerta' : '') + '" href="' + SUPERVISAO.tel + '">' + ic('phone-call') + SUPERVISAO.rot + '</a>' +
         '<button class="botao" type="button" data-registrar="' + esc(a.chave) + '">' + ic('clipboard-pen') + 'Registrar acionamento</button></div></div></section>';
+    }
+    function faixaResumoHTML(lista) {
+      var imed = lista.some(function (a) { return a.sev === 'imediato'; });
+      return '<button class="faixa-mini faixa-mini--resumo ' + (imed ? 'faixa-mini--imediato' : 'faixa-mini--prioritario') + '" type="button" data-abre-resumo-alertas aria-label="' + lista.length + ' alertas sem registro. Ver a lista">' +
+        ic(imed ? 'siren' : 'triangle-alert') + '<span class="faixa-mini__titulo">' + lista.length + ' alertas sem registro</span>' + ic('chevron-right') + '</button>';
+    }
+    function pendentesForaDaEtapa() {
+      return Object.keys(A).map(function (k) { return A[k]; }).filter(function (a) { return !a.registrado && a.etapa !== atual && SPEC[a.campo]; });
     }
     function desenharAlertas() {
       $$('[data-alerta-de]', raiz).forEach(function (el) { el.innerHTML = ''; });
@@ -713,8 +792,9 @@
       var fixa = document.getElementById('cl-faixa-fixa');
       if (fixa) {
         var html = extras.filter(function (a) { return !a.registrado; }).map(function (a) { return faixaHTML(a, false); }).join('');
-        var outras = Object.keys(A).map(function (k) { return A[k]; }).filter(function (a) { return !a.registrado && a.etapa !== atual && SPEC[a.campo]; });
-        html += outras.map(function (a) { return faixaHTML(a, true); }).join('');
+        var outras = pendentesForaDaEtapa();
+        if (outras.length === 1) html += faixaHTML(outras[0], true);
+        else if (outras.length > 1) html += faixaResumoHTML(outras);
         fixa.innerHTML = html;
       }
       atualizarEstados();
@@ -769,6 +849,8 @@
       var ok = function (ids) { return ids.every(respondido); };
       p.push({ ok: !!(cfg.checkin && cfg.checkin.data && cfg.checkin.hora), t: 'Data e horário da visita', ir: 1 });
       p.push({ ok: ok(['pu-temp', 'pu-pa', 'pu-fc']), t: 'Sinais vitais da puérpera', ir: 3 });
+      // Obrigatório do PRD 9.2 v4.2: bloco de amamentação, 2.5 a 2.13 (etapa 4) completo.
+      p.push({ ok: contados(4).every(respondido), t: 'Mamas e amamentação (2.5 a 2.13)', ir: 4 });
       cfg.bebes.forEach(function (b) { p.push({ ok: ok(['rn-' + b.id + '-temp', 'rn-' + b.id + '-fc', 'rn-' + b.id + '-fr', 'rn-' + b.id + '-peso']), t: 'Sinais vitais e peso de ' + b.nome, ir: 5, bebe: b.id }); });
       Object.keys(A).forEach(function (k) { var a = A[k]; if (!a.registrado) p.push({ ok: false, t: 'Registro do acionamento do ' + a.cod, registrar: k }); else p.push({ ok: true, t: 'Acionamento do ' + a.cod + ' registrado às ' + a.registro.hora }); });
       Object.keys(COPIA).forEach(function (id) { if (COPIA[id]) p.push({ ok: false, t: 'Confirmar o texto trazido do ' + DIA_ANT + ' em ' + SPEC[id].c.rotulo.toLowerCase(), ir: SPEC[id].etapa, campo: id }); });
@@ -937,7 +1019,7 @@
       atualizarEstados();
     }
     document.addEventListener('click', function (e) {
-      var t = e.target.closest('[data-trazer],[data-vale],[data-apaga],[data-ir],[data-registrar],[data-abre-etapas],[data-voltar],[data-proxima],[data-bebe],[data-focar],[data-audio],[data-salvar-acion],[data-registrar-sinal],[data-abre-seletor],[data-assinar-agora]');
+      var t = e.target.closest('[data-trazer],[data-vale],[data-apaga],[data-ir],[data-registrar],[data-abre-etapas],[data-voltar],[data-proxima],[data-bebe],[data-focar],[data-audio],[data-salvar-acion],[data-registrar-sinal],[data-abre-seletor],[data-assinar-agora],[data-abre-resumo-alertas],[data-registrar-saida]');
       if (!t) return;
       if (t.dataset.trazer) { trazer(t.dataset.trazer); KZ.aviso('Texto do ' + DIA_ANT + ' trazido. Confirme se vale para hoje.', { icone: 'clipboard-paste' }); }
       else if (t.dataset.vale) {
@@ -959,13 +1041,15 @@
         irPara(+t.dataset.ir);
         if (t.dataset.irBebe) escolherBebe(t.dataset.irBebe);
       }
-      else if (t.dataset.registrar) { abrirAcionamento(t.dataset.registrar); }
+      else if (t.dataset.registrar) { var rf = t.closest('.folha'); if (rf) KZ.fecharFolha(rf); abrirAcionamento(t.dataset.registrar); }
       else if (t.hasAttribute('data-abre-etapas')) { atualizarEstados(); KZ.abrirFolha(fEtapas); }
       else if (t.hasAttribute('data-abre-seletor')) { $('[data-sel-erro]', fSel).hidden = true; KZ.abrirFolha(fSel); }
+      else if (t.hasAttribute('data-abre-resumo-alertas')) { abrirResumoAlertas(); }
+      else if (t.hasAttribute('data-registrar-saida')) { registrarSaida(); }
       else if (t.hasAttribute('data-voltar')) { irPara(atual - 1); }
       else if (t.hasAttribute('data-proxima')) {
         if (t.dataset.modo === 'hoje') { location.href = 'enfermeira-hoje.html'; return; }
-        if (t.dataset.modo === 'assinar') { if (t.getAttribute('aria-disabled') === 'true') { razao.hidden = false; return; } KZ.abrirFolha(fAss); return; }
+        if (t.dataset.modo === 'assinar') { if (t.getAttribute('aria-disabled') === 'true') return; KZ.abrirFolha(fAss); return; }
         irPara(atual + 1);
       }
       else if (t.dataset.bebe) { escolherBebe(t.dataset.bebe); }

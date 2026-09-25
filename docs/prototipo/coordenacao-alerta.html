@@ -22,6 +22,20 @@
   .k5-registro { display: flex; flex-direction: column; gap: var(--e-4); }
   .k5-estados { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); border-top: var(--borda-fina); margin-top: var(--e-8); }
   .k5-estado__titulo { font-size: var(--tam-mini); font-weight: 600; color: var(--texto-2); }
+  /* Não registrado: forma tracejada, não erro de digitação (só campo inválido usa borda alerta). */
+  .k5-nao-registrado { display: flex; flex-direction: column; gap: var(--e-2); padding: var(--e-4); border: 1.5px dashed var(--marinho-50); border-radius: var(--raio-2); }
+  /* Computador: linha do tempo e registro à esquerda (62%), faixa e ações à direita (38%).
+     A ordem no celular continua faixa primeiro (regra da tela de alerta clínico); por isso a
+     troca de coluna usa order, só a partir de 1024px, em vez de trocar a ordem no DOM. */
+  .k5-lateral, .k5-conteudo { display: flex; flex-direction: column; gap: var(--e-6); }
+  @media (min-width: 1024px) {
+    .k5-conteudo { order: 1; }
+    .k5-lateral { order: 2; }
+  }
+  /* Ação fixa do celular, acima das abas inferiores (mesma folga de .aviso-efemero). Some no
+     computador, onde "Fechar alerta" mora na coluna de ações. */
+  .k5-barra-fechar { bottom: calc(88px + env(safe-area-inset-bottom)); }
+  @media (min-width: 1024px) { .k5-barra-fechar { display: none; } }
 </style>
 </head>
 <body>
@@ -29,25 +43,31 @@
 <div class="app">
 
   <nav class="lateral" aria-label="Navegação principal">
-    <div class="lateral__marca">
-      <img src="assets/simbolo-provisorio.png" alt="" width="36" height="31">
-      <span class="lateral__nome">Kraamzorg OS</span>
-    </div>
-    <div class="lateral__grupo">
-      <span class="lateral__titulo-grupo">Operação</span>
-      <a class="lateral__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">2</span></a>
-      <a class="lateral__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
-      <a class="lateral__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
-      <a class="lateral__item" href="coordenacao-equipe.html"><svg class="icone"><use href="#i-user-check"/></svg>Equipe</a>
-    </div>
-    <div class="lateral__grupo">
-      <span class="lateral__titulo-grupo">Experiência</span>
-      <a class="lateral__item" href="#" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
-      <a class="lateral__item" href="coordenacao-entrevista.html"><svg class="icone"><use href="#i-clipboard-list"/></svg>Entrevistas</a>
-    </div>
-    <div class="lateral__pe">
-      <div class="forte">Beatriz Falcão</div>
-      <div class="mini" style="color: var(--texto-inverso-2)">Coordenação clínica · perfil fictício</div>
+    <div class="lateral__corpo">
+      <div class="lateral__marca">
+        <img src="assets/simbolo-provisorio.png" alt="" width="36" height="31">
+        <span class="lateral__nome">Kraamzorg OS</span>
+      </div>
+      <div class="lateral__grupo">
+        <span class="lateral__titulo-grupo">Operação</span>
+        <a class="lateral__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">3</span></a>
+        <a class="lateral__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+        <a class="lateral__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
+        <a class="lateral__item" href="coordenacao-equipe.html"><svg class="icone"><use href="#i-user-check"/></svg>Equipe</a>
+      </div>
+      <div class="lateral__grupo">
+        <span class="lateral__titulo-grupo">Experiência</span>
+        <a class="lateral__item" href="#" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+        <a class="lateral__item" href="coordenacao-entrevista.html"><svg class="icone"><use href="#i-clipboard-list"/></svg>Entrevistas</a>
+      </div>
+      <div class="lateral__grupo">
+        <span class="lateral__titulo-grupo">Sistema</span>
+        <a class="lateral__item" href="#"><svg class="icone"><use href="#i-settings"/></svg>Configurações</a>
+      </div>
+      <div class="lateral__pe">
+        <div class="forte">Beatriz Falcão</div>
+        <div class="mini" style="color: var(--texto-inverso-2)">Coordenação clínica</div>
+      </div>
     </div>
   </nav>
 
@@ -57,7 +77,7 @@
       <span class="cab-tela__titulo t-2 empurra">Alerta clínico</span>
     </header>
 
-    <div class="pilha pilha--6" style="padding-top: var(--e-5)">
+    <div class="pilha pilha--6" style="padding-top: var(--e-5); padding-bottom: 96px">
 
       <!-- Cabeçalho da família, com freio em um toque -->
       <div class="familia-cab">
@@ -65,8 +85,8 @@
           <h1 class="familia-cab__nome">Família Teste Aurora</h1>
           <div class="familia-cab__linha">
             <span class="selo">Essencial 6 dias</span>
-            <span class="dado">D4 de 6</span>
-            <span><svg class="icone icone--16"><use href="#i-map-pin"/></svg> Moema, São Paulo</span>
+            <span class="dado">D4</span> de 6
+            <span style="display: inline-flex; align-items: center; gap: var(--e-1)"><svg class="icone icone--16"><use href="#i-map-pin"/></svg> Moema, São Paulo</span>
           </div>
         </div>
         <button class="botao-freio" type="button"><svg class="icone"><use href="#i-hand"/></svg>Freio</button>
@@ -78,82 +98,100 @@
         </div>
       </div>
 
-      <!-- Faixa do alerta imediato -->
-      <div class="faixa faixa--imediato" role="alert">
-        <svg class="icone"><use href="#i-siren"/></svg>
-        <div>
-          <div class="faixa__titulo"><span class="faixa__codigo">PU-01</span>Febre de 38,2 °C na puérpera</div>
-          <p class="faixa__texto">Acione a supervisão médica agora e oriente a família a procurar atendimento de emergência.</p>
-          <div class="faixa__acoes">
-            <a class="botao botao--alerta" href="tel:+551190000001"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para Talita Moreno</a>
+      <div class="duas-colunas">
+        <div class="k5-lateral">
+          <!-- Faixa do alerta imediato, escrita para quem fecha o alerta, não para quem acionou -->
+          <div class="faixa faixa--imediato" role="alert">
+            <svg class="icone"><use href="#i-siren"/></svg>
+            <div>
+              <div class="faixa__titulo"><span class="faixa__codigo">PU-01</span>Febre de 38,2 °C na puérpera</div>
+              <p class="faixa__texto">Acionamento registrado às 10:14. Falta fechar o alerta.</p>
+              <div class="faixa__acoes">
+                <a class="botao botao--alerta" href="tel:+551190000003"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para Talita Moreno</a>
+                <a class="botao botao--alerta" href="tel:+551190000001"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para a supervisão médica</a>
+              </div>
+            </div>
+          </div>
+          <div class="somente-computador">
+            <button class="botao botao--primario botao--bloco" type="button">Fechar alerta</button>
           </div>
         </div>
+
+        <div class="k5-conteudo">
+          <!-- Linha do tempo -->
+          <section>
+            <h2 class="t-3" style="margin-bottom: var(--e-4)">Linha do tempo</h2>
+            <ol class="k5-tempo">
+              <li class="k5-tempo__item" data-estado="feito">
+                <span class="dado">10:09</span>
+                <p class="corpo">Temperatura de 38,2 °C salva no aparelho, sem sinal.</p>
+              </li>
+              <li class="k5-tempo__item" data-estado="feito">
+                <span class="dado">10:12</span>
+                <p class="corpo">Registro sincronizado.</p>
+              </li>
+              <li class="k5-tempo__item" data-estado="alerta">
+                <span class="dado">10:14</span>
+                <p class="corpo">Acionamento registrado por Talita Moreno.</p>
+              </li>
+              <li class="k5-tempo__item" data-estado="feito">
+                <span class="dado">10:21</span>
+                <p class="corpo">Orientação médica recebida e conduta registrada.</p>
+              </li>
+            </ol>
+          </section>
+
+          <!-- Registro obrigatório: é registro da enfermeira, não pode ser sobrescrito (PRD 15) -->
+          <section class="k5-registro">
+            <h2 class="t-3">Registro do acionamento</h2>
+            <dl class="pares">
+              <dt>Sinal</dt><dd class="dado">PU-01</dd>
+              <dt>Horário do acionamento</dt><dd class="dado">10:14</dd>
+              <dt>Orientação médica recebida</dt><dd>Observação em casa, com retorno de temperatura em 2 horas. Se persistir acima de 38 °C, procurar atendimento de emergência.</dd>
+              <dt>Conduta adotada</dt><dd>Compressas mornas e antitérmico conforme prescrição, com reavaliação da temperatura em 2 horas.</dd>
+            </dl>
+            <div class="linha-flex">
+              <span class="apoio">Registrado por Talita Moreno às 10:21</span>
+              <button class="botao botao--terciario" type="button">Acrescentar adendo</button>
+            </div>
+          </section>
+        </div>
       </div>
-
-      <!-- Linha do tempo -->
-      <section>
-        <h2 class="t-3" style="margin-bottom: var(--e-4)">Linha do tempo</h2>
-        <ol class="k5-tempo">
-          <li class="k5-tempo__item" data-estado="feito">
-            <span class="dado">10:09</span>
-            <p class="corpo">Temperatura de 38,2 °C salva no aparelho, sem sinal.</p>
-          </li>
-          <li class="k5-tempo__item" data-estado="feito">
-            <span class="dado">10:12</span>
-            <p class="corpo">Registro sincronizado.</p>
-          </li>
-          <li class="k5-tempo__item" data-estado="alerta">
-            <span class="dado">10:14</span>
-            <p class="corpo">Acionamento registrado por Talita Moreno.</p>
-          </li>
-          <li class="k5-tempo__item" data-estado="feito">
-            <span class="dado">10:21</span>
-            <p class="corpo">Orientação médica recebida e conduta registrada.</p>
-          </li>
-        </ol>
-      </section>
-
-      <!-- Registro obrigatório -->
-      <section class="k5-registro">
-        <h2 class="t-3">Registro do acionamento</h2>
-        <div class="pares">
-          <dt>Sinal</dt><dd class="dado">PU-01</dd>
-          <dt>Horário do acionamento</dt><dd class="dado">10:14</dd>
-        </div>
-        <div class="campo">
-          <span class="campo__rotulo">Orientação médica recebida</span>
-          <div class="campo__caixa"><textarea class="campo__entrada" readonly>Observação em casa, com retorno de temperatura em 2 horas. Se persistir acima de 38 °C, procurar atendimento de emergência.</textarea></div>
-        </div>
-        <div class="campo">
-          <span class="campo__rotulo">Conduta adotada</span>
-          <div class="campo__caixa"><textarea class="campo__entrada" readonly>Compressas mornas e antitérmico conforme prescrição, com reavaliação da temperatura em 2 horas.</textarea></div>
-        </div>
-        <div class="linha-flex">
-          <button class="botao botao--primario" type="button">Fechar alerta</button>
-        </div>
-      </section>
 
       <!-- ---------- Estados ---------- -->
       <div class="k5-estados">
         <div>
           <p class="k5-estado__titulo">Registro incompleto</p>
           <div class="k5-registro cartao cartao--plano">
-            <div class="pares">
+            <dl class="pares">
               <dt>Sinal</dt><dd class="dado">PU-01</dd>
               <dt>Horário do acionamento</dt><dd class="dado">10:14</dd>
-            </div>
-            <div class="campo">
-              <span class="campo__rotulo">Orientação médica recebida</span>
-              <div class="campo__caixa"><textarea class="campo__entrada" readonly>Observação em casa, com retorno de temperatura em 2 horas.</textarea></div>
-            </div>
-            <div class="campo" data-estado="erro">
-              <span class="campo__rotulo">Conduta adotada</span>
-              <div class="campo__caixa"><textarea class="campo__entrada" placeholder="Ainda não registrada por Talita Moreno"></textarea></div>
-              <span class="campo__ajuda"><svg class="icone"><use href="#i-circle-alert"/></svg>Falta a conduta adotada. Peça a Talita Moreno para completar o registro antes de fechar o alerta.</span>
+              <dt>Orientação médica recebida</dt><dd>Observação em casa, com retorno de temperatura em 2 horas.</dd>
+            </dl>
+            <div class="k5-nao-registrado">
+              <div class="linha-flex">
+                <span class="campo__rotulo" style="margin: 0">Conduta adotada</span>
+                <span class="selo selo--aviso empurra"><svg class="icone"><use href="#i-triangle-alert"/></svg>Ainda não registrada</span>
+              </div>
+              <a class="botao botao--compacto" href="tel:+551190000003" style="align-self: flex-start"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para Talita Moreno</a>
             </div>
             <button class="botao botao--primario" type="button" disabled aria-disabled="true">Fechar alerta</button>
             <p class="apoio">Fechar alerta desabilitado: falta a conduta adotada.</p>
           </div>
+        </div>
+
+        <div>
+          <p class="k5-estado__titulo">Folha "Fechar alerta"</p>
+          <section class="folha folha--estatica cartao--plano" style="max-width: 480px">
+            <h3 class="t-3" style="margin-bottom: var(--e-4)">Fechar alerta PU-01</h3>
+            <form class="pilha pilha--4">
+              <div class="campo">
+                <label class="campo__rotulo" for="k5-obs-fechamento">Observação de fechamento<span class="campo__opcional"> (opcional)</span></label>
+                <div class="campo__caixa"><textarea class="campo__entrada" id="k5-obs-fechamento" placeholder="Alguma informação a mais para o histórico da família"></textarea></div>
+              </div>
+              <button class="botao botao--primario botao--bloco" type="submit">Fechar alerta PU-01</button>
+            </form>
+          </section>
         </div>
 
         <div>
@@ -175,14 +213,14 @@
           </div>
         </div>
 
-        <div>
+        <div id="ocorrencia-sm-03">
           <p class="k5-estado__titulo">Saúde mental (ocorrência privada)</p>
-          <div class="faixa faixa--sensivel">
+          <div class="faixa faixa--imediato">
             <svg class="icone"><use href="#i-shield-alert"/></svg>
             <div>
-              <div class="faixa__titulo"><span class="faixa__codigo">SM-04</span>Tristeza intensa e persistente</div>
-              <p class="faixa__texto">Família Teste Ipê. Comunicar supervisão médica e registrar.</p>
-              <p class="faixa__meta">Visível só para coordenação e diretoria.</p>
+              <div class="faixa__titulo"><span class="faixa__codigo">SM-03</span>Desconexão importante com o bebê</div>
+              <p class="faixa__texto">Não deixe a puérpera sozinha, acione a supervisão médica agora e oriente a busca de atendimento de emergência.</p>
+              <p class="faixa__meta">Família Teste Figueira. Visível só para coordenação e diretoria.</p>
             </div>
           </div>
         </div>
@@ -192,18 +230,22 @@
           <div class="familia-cab" data-freio="ativo">
             <div>
               <h3 class="familia-cab__nome">Família Teste Brisa</h3>
-              <div class="familia-cab__linha"><span class="dado">Aguardando nascimento</span></div>
+              <div class="familia-cab__linha">Aguardando nascimento</div>
             </div>
             <span class="freio-ativo"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio ativo</span>
-            <p class="familia-cab__linha" style="grid-column: 1 / -1">Freio em bloqueio total desde 24/09/2026, 09:14. Só contato humano e nominal.</p>
+            <p class="familia-cab__linha" style="grid-column: 1 / -1">O alerta continua chegando à coordenação. Nenhuma mensagem automática sai para a família.</p>
           </div>
         </div>
       </div>
     </div>
   </main>
 
+  <div class="barra-acao k5-barra-fechar">
+    <button class="botao botao--primario" type="button">Fechar alerta</button>
+  </div>
+
   <nav class="abas-inf" aria-label="Navegação principal">
-    <a class="abas-inf__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">2</span></a>
+    <a class="abas-inf__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">3</span></a>
     <a class="abas-inf__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
     <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
     <a class="abas-inf__item" href="#" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>

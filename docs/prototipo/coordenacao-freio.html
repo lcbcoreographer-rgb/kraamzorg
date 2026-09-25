@@ -13,11 +13,19 @@
 <style>
   .k7-estados-freio { display: grid; gap: var(--e-3); }
   @media (min-width: 700px) { .k7-estados-freio { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  .k7-opcao { display: flex; flex-direction: column; gap: var(--e-2); padding: var(--e-4); border: var(--borda-campo-l); border-radius: var(--raio-2); }
+  .k7-opcao { display: flex; flex-direction: column; gap: var(--e-2); padding: var(--e-4); border: var(--borda-campo-l); border-radius: var(--raio-2); position: relative; }
   .k7-opcao input { position: absolute; opacity: 0; }
-  .k7-opcao:has(input:checked) { border-color: var(--foco); box-shadow: 0 0 0 4px var(--foco-halo); }
+  /* Selecionado: borda marinho de 2px e o ícone de check, não o halo de foco (que fica só
+     para o foco de teclado, ver a regra seguinte). */
+  .k7-opcao:has(input:checked) { border: 2px solid var(--marinho); padding: 15px; }
+  .k7-opcao__check { display: none; position: absolute; top: var(--e-3); right: var(--e-3); color: var(--marinho); }
+  .k7-opcao:has(input:checked) .k7-opcao__check { display: block; }
+  .k7-opcao:has(input:focus-visible) { outline: 2px solid var(--foco); outline-offset: 2px; box-shadow: 0 0 0 5px var(--foco-halo); }
   .k7-secao { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); border-top: var(--borda-fina); margin-top: var(--e-8); }
   .k7-secao__titulo { font-size: var(--tam-mini); font-weight: 600; color: var(--texto-2); }
+  /* Folha estática (sem arrastar de verdade): a alça só faz sentido numa folha que desliza.
+     No computador ela já vira cartão fixo na coluna, então some a partir de 1024px. */
+  @media (min-width: 1024px) { .folha--estatica::before { display: none; } }
 </style>
 </head>
 <body>
@@ -25,22 +33,31 @@
 <div class="app">
 
   <nav class="lateral" aria-label="Navegação principal">
-    <div class="lateral__marca">
-      <img src="assets/simbolo-provisorio.png" alt="" width="36" height="31">
-      <span class="lateral__nome">Kraamzorg OS</span>
-    </div>
-    <div class="lateral__grupo">
-      <span class="lateral__titulo-grupo">Operação</span>
-      <a class="lateral__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">2</span></a>
-      <a class="lateral__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
-    </div>
-    <div class="lateral__grupo">
-      <span class="lateral__titulo-grupo">Experiência</span>
-      <a class="lateral__item" href="#" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
-    </div>
-    <div class="lateral__pe">
-      <div class="forte">Beatriz Falcão</div>
-      <div class="mini" style="color: var(--texto-inverso-2)">Coordenação clínica · perfil fictício</div>
+    <div class="lateral__corpo">
+      <div class="lateral__marca">
+        <img src="assets/simbolo-provisorio.png" alt="" width="36" height="31">
+        <span class="lateral__nome">Kraamzorg OS</span>
+      </div>
+      <div class="lateral__grupo">
+        <span class="lateral__titulo-grupo">Operação</span>
+        <a class="lateral__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">3</span></a>
+        <a class="lateral__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+        <a class="lateral__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
+        <a class="lateral__item" href="coordenacao-equipe.html"><svg class="icone"><use href="#i-user-check"/></svg>Equipe</a>
+      </div>
+      <div class="lateral__grupo">
+        <span class="lateral__titulo-grupo">Experiência</span>
+        <a class="lateral__item" href="#" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+        <a class="lateral__item" href="coordenacao-entrevista.html"><svg class="icone"><use href="#i-clipboard-list"/></svg>Entrevistas</a>
+      </div>
+      <div class="lateral__grupo">
+        <span class="lateral__titulo-grupo">Sistema</span>
+        <a class="lateral__item" href="#"><svg class="icone"><use href="#i-settings"/></svg>Configurações</a>
+      </div>
+      <div class="lateral__pe">
+        <div class="forte">Beatriz Falcão</div>
+        <div class="mini" style="color: var(--texto-inverso-2)">Coordenação clínica</div>
+      </div>
     </div>
   </nav>
 
@@ -55,19 +72,19 @@
       <div class="familia-cab" data-freio="ativo">
         <div>
           <h1 class="familia-cab__nome">Família Teste Brisa</h1>
-          <div class="familia-cab__linha"><span class="dado">Aguardando nascimento</span><span><svg class="icone icone--16"><use href="#i-map-pin"/></svg> Pinheiros, São Paulo</span></div>
+          <div class="familia-cab__linha"><span style="display: inline-flex; align-items: center; gap: var(--e-1)"><svg class="icone icone--16"><use href="#i-map-pin"/></svg> Pinheiros, São Paulo</span></div>
         </div>
         <span class="freio-ativo"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio ativo</span>
         <div class="familia-cab__datas">
           <div class="data-chave"><span class="data-chave__rotulo">DPP</span><span class="data-chave__valor">02/10/2026</span><span class="data-chave__tipo">estimativa</span></div>
         </div>
+        <p class="familia-cab__linha" style="grid-column: 1 / -1">Freio em bloqueio total desde 24/09/2026, 09:14. Só contato humano e nominal.</p>
       </div>
 
       <div class="faixa faixa--sensivel">
         <svg class="icone"><use href="#i-octagon-pause"/></svg>
         <div>
-          <p class="faixa__texto">Freio em bloqueio total desde 24/09/2026, 09:14. Só contato humano e nominal.</p>
-          <p class="faixa__meta">Acionado por Otávio Lemos em 24/09/2026, 09:14. Justificativa pendente.</p>
+          <p class="faixa__texto">Acionado por Otávio Lemos. Justificativa pendente.</p>
         </div>
       </div>
 
@@ -79,33 +96,37 @@
             <legend class="sr">Escolha o novo estado</legend>
             <label class="k7-opcao">
               <input type="radio" name="estado-freio">
+              <svg class="icone k7-opcao__check"><use href="#i-check"/></svg>
               <span class="forte">Normal</span>
               <span class="apoio">Operação padrão. Todas as réguas ativas.</span>
             </label>
             <label class="k7-opcao">
               <input type="radio" name="estado-freio">
+              <svg class="icone k7-opcao__check"><use href="#i-check"/></svg>
               <span class="forte">Atenção</span>
-              <span class="apoio">Réguas de conteúdo e marketing pausadas. Comunicação operacional mantida.</span>
-            </label>
-            <label class="k7-opcao">
-              <input type="radio" name="estado-freio" checked>
-              <span class="forte">Bloqueio total</span>
-              <span class="apoio">Todas as automações que falam com a família congeladas. Só contato humano e nominal.</span>
+              <span class="apoio">Réguas de conteúdo e marketing pausadas. Comunicação operacional mantida. A Isadora não vende, só acolhe e encaminha. Alertas clínicos continuam chegando à coordenação.</span>
             </label>
             <label class="k7-opcao">
               <input type="radio" name="estado-freio">
+              <svg class="icone k7-opcao__check"><use href="#i-check"/></svg>
+              <span class="linha-flex" style="gap: var(--e-2)"><span class="forte">Bloqueio total</span><span class="selo selo--sensivel">Estado atual</span></span>
+              <span class="apoio">Todas as automações que falam com a família congeladas. Só contato humano e nominal. A Isadora fica desligada para esta família. Alertas clínicos continuam chegando à coordenação.</span>
+            </label>
+            <label class="k7-opcao">
+              <input type="radio" name="estado-freio">
+              <svg class="icone k7-opcao__check"><use href="#i-check"/></svg>
               <span class="forte">Encerrado sensível</span>
-              <span class="apoio">Sai de pesquisa, indicação, remarketing e qualquer régua futura, para sempre.</span>
+              <span class="apoio">Sai de pesquisa, indicação, remarketing e qualquer régua futura, para sempre. Não volta atrás: pede uma segunda confirmação antes de aplicar.</span>
             </label>
           </fieldset>
 
-          <div class="campo" data-estado="erro">
-            <span class="campo__rotulo">Justificativa</span>
-            <div class="campo__caixa"><textarea class="campo__entrada" placeholder="Descreva o motivo da mudança"></textarea></div>
-            <span class="campo__ajuda"><svg class="icone"><use href="#i-circle-alert"/></svg>A justificativa é obrigatória. Escreva o motivo antes de confirmar.</span>
+          <div class="campo">
+            <label class="campo__rotulo" for="k7-justificativa">Justificativa</label>
+            <div class="campo__caixa"><textarea class="campo__entrada" id="k7-justificativa" placeholder="Descreva o motivo da mudança"></textarea></div>
           </div>
 
-          <button class="botao botao--sensivel botao--bloco" type="submit">Confirmar mudança</button>
+          <button class="botao botao--sensivel botao--bloco" type="submit" disabled aria-disabled="true">Mudar para atenção</button>
+          <p class="apoio">Escolha um novo estado e escreva a justificativa para habilitar.</p>
         </form>
       </section>
 
@@ -116,7 +137,7 @@
           <div class="familia-cab" data-freio="ativo">
             <div>
               <h3 class="familia-cab__nome">Família Teste Brisa</h3>
-              <div class="familia-cab__linha"><span class="dado">Aguardando nascimento</span></div>
+              <div class="familia-cab__linha">Aguardando nascimento</div>
             </div>
             <span class="freio-ativo"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio ativo</span>
           </div>
@@ -126,9 +147,21 @@
         <div>
           <p class="k7-secao__titulo">Justificativa vazia</p>
           <div class="campo" data-estado="erro" style="max-width: 480px">
-            <span class="campo__rotulo">Justificativa</span>
-            <div class="campo__caixa"><textarea class="campo__entrada"></textarea></div>
-            <span class="campo__ajuda"><svg class="icone"><use href="#i-circle-alert"/></svg>A justificativa é obrigatória. Escreva o motivo antes de confirmar.</span>
+            <label class="campo__rotulo" for="k7-justificativa-vazia">Justificativa</label>
+            <div class="campo__caixa"><textarea class="campo__entrada" id="k7-justificativa-vazia" aria-invalid="true" aria-describedby="k7-justificativa-vazia-erro"></textarea></div>
+            <span class="campo__ajuda" id="k7-justificativa-vazia-erro"><svg class="icone"><use href="#i-circle-alert"/></svg>A justificativa é obrigatória. Escreva o motivo antes de confirmar.</span>
+          </div>
+        </div>
+
+        <div>
+          <p class="k7-secao__titulo">Confirmar encerramento sensível</p>
+          <div class="cartao cartao--plano pilha pilha--4" style="max-width: 480px">
+            <p class="apoio">Encerrar em estado sensível não volta atrás. A Família Teste Brisa sai de pesquisa, indicação e remarketing, para sempre.</p>
+            <label class="linha-flex" style="align-items: flex-start">
+              <input type="checkbox" id="k7-confirma-sensivel" style="margin-top: 4px">
+              <span>Sim, quero encerrar a Família Teste Brisa em estado sensível para sempre.</span>
+            </label>
+            <button class="botao botao--sensivel botao--bloco" type="button" disabled aria-disabled="true">Encerrar em estado sensível</button>
           </div>
         </div>
 
@@ -137,7 +170,7 @@
           <div class="familia-cab">
             <div>
               <h3 class="familia-cab__nome">Família Teste Brisa</h3>
-              <div class="familia-cab__linha"><span class="dado">Aguardando nascimento</span></div>
+              <div class="familia-cab__linha"><span class="selo selo--aviso">Atenção</span>Aguardando nascimento</div>
             </div>
             <button class="botao-freio" type="button"><svg class="icone"><use href="#i-hand"/></svg>Freio</button>
           </div>
@@ -159,7 +192,7 @@
   </main>
 
   <nav class="abas-inf" aria-label="Navegação principal">
-    <a class="abas-inf__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">2</span></a>
+    <a class="abas-inf__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">3</span></a>
     <a class="abas-inf__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
     <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
     <a class="abas-inf__item" href="#" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>

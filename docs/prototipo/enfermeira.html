@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Enfermeira · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/icones.js"></script>
+<!--
+  Índice do grupo enfermeira: nove telas de docs/design/telas.md (E1 a E9), no mesmo padrão de coordenacao.html.
+  Estilo e comportamento compartilhados das telas: assets/enfermeira.css, assets/enfermeira.js e
+  assets/enfermeira-dados.js (dados fictícios). Parâmetros úteis: ?sinal=0 (começa sem sinal),
+  #etapa-N nos checklists, enfermeira-assinatura.html?dia=3 (ficha pendente do D3).
+-->
+<style>
+  .indice { display: flex; flex-direction: column; gap: var(--e-3); max-width: 640px; }
+  .indice__grupo { display: flex; flex-direction: column; gap: var(--e-3); }
+</style>
+</head>
+<body>
+<main class="app__principal" style="max-width: 720px; margin: 0 auto; padding: var(--e-8) var(--margem-tela)">
+  <h1 class="t-display" style="margin-bottom: var(--e-2)">Enfermeira</h1>
+  <p class="apoio" style="margin-bottom: var(--e-6)">Portal da enfermeira em campo, feito para o celular e uma mão. Quinta 24/09/2026, Talita Moreno.</p>
+  <nav class="indice" aria-label="Telas da enfermeira">
+    <div class="indice__grupo">
+      <h2 class="t-2">O dia</h2>
+      <a class="cartao cartao--tocavel linha-flex" href="enfermeira-hoje.html"><svg class="icone"><use href="#i-house"/></svg><span><span class="forte">E1 · Hoje</span><br><span class="apoio">Visitas do dia, chegada e saída, pendências</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+    </div>
+    <div class="indice__grupo">
+      <h2 class="t-2">A visita</h2>
+      <a class="cartao cartao--tocavel linha-flex" href="enfermeira-checklist-perguntas.html"><svg class="icone"><use href="#i-clipboard-list"/></svg><span><span class="forte">E3 · Checklist: puérpera e amamentação</span><br><span class="apoio">Sim ou não em um toque, EVN, NTS, LATCH, texto do dia anterior confirmado</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+      <a class="cartao cartao--tocavel linha-flex" href="enfermeira-checklist-vitais.html"><svg class="icone"><use href="#i-thermometer"/></svg><span><span class="forte">E2 · Checklist: sinais vitais com alerta</span><br><span class="apoio">PU-01 com 38,2 °C, conduta na hora e registro do acionamento</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+      <a class="cartao cartao--tocavel linha-flex" href="enfermeira-checklist-bebe.html"><svg class="icone"><use href="#i-baby"/></svg><span><span class="forte">E4 · Checklist: bebês</span><br><span class="apoio">Gêmeos em abas, um registro por bebê</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+      <a class="cartao cartao--tocavel linha-flex" href="enfermeira-assinatura.html"><svg class="icone"><use href="#i-pen-line"/></svg><span><span class="forte">E5 · Resumo e assinatura</span><br><span class="apoio">O que falta, resumo, assinar; último dia com os médicos</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+      <a class="cartao cartao--tocavel linha-flex" href="enfermeira-checklist-vitais.html?sinal=0"><svg class="icone"><use href="#i-wifi-off"/></svg><span><span class="forte">Sem sinal</span><br><span class="apoio">A mesma visita sem conexão, com a fila do aparelho</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+    </div>
+    <div class="indice__grupo">
+      <h2 class="t-2">Famílias, alertas e perfil</h2>
+      <a class="cartao cartao--tocavel linha-flex" href="enfermeira-familias.html"><svg class="icone"><use href="#i-users"/></svg><span><span class="forte">E6 · Famílias</span><br><span class="apoio">Famílias atribuídas e o dia de cada uma</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+      <a class="cartao cartao--tocavel linha-flex" href="enfermeira-familia.html"><svg class="icone"><use href="#i-clipboard-pen"/></svg><span><span class="forte">E7 · Família</span><br><span class="apoio">Acompanhamento inteiro, dias anteriores, médicos, adendo</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+      <a class="cartao cartao--tocavel linha-flex" href="enfermeira-alertas.html"><svg class="icone"><use href="#i-siren"/></svg><span><span class="forte">E8 · Alertas</span><br><span class="apoio">Alertas abertos e o que falta registrar</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+      <a class="cartao cartao--tocavel linha-flex" href="enfermeira-perfil.html"><svg class="icone"><use href="#i-user-round"/></svg><span><span class="forte">E9 · Perfil e semana</span><br><span class="apoio">Semana em turnos, documentos, sair do aparelho</span></span><svg class="icone empurra"><use href="#i-chevron-right"/></svg></a>
+    </div>
+  </nav>
+</main>
+</body>
+</html>

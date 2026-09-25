@@ -37,16 +37,22 @@
   .c3-coluna[data-alvo="sim"] { box-shadow: 0 0 0 2px var(--marinho), 0 0 0 6px var(--foco-halo); }
   .c3-mais { display: inline-flex; align-items: center; gap: var(--e-1); min-height: var(--toque); font-size: var(--tam-apoio); font-weight: 500; }
   @media (min-width: 1024px) {
-    .c3-quadro { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--e-3); align-items: start; padding-top: var(--e-5); }
+    /* Correção 20: cinco (e agora seis) colunas de fração igual ficavam com ~220 px e
+       quebravam selo, nome e contagem em várias linhas. Largura mínima com rolagem lateral
+       só do quadro, nunca da página inteira. */
+    .c3-quadro { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(264px, 1fr); gap: var(--e-3); align-items: start; padding-top: var(--e-5); overflow-x: auto; padding-bottom: var(--e-2); }
     .c3-coluna { background: var(--marinho-08); padding: var(--e-3); min-height: 420px; }
-    .c3-coluna__nome { font-size: var(--tam-3); font-family: var(--fonte-ui); font-weight: 600; letter-spacing: 0; }
+    .c3-coluna__cab { flex-wrap: nowrap; }
+    .c3-coluna__nome { font-size: var(--tam-3); font-family: var(--fonte-ui); font-weight: 600; letter-spacing: 0; white-space: nowrap; }
+    .c3-coluna__n { white-space: nowrap; }
   }
 
   .c3-cartao { position: relative; display: flex; flex-direction: column; gap: var(--e-2); padding: var(--e-4); background: var(--superficie); border-radius: var(--raio-2); box-shadow: var(--sombra-1); cursor: grab; transition: box-shadow var(--dur-rapida) var(--curva-estado), opacity var(--dur-rapida) var(--curva-estado); }
   .c3-cartao:hover { box-shadow: var(--sombra-2); }
   .c3-cartao[data-arrastando] { opacity: .45; }
   .c3-cartao[data-freio="ativo"] { background: var(--sensivel-lavado); box-shadow: none; border: 1px solid var(--sensivel-borda); }
-  .c3-nome { font-weight: 600; font-size: var(--tam-corpo); line-height: 1.3; text-decoration: none; }
+  /* Correção 13: o nome da família é o alvo de toque do cartão; precisa dos 44 px mínimos. */
+  .c3-nome { display: inline-flex; align-items: center; min-height: var(--toque); font-weight: 600; font-size: var(--tam-corpo); line-height: 1.3; text-decoration: none; }
   .c3-nome:hover { text-decoration: underline; }
   .c3-linha { display: flex; flex-wrap: wrap; gap: 2px var(--e-3); font-size: var(--tam-apoio); color: var(--texto-2); }
   .c3-sinais { display: flex; flex-wrap: wrap; gap: var(--e-1); }
@@ -73,6 +79,8 @@
   @media (min-width: 1024px) { .c-estados__grade { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
   .c-estado__titulo { font-size: var(--tam-apoio); font-weight: 600; color: var(--texto-2); margin-bottom: var(--e-2); }
   @media (prefers-reduced-motion: reduce) { .c3-cartao, .c3-coluna, .c6-opcao label, .c2-resumo summary .icone { transition: none; } }
+  /* Correção 31: o contador do Início é do relato de saúde; mesma cor de alerta na lateral e nas abas. */
+  .lateral__contador--alerta { color: var(--texto-inverso); background: var(--alerta); }
 </style>
 </head>
 <body>
@@ -89,15 +97,13 @@
       <a class="lateral__item" href="comercial-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">1</span></a>
       <a class="lateral__item" href="comercial-pipeline.html" aria-current="page"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
       <a class="lateral__item" href="comercial-conversas.html"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
-      <a class="lateral__item" href="comercial-ficha.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+      <a class="lateral__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
     </div>
-    <div class="lateral__grupo">
-      <span class="lateral__titulo-grupo">Agente</span>
-      <a class="lateral__item" href="comercial-agente-regras.html"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
-    </div>
+    <!-- Correção 30: "Agente" não é grupo do PRD 20.4; Regras da Isadora entra em Sistema,
+         e o Kit de componentes (nota de construção) sai da navegação do app. -->
     <div class="lateral__grupo">
       <span class="lateral__titulo-grupo">Sistema</span>
-      <a class="lateral__item" href="_kit.html"><svg class="icone"><use href="#i-layout-dashboard"/></svg>Kit de componentes</a>
+      <a class="lateral__item" href="comercial-agente-regras.html"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
       <a class="lateral__item" href="entrar.html"><svg class="icone"><use href="#i-log-out"/></svg>Sair</a>
     </div>
     <div class="lateral__pe">
@@ -147,6 +153,7 @@
         <a class="c3-pilula" href="#col-em_conversa">Em conversa <span class="dado" data-n="em_conversa">9</span></a>
         <a class="c3-pilula" href="#col-qualificado">Qualificado <span class="dado" data-n="qualificado">7</span></a>
         <a class="c3-pilula" href="#col-sessao">Sessão agendada <span class="dado" data-n="sessao">4</span></a>
+        <a class="c3-pilula" href="#col-realizada">Sessão realizada <span class="dado" data-n="realizada">0</span></a>
         <a class="c3-pilula" href="#col-nutricao">Nutrição <span class="dado" data-n="nutricao">48</span></a>
       </nav>
 
@@ -167,8 +174,9 @@
               <div class="c3-sinais">
                 <span class="selo selo--alerta"><svg class="icone"><use href="#i-siren"/></svg>Relato de saúde</span>
               </div>
-              <p class="c3-proximo"><svg class="icone"><use href="#i-user-check"/></svg><span>Com a coordenação clínica. A Isadora está pausada.</span></p>
-              <button class="botao botao--terciario botao--compacto c3-mover" type="button" aria-expanded="false" data-mover>Mover para</button>
+              <!-- Correção 10: relato de saúde encerra o fluxo comercial até a coordenação
+                   resolver (PRD 11.4); não existe "Mover para" enquanto isso não acontece. -->
+              <p class="c3-proximo" style="color: var(--alerta)"><svg class="icone"><use href="#i-siren"/></svg><span>Fluxo comercial parado até a coordenação resolver o relato de saúde.</span></p>
             </article>
           </div>
           <a class="c3-mais" href="#">Ver as outras 8 <svg class="icone icone--16"><use href="#i-chevron-right"/></svg></a>
@@ -199,7 +207,9 @@
                 <span class="selo"><svg class="icone"><use href="#i-file-text"/></svg>Apresentação enviada</span>
                 <span class="selo selo--aviso"><svg class="icone"><use href="#i-hourglass"/></svg>Transferência aberta</span>
               </div>
-              <p class="c3-proximo" data-estado="hoje"><svg class="icone"><use href="#i-clock"/></svg><span>Follow-up D+3 vence hoje, 17:00.</span></p>
+              <!-- Correção 4: a Carla respondeu à transferência "Pediu desconto"; o D+3 automático
+                   deixou de ser o próximo passo. -->
+              <p class="c3-proximo" data-estado="hoje"><svg class="icone"><use href="#i-clock"/></svg><span>Pediu desconto. Vence hoje, 18:34.</span></p>
               <button class="botao botao--terciario botao--compacto c3-mover" type="button" aria-expanded="false" data-mover>Mover para</button>
             </article>
           </div>
@@ -210,6 +220,18 @@
           <div class="c3-coluna__cab"><h2 class="c3-coluna__nome" id="h-sessao">Sessão agendada</h2><span class="c3-coluna__n" data-n="sessao">4</span></div>
           <div class="c3-coluna__lista"></div>
           <a class="c3-mais" href="#">Ver as 4 famílias <svg class="icone icone--16"><use href="#i-chevron-right"/></svg></a>
+        </section>
+
+        <!-- Correção 11: PRD 7.1 tem sessao_venda_realizada na linha principal, e o menu
+             "Mover para" já oferecia "Sessão realizada" sem coluna de destino. -->
+        <section class="c3-coluna" id="col-realizada" data-estagio="realizada" aria-labelledby="h-realizada">
+          <div class="c3-coluna__cab"><h2 class="c3-coluna__nome" id="h-realizada">Sessão realizada</h2><span class="c3-coluna__n" data-n="realizada">0</span></div>
+          <div class="c3-coluna__lista">
+            <div class="vazio" style="padding: var(--e-4)">
+              <p class="t-3">Nenhuma sessão realizada ainda hoje</p>
+              <p class="vazio__texto apoio">Quando a sessão marcada acontecer, a família aparece aqui até virar proposta.</p>
+            </div>
+          </div>
         </section>
 
         <section class="c3-coluna" id="col-nutricao" data-estagio="nutricao" aria-labelledby="h-nut">
@@ -223,7 +245,7 @@
                 <span class="selo">Frio</span>
                 <span class="selo selo--contorno"><svg class="icone"><use href="#i-bot"/></svg>Isadora conduzindo</span>
               </div>
-              <p class="c3-proximo"><svg class="icone"><use href="#i-calendar-days"/></svg><span>Volta a qualificado com 20 semanas, em 03/10.</span></p>
+              <p class="c3-proximo"><svg class="icone"><use href="#i-calendar-days"/></svg><span>Volta a qualificado com 20 semanas, em 05/10.</span></p>
               <button class="botao botao--terciario botao--compacto c3-mover" type="button" aria-expanded="false" data-mover>Mover para</button>
             </article>
           </div>
@@ -309,6 +331,7 @@
             <svg class="icone icone--24"><use href="#i-calendar-check"/></svg>
             <p class="vazio__titulo">Nenhuma família em Sessão agendada</p>
             <p class="vazio__texto">Quando você marcar uma conversa com a coordenação a partir das duas opções que a família passou, ela aparece aqui.</p>
+            <a class="botao botao--compacto" href="comercial-inicio.html">Ver quem pediu a conversa</a>
           </div>
         </div>
         <div>
@@ -361,7 +384,7 @@
     <a class="abas-inf__item" href="comercial-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">1</span></a>
     <a class="abas-inf__item" href="comercial-pipeline.html" aria-current="page"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
     <a class="abas-inf__item" href="comercial-conversas.html"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
-    <a class="abas-inf__item" href="comercial-ficha.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
     <a class="abas-inf__item" href="comercial.html"><svg class="icone"><use href="#i-ellipsis"/></svg>Mais</a>
   </nav>
 
@@ -412,11 +435,15 @@
     em_conversa: ['qualificado', 'nutricao', 'nao_qualificado', 'fora', 'perdido'],
     qualificado: ['sessao', 'proposta', 'nutricao', 'fora', 'perdido'],
     sessao: ['realizada', 'qualificado'],
+    realizada: ['proposta', 'nutricao', 'qualificado'],
     nutricao: ['em_conversa', 'qualificado', 'sessao', 'proposta'],
     proposta: ['negociacao', 'perdido'],
     negociacao: ['contrato', 'perdido'],
     contrato: ['pagamento', 'cancelado'],
-    pagamento: ['aguardando', 'bebe_nasceu', 'cancelado'],
+    // Correção 9: "Aguardando nascimento" só chega pela designação da enfermeira (PRD 7.2:
+    // pagamento_confirmado → nota fiscal → consulta pré-natal → enfermeira designada →
+    // aguardando_nascimento), então sai dos destinos manuais de Pagamento.
+    pagamento: ['bebe_nasceu', 'cancelado'],
     aguardando: ['bebe_nasceu', 'intercorrencia']
   };
   function listaHumana(itens) {
@@ -519,7 +546,7 @@
       menu.className = 'c3-destinos'; menu.dataset.destinos = '';
       menu.innerHTML = '<p class="c3-destinos__titulo">A partir de ' + NOMES[de] + '</p>' + PODE[de].map(function (k) {
         return '<button class="c3-destino" type="button" data-para="' + k + '"><svg class="icone"><use href="#i-arrow-right"/></svg>' + NOMES[k] + (k === 'perdido' ? ', com motivo' : '') + '</button>';
-      }).join('');
+      }).join('') + (de === 'pagamento' ? '<p class="apoio" style="padding: var(--e-2) var(--e-2) 0">Aguardando nascimento muda sozinho quando a coordenação designar a enfermeira.</p>' : '');
       b.after(menu);
       b.setAttribute('aria-expanded', 'true');
       menu.querySelectorAll('[data-para]').forEach(function (d) { d.addEventListener('click', function () { mover(cartao, d.dataset.para); }); });

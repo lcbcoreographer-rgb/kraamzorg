@@ -82,15 +82,29 @@ a:hover { text-decoration-thickness: 2px; }
   background: var(--fundo); border-bottom: var(--borda-fina);
 }
 .cab-tela__titulo { font-family: var(--fonte-titulo); font-weight: 500; font-size: var(--tam-2); letter-spacing: -0.01em; }
-@media (min-width: 1024px) { .cab-tela { margin: 0 calc(-1 * var(--e-8)); padding: var(--e-3) var(--e-8); } }
+/* Quando o título é o único da tela (Início, Equipe, Radar) ele também leva .t-display;
+   sem esta regra .cab-tela__titulo entra depois no cascade e prende o título nos 20px
+   do t-2, mesmo com .t-display presente. Os 32/40px do DESIGN só vencem com a combinação. */
+.cab-tela__titulo.t-display { font-weight: 400; font-size: var(--tam-display); line-height: 1.05; letter-spacing: var(--rastro-titulo); }
+@media (min-width: 1024px) {
+  .cab-tela { margin: 0 calc(-1 * var(--e-8)); padding: var(--e-3) var(--e-8); }
+  .cab-tela__titulo.t-display { font-size: var(--tam-display-g); }
+}
 
-/* Barra lateral (computador) */
+/* Barra lateral (computador). A coluna escura precisa ir até o fim da página, não só
+   até 100dvh: .lateral estica com o grid (align-self: stretch) e quem fica sticky é o
+   miolo dela (.lateral__corpo), para o menu não rolar para fora da tela em conteúdo longo. */
 .lateral { display: none; }
 @media (min-width: 1024px) {
   .lateral {
+    display: flex; flex-direction: column;
+    height: auto; min-height: 100dvh; align-self: stretch;
+    background: var(--marinho); color: var(--texto-inverso);
+  }
+  .lateral__corpo {
+    position: sticky; top: 0; max-height: 100dvh; overflow-y: auto;
     display: flex; flex-direction: column; gap: var(--e-6);
-    position: sticky; top: 0; height: 100dvh; overflow-y: auto;
-    background: var(--marinho); color: var(--texto-inverso); padding: var(--e-6) var(--e-4);
+    padding: var(--e-6) var(--e-4);
   }
 }
 .lateral__marca { display: flex; align-items: center; gap: var(--e-3); padding: 0 var(--e-2); }
@@ -290,6 +304,11 @@ textarea.campo__entrada { padding: var(--e-3) var(--e-4); min-height: 120px; res
 .cartao--tocavel { color: inherit; text-decoration: none; transition: transform var(--dur-rapida) var(--curva-estado), box-shadow var(--dur-rapida) var(--curva-estado); }
 .cartao--tocavel:hover { box-shadow: var(--sombra-2); text-decoration: none; }
 .cartao--tocavel:active { transform: scale(0.99); }
+/* Cartão tocável em linha (ícone, texto, seta): sem isto o texto força a largura do
+   cartão e o conjunto quebra em três linhas soltas no celular, em vez de ficar numa
+   linha com o texto reduzindo e quebrando dentro do próprio bloco. */
+.cartao--tocavel.linha-flex { flex-wrap: nowrap; }
+.cartao--tocavel.linha-flex > :not(.icone) { flex: 1 1 auto; min-width: 0; }
 .cartao__topo { display: flex; align-items: flex-start; gap: var(--e-3); }
 .cartao__acao { margin-left: auto; }
 

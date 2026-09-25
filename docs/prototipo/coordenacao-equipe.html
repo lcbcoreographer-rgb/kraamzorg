@@ -17,6 +17,15 @@
   .k2-cartao { display: flex; flex-direction: column; gap: var(--e-3); }
   .k2-secao { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); border-top: var(--borda-fina); margin-top: var(--e-8); }
   .k2-secao__titulo { font-size: var(--tam-mini); font-weight: 600; color: var(--texto-2); }
+  /* Legenda de status (vocabulário fixo, uma frase por status). Só texto, sem cor nova. */
+  .k2-legenda-status { display: grid; gap: var(--e-2); grid-template-columns: 1fr; }
+  @media (min-width: 700px) { .k2-legenda-status { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .k2-legenda-status__item { display: flex; align-items: baseline; gap: var(--e-2); }
+  /* Marcador de hoje: único acento dourado da tela, sobre o cabeçalho de quinta. */
+  .semana__cab--hoje { position: relative; }
+  .semana__cab--hoje::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 18px; height: 3px; margin-left: -9px; background: var(--dourado); border-radius: var(--raio-1); }
+  .k2-dias-mobile { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; font-family: var(--fonte-dado); font-size: 11px; color: var(--texto-2); text-align: center; margin-bottom: 2px; }
+  .k2-dias-mobile span[data-hoje] { color: var(--texto); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -24,27 +33,38 @@
 <div class="app">
 
   <nav class="lateral" aria-label="Navegação principal">
-    <div class="lateral__marca">
-      <img src="assets/simbolo-provisorio.png" alt="" width="36" height="31">
-      <span class="lateral__nome">Kraamzorg OS</span>
-    </div>
-    <div class="lateral__grupo">
-      <span class="lateral__titulo-grupo">Operação</span>
-      <a class="lateral__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">2</span></a>
-      <a class="lateral__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
-      <a class="lateral__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
-      <a class="lateral__item" href="coordenacao-equipe.html" aria-current="page"><svg class="icone"><use href="#i-user-check"/></svg>Equipe</a>
-    </div>
-    <div class="lateral__pe">
-      <div class="forte">Beatriz Falcão</div>
-      <div class="mini" style="color: var(--texto-inverso-2)">Coordenação clínica · perfil fictício</div>
+    <div class="lateral__corpo">
+      <div class="lateral__marca">
+        <img src="assets/simbolo-provisorio.png" alt="" width="36" height="31">
+        <span class="lateral__nome">Kraamzorg OS</span>
+      </div>
+      <div class="lateral__grupo">
+        <span class="lateral__titulo-grupo">Operação</span>
+        <a class="lateral__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">3</span></a>
+        <a class="lateral__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+        <a class="lateral__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
+        <a class="lateral__item" href="coordenacao-equipe.html" aria-current="page"><svg class="icone"><use href="#i-user-check"/></svg>Equipe</a>
+      </div>
+      <div class="lateral__grupo">
+        <span class="lateral__titulo-grupo">Experiência</span>
+        <a class="lateral__item" href="#"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+        <a class="lateral__item" href="coordenacao-entrevista.html"><svg class="icone"><use href="#i-clipboard-list"/></svg>Entrevistas</a>
+      </div>
+      <div class="lateral__grupo">
+        <span class="lateral__titulo-grupo">Sistema</span>
+        <a class="lateral__item" href="#"><svg class="icone"><use href="#i-settings"/></svg>Configurações</a>
+      </div>
+      <div class="lateral__pe">
+        <div class="forte">Beatriz Falcão</div>
+        <div class="mini" style="color: var(--texto-inverso-2)">Coordenação clínica</div>
+      </div>
     </div>
   </nav>
 
   <main class="app__principal" id="conteudo">
     <header class="cab-tela">
-      <span class="cab-tela__titulo t-display">Equipe</span>
-      <span class="sinc empurra" data-estado="sincronizado" role="status"><svg class="icone"><use href="#i-cloud-check"/></svg>Sincronizado 08:02</span>
+      <h1 class="cab-tela__titulo t-display">Equipe</h1>
+      <span class="sinc empurra" data-estado="sincronizado" role="status"><svg class="icone"><use href="#i-cloud-check"/></svg>Sincronizado 19:52</span>
     </header>
 
     <div class="pilha pilha--8" style="padding-top: var(--e-6)">
@@ -59,18 +79,27 @@
         <span class="apoio empurra">Semana de 21 a 27/09/2026</span>
       </div>
 
+      <!-- Vocabulário fixo dos status, uma frase por status (pedido da reunião, 11:31) -->
+      <div class="k2-legenda-status" aria-label="O que cada status significa">
+        <p class="k2-legenda-status__item"><span class="selo selo--marinho">Em visita agora</span><span class="apoio">Check-in feito, visita ainda não concluída.</span></p>
+        <p class="k2-legenda-status__item"><span class="selo">Em atendimento</span><span class="apoio">Titular de um acompanhamento ativo nesta semana, fora de visita agora.</span></p>
+        <p class="k2-legenda-status__item"><span class="selo selo--contorno">Reservada</span><span class="apoio">Titular aceita de uma família aguardando nascimento, com a janela cruzando a semana.</span></p>
+        <p class="k2-legenda-status__item"><span class="selo selo--aviso">Bloqueada</span><span class="apoio">Bloqueio de agenda no período: documento, contratação ou folga.</span></p>
+        <p class="k2-legenda-status__item"><span class="selo">Livre</span><span class="apoio">Nenhum dos estados acima no período.</span></p>
+      </div>
+
       <span class="legenda" aria-label="Legenda da semana">
         <span class="legenda__item"><span class="semana__turno" data-estado="visita"></span>Visita</span>
         <span class="legenda__item"><span class="semana__turno" data-estado="reservada"></span>Reservada</span>
         <span class="legenda__item"><span class="semana__turno" data-estado="backup"></span>Backup</span>
         <span class="legenda__item"><span class="semana__turno" data-estado="oferta"></span>Oferta</span>
-        <span class="legenda__item"><span class="semana__turno" data-estado="folga"></span>Folga</span>
+        <span class="legenda__item"><span class="semana__turno" data-estado="folga"></span>Bloqueio</span>
         <span class="legenda__item"><span class="semana__turno"></span>Livre</span>
       </span>
 
-      <!-- ---------- Computador: tabela ---------- -->
+      <!-- ---------- Computador: semana em grade (role=group, não role=table: sem linha e célula reais) ---------- -->
       <div class="somente-computador">
-        <div class="semana" role="table" aria-label="Semana da equipe">
+        <div class="semana" role="group" aria-label="Semana da equipe, 21 a 27 de setembro de 2026">
           <span></span>
           <span class="semana__cab">Seg 21</span><span class="semana__cab">Ter 22</span><span class="semana__cab">Qua 23</span>
           <span class="semana__cab semana__cab--hoje">Qui 24</span><span class="semana__cab">Sex 25</span><span class="semana__cab">Sáb 26</span><span class="semana__cab">Dom 27</span>
@@ -78,117 +107,123 @@
           <!-- Talita Moreno -->
           <div class="semana__pessoa">
             <span class="forte">Talita Moreno</span>
-            <span class="selo selo--marinho">Em visita</span>
-            <span class="mini">Aurora, Cedro</span>
+            <span class="selo selo--marinho">Em visita agora</span>
+            <span class="mini">São Paulo</span>
+            <span class="mini">Aurora e Cedro</span>
           </div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno" data-estado="visita"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno" data-estado="visita"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div>
-          <div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div>
-          <div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="visita"><span class="sr">Segunda 21, manhã, visita na Família Teste Aurora</span></span><span class="semana__turno"><span class="sr">Segunda 21, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="visita"><span class="sr">Terça 22, manhã, visita na Família Teste Aurora</span></span><span class="semana__turno"><span class="sr">Terça 22, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="visita"><span class="sr">Quarta 23, manhã, visita na Família Teste Aurora</span></span><span class="semana__turno" data-estado="visita"><span class="sr">Quarta 23, tarde, visita na Família Teste Cedro</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="visita"><span class="sr">Quinta 24, manhã, visita na Família Teste Aurora</span></span><span class="semana__turno" data-estado="visita"><span class="sr">Quinta 24, tarde, visita na Família Teste Cedro</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="visita"><span class="sr">Sexta 25, manhã, visita na Família Teste Aurora</span></span><span class="semana__turno"><span class="sr">Sexta 25, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno"><span class="sr">Sábado 26, manhã, livre</span></span><span class="semana__turno"><span class="sr">Sábado 26, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno"><span class="sr">Domingo 27, manhã, livre</span></span><span class="semana__turno"><span class="sr">Domingo 27, tarde, livre</span></span></div>
 
           <!-- Rosana Vieira -->
           <div class="semana__pessoa">
             <span class="forte">Rosana Vieira</span>
             <span class="selo">Livre</span>
-            <span class="mini">Backup na Aurora · oferta na Horizonte</span>
+            <span class="mini">São Paulo</span>
+            <span class="mini">Backup na Aurora, oferta na Horizonte</span>
           </div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="backup"></span><span class="semana__turno"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="backup"></span><span class="semana__turno"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="backup"></span><span class="semana__turno"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="backup"></span><span class="semana__turno"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="oferta"></span><span class="semana__turno" data-estado="oferta"></span></div>
-          <div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div>
-          <div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="backup"><span class="sr">Segunda 21, manhã, backup da Família Teste Aurora</span></span><span class="semana__turno"><span class="sr">Segunda 21, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="backup"><span class="sr">Terça 22, manhã, backup da Família Teste Aurora</span></span><span class="semana__turno"><span class="sr">Terça 22, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="backup"><span class="sr">Quarta 23, manhã, backup da Família Teste Aurora</span></span><span class="semana__turno"><span class="sr">Quarta 23, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="backup"><span class="sr">Quinta 24, manhã, backup da Família Teste Aurora</span></span><span class="semana__turno"><span class="sr">Quinta 24, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno"><span class="sr">Sexta 25, manhã, livre</span></span><span class="semana__turno"><span class="sr">Sexta 25, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno"><span class="sr">Sábado 26, manhã, livre</span></span><span class="semana__turno"><span class="sr">Sábado 26, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno"><span class="sr">Domingo 27, manhã, livre</span></span><span class="semana__turno"><span class="sr">Domingo 27, tarde, livre</span></span></div>
 
           <!-- Priscila Andrade -->
           <div class="semana__pessoa">
             <span class="forte">Priscila Andrade</span>
             <span class="selo selo--contorno">Reservada</span>
-            <span class="mini">Janela da Brisa</span>
+            <span class="mini">Alphaville e Cotia</span>
+            <span class="mini">Janela da Família Teste Brisa</span>
           </div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div>
+          <div class="semana__dia"><span class="semana__turno"><span class="sr">Segunda 21, manhã, livre</span></span><span class="semana__turno"><span class="sr">Segunda 21, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno"><span class="sr">Terça 22, manhã, livre</span></span><span class="semana__turno"><span class="sr">Terça 22, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="reservada"><span class="sr">Quarta 23, manhã, reservada para a Família Teste Brisa</span></span><span class="semana__turno" data-estado="reservada"><span class="sr">Quarta 23, tarde, reservada para a Família Teste Brisa</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="reservada"><span class="sr">Quinta 24, manhã, reservada para a Família Teste Brisa</span></span><span class="semana__turno" data-estado="reservada"><span class="sr">Quinta 24, tarde, reservada para a Família Teste Brisa</span></span></div>
+          <div class="semana__dia"><span class="semana__turno"><span class="sr">Sexta 25, manhã, livre</span></span><span class="semana__turno"><span class="sr">Sexta 25, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno"><span class="sr">Sábado 26, manhã, livre</span></span><span class="semana__turno"><span class="sr">Sábado 26, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno"><span class="sr">Domingo 27, manhã, livre</span></span><span class="semana__turno"><span class="sr">Domingo 27, tarde, livre</span></span></div>
 
           <!-- Marta Quintela -->
           <div class="semana__pessoa">
             <span class="forte">Marta Quintela</span>
             <span class="selo">Em atendimento</span>
+            <span class="mini">Londrina</span>
             <span class="mini">Figueira</span>
           </div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div>
-          <div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div>
-          <div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div>
-          <div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div>
-          <div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="visita"><span class="sr">Segunda 21, manhã, visita na Família Teste Figueira</span></span><span class="semana__turno"><span class="sr">Segunda 21, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno"><span class="sr">Terça 22, manhã, livre</span></span><span class="semana__turno"><span class="sr">Terça 22, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="visita"><span class="sr">Quarta 23, manhã, visita na Família Teste Figueira</span></span><span class="semana__turno"><span class="sr">Quarta 23, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="visita"><span class="sr">Quinta 24, manhã, visita na Família Teste Figueira</span></span><span class="semana__turno"><span class="sr">Quinta 24, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno"><span class="sr">Sexta 25, manhã, livre</span></span><span class="semana__turno"><span class="sr">Sexta 25, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno"><span class="sr">Sábado 26, manhã, livre</span></span><span class="semana__turno"><span class="sr">Sábado 26, tarde, livre</span></span></div>
+          <div class="semana__dia"><span class="semana__turno"><span class="sr">Domingo 27, manhã, livre</span></span><span class="semana__turno"><span class="sr">Domingo 27, tarde, livre</span></span></div>
 
           <!-- Joana Bastos -->
           <div class="semana__pessoa">
             <span class="forte">Joana Bastos</span>
-            <span class="selo selo--aviso">Folga ou bloqueio</span>
-            <span class="mini">Documento vencendo</span>
+            <span class="selo selo--aviso">Bloqueada</span>
+            <span class="mini">São Paulo</span>
+            <span class="mini">Documentos pendentes, em contratação</span>
           </div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div>
-          <div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="folga"><span class="sr">Segunda 21, manhã, bloqueio de agenda</span></span><span class="semana__turno" data-estado="folga"><span class="sr">Segunda 21, tarde, bloqueio de agenda</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="folga"><span class="sr">Terça 22, manhã, bloqueio de agenda</span></span><span class="semana__turno" data-estado="folga"><span class="sr">Terça 22, tarde, bloqueio de agenda</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="folga"><span class="sr">Quarta 23, manhã, bloqueio de agenda</span></span><span class="semana__turno" data-estado="folga"><span class="sr">Quarta 23, tarde, bloqueio de agenda</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="folga"><span class="sr">Quinta 24, manhã, bloqueio de agenda</span></span><span class="semana__turno" data-estado="folga"><span class="sr">Quinta 24, tarde, bloqueio de agenda</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="folga"><span class="sr">Sexta 25, manhã, bloqueio de agenda</span></span><span class="semana__turno" data-estado="folga"><span class="sr">Sexta 25, tarde, bloqueio de agenda</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="folga"><span class="sr">Sábado 26, manhã, bloqueio de agenda</span></span><span class="semana__turno" data-estado="folga"><span class="sr">Sábado 26, tarde, bloqueio de agenda</span></span></div>
+          <div class="semana__dia"><span class="semana__turno" data-estado="folga"><span class="sr">Domingo 27, manhã, bloqueio de agenda</span></span><span class="semana__turno" data-estado="folga"><span class="sr">Domingo 27, tarde, bloqueio de agenda</span></span></div>
         </div>
       </div>
 
       <!-- ---------- Celular: cartão com a semana embaixo (fluxos.md C1) ---------- -->
       <div class="somente-celular">
       <div class="pilha">
+        <div class="k2-dias-mobile" aria-hidden="true"><span>S</span><span>T</span><span>Q</span><span data-hoje>Q</span><span>S</span><span>S</span><span>D</span></div>
         <article class="cartao k2-cartao">
           <div class="k2-linha__topo">
             <span class="k2-linha__nome">Talita Moreno</span>
-            <span class="selo selo--marinho">Em visita</span>
+            <span class="selo selo--marinho">Em visita agora</span>
           </div>
-          <span class="mini">Aurora, Cedro</span>
-          <div class="semana semana--compacta"><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno" data-estado="visita"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno" data-estado="visita"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div></div>
+          <span class="mini">São Paulo. Aurora e Cedro.</span>
+          <div class="semana semana--compacta" role="group" aria-label="Semana de Talita Moreno"><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno" data-estado="visita"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno" data-estado="visita"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div></div>
         </article>
         <article class="cartao k2-cartao">
           <div class="k2-linha__topo">
             <span class="k2-linha__nome">Rosana Vieira</span>
             <span class="selo">Livre</span>
           </div>
-          <span class="mini">Backup na Aurora · oferta na Horizonte</span>
-          <div class="semana semana--compacta"><div class="semana__dia"><span class="semana__turno" data-estado="backup"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="backup"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="backup"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="backup"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="oferta"></span><span class="semana__turno" data-estado="oferta"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div></div>
+          <span class="mini">São Paulo. Backup na Aurora, oferta na Horizonte.</span>
+          <div class="semana semana--compacta" role="group" aria-label="Semana de Rosana Vieira"><div class="semana__dia"><span class="semana__turno" data-estado="backup"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="backup"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="backup"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="backup"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div></div>
         </article>
         <article class="cartao k2-cartao">
           <div class="k2-linha__topo">
             <span class="k2-linha__nome">Priscila Andrade</span>
             <span class="selo selo--contorno">Reservada</span>
           </div>
-          <span class="mini">Janela da Brisa</span>
-          <div class="semana semana--compacta"><div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div></div>
+          <span class="mini">Alphaville e Cotia. Janela da Família Teste Brisa.</span>
+          <div class="semana semana--compacta" role="group" aria-label="Semana de Priscila Andrade"><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="reservada"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div></div>
         </article>
         <article class="cartao k2-cartao">
           <div class="k2-linha__topo">
             <span class="k2-linha__nome">Marta Quintela</span>
             <span class="selo">Em atendimento</span>
           </div>
-          <span class="mini">Figueira</span>
-          <div class="semana semana--compacta"><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div></div>
+          <span class="mini">Londrina. Figueira.</span>
+          <div class="semana semana--compacta" role="group" aria-label="Semana de Marta Quintela"><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div><div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div></div>
         </article>
         <article class="cartao k2-cartao">
           <div class="k2-linha__topo">
             <span class="k2-linha__nome">Joana Bastos</span>
-            <span class="selo selo--aviso">Folga ou bloqueio</span>
+            <span class="selo selo--aviso">Bloqueada</span>
           </div>
-          <span class="mini">Documento vencendo</span>
-          <div class="semana semana--compacta"><div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div></div>
+          <span class="mini">São Paulo. Documentos pendentes, em contratação.</span>
+          <div class="semana semana--compacta" role="group" aria-label="Semana de Joana Bastos"><div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div><div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div></div>
         </article>
       </div>
       </div>
@@ -209,13 +244,13 @@
           <div class="vazio">
             <svg class="icone icone--24"><use href="#i-users"/></svg>
             <span class="vazio__titulo">Nenhuma enfermeira ativa em Londrina</span>
-            <p class="vazio__texto">Cadastre em Equipe, Nova profissional.</p>
+            <p class="vazio__texto">Cadastre uma profissional para atender essa praça.</p>
+            <button class="botao botao--primario" type="button">Cadastrar profissional</button>
           </div>
         </div>
 
         <div>
           <p class="k2-secao__titulo">Conflito de agenda</p>
-          <p class="apoio">Não existe <span class="dado">data-estado="conflito"</span> em <span class="dado">base.css</span>: o conflito aparece como selo ao lado da semana da profissional, não como uma cor nova no turno.</p>
           <div class="linha-flex">
             <span class="forte">Talita Moreno</span>
             <span class="selo selo--alerta"><svg class="icone"><use href="#i-triangle-alert"/></svg>Conflito de agenda</span>
@@ -243,7 +278,7 @@
   </main>
 
   <nav class="abas-inf" aria-label="Navegação principal">
-    <a class="abas-inf__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">2</span></a>
+    <a class="abas-inf__item" href="coordenacao-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">3</span></a>
     <a class="abas-inf__item" href="coordenacao-radar.html"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
     <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
     <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>

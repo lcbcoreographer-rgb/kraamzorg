@@ -39,18 +39,32 @@
   .c4-marco[data-estado="futuro"] .c4-marco__titulo { font-weight: 500; color: var(--texto-2); }
   .c4-marco__quem { display: inline-flex; align-items: center; gap: var(--e-1); }
 
+  /* P0 (correção 2): sem isto, .abas (rolagem de lado) e outros filhos não encolhem dentro
+     de .duas-colunas no celular, e a página inteira passa a rolar de lado. */
+  .duas-colunas > * { min-width: 0; }
+
   .c4-lateral { display: flex; flex-direction: column; gap: var(--e-4); }
   .c4-bloco { display: flex; flex-direction: column; gap: var(--e-3); }
   .c4-bloco__cab { display: flex; align-items: center; gap: var(--e-2); }
   .c4-pessoa { display: flex; flex-direction: column; gap: 2px; padding-bottom: var(--e-3); border-bottom: var(--borda-fina); }
   .c4-pessoa:last-child { border-bottom: 0; padding-bottom: 0; }
   .c4-mascara { font-family: var(--fonte-dado); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+  /* Correção 13: o telefone é um link clicável e precisa do alvo mínimo de 44 px. */
+  .c4-pessoa a.dado { display: inline-flex; align-items: center; min-height: var(--toque); }
+  /* Correção 27: em telas estreitas o botão "Desfazer" não cabe ao lado do texto; empilha. */
+  @media (max-width: 599px) {
+    #aviso { flex-wrap: wrap; }
+    #aviso > span[data-texto] { flex: 1 1 100%; }
+    #aviso > .botao.empurra { flex: 1 1 100%; margin-left: 0; justify-content: center; }
+  }
 
   .c-estados { display: flex; flex-direction: column; gap: var(--e-6); padding-top: var(--e-8); margin-top: var(--e-8); border-top: var(--borda-fina); }
   .c-estados__grade { display: grid; gap: var(--e-6); }
   @media (min-width: 900px) { .c-estados__grade { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .c-estado__titulo { font-size: var(--tam-apoio); font-weight: 600; color: var(--texto-2); margin-bottom: var(--e-2); }
   .c-estados .familia-cab { margin: 0; border-radius: var(--raio-3); padding: var(--e-4); }
+  /* Correção 31: o contador do Início é do relato de saúde; mesma cor de alerta na lateral e nas abas. */
+  .lateral__contador--alerta { color: var(--texto-inverso); background: var(--alerta); }
 </style>
 </head>
 <body>
@@ -67,15 +81,15 @@
       <a class="lateral__item" href="comercial-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">1</span></a>
       <a class="lateral__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
       <a class="lateral__item" href="comercial-conversas.html"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
-      <a class="lateral__item" href="comercial-ficha.html" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+      <!-- Correção 25: Famílias aponta para o pipeline (não existe lista própria no inventário);
+           esta ficha é aberta a partir de um cartão específico, então o item não fica "atual". -->
+      <a class="lateral__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
     </div>
-    <div class="lateral__grupo">
-      <span class="lateral__titulo-grupo">Agente</span>
-      <a class="lateral__item" href="comercial-agente-regras.html"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
-    </div>
+    <!-- Correção 30: "Agente" não é grupo do PRD 20.4; Regras da Isadora entra em Sistema,
+         e o Kit de componentes (nota de construção) sai da navegação do app. -->
     <div class="lateral__grupo">
       <span class="lateral__titulo-grupo">Sistema</span>
-      <a class="lateral__item" href="_kit.html"><svg class="icone"><use href="#i-layout-dashboard"/></svg>Kit de componentes</a>
+      <a class="lateral__item" href="comercial-agente-regras.html"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
       <a class="lateral__item" href="entrar.html"><svg class="icone"><use href="#i-log-out"/></svg>Sair</a>
     </div>
     <div class="lateral__pe">
@@ -104,11 +118,13 @@
         <button class="botao-freio" type="button" id="freio" aria-label="Freio: pausa na hora todas as mensagens automáticas para esta família">
           <svg class="icone"><use href="#i-hand"/></svg>Freio
         </button>
+        <!-- Correção 22: "ainda não" ao lado de "fato" lia como contradição; nas datas que
+             ainda não aconteceram, o rótulo de tipo passa a dizer o que vai acontecer. -->
         <dl class="familia-cab__datas">
           <div class="data-chave"><dt class="data-chave__rotulo">DPP</dt><dd class="data-chave__valor">15/11/2026</dd><dd class="data-chave__tipo">estimativa</dd></div>
-          <div class="data-chave"><dt class="data-chave__rotulo">Nascimento</dt><dd class="c4-ainda">ainda não</dd><dd class="data-chave__tipo">fato</dd></div>
-          <div class="data-chave"><dt class="data-chave__rotulo">Alta</dt><dd class="c4-ainda">ainda não</dd><dd class="data-chave__tipo">fato</dd></div>
-          <div class="data-chave"><dt class="data-chave__rotulo">Início</dt><dd class="c4-ainda">ainda não</dd><dd class="data-chave__tipo">fato</dd></div>
+          <div class="data-chave"><dt class="data-chave__rotulo">Nascimento</dt><dd class="c4-ainda">ainda não</dd><dd class="data-chave__tipo">vira fato quando acontecer</dd></div>
+          <div class="data-chave"><dt class="data-chave__rotulo">Alta</dt><dd class="c4-ainda">ainda não</dd><dd class="data-chave__tipo">vira fato quando acontecer</dd></div>
+          <div class="data-chave"><dt class="data-chave__rotulo">Início</dt><dd class="c4-ainda">ainda não</dd><dd class="data-chave__tipo">vira fato quando acontecer</dd></div>
         </dl>
       </div>
 
@@ -133,7 +149,7 @@
           <section class="c4-painel" id="p-tempo" role="tabpanel" aria-labelledby="a-tempo" tabindex="0">
             <ol class="c4-linha" aria-label="Marcos da Família Teste Dália">
               <li class="c4-marco" data-estado="feito"><span class="c4-marco__espinha" aria-hidden="true"></span><div class="c4-marco__corpo"><span class="c4-marco__quando">02/09/2026, 09:31</span><span class="c4-marco__titulo">Entrou pelo Instagram</span><span class="apoio">Mensagem pelo link do perfil. A Isadora respondeu em 1 minuto.</span></div></li>
-              <li class="c4-marco" data-estado="feito"><span class="c4-marco__espinha" aria-hidden="true"></span><div class="c4-marco__corpo"><span class="c4-marco__quando">03/09/2026, 10:00</span><span class="c4-marco__titulo">Follow-up D+1 da Isadora</span><span class="apoio">Sem resposta. Ficou em Em conversa.</span></div></li>
+              <li class="c4-marco" data-estado="feito"><span class="c4-marco__espinha" aria-hidden="true"></span><div class="c4-marco__corpo"><span class="c4-marco__quando">03/09/2026, 10:00</span><span class="c4-marco__titulo">Follow-up D+1 da Isadora</span><span class="apoio">Sem resposta. Continuou no estágio Em conversa.</span></div></li>
               <li class="c4-marco" data-estado="feito"><span class="c4-marco__espinha" aria-hidden="true"></span><div class="c4-marco__corpo"><span class="c4-marco__quando">19/09/2026, 20:05</span><span class="c4-marco__titulo">Qualificada pela Isadora</span><span class="apoio">Voltou a escrever com <span class="dado">31s6d</span>. Pinheiros, cobertura confirmada, primeiro bebê.</span></div></li>
               <li class="c4-marco" data-estado="feito"><span class="c4-marco__espinha" aria-hidden="true"></span><div class="c4-marco__corpo"><span class="c4-marco__quando">19/09/2026, 20:12</span><span class="c4-marco__titulo">Apresentação enviada</span><span class="apoio">PDF oficial, antes de qualquer valor. Imersão na página 11.</span></div></li>
               <li class="c4-marco" data-estado="feito"><span class="c4-marco__espinha" aria-hidden="true"></span><div class="c4-marco__corpo"><span class="c4-marco__quando">24/09/2026, 14:02</span><span class="c4-marco__titulo">Transferida ao comercial: quer contratar</span><span class="apoio">Imersão no Pix. A Isadora saiu da conversa e não volta sozinha.</span></div></li>
@@ -147,7 +163,7 @@
           <section class="c4-painel" id="p-com" role="tabpanel" aria-labelledby="a-com" tabindex="0" hidden>
             <dl class="pares">
               <dt>Plano de interesse</dt><dd>Imersão, 6 dias de 6 horas</dd>
-              <dt>Valor</dt><dd><span class="dado">R$ 7.800</span> ou 3x de <span class="dado">R$ 2.600</span> sem juros</dd>
+              <dt>Valor</dt><dd><span class="dado">R$ 7.800</span> <span class="selo selo--contorno">3x sem juros, condição a confirmar</span></dd>
               <dt>Pagamento preferido</dt><dd>Pix</dd>
               <dt>Para quem</dt><dd>A própria gestante</dd>
               <dt>Temperatura</dt><dd>Quente</dd>
@@ -230,7 +246,7 @@
         </div>
 
         <div id="estado-freio">
-          <p class="c-estado__titulo">Freio ativo</p>
+          <p class="c-estado__titulo">Freio ativo, com o papel de diretoria (Otávio Lemos)</p>
           <div class="pilha pilha--2">
             <div class="familia-cab" data-freio="ativo">
               <div>
@@ -239,11 +255,34 @@
                 <div class="familia-cab__linha"><span>Freio em bloqueio total desde 24/09/2026, 09:14. Só contato humano e nominal.</span></div>
               </div>
               <span class="freio-ativo"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio ativo</span>
+              <!-- Correção 15: as quatro datas ficam sempre visíveis (PRD 20.4), mesmo com o freio ativo. -->
               <dl class="familia-cab__datas">
                 <div class="data-chave"><dt class="data-chave__rotulo">DPP</dt><dd class="data-chave__valor">02/10/2026</dd><dd class="data-chave__tipo">estimativa</dd></div>
-                <div class="data-chave"><dt class="data-chave__rotulo">Nascimento</dt><dd class="c4-ainda">ainda não</dd><dd class="data-chave__tipo">fato</dd></div>
+                <div class="data-chave"><dt class="data-chave__rotulo">Nascimento</dt><dd class="c4-ainda">ainda não</dd><dd class="data-chave__tipo">vira fato quando acontecer</dd></div>
+                <div class="data-chave"><dt class="data-chave__rotulo">Alta</dt><dd class="c4-ainda">ainda não</dd><dd class="data-chave__tipo">vira fato quando acontecer</dd></div>
+                <div class="data-chave"><dt class="data-chave__rotulo">Início</dt><dd class="c4-ainda">ainda não</dd><dd class="data-chave__tipo">vira fato quando acontecer</dd></div>
               </dl>
             </div>
+            <div class="faixa faixa--sensivel">
+              <svg class="icone"><use href="#i-octagon-pause"/></svg>
+              <div>
+                <p class="faixa__titulo">Justificar o freio</p>
+                <p class="faixa__texto">Você acionou às 09:14. Escreva o motivo até hoje, 18:00. Reverter é com a coordenação ou a diretoria.</p>
+                <!-- Correção 16: Otávio Lemos também tem o papel de diretoria, então a ação de
+                     reverter existe aqui, não só como texto. -->
+                <div class="faixa__acoes">
+                  <a class="botao botao--compacto" href="comercial-inicio.html">Escrever justificativa</a>
+                  <button class="botao botao--compacto" type="button" id="abrir-reverter">Reverter ou ajustar o freio</button>
+                </div>
+              </div>
+            </div>
+            <p class="apoio">Follow-up, régua, pesquisa e indicação aparecem como pausados pelo freio. Mensagem só por uma pessoa, pelo nome.</p>
+          </div>
+        </div>
+
+        <div>
+          <p class="c-estado__titulo">Freio ativo, papel só comercial (sem diretoria)</p>
+          <div class="pilha pilha--2">
             <div class="faixa faixa--sensivel">
               <svg class="icone"><use href="#i-octagon-pause"/></svg>
               <div>
@@ -252,7 +291,7 @@
                 <div class="faixa__acoes"><a class="botao botao--compacto" href="comercial-inicio.html">Escrever justificativa</a></div>
               </div>
             </div>
-            <p class="apoio">Follow-up, régua, pesquisa e indicação aparecem como pausados pelo freio. Mensagem só por uma pessoa, pelo nome.</p>
+            <p class="apoio">Sem o papel de diretoria, quem acionou só justifica; reverter fica com a coordenação clínica ou a diretoria.</p>
           </div>
         </div>
 
@@ -275,7 +314,7 @@
             <svg class="icone"><use href="#i-copy"/></svg>
             <div>
               <p class="faixa__titulo">Parece a mesma família que a Família Teste Ipê</p>
-              <p class="faixa__texto">O nome da gestante e o bairro batem, e os telefones são diferentes. Compare antes de unir: a união junta conversas e linha do tempo e não se desfaz sozinha.</p>
+              <p class="faixa__texto">O e-mail e a DPP batem; nome, bairro e telefone são diferentes. Compare antes de unir: a união junta conversas e linha do tempo e não se desfaz sozinha.</p>
               <div class="faixa__acoes">
                 <button class="botao botao--compacto" type="button"><svg class="icone"><use href="#i-copy"/></svg>Comparar e unir</button>
                 <button class="botao botao--terciario botao--compacto" type="button">Não é a mesma</button>
@@ -305,7 +344,7 @@
     <a class="abas-inf__item" href="comercial-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">1</span></a>
     <a class="abas-inf__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
     <a class="abas-inf__item" href="comercial-conversas.html"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
-    <a class="abas-inf__item" href="comercial-ficha.html" aria-current="page"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
     <a class="abas-inf__item" href="comercial.html"><svg class="icone"><use href="#i-ellipsis"/></svg>Mais</a>
   </nav>
 
@@ -314,6 +353,33 @@
     <span data-texto></span>
     <button class="botao botao--compacto empurra" type="button" data-desfazer>Desfazer <span class="dado" data-seg>10 s</span></button>
   </div>
+
+  <!-- Correção 16: folha de reversão do freio, só para quem tem papel de diretoria. -->
+  <div class="c2-folha-veu" id="veu-reverter" hidden style="position: fixed; inset: 0; z-index: calc(var(--z-folha) - 1); background: color-mix(in srgb, var(--marinho) 40%, transparent);"></div>
+  <section class="folha" id="folha-reverter" role="dialog" aria-modal="true" aria-labelledby="fr2-t" hidden>
+    <form class="pilha pilha--6" id="form-reverter">
+      <div class="pilha pilha--2">
+        <h2 class="t-1" id="fr2-t">Reverter ou ajustar o freio</h2>
+        <p class="corpo">Família Teste Brisa. Registrado com seu nome e a hora.</p>
+      </div>
+      <fieldset class="pilha pilha--2">
+        <legend class="campo__rotulo" style="margin-bottom: var(--e-2)">O que fazer com o freio</legend>
+        <div class="marcas">
+          <input type="radio" name="freio-decisao" id="fd-reverter" value="Reverter, retomar contato normal"><label for="fd-reverter">Reverter, retomar contato normal</label>
+          <input type="radio" name="freio-decisao" id="fd-ajustar" value="Manter bloqueado, ajustar o motivo"><label for="fd-ajustar">Manter bloqueado, ajustar o motivo</label>
+        </div>
+      </fieldset>
+      <div class="campo" id="campo-justificativa-reverter">
+        <label class="campo__rotulo" for="justificativa-reverter">Justificativa</label>
+        <div class="campo__caixa"><textarea class="campo__entrada" id="justificativa-reverter" placeholder="Explique o motivo da decisão"></textarea></div>
+        <span class="campo__ajuda" hidden data-erro><svg class="icone"><use href="#i-circle-alert"/></svg>Escolha uma opção e escreva a justificativa antes de salvar.</span>
+      </div>
+      <div class="barra-acao barra-acao--estatica">
+        <button class="botao" type="button" id="reverter-voltar">Voltar</button>
+        <button class="botao botao--primario" type="submit">Salvar decisão</button>
+      </div>
+    </form>
+  </section>
 </div>
 
 <script>
@@ -374,6 +440,42 @@
   }
   freio.addEventListener('click', acionar);
   aviso.querySelector('[data-desfazer]').addEventListener('click', desfazer);
+
+  // Correção 16: folha "Reverter ou ajustar o freio", com justificativa obrigatória
+  var abrirReverter = document.getElementById('abrir-reverter');
+  if (abrirReverter) {
+    var folhaR = document.getElementById('folha-reverter'), veuR = document.getElementById('veu-reverter');
+    function fecharReverter() {
+      folhaR.hidden = true; veuR.hidden = true;
+      document.getElementById('campo-justificativa-reverter').removeAttribute('data-estado');
+      document.getElementById('campo-justificativa-reverter').querySelector('[data-erro]').hidden = true;
+    }
+    abrirReverter.addEventListener('click', function () {
+      folhaR.hidden = false; veuR.hidden = false;
+      document.getElementById('fd-reverter').focus();
+    });
+    document.getElementById('reverter-voltar').addEventListener('click', fecharReverter);
+    veuR.addEventListener('click', fecharReverter);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !folhaR.hidden) fecharReverter(); });
+    document.getElementById('form-reverter').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var decisao = folhaR.querySelector('input[name="freio-decisao"]:checked');
+      var justificativa = document.getElementById('justificativa-reverter').value.trim();
+      var campoR = document.getElementById('campo-justificativa-reverter');
+      if (!decisao || !justificativa) {
+        campoR.dataset.estado = 'erro';
+        campoR.querySelector('[data-erro]').hidden = false;
+        (decisao ? document.getElementById('justificativa-reverter') : document.getElementById('fd-reverter')).focus();
+        return;
+      }
+      fecharReverter();
+      var aviso = document.getElementById('aviso');
+      aviso.querySelector('[data-texto]').textContent = decisao.value + ': salvo às 15:29 por Otávio Lemos.';
+      aviso.querySelector('[data-desfazer]').hidden = true;
+      aviso.hidden = false;
+      setTimeout(function () { aviso.hidden = true; }, 6000);
+    });
+  }
 
   // Dados do contrato: ver completo gera registro
   var ver = document.getElementById('ver-dados');

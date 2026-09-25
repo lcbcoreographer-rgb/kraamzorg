@@ -25,11 +25,19 @@
   .c5-filtros .dado { color: inherit; opacity: .8; }
   @media (min-width: 1024px) { .c5-filtros { margin: 0; padding: var(--e-1) 0; overflow: visible; } .c5-filtros .marcas { flex-wrap: wrap; } }
 
+  /* P0 (correção 1): .c5-filtros não quebra linha e estica a coluna esquerda de .duas-colunas
+     no celular sem esta regra, o que faz a página inteira rolar de lado. */
+  .duas-colunas > * { min-width: 0; }
+
   .c5-lista { display: flex; flex-direction: column; }
   .c5-conversa { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--e-2) var(--e-3); padding: var(--e-4) 0; border-bottom: var(--borda-fina); }
   .c5-conversa:first-child { padding-top: var(--e-2); }
-  .c5-conversa__nome { font-weight: 600; font-size: var(--tam-3); text-decoration: none; }
+  /* Correção 13: o nome da família é o alvo de toque da linha; precisa dos 44 px mínimos. */
+  .c5-conversa__nome { display: inline-flex; align-items: center; min-height: var(--toque); font-weight: 600; font-size: var(--tam-3); text-decoration: none; }
   a.c5-conversa__nome:hover { text-decoration: underline; }
+  /* Correção 31: o contador do Início é do relato de saúde (prioridade máxima); a versão do
+     computador usava a cor de areia (neutra) enquanto a das abas inferiores já era vermelha. */
+  .lateral__contador--alerta { color: var(--texto-inverso); background: var(--alerta); }
   .c5-conversa__hora { font-family: var(--fonte-dado); font-size: var(--tam-mini); color: var(--texto-2); white-space: nowrap; }
   .c5-conversa__estado { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--e-2); align-items: center; }
   .c5-previa { grid-column: 1 / -1; font-size: var(--tam-apoio); color: var(--texto-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -61,15 +69,13 @@
       <a class="lateral__item" href="comercial-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="lateral__contador lateral__contador--alerta">1</span></a>
       <a class="lateral__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
       <a class="lateral__item" href="comercial-conversas.html" aria-current="page"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
-      <a class="lateral__item" href="comercial-ficha.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+      <a class="lateral__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
     </div>
-    <div class="lateral__grupo">
-      <span class="lateral__titulo-grupo">Agente</span>
-      <a class="lateral__item" href="comercial-agente-regras.html"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
-    </div>
+    <!-- Correção 30: "Agente" não é grupo do PRD 20.4; Regras da Isadora entra em Sistema,
+         e o Kit de componentes (nota de construção) sai da navegação do app. -->
     <div class="lateral__grupo">
       <span class="lateral__titulo-grupo">Sistema</span>
-      <a class="lateral__item" href="_kit.html"><svg class="icone"><use href="#i-layout-dashboard"/></svg>Kit de componentes</a>
+      <a class="lateral__item" href="comercial-agente-regras.html"><svg class="icone"><use href="#i-bot"/></svg>Regras da Isadora</a>
       <a class="lateral__item" href="entrar.html"><svg class="icone"><use href="#i-log-out"/></svg>Sair</a>
     </div>
     <div class="lateral__pe">
@@ -91,8 +97,8 @@
             <legend class="sr">Mostrar</legend>
             <input type="radio" name="filtro" id="f-todas" value="todas" checked><label for="f-todas">Todas <span class="dado" data-conta="todas">7</span></label>
             <input type="radio" name="filtro" id="f-isadora" value="isadora"><label for="f-isadora">Isadora conduzindo <span class="dado" data-conta="isadora">2</span></label>
-            <input type="radio" name="filtro" id="f-equipe" value="equipe"><label for="f-equipe">Com a equipe <span class="dado" data-conta="equipe">2</span></label>
-            <input type="radio" name="filtro" id="f-pausadas" value="pausada"><label for="f-pausadas">Pausadas <span class="dado" data-conta="pausada">2</span></label>
+            <input type="radio" name="filtro" id="f-equipe" value="equipe"><label for="f-equipe">Com a equipe <span class="dado" data-conta="equipe">1</span></label>
+            <input type="radio" name="filtro" id="f-pausadas" value="pausada"><label for="f-pausadas">Pausadas <span class="dado" data-conta="pausada">3</span></label>
             <input type="radio" name="filtro" id="f-naolead" value="naolead"><label for="f-naolead">Não lead <span class="dado" data-conta="naolead">1</span></label>
           </fieldset>
         </div>
@@ -149,7 +155,7 @@
             <span class="c5-conversa__hora">14:33</span>
             <div class="c5-conversa__estado">
               <span class="selo selo--aviso"><svg class="icone"><use href="#i-hourglass"/></svg>Pausada, transferência aberta</span>
-              <span class="mini">Isadora parada até 26/09, 14:34</span>
+              <span class="mini">Com o comercial. A Isadora não volta a esta conversa.</span>
             </div>
             <p class="c5-previa"><b>Família:</b> Existe algum desconto se eu pagar tudo no Pix?</p>
             <div class="c5-acoes">
@@ -171,9 +177,11 @@
             </div>
           </article>
 
-          <!-- Freio: IA desativada -->
-          <article class="c5-conversa" data-grupo="equipe" aria-labelledby="c-brisa">
-            <a class="c5-conversa__nome" id="c-brisa" href="comercial-ficha.html#estado-freio">Família Teste Brisa</a>
+          <!-- Freio: IA desativada. Correção 26: aponta para a conversa (faixa sensível e
+               compositor nominal), não para a ficha, e sai do grupo "Com a equipe" (ninguém
+               da equipe assumiu; é o freio que barra a Isadora). -->
+          <article class="c5-conversa" data-grupo="pausada" aria-labelledby="c-brisa">
+            <a class="c5-conversa__nome" id="c-brisa" href="comercial-conversa.html#estado-freio-conversa">Família Teste Brisa</a>
             <span class="c5-conversa__hora">09:10</span>
             <div class="c5-conversa__estado">
               <span class="selo selo--sensivel"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio: Isadora desligada</span>
@@ -181,7 +189,7 @@
             </div>
             <p class="c5-previa">Última mensagem da família às 09:10. A prévia fica fechada nesta lista.</p>
             <div class="c5-acoes">
-              <a class="botao botao--compacto" href="comercial-ficha.html#estado-freio">Abrir com cuidado</a>
+              <a class="botao botao--compacto" href="comercial-conversa.html#estado-freio-conversa">Abrir com cuidado</a>
             </div>
           </article>
 
@@ -209,7 +217,7 @@
 
       <aside class="cartao cartao--areia c5-legenda" aria-labelledby="t-legenda">
         <h2 class="t-3" id="t-legenda">Em que mão está cada conversa</h2>
-        <div class="c5-legenda__item"><span class="selo selo--isadora" style="justify-self: start"><svg class="icone"><use href="#i-bot"/></svg>Isadora conduzindo</span><span class="apoio">Ela responde. Se você assumir, ela para de responder nessa conversa.</span></div>
+        <div class="c5-legenda__item"><span class="selo selo--isadora" style="justify-self: start"><svg class="icone"><use href="#i-bot"/></svg>Isadora conduzindo</span><span class="apoio">Ela responde. Se você assumir, ela para de responder aqui até você devolver.</span></div>
         <div class="c5-legenda__item"><span class="selo selo--marinho" style="justify-self: start"><svg class="icone"><use href="#i-user-check"/></svg>Com a equipe</span><span class="apoio">Uma pessoa assumiu. Lead qualificado não volta para a Isadora.</span></div>
         <div class="c5-legenda__item"><span class="selo selo--aviso" style="justify-self: start"><svg class="icone"><use href="#i-hourglass"/></svg>Pausada</span><span class="apoio">Transferência aberta ou pausa manual. A mensagem fica guardada, sem resposta automática.</span></div>
         <div class="c5-legenda__item"><span class="selo selo--sensivel" style="justify-self: start"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio</span><span class="apoio">Nada automático sai. Só uma pessoa, pelo nome.</span></div>
@@ -257,7 +265,7 @@
     <a class="abas-inf__item" href="comercial-inicio.html"><svg class="icone"><use href="#i-house"/></svg>Início<span class="abas-inf__contador">1</span></a>
     <a class="abas-inf__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
     <a class="abas-inf__item" href="comercial-conversas.html" aria-current="page"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas</a>
-    <a class="abas-inf__item" href="comercial-ficha.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="comercial-pipeline.html"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
     <a class="abas-inf__item" href="comercial.html"><svg class="icone"><use href="#i-ellipsis"/></svg>Mais</a>
   </nav>
 
@@ -321,15 +329,26 @@
 
     if (assumir) assumir.addEventListener('click', function () {
       var antesE = estado.innerHTML, antesG = c.dataset.grupo;
-      estado.innerHTML = '<span class="selo selo--marinho"><svg class="icone"><use href="#i-user-check"/></svg>Com Otávio Lemos</span><span class="mini">desde 15:26. A Isadora parou de responder aqui.</span>';
+      estado.innerHTML = '<span class="selo selo--marinho"><svg class="icone"><use href="#i-user-check"/></svg>Com Otávio Lemos</span><span class="mini">desde 15:26. A Isadora parou de responder aqui até você devolver.</span>';
       assumir.hidden = true; if (pausar) pausar.hidden = true;
       var abrir = document.createElement('a');
       abrir.className = 'botao botao--compacto'; abrir.href = 'comercial-conversa.html';
       abrir.innerHTML = '<svg class="icone"><use href="#i-message-circle"/></svg>Abrir conversa';
       acoes.appendChild(abrir);
+      // Correção 17: lead ainda não qualificado (é o único caso com botão "Assumir" nesta
+      // lista); a pausa vale até alguém devolver a conversa, então "Devolver à Isadora" existe.
+      var devolver = document.createElement('button');
+      devolver.className = 'botao botao--terciario botao--compacto'; devolver.type = 'button';
+      devolver.textContent = 'Devolver à Isadora';
+      devolver.addEventListener('click', function () {
+        estado.innerHTML = antesE; abrir.remove(); devolver.remove(); assumir.hidden = false; if (pausar) pausar.hidden = false;
+        c.dataset.grupo = antesG; contar(); filtrar();
+        avisar('Você devolveu a conversa da ' + nome + ' para a Isadora.');
+      });
+      acoes.appendChild(devolver);
       c.dataset.grupo = 'equipe'; contar(); filtrar();
       avisar('Você assumiu a conversa da ' + nome + ' às 15:26.', function () {
-        estado.innerHTML = antesE; abrir.remove(); assumir.hidden = false; if (pausar) pausar.hidden = false;
+        estado.innerHTML = antesE; abrir.remove(); devolver.remove(); assumir.hidden = false; if (pausar) pausar.hidden = false;
         c.dataset.grupo = antesG; contar(); filtrar();
       });
     });
