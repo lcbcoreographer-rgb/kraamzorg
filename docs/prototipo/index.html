@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kraamzorg OS · Protótipo</title>
+  <link rel="stylesheet" href="assets/tokens.css">
+  <link rel="stylesheet" href="assets/base.css">
+  <style>
+    .indice {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--e-4) var(--margem-tela) var(--e-12);
+      gap: var(--e-8);
+    }
+
+    .indice__cabecalho {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--e-4);
+    }
+
+    .indice__logo {
+      width: 100%;
+      max-width: 200px;
+      height: auto;
+    }
+
+    .indice__titulo {
+      font-family: var(--fonte-titulo);
+      font-weight: 400;
+      font-size: var(--tam-display);
+      line-height: 1.05;
+      letter-spacing: var(--rastro-titulo);
+      color: var(--marinho);
+      margin: 0;
+    }
+
+    .indice__descricao {
+      color: var(--texto-2);
+      font-size: var(--tam-corpo);
+      line-height: var(--entre-corpo);
+      max-width: 60ch;
+    }
+
+    .indice__navegacao {
+      display: flex;
+      flex-direction: column;
+      gap: var(--e-3);
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .indice__link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: var(--toque);
+      padding: var(--e-3) var(--e-4);
+      background: var(--marinho);
+      color: var(--acao-texto);
+      text-decoration: none;
+      border-radius: var(--raio-pilula);
+      font-weight: 500;
+      font-size: var(--tam-corpo);
+      transition: all var(--dur-rapida) var(--curva-saida);
+      border: 2px solid var(--marinho);
+    }
+
+    .indice__link:hover {
+      background: var(--marinho-claro);
+      border-color: var(--dourado);
+    }
+
+    .indice__link:focus-visible {
+      outline: 2px solid var(--marinho);
+      outline-offset: 2px;
+    }
+
+    .indice__link--secundario {
+      background: transparent;
+      color: var(--marinho);
+      border-color: var(--marinho);
+    }
+
+    .indice__link--secundario:hover {
+      background: var(--marinho-08);
+      border-color: var(--dourado);
+      color: var(--marinho);
+    }
+
+    .indice__galeria {
+      width: 100%;
+      max-width: 1240px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--e-6);
+      margin-top: var(--e-8);
+    }
+
+    .indice__galeria-titulo {
+      font-family: var(--fonte-titulo);
+      font-weight: 500;
+      font-size: var(--tam-2);
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      color: var(--marinho);
+      text-align: center;
+    }
+
+    .indice__grade-capturas {
+      display: grid;
+      gap: var(--e-4);
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    }
+
+    .indice__captura-item {
+      display: flex;
+      flex-direction: column;
+      gap: var(--e-2);
+      background: var(--superficie);
+      border-radius: var(--raio-2);
+      overflow: hidden;
+      border: var(--borda-fina);
+      transition: all var(--dur-rapida) var(--curva-saida);
+    }
+
+    .indice__captura-item:hover {
+      box-shadow: var(--sombra-1);
+    }
+
+    .indice__captura-imagem {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: var(--marinho-08);
+    }
+
+    .indice__captura-legenda {
+      padding: var(--e-3) var(--e-4);
+      font-size: var(--tam-apoio);
+      line-height: 1.45;
+      color: var(--texto-2);
+      font-weight: 500;
+    }
+
+    @media (min-width: 1024px) {
+      .indice {
+        padding: var(--e-8);
+      }
+
+      .indice__titulo {
+        font-size: var(--tam-display-g);
+      }
+
+      .indice__navegacao {
+        flex-direction: row;
+        max-width: 600px;
+        gap: var(--e-4);
+      }
+
+      .indice__link {
+        flex: 1;
+      }
+
+      .indice__grade-capturas {
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 350px), 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="indice">
+    <div class="indice__cabecalho">
+      <img src="assets/logo-provisorio.png" alt="Kraamzorg OS" class="indice__logo">
+      <h1 class="indice__titulo">Protótipo</h1>
+      <p class="indice__descricao">Navegação interativa com dados fictícios e claramente identificados.</p>
+    </div>
+
+    <nav class="indice__navegacao">
+      <a href="enfermeira.html" class="indice__link">Enfermeira em campo</a>
+      <a href="comercial.html" class="indice__link--secundario indice__link">Comercial</a>
+      <a href="coordenacao.html" class="indice__link">Coordenação clínica</a>
+      <a href="_kit.html" class="indice__link--secundario indice__link">Kit de componentes</a>
+    </nav>
+
+    <section class="indice__galeria">
+      <h2 class="indice__galeria-titulo">Capturas de tela</h2>
+      <div class="indice__grade-capturas">
+        <div class="indice__captura-item">
+          <img src="capturas/coordenacao-inicio-390.png" alt="Tela de início para coordenação no celular" class="indice__captura-imagem">
+          <p class="indice__captura-legenda">Início · Celular</p>
+        </div>
+        <div class="indice__captura-item">
+          <img src="capturas/coordenacao-inicio-1280.png" alt="Tela de início para coordenação no computador" class="indice__captura-imagem">
+          <p class="indice__captura-legenda">Início · Computador</p>
+        </div>
+        <div class="indice__captura-item">
+          <img src="capturas/coordenacao-equipe-390.png" alt="Gestão da equipe no celular" class="indice__captura-imagem">
+          <p class="indice__captura-legenda">Equipe · Celular</p>
+        </div>
+        <div class="indice__captura-item">
+          <img src="capturas/coordenacao-equipe-1280.png" alt="Gestão da equipe no computador" class="indice__captura-imagem">
+          <p class="indice__captura-legenda">Equipe · Computador</p>
+        </div>
+        <div class="indice__captura-item">
+          <img src="capturas/coordenacao-radar-390.png" alt="Radar de famílias no celular" class="indice__captura-imagem">
+          <p class="indice__captura-legenda">Radar · Celular</p>
+        </div>
+        <div class="indice__captura-item">
+          <img src="capturas/coordenacao-radar-1280.png" alt="Radar de famílias no computador" class="indice__captura-imagem">
+          <p class="indice__captura-legenda">Radar · Computador</p>
+        </div>
+        <div class="indice__captura-item">
+          <img src="capturas/coordenacao-freio-390.png" alt="Freio global no celular" class="indice__captura-imagem">
+          <p class="indice__captura-legenda">Freio global · Celular</p>
+        </div>
+        <div class="indice__captura-item">
+          <img src="capturas/coordenacao-freio-1280.png" alt="Freio global no computador" class="indice__captura-imagem">
+          <p class="indice__captura-legenda">Freio global · Computador</p>
+        </div>
+        <div class="indice__captura-item">
+          <img src="capturas/coordenacao-designar-390.png" alt="Designação de enfermeira no celular" class="indice__captura-imagem">
+          <p class="indice__captura-legenda">Designação · Celular</p>
+        </div>
+        <div class="indice__captura-item">
+          <img src="capturas/coordenacao-designar-1280.png" alt="Designação de enfermeira no computador" class="indice__captura-imagem">
+          <p class="indice__captura-legenda">Designação · Computador</p>
+        </div>
+        <div class="indice__captura-item">
+          <img src="capturas/coordenacao-entrevista-390.png" alt="Entrevista com família no celular" class="indice__captura-imagem">
+          <p class="indice__captura-legenda">Entrevista · Celular</p>
+        </div>
+        <div class="indice__captura-item">
+          <img src="capturas/coordenacao-entrevista-1280.png" alt="Entrevista com família no computador" class="indice__captura-imagem">
+          <p class="indice__captura-legenda">Entrevista · Computador</p>
+        </div>
+        <div class="indice__captura-item">
+          <img src="capturas/coordenacao-alerta-390.png" alt="Alerta clínico no celular" class="indice__captura-imagem">
+          <p class="indice__captura-legenda">Alerta · Celular</p>
+        </div>
+        <div class="indice__captura-item">
+          <img src="capturas/coordenacao-alerta-1280.png" alt="Alerta clínico no computador" class="indice__captura-imagem">
+          <p class="indice__captura-legenda">Alerta · Computador</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
