@@ -14,6 +14,9 @@ const SRC = join(RAIZ, "src");
 const AUTORIZADOS = new Set([
   "src/lib/db/cliente-servico.ts",
   "src/lib/dados/supabase/usuarios.ts",
+  // Webhooks sem sessão de usuário (P31 e P32, motivos em cliente-servico.ts).
+  "src/app/api/webhooks/autentique/[segredo]/route.ts",
+  "src/app/api/webhooks/infinitepay/route.ts",
 ]);
 
 function arquivos(pasta: string): string[] {
