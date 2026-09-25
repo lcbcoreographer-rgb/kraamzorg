@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8ED">
+<title>Kit de componentes · Kraamzorg OS</title>
+<link rel="icon" href="assets/simbolo-provisorio.png">
+<link rel="preload" href="assets/fonts/jost-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/base.css">
+<script src="assets/icones.js"></script>
+<style>
+  /* Só composição da página do kit. Nada aqui vira componente. */
+  .kit-secao { padding: var(--e-8) 0; border-bottom: var(--borda-fina); display: flex; flex-direction: column; gap: var(--e-5); }
+  .kit-secao > p.apoio { max-width: 64ch; }
+  .kit-amostras { display: flex; flex-wrap: wrap; gap: var(--e-3); align-items: center; }
+  .kit-cor { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: var(--e-3); align-items: center; }
+  .kit-cor__chip { width: 48px; height: 48px; border-radius: var(--raio-2); border: var(--borda-fina); }
+  .kit-tipo > * + * { margin-top: var(--e-3); }
+  .kit-telefone { max-width: 420px; }
+  .kit-topo { padding: var(--e-6) 0 var(--e-2); display: flex; flex-direction: column; gap: var(--e-3); }
+</style>
+</head>
+<body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+<div class="app">
+
+  <nav class="lateral" aria-label="Navegação principal">
+    <div class="lateral__marca">
+      <img src="assets/simbolo-provisorio.png" alt="" width="36" height="31">
+      <span class="lateral__nome">Kraamzorg OS</span>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Comercial</span>
+      <a class="lateral__item" href="#"><svg class="icone"><use href="#i-house"/></svg>Início</a>
+      <a class="lateral__item" href="#"><svg class="icone"><use href="#i-kanban"/></svg>Pipeline</a>
+      <a class="lateral__item" href="#"><svg class="icone"><use href="#i-message-circle"/></svg>Conversas<span class="lateral__contador lateral__contador--alerta">3</span></a>
+      <a class="lateral__item" href="#"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Operação</span>
+      <a class="lateral__item" href="#"><svg class="icone"><use href="#i-radar"/></svg>Radar</a>
+      <a class="lateral__item" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Agenda</a>
+      <a class="lateral__item" href="#"><svg class="icone"><use href="#i-user-check"/></svg>Equipe</a>
+      <a class="lateral__item" href="#"><svg class="icone"><use href="#i-siren"/></svg>Alertas<span class="lateral__contador">2</span></a>
+    </div>
+    <div class="lateral__grupo">
+      <span class="lateral__titulo-grupo">Sistema</span>
+      <a class="lateral__item" href="#" aria-current="page"><svg class="icone"><use href="#i-layout-dashboard"/></svg>Kit de componentes</a>
+      <a class="lateral__item" href="#"><svg class="icone"><use href="#i-settings"/></svg>Configurações</a>
+    </div>
+    <div class="lateral__pe">
+      <div class="forte">Beatriz Falcão</div>
+      <div class="mini" style="color: var(--texto-inverso-2)">Coordenação clínica · perfil fictício</div>
+    </div>
+  </nav>
+
+  <main class="app__principal" id="conteudo">
+    <header class="cab-tela">
+      <span class="cab-tela__titulo">Kit de componentes</span>
+      <span class="sinc empurra" data-estado="sincronizado" role="status"><svg class="icone"><use href="#i-cloud-check"/></svg>Sincronizado 11:42</span>
+    </header>
+
+    <div class="kit-topo">
+      <h1 class="t-display equilibrado">Caderneta de visita</h1>
+      <p class="corpo apoio">Componentes que as telas do Kraamzorg OS usam. Todos os dados são fictícios: famílias “Família Teste”, telefones +55 11 90000-00xx, profissionais com nomes inventados.</p>
+    </div>
+
+    <!-- Cabeçalho da família -->
+    <section class="kit-secao" aria-labelledby="s-familia">
+      <h2 class="t-2" id="s-familia">Cabeçalho da família com freio</h2>
+      <div class="familia-cab">
+        <div>
+          <h3 class="familia-cab__nome">Família Teste Aurora</h3>
+          <div class="familia-cab__linha">
+            <span class="selo selo--marinho">Em atendimento</span>
+            <span class="forte">D4 de 6</span><span>Moema, São Paulo</span>
+          </div>
+        </div>
+        <button class="botao-freio" type="button" aria-label="Acionar freio: pausa todas as mensagens automáticas para esta família">
+          <svg class="icone"><use href="#i-hand"/></svg>Freio
+        </button>
+        <dl class="familia-cab__datas">
+          <div class="data-chave"><dt class="data-chave__rotulo">DPP</dt><dd class="data-chave__valor">25/09/2026</dd><dd class="data-chave__tipo">estimativa</dd></div>
+          <div class="data-chave"><dt class="data-chave__rotulo">Nascimento</dt><dd class="data-chave__valor">18/09/2026</dd><dd class="data-chave__tipo">fato</dd></div>
+          <div class="data-chave"><dt class="data-chave__rotulo">Alta</dt><dd class="data-chave__valor">20/09/2026</dd><dd class="data-chave__tipo">fato</dd></div>
+          <div class="data-chave"><dt class="data-chave__rotulo">Início</dt><dd class="data-chave__valor">21/09/2026</dd><dd class="data-chave__tipo">fato</dd></div>
+        </dl>
+      </div>
+      <p class="apoio">Com o freio acionado, o cabeçalho inteiro muda de cor. O estado aparece em todas as telas da família.</p>
+      <div class="familia-cab" data-freio="ativo">
+        <div>
+          <h3 class="familia-cab__nome">Família Teste Brisa</h3>
+          <div class="familia-cab__linha"><span>Freio em bloqueio total desde 24/09/2026, 09:14. Só contato humano e nominal.</span></div>
+        </div>
+        <span class="freio-ativo"><svg class="icone"><use href="#i-octagon-pause"/></svg>Freio ativo</span>
+      </div>
+      <div class="aviso-efemero aviso-efemero--estatico" role="status">
+        <svg class="icone"><use href="#i-octagon-pause"/></svg>
+        <span>Freio acionado. Nenhuma mensagem automática sai para a Família Teste Aurora.</span>
+        <button class="botao botao--compacto empurra" type="button">Desfazer</button>
+      </div>
+    </section>
+
+    <!-- Régua de dias -->
+    <section class="kit-secao" aria-labelledby="s-regua">
+      <h2 class="t-2" id="s-regua">Régua de dias</h2>
+      <p class="apoio">A forma que o produto inteiro herda: dia feito em marinho, hoje com borda dourada, ficha pendente hachurada, dia futuro tracejado.</p>
+      <ol class="regua" style="--dias: 6" aria-label="Acompanhamento de 6 dias da Família Teste Aurora">
+        <li class="regua__dia" data-estado="feito"><span class="regua__n">D1</span><span class="regua__data">21/09</span></li>
+        <li class="regua__dia" data-estado="feito"><span class="regua__n">D2</span><span class="regua__data">22/09</span></li>
+        <li class="regua__dia" data-estado="pendente"><span class="regua__n">D3</span><span class="regua__data">ficha</span></li>
+        <li class="regua__dia" data-estado="hoje" aria-current="date"><span class="regua__n">D4</span><span class="regua__data">hoje</span></li>
+        <li class="regua__dia"><span class="regua__n">D5</span><span class="regua__data">25/09</span></li>
+        <li class="regua__dia"><span class="regua__n">D6</span><span class="regua__data">26/09</span></li>
+      </ol>
+      <ol class="regua regua--12" style="--dias: 12" aria-label="Acompanhamento de 12 dias da Família Teste Cedro">
+        <li class="regua__dia" data-estado="feito"><span class="regua__n">D1</span></li>
+        <li class="regua__dia" data-estado="feito"><span class="regua__n">D2</span></li>
+        <li class="regua__dia" data-estado="feito"><span class="regua__n">D3</span></li>
+        <li class="regua__dia" data-estado="feito"><span class="regua__n">D4</span></li>
+        <li class="regua__dia" data-estado="alerta"><span class="regua__n">D5</span></li>
+        <li class="regua__dia" data-estado="feito"><span class="regua__n">D6</span></li>
+        <li class="regua__dia" data-estado="hoje" aria-current="date"><span class="regua__n">D7</span></li>
+        <li class="regua__dia"><span class="regua__n">D8</span></li>
+        <li class="regua__dia"><span class="regua__n">D9</span></li>
+        <li class="regua__dia"><span class="regua__n">D10</span></li>
+        <li class="regua__dia"><span class="regua__n">D11</span></li>
+        <li class="regua__dia"><span class="regua__n">D12</span></li>
+      </ol>
+      <div class="pilha pilha--2" style="max-width: 320px">
+        <span class="apoio">Versão fina, para linhas de lista</span>
+        <ol class="regua regua--fina" style="--dias: 6" aria-label="D4 de 6">
+          <li class="regua__dia" data-estado="feito"></li><li class="regua__dia" data-estado="feito"></li><li class="regua__dia" data-estado="pendente"></li>
+          <li class="regua__dia" data-estado="hoje"></li><li class="regua__dia"></li><li class="regua__dia"></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Formulário do checklist -->
+    <section class="kit-secao" aria-labelledby="s-form">
+      <h2 class="t-2" id="s-form">Checklist: progresso, perguntas e campos</h2>
+      <div class="blocos kit-telefone">
+        <div class="blocos__rotulo"><span>Bloco 3 de 8 · Sinais vitais</span><span class="dado">D4</span></div>
+        <div class="blocos__trilha" style="--n: 8" aria-hidden="true">
+          <span data-estado="feito"></span><span data-estado="feito"></span><span data-estado="atual"></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+
+      <div class="kit-telefone">
+        <fieldset class="pergunta">
+          <legend class="pergunta__texto">Higienização das mãos</legend>
+          <div class="sim-nao">
+            <input type="radio" id="q1s" name="q1" checked><label for="q1s"><svg class="icone"><use href="#i-check"/></svg>Sim</label>
+            <input type="radio" id="q1n" name="q1"><label for="q1n"><svg class="icone"><use href="#i-check"/></svg>Não</label>
+          </div>
+        </fieldset>
+        <fieldset class="pergunta">
+          <legend class="pergunta__texto">Sangramento (lóquios) esperado</legend>
+          <div class="sim-nao">
+            <input type="radio" id="q2s" name="q2"><label for="q2s"><svg class="icone"><use href="#i-check"/></svg>Sim</label>
+            <input type="radio" id="q2n" name="q2"><label for="q2n"><svg class="icone"><use href="#i-check"/></svg>Não</label>
+          </div>
+        </fieldset>
+        <fieldset class="pergunta" data-estado="alerta-clinico">
+          <legend class="pergunta__texto">Respiração do bebê sem sinais de esforço</legend>
+          <div class="sim-nao">
+            <input type="radio" id="q3s" name="q3"><label for="q3s"><svg class="icone"><use href="#i-check"/></svg>Sim</label>
+            <input type="radio" id="q3n" name="q3" checked><label for="q3n"><svg class="icone"><use href="#i-check"/></svg>Não</label>
+          </div>
+          <p class="pergunta__detalhe apoio">Resposta “Não” abre o alerta RN-01 logo abaixo.</p>
+        </fieldset>
+      </div>
+
+      <div class="grade">
+        <div class="campo" data-estado="alerta-clinico">
+          <label class="campo__rotulo" for="temp">Temperatura da puérpera</label>
+          <div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="temp" inputmode="decimal" value="38,2" aria-describedby="temp-a"><span class="campo__unidade">°C</span></div>
+          <p class="campo__ajuda" id="temp-a"><svg class="icone"><use href="#i-clock"/></svg>No D3 foi 36,9 °C. Salvo no aparelho às 11:08.</p>
+        </div>
+        <div class="campo" data-estado="erro">
+          <label class="campo__rotulo" for="fc">Frequência cardíaca</label>
+          <div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="fc" inputmode="numeric" value="8" aria-invalid="true" aria-describedby="fc-e"><span class="campo__unidade">bpm</span></div>
+          <p class="campo__ajuda" id="fc-e"><svg class="icone"><use href="#i-circle-alert"/></svg>8 bpm parece um dígito a menos. Confira e digite de novo.</p>
+        </div>
+        <div class="campo">
+          <label class="campo__rotulo" for="pa">Pressão arterial <span class="campo__opcional">(mmHg)</span></label>
+          <div class="campo__caixa"><input class="campo__entrada campo__entrada--dado" id="pa" inputmode="numeric" placeholder="120/80"></div>
+          <p class="campo__ajuda">Sem regra automática por enquanto. Se estiver alterada, marque o sinal no seletor do DOC 3.</p>
+        </div>
+      </div>
+
+      <section class="faixa faixa--imediato" role="alert" aria-labelledby="pu01">
+        <svg class="icone"><use href="#i-siren"/></svg>
+        <div>
+          <p class="faixa__titulo" id="pu01"><span class="faixa__codigo">PU-01</span>Febre de 38,2 °C na puérpera</p>
+          <p class="faixa__texto">Acione a supervisão médica agora e oriente a família a procurar atendimento de emergência.</p>
+          <p class="faixa__meta">Antes de fechar: sinal, horário do acionamento, orientação médica recebida e conduta adotada.</p>
+          <div class="faixa__acoes">
+            <a class="botao botao--alerta" href="tel:+5511900000001"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para a supervisão</a>
+            <button class="botao" type="button">Registrar acionamento</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="campo" data-estado="copiado">
+        <label class="campo__rotulo" for="med">Medicações em uso</label>
+        <div class="campo__caixa"><textarea class="campo__entrada" id="med" rows="2">Dipirona 1 g se dor. Sulfato ferroso 1 comprimido ao dia.</textarea></div>
+        <div class="confirma-copia" role="group" aria-label="Confirmar texto trazido do D3">
+          <p class="apoio"><strong>Texto do D3 desta família (Família Teste Aurora).</strong> Confirme que continua valendo hoje antes de salvar.</p>
+          <div class="confirma-copia__acoes">
+            <button class="botao botao--primario botao--compacto" type="button"><svg class="icone"><use href="#i-check"/></svg>Vale para hoje</button>
+            <button class="botao botao--compacto" type="button">Apagar e escrever</button>
+          </div>
+        </div>
+      </div>
+
+      <fieldset class="escala">
+        <legend class="campo__rotulo">Dor, intensidade de 0 a 10</legend>
+        <div class="escala__opcoes">
+          <input type="radio" name="dor" id="d0"><label for="d0">0</label>
+          <input type="radio" name="dor" id="d1"><label for="d1">1</label>
+          <input type="radio" name="dor" id="d2"><label for="d2">2</label>
+          <input type="radio" name="dor" id="d3" checked><label for="d3">3</label>
+          <input type="radio" name="dor" id="d4"><label for="d4">4</label>
+          <input type="radio" name="dor" id="d5"><label for="d5">5</label>
+          <input type="radio" name="dor" id="d6"><label for="d6">6</label>
+          <input type="radio" name="dor" id="d7"><label for="d7">7</label>
+          <input type="radio" name="dor" id="d8"><label for="d8">8</label>
+          <input type="radio" name="dor" id="d9"><label for="d9">9</label>
+          <input type="radio" name="dor" id="d10"><label for="d10">10</label>
+        </div>
+        <div class="escala__extremos"><span>0 · sem dor</span><span>10 · pior dor possível</span></div>
+      </fieldset>
+
+      <fieldset class="pilha pilha--2">
+        <legend class="campo__rotulo">Orientações feitas hoje <span class="campo__opcional">(toque no que foi feito)</span></legend>
+        <div class="marcas">
+          <input type="checkbox" id="o1" checked><label for="o1"><svg class="icone"><use href="#i-check"/></svg>Correção de pega e posição</label>
+          <input type="checkbox" id="o2" checked><label for="o2"><svg class="icone"><use href="#i-check"/></svg>Livre demanda</label>
+          <input type="checkbox" id="o3"><label for="o3">Massagem e extração de leite</label>
+          <input type="checkbox" id="o4"><label for="o4">Sinais de fome</label>
+          <input type="checkbox" id="o5"><label for="o5">Manobra de desengasgo</label>
+        </div>
+      </fieldset>
+    </section>
+
+    <!-- Botões -->
+    <section class="kit-secao" aria-labelledby="s-botoes">
+      <h2 class="t-2" id="s-botoes">Botões</h2>
+      <div class="kit-amostras">
+        <button class="botao botao--primario" type="button">Próximo bloco<svg class="icone"><use href="#i-arrow-right"/></svg></button>
+        <button class="botao" type="button">Voltar</button>
+        <button class="botao botao--terciario" type="button">Ver D3</button>
+        <button class="botao botao--alerta" type="button"><svg class="icone"><use href="#i-phone-call"/></svg>Ligar para a supervisão</button>
+        <button class="botao botao--sensivel" type="button">Confirmar bloqueio total</button>
+        <button class="botao botao--primario" type="button" aria-busy="true"><svg class="icone"><use href="#i-refresh-cw"/></svg>Assinando</button>
+        <button class="botao" type="button" disabled>Assinar registro</button>
+        <button class="botao botao--icone" type="button" aria-label="Mais ações"><svg class="icone"><use href="#i-ellipsis"/></svg></button>
+      </div>
+    </section>
+
+    <!-- Selos e sincronização -->
+    <section class="kit-secao" aria-labelledby="s-selos">
+      <h2 class="t-2" id="s-selos">Selos de estado e sincronização</h2>
+      <div class="kit-amostras">
+        <span class="selo selo--sucesso"><svg class="icone"><use href="#i-circle-check"/></svg>Ficha entregue</span>
+        <span class="selo selo--aviso"><svg class="icone"><use href="#i-clock-alert"/></svg>Ficha pendente</span>
+        <span class="selo selo--alerta"><svg class="icone"><use href="#i-siren"/></svg>Alerta imediato</span>
+        <span class="selo selo--sensivel"><svg class="icone"><use href="#i-octagon-pause"/></svg>Estado sensível</span>
+        <span class="selo selo--marinho">Em visita</span>
+        <span class="selo">Livre</span>
+        <span class="selo selo--destaque">Oferta pendente</span>
+        <span class="selo selo--contorno">Backup</span>
+      </div>
+      <div class="kit-amostras" role="group" aria-label="Três estados de sincronização">
+        <span class="sinc" data-estado="local"><svg class="icone"><use href="#i-smartphone"/></svg>Salvo no aparelho</span>
+        <span class="sinc" data-estado="enviando"><svg class="icone"><use href="#i-cloud-upload"/></svg>Enviando 3 respostas</span>
+        <span class="sinc" data-estado="sincronizado"><svg class="icone"><use href="#i-cloud-check"/></svg>Sincronizado 11:42</span>
+      </div>
+      <section class="faixa faixa--info" role="status">
+        <svg class="icone"><use href="#i-wifi-off"/></svg>
+        <div>
+          <p class="faixa__titulo">Sem sinal agora</p>
+          <p class="faixa__texto">O registro está salvo no aparelho e sobe sozinho quando a conexão voltar.</p>
+        </div>
+      </section>
+      <section class="faixa faixa--prioritario">
+        <svg class="icone"><use href="#i-triangle-alert"/></svg>
+        <div>
+          <p class="faixa__titulo"><span class="faixa__codigo">AM-05</span>Dor persistente ao amamentar (EVN 7)</p>
+          <p class="faixa__texto">Comunique a supervisão médica ainda hoje e siga a orientação.</p>
+        </div>
+      </section>
+    </section>
+
+    <!-- Cartões e lista -->
+    <section class="kit-secao" aria-labelledby="s-cartoes">
+      <h2 class="t-2" id="s-cartoes">Cartão de visita do dia</h2>
+      <div class="grade">
+        <a class="cartao cartao--tocavel pilha" href="#">
+          <div class="cartao__topo">
+            <div class="pilha pilha--2">
+              <span><span class="dado">08:00</span> <span class="apoio">manhã</span></span>
+              <span class="t-3">Família Teste Aurora</span>
+              <span class="apoio">Rua Fictícia das Acácias, 120 · Moema</span>
+            </div>
+            <span class="selo selo--marinho cartao__acao">D4 de 6</span>
+          </div>
+          <ol class="regua regua--fina" style="--dias: 6" aria-hidden="true">
+            <li class="regua__dia" data-estado="feito"></li><li class="regua__dia" data-estado="feito"></li><li class="regua__dia" data-estado="pendente"></li><li class="regua__dia" data-estado="hoje"></li><li class="regua__dia"></li><li class="regua__dia"></li>
+          </ol>
+          <span class="selo selo--aviso" style="align-self: flex-start"><svg class="icone"><use href="#i-clock-alert"/></svg>Ficha do D3 ainda não assinada</span>
+        </a>
+        <div class="cartao pilha">
+          <span><span class="dado">14:00</span> <span class="apoio">tarde</span></span>
+          <span class="t-3">Família Teste Cedro</span>
+          <span class="apoio">Gêmeos · D7 de 12 · Vila Mariana</span>
+          <button class="botao botao--primario botao--bloco" type="button"><svg class="icone"><use href="#i-map-pin"/></svg>Cheguei, iniciar visita</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Semana da equipe -->
+    <section class="kit-secao" aria-labelledby="s-semana">
+      <h2 class="t-2" id="s-semana">Semana da equipe</h2>
+      <p class="apoio">Cada dia tem dois turnos, manhã em cima e tarde embaixo. O estado vem das designações, das visitas e dos bloqueios de agenda, nunca de texto livre.</p>
+      <div class="semana" role="table" aria-label="Escala da semana de 21 a 27/09/2026">
+        <span></span>
+        <span class="semana__cab">seg 21</span><span class="semana__cab">ter 22</span><span class="semana__cab">qua 23</span><span class="semana__cab semana__cab--hoje">qui 24</span><span class="semana__cab">sex 25</span><span class="semana__cab">sáb 26</span><span class="semana__cab">dom 27</span>
+        <div class="semana__pessoa"><span class="forte">Talita Moreno</span><span class="selo selo--marinho" style="align-self:flex-start">Em visita</span></div>
+        <div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno" data-estado="visita"></span></div>
+        <div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno" data-estado="visita"></span></div>
+        <div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno" data-estado="visita"></span></div>
+        <div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno" data-estado="visita"></span></div>
+        <div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div>
+        <div class="semana__dia"><span class="semana__turno" data-estado="visita"></span><span class="semana__turno"></span></div>
+        <div class="semana__dia"><span class="semana__turno" data-estado="folga"></span><span class="semana__turno" data-estado="folga"></span></div>
+        <div class="semana__pessoa"><span class="forte">Rosana Vieira</span><span class="selo" style="align-self:flex-start">Livre</span></div>
+        <div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div>
+        <div class="semana__dia"><span class="semana__turno"></span><span class="semana__turno"></span></div>
+        <div class="semana__dia"><span class="semana__turno" data-estado="backup"></span><span class="semana__turno"></span></div>
+        <div class="semana__dia"><span class="semana__turno" data-estado="backup"></span><span class="semana__turno"></span></div>
+        <div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="oferta"></span></div>
+        <div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="oferta"></span></div>
+        <div class="semana__dia"><span class="semana__turno" data-estado="reservada"></span><span class="semana__turno" data-estado="oferta"></span></div>
+      </div>
+      <div class="legenda">
+        <span class="legenda__item"><span class="semana__turno" data-estado="visita"></span>Visita marcada</span>
+        <span class="legenda__item"><span class="semana__turno" data-estado="reservada"></span>Reservada, aguardando nascimento</span>
+        <span class="legenda__item"><span class="semana__turno" data-estado="backup"></span>Backup</span>
+        <span class="legenda__item"><span class="semana__turno" data-estado="oferta"></span>Oferta sem resposta</span>
+        <span class="legenda__item"><span class="semana__turno" data-estado="folga"></span>Folga ou bloqueio</span>
+        <span class="legenda__item"><span class="semana__turno"></span>Livre</span>
+      </div>
+    </section>
+
+    <!-- Tabela -->
+    <section class="kit-secao" aria-labelledby="s-tabela">
+      <h2 class="t-2" id="s-tabela">Tabela que vira lista no celular</h2>
+      <table class="tabela">
+        <thead><tr><th scope="col">Família</th><th scope="col">Estágio</th><th scope="col">IG</th><th scope="col">Cidade</th><th scope="col" class="num">Plano</th><th scope="col">Próximo passo</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="tabela__principal"><a href="#">Família Teste Dália</a></td>
+            <td class="tabela__canto"><span class="selo selo--destaque">Quente</span></td>
+            <td data-rotulo="IG" class="dado">32s4d</td>
+            <td data-rotulo="Cidade">São Paulo · Pinheiros</td>
+            <td data-rotulo="Plano" class="num">R$ 7.800</td>
+            <td data-rotulo="Próximo passo">Conversa com a coordenação em 26/09/2026, 19:00</td>
+          </tr>
+          <tr>
+            <td class="tabela__principal"><a href="#">Família Teste Estrela</a></td>
+            <td class="tabela__canto"><span class="selo">Morno</span></td>
+            <td data-rotulo="IG" class="dado">24s1d</td>
+            <td data-rotulo="Cidade">Londrina</td>
+            <td data-rotulo="Plano" class="num">R$ 4.200</td>
+            <td data-rotulo="Próximo passo">Follow-up D+3 vence hoje, 17:00</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Fila e conversa -->
+    <section class="kit-secao" aria-labelledby="s-fila">
+      <h2 class="t-2" id="s-fila">Fila de transferências e conversa</h2>
+      <div class="duas-colunas">
+        <div class="fila">
+          <div class="fila-item" data-prioridade="maxima">
+            <div class="pilha pilha--2">
+              <span class="fila-item__motivo">Relato de saúde</span>
+              <span class="fila-item__meta">Família Teste Garoa · 36s0d · coordenação clínica</span>
+            </div>
+            <span class="prazo" data-estado="vencido"><svg class="icone icone--16"><use href="#i-siren"/></svg>agora</span>
+            <button class="botao botao--alerta botao--compacto" type="button" style="grid-column: 1 / -1">Assumir agora</button>
+          </div>
+          <div class="fila-item">
+            <div class="pilha pilha--2">
+              <span class="fila-item__motivo">Quer contratar</span>
+              <span class="fila-item__meta">Família Teste Dália · Imersão · Pix</span>
+            </div>
+            <span class="prazo" data-estado="perto"><svg class="icone icone--16"><use href="#i-hourglass"/></svg>vence em 38 min</span>
+            <button class="botao botao--primario botao--compacto" type="button" style="grid-column: 1 / -1">Assumir conversa</button>
+          </div>
+        </div>
+        <div class="cartao conversa" aria-label="Conversa com a Família Teste Dália">
+          <div class="bolha bolha--familia">Oi! Quero fechar o Imersão. Minha DPP é 20/11/2026.<div class="bolha__hora">14:01</div></div>
+          <div class="bolha bolha--isadora"><div class="bolha__autor"><svg class="icone icone--16"><use href="#i-bot"/></svg>Isadora (IA)</div>Que notícia boa! O Otávio, do nosso comercial, vai seguir com vocês por aqui, começando por um formulário seguro para os dados do contrato.<div class="bolha__hora">14:01</div></div>
+          <span class="evento-conversa"><svg class="icone icone--16"><use href="#i-user-check"/></svg>Transferida ao comercial às 14:02. A IA não volta a responder nesta conversa.</span>
+          <div class="bolha bolha--pessoa"><div class="bolha__autor">Otávio · comercial (fictício)</div>Oi! Aqui é o Otávio. Te mando o formulário agora.<div class="bolha__hora">14:09</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Estados -->
+    <section class="kit-secao" aria-labelledby="s-estados">
+      <h2 class="t-2" id="s-estados">Vazio, carregando e confirmação</h2>
+      <div class="grade">
+        <div class="vazio">
+          <p class="vazio__titulo">Nenhuma visita marcada para hoje</p>
+          <p class="vazio__texto">Quando a coordenação oferecer uma família, a oferta aparece aqui para você aceitar ou recusar.</p>
+          <a class="botao" href="#"><svg class="icone"><use href="#i-calendar-days"/></svg>Ver minha semana</a>
+        </div>
+        <div class="cartao pilha" aria-busy="true" aria-label="Carregando visitas">
+          <span class="esqueleto esqueleto--linha" style="width: 30%"></span>
+          <span class="esqueleto esqueleto--titulo"></span>
+          <span class="esqueleto esqueleto--linha" style="width: 80%"></span>
+          <span class="esqueleto esqueleto--linha" style="width: 55%"></span>
+        </div>
+      </div>
+      <div class="folha folha--estatica cartao--plano" role="dialog" aria-labelledby="f-t" style="border: var(--borda-fina)">
+        <div class="pilha">
+          <h3 class="t-1" id="f-t">Assinar o registro do D4?</h3>
+          <p class="corpo">Depois de assinado, o registro não muda. Se precisar corrigir, você faz um adendo com o motivo.</p>
+          <div class="barra-acao barra-acao--estatica">
+            <button class="botao" type="button">Revisar</button>
+            <button class="botao botao--primario" type="button"><svg class="icone"><use href="#i-pen-line"/></svg>Assinar agora</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tokens -->
+    <section class="kit-secao" aria-labelledby="s-cores">
+      <h2 class="t-2" id="s-cores">Cores com papel e contraste</h2>
+      <div class="grade">
+        <div class="kit-cor"><span class="kit-cor__chip" style="background: var(--marinho)"></span><div><div class="forte">marinho</div><div class="mini">Texto e ação. 15,6:1 no creme.</div></div></div>
+        <div class="kit-cor"><span class="kit-cor__chip" style="background: var(--dourado)"></span><div><div class="forte">dourado</div><div class="mini">Borda ativa, hoje, marcador. Nunca texto no claro (2,5:1).</div></div></div>
+        <div class="kit-cor"><span class="kit-cor__chip" style="background: var(--areia)"></span><div><div class="forte">areia</div><div class="mini">Cabeçalho da família, superfície secundária.</div></div></div>
+        <div class="kit-cor"><span class="kit-cor__chip" style="background: var(--creme)"></span><div><div class="forte">creme</div><div class="mini">Fundo de todas as telas.</div></div></div>
+        <div class="kit-cor"><span class="kit-cor__chip" style="background: var(--sucesso)"></span><div><div class="forte">sucesso</div><div class="mini">Sincronizado, entregue. 5,1:1.</div></div></div>
+        <div class="kit-cor"><span class="kit-cor__chip" style="background: var(--aviso)"></span><div><div class="forte">aviso</div><div class="mini">Pendente, prazo perto. Texto usa aviso-texto (6,1:1).</div></div></div>
+        <div class="kit-cor"><span class="kit-cor__chip" style="background: var(--alerta)"></span><div><div class="forte">alerta</div><div class="mini">Alerta clínico imediato, erro. 5,9:1.</div></div></div>
+        <div class="kit-cor"><span class="kit-cor__chip" style="background: var(--sensivel)"></span><div><div class="forte">sensivel</div><div class="mini">Freio, luto, intercorrência. 6,4:1.</div></div></div>
+      </div>
+      <div class="kit-tipo">
+        <p class="t-display">Hoje, quinta 24/09</p>
+        <p class="t-1">Família Teste Aurora</p>
+        <p class="t-2">Sinais vitais da puérpera</p>
+        <p class="t-3">Temperatura, pressão e frequência cardíaca</p>
+        <p class="corpo">Corpo em Inter 16 px. Frases completas, tom calmo e direto.</p>
+        <p class="linha-flex"><span class="dado dado--corpo">38s2d</span><span class="dado dado--corpo">R$ 4.200</span><span class="dado dado--corpo">24/09/2026</span><span class="dado dado--corpo">D4</span><span class="dado dado--corpo">PU-01</span></p>
+      </div>
+    </section>
+
+    <!-- Abas de conteúdo -->
+    <section class="kit-secao" aria-labelledby="s-abas">
+      <h2 class="t-2" id="s-abas">Abas da ficha</h2>
+      <div class="abas" role="tablist" aria-label="Ficha da família">
+        <button class="abas__item" role="tab" aria-selected="true">Linha do tempo</button>
+        <button class="abas__item" role="tab" aria-selected="false">Comercial</button>
+        <button class="abas__item" role="tab" aria-selected="false">Conversas</button>
+        <button class="abas__item" role="tab" aria-selected="false">Pré-natal</button>
+        <button class="abas__item" role="tab" aria-selected="false">Atendimento</button>
+        <button class="abas__item" role="tab" aria-selected="false">Financeiro</button>
+      </div>
+    </section>
+  </main>
+
+  <nav class="abas-inf" aria-label="Navegação da enfermeira">
+    <a class="abas-inf__item" href="#" aria-current="page"><svg class="icone"><use href="#i-house"/></svg>Hoje</a>
+    <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-users"/></svg>Famílias</a>
+    <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-siren"/></svg>Alertas<span class="abas-inf__contador">1</span></a>
+    <a class="abas-inf__item" href="#"><svg class="icone"><use href="#i-user-round"/></svg>Perfil</a>
+  </nav>
+</div>
+</body>
+</html>
