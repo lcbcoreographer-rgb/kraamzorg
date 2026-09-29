@@ -27,6 +27,15 @@
 // dado pessoal; negar ser assistente virtual; mais de um "?" fora de citação
 // (exceto no fechamento da venda); texto entre colchetes que não seja
 // [ENVIAR_APRESENTACAO] sozinho numa linha; link (PRD 11.2).
+//
+// [v4.3] E-mail para o convite (PRD 11.11 item 5 e 11.14): o único dado que a
+// Isadora pede, e só no passo do convite. Os termos de
+// `listas.pedido_dado_convite` (em `parametro.validador_listas`, por exemplo
+// "e-mail") deixam de contar como pedido de dado apenas quando
+// `contexto.agenda_estado` é `aguardando_email` (horário conferido e livre,
+// vindo da ficha). Todo o resto de `pedido_dado` (CPF, RG, endereço, CEP, data
+// de nascimento, documento) continua barrado nesse passo. Sem a lista ou sem
+// o estado, o e-mail continua barrado (falha fechada).
 
 import { normalizarTexto, contemPalavra } from './normalizar-texto.js';
 
@@ -42,6 +51,11 @@ export const LISTAS_VALIDADOR = [
 ];
 
 const MOTIVOS_SEM_EMOJI = ['saude', 'perda', 'reclamacao'];
+
+// [v4.3] Lista opcional de `validador_listas`: termos de `pedido_dado` que
+// podem ser pedidos só no passo do convite da reunião (PRD 11.14).
+export const LISTA_PEDIDO_CONVITE = 'pedido_dado_convite';
+export const AGENDA_ESTADO_CONVITE = 'aguardando_email';
 const NEGACOES = ['nao', 'nunca', 'sem', 'nem'];
 const JANELA_NEGACAO_PALAVRAS = 4;
 
@@ -348,7 +362,7 @@ function listasDoContexto(contexto) {
   const listas = contexto.listas;
   if (!listas || typeof listas !== 'object') return null;
   const resultado = {};
-  for (const nome of [...LISTAS_VALIDADOR, 'pedido_verbos']) {
+  for (const nome of [...LISTAS_VALIDADOR, 'pedido_verbos', LISTA_PEDIDO_CONVITE]) {
     resultado[nome] = Array.isArray(listas[nome]) ? listas[nome].filter((item) => typeof item === 'string' && item.trim()) : [];
   }
   return resultado;
@@ -367,13 +381,17 @@ function temPercentualComCondicao(frase, palavrasCondicao) {
 // está negada logo antes ("não precisa mandar documentos"). Com a lista
 // `pedido_verbos`, a oração também precisa ser pedido (verbo da lista ou
 // pergunta); sem ela, basta o termo não negado (falha fechada).
-function pedidoDeDado(texto, listas) {
+// [v4.3] `liberados` são os termos que o passo do convite permite pedir
+// (o e-mail); vazio fora desse passo.
+function pedidoDeDado(texto, listas, liberados = []) {
   const oracoes = String(texto ?? '').split(/[.!;:\n]|,(?!\d)/);
   const achados = [];
+  const termosLiberados = new Set(liberados.map((termo) => normalizarTexto(termo)).filter(Boolean));
   for (const oracao of oracoes) {
     const normalizada = normalizarTexto(oracao);
     if (!normalizada) continue;
     for (const termo of listas.pedido_dado) {
+      if (termosLiberados.has(normalizarTexto(termo))) continue;
       if (!contemPalavra(normalizada, termo)) continue;
       const termoNormalizado = normalizarTexto(termo);
       const posicao = normalizada.indexOf(termoNormalizado);
@@ -388,6 +406,13 @@ function pedidoDeDado(texto, listas) {
     }
   }
   return [...new Set(achados)];
+}
+
+// [v4.3] Termos liberados só com a ficha em `aguardando_email` (PRD 11.14).
+export function termosLiberadosNoConvite(contexto, listas) {
+  const estado = typeof contexto?.agenda_estado === 'string' ? contexto.agenda_estado.trim() : '';
+  if (estado !== AGENDA_ESTADO_CONVITE) return [];
+  return Array.isArray(listas?.[LISTA_PEDIDO_CONVITE]) ? listas[LISTA_PEDIDO_CONVITE] : [];
 }
 
 function semCitacoes(texto) {
@@ -471,7 +496,7 @@ export function validarResposta(textoOriginal, contexto = {}) {
         violacoes.push({ regra, detalhe: `${descricao}: "${termo}"` });
       }
     }
-    for (const termo of pedidoDeDado(texto, listas)) {
+    for (const termo of pedidoDeDado(texto, listas, termosLiberadosNoConvite(contexto, listas))) {
       violacoes.push({ regra: 'pedido_de_dado', detalhe: `pedido de documento ou dado pessoal: "${termo}"` });
     }
   }
