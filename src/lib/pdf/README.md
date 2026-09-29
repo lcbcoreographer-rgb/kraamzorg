@@ -74,3 +74,11 @@ comentário `// @vitest-environment node`, que troca o ambiente só daquele
 arquivo para Node puro, igual ao runtime real (rota de servidor do
 Next.js). Os módulos puros (`curva-peso`, `validacoes`, `textos`,
 `metadados`, `tokens`, `conteudo`) não têm essa exigência.
+
+## Contrato (P31)
+
+`contrato-conteudo.ts` monta o texto a partir de `parametro.contrato_modelo`
+(cláusulas, quatro frentes, rótulos de valores, variante de presente sem
+valores) e recusa travessão e variável sem valor; `contrato-documento.tsx`
+imprime; `gerar-contrato.ts` devolve o PDF com o resumo sha256. Nome
+`{id do contrato}.pdf`, metadados sem nome de gente.

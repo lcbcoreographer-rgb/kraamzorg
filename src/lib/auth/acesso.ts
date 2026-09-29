@@ -24,6 +24,9 @@ const PUBLICAS = [
   // Formulário seguro do contrato (P30): sem sessão, protegido pelo token de
   // uso único, pela validade, pelo limite de tentativas e pelo Turnstile.
   "/formulario",
+  // Página de retorno do link de pagamento da InfinitePay (P32): a família
+  // volta para cá depois de pagar; não mostra dado de ninguém.
+  "/pagamento",
 ];
 
 /** Exigem sessão, mas não o AAL2 nem papel (o caminho até o MFA). */

@@ -54,6 +54,7 @@ const QUERY_BUSCAR_DOCUMENTO = `
       id
       name
       created_at
+      files { signed }
       signatures {
         public_id
         name
@@ -110,6 +111,7 @@ interface DocumentoBruto {
   id: string;
   name: string;
   created_at: string;
+  files?: { signed?: string | null } | null;
   signatures: Array<{
     public_id: string;
     name: string;
@@ -142,7 +144,25 @@ function mapearDocumento(bruto: DocumentoBruto): DocumentoAutentique {
     criadoEm: bruto.created_at,
     signatarios,
     concluido,
+    ...(bruto.files?.signed ? { arquivoAssinadoUrl: bruto.files.signed } : {}),
   };
+}
+
+/**
+ * Erro da API da Autentique. `definitivo` diz se o documento certamente não
+ * foi criado (recusa 4xx ou erro de validação do GraphQL): só então quem
+ * chamou pode liberar o envio. Falha de rede ou 5xx pode ter criado o
+ * documento do outro lado, e refazer o envio criaria um segundo (o plano
+ * gratuito tem 20 por mês).
+ */
+export class ErroApiAutentique extends Error {
+  readonly definitivo: boolean;
+
+  constructor(mensagem: string, definitivo: boolean) {
+    super(mensagem);
+    this.name = "ErroApiAutentique";
+    this.definitivo = definitivo;
+  }
 }
 
 async function chamarGraphQL<T>(
@@ -180,26 +200,36 @@ async function chamarGraphQL<T>(
     corpo = JSON.stringify({ query, variables });
   }
 
-  const resposta = await fetchImpl(endpoint, {
-    method: "POST",
-    headers: cabecalhos,
-    body: corpo,
-  });
+  let resposta: Response;
+  try {
+    resposta = await fetchImpl(endpoint, {
+      method: "POST",
+      headers: cabecalhos,
+      body: corpo,
+    });
+  } catch {
+    throw new ErroApiAutentique(
+      "Autentique: falha de rede ao chamar a API",
+      false,
+    );
+  }
 
   if (!resposta.ok) {
-    throw new Error(
+    throw new ErroApiAutentique(
       `Autentique: resposta HTTP ${resposta.status} ao chamar a API`,
+      resposta.status >= 400 && resposta.status < 500,
     );
   }
 
   const json = (await resposta.json()) as RespostaGraphQL<T>;
   if (json.errors?.length) {
-    throw new Error(
+    throw new ErroApiAutentique(
       `Autentique: erro da API (${json.errors.map((e) => e.message).join("; ")})`,
+      true,
     );
   }
   if (!json.data) {
-    throw new Error("Autentique: resposta sem dado");
+    throw new ErroApiAutentique("Autentique: resposta sem dado", false);
   }
   return json.data;
 }
@@ -249,4 +279,36 @@ export async function buscarDocumento(
     { id: documentoId },
   );
   return mapearDocumento(data.document);
+}
+
+const LIMITE_PDF_ASSINADO_BYTES = 15 * 1024 * 1024;
+
+/**
+ * Baixa o PDF assinado pelo link que a reconsulta devolveu. O link é do
+ * armazenamento da Autentique e já vem assinado: o token da API NUNCA vai
+ * junto (mandar o Bearer para outro host vazaria a credencial). Só https,
+ * só PDF de verdade (cabeçalho `%PDF`) e até 15 MB.
+ */
+export async function baixarPdfAssinado(
+  url: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<Uint8Array> {
+  if (!/^https:\/\/[^\s]+$/.test(url)) {
+    throw new Error("Autentique: o link do PDF assinado não é https");
+  }
+  const resposta = await fetchImpl(url, { method: "GET", redirect: "follow" });
+  if (!resposta.ok) {
+    throw new Error(
+      `Autentique: resposta HTTP ${resposta.status} ao baixar o PDF assinado`,
+    );
+  }
+  const bytes = new Uint8Array(await resposta.arrayBuffer());
+  if (bytes.length === 0 || bytes.length > LIMITE_PDF_ASSINADO_BYTES) {
+    throw new Error("Autentique: o PDF assinado veio vazio ou grande demais");
+  }
+  const cabecalho = String.fromCharCode(...bytes.subarray(0, 4));
+  if (cabecalho !== "%PDF") {
+    throw new Error("Autentique: o arquivo assinado não é um PDF");
+  }
+  return bytes;
 }

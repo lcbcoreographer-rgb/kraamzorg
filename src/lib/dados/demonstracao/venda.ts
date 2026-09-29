@@ -27,9 +27,15 @@ import type {
   EstadoSensivel,
   EstagioP1,
   EstagioP2,
+  Prioridade,
   TipoTarefa,
 } from "../tipos";
 import { PACOTES, TRANSICOES, VERSOES_PACOTE } from "./fixtures";
+import {
+  cobrancasIniciais,
+  contratosIniciais,
+  MENSAGENS_COBRANCA,
+} from "./contrato-fixtures";
 import { obterLoja, type LojaDemonstracao } from "./loja";
 import {
   CONDICOES,
@@ -75,7 +81,7 @@ interface GravacaoDemo {
   resumo: ResumoSessao | null;
 }
 
-interface ContratoDemo {
+export interface ContratoDemo {
   id: string;
   familiaId: string;
   pacoteVersaoId: string;
@@ -90,6 +96,32 @@ interface ContratoDemo {
   tokenHash: string | null;
   expiraEm: string | null;
   status: StatusContrato;
+  criadoEm: string;
+  /** P31: caminho do PDF no armazenamento (nome pelo id), Autentique e datas. */
+  pdfPath?: string | null;
+  autentiqueDocId?: string | null;
+  enviadoEm?: string | null;
+  assinadoEm?: string | null;
+}
+
+/** Cobrança da demonstração (P32): uma por contrato, como no banco. */
+export interface CobrancaDemo {
+  id: string;
+  contratoId: string;
+  familiaId: string;
+  parcela: number;
+  valorCentavos: number;
+  vencimento: string;
+  status: "aberta" | "paga" | "cancelada" | "estornada";
+  linkPagamento: string | null;
+  invoiceSlug: string | null;
+  metodo: string | null;
+  parcelasCartao: number | null;
+  valorPagoCentavos: number | null;
+  comprovante: string | null;
+  pagoEm: string | null;
+  notaStatus: "pendente" | "emitida" | null;
+  notaNumero: string | null;
   criadoEm: string;
 }
 
@@ -113,6 +145,7 @@ export interface LojaVenda {
   sessoes: SessaoDemo[];
   gravacoes: Record<string, GravacaoDemo>;
   contratos: ContratoDemo[];
+  cobrancas: CobrancaDemo[];
   propostas: Record<string, PropostaDemo>;
   dadosContrato: Record<string, DadosContratoDemo>;
   enderecoAtendimento: Record<string, EnderecoFormulario>;
@@ -138,7 +171,8 @@ export function criarLojaVenda(agora = Date.now()): LojaVenda {
         resumo: null,
       },
     },
-    contratos: [],
+    contratos: contratosIniciais(agora),
+    cobrancas: cobrancasIniciais(agora),
     propostas: {},
     dadosContrato: {},
     enderecoAtendimento: {},
@@ -165,19 +199,23 @@ export function reiniciarLojaVenda(agora?: number): LojaVenda {
 
 // --- Auxiliares ------------------------------------------------------------------
 
-function recusar(codigo: string, detalhe = ""): never {
+export function recusar(codigo: string, detalhe = ""): never {
   throw new ErroRepositorio(
     "recusado",
     `demonstração: venda:${codigo} ${detalhe}`.trim(),
   );
 }
 
-function semPermissao(motivo: string): never {
+export function semPermissao(motivo: string): never {
   throw new ErroRepositorio("sem_permissao", `demonstração: ${motivo}`);
 }
 
-function texto(chave: string): string | null {
-  return MENSAGENS_VENDA.find((m) => m.chave === chave)?.texto ?? null;
+export function texto(chave: string): string | null {
+  return (
+    MENSAGENS_VENDA.find((m) => m.chave === chave)?.texto ??
+    MENSAGENS_COBRANCA.find((m) => m.chave === chave)?.texto ??
+    null
+  );
 }
 
 function numeroParametro(chave: string, campo?: string): number | null {
@@ -222,7 +260,7 @@ function horaBrasilia(iso: string): string {
   }).format(new Date(iso));
 }
 
-function diaBrasilia(data: Date): string {
+export function diaBrasilia(data: Date): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Sao_Paulo",
   }).format(data);
@@ -247,7 +285,7 @@ function linkValido(link: string | null | undefined): link is string {
   return Boolean(link && /^https:\/\/\S+$/.test(link) && link.length <= 500);
 }
 
-function contaDe(k: ContratoDemo): ContaProposta {
+export function contaDe(k: ContratoDemo): ContaProposta {
   const total = k.valorCentavos - k.descontoCentavos + k.taxaCentavos;
   const parcelas = Math.max(k.parcelas, 1);
   const parcela = Math.trunc(total / parcelas);
@@ -302,7 +340,7 @@ function vigenteHoje() {
     .sort((a, b) => a.ordem - b.ordem);
 }
 
-function oportunidadeAberta(l: LojaDemonstracao, familiaId: string) {
+export function oportunidadeAberta(l: LojaDemonstracao, familiaId: string) {
   return l.oportunidades.find(
     (o) =>
       o.familiaId === familiaId &&
@@ -311,7 +349,7 @@ function oportunidadeAberta(l: LojaDemonstracao, familiaId: string) {
   );
 }
 
-function transicionar(
+export function transicionar(
   l: LojaDemonstracao,
   oportunidadeId: string,
   maquina: "p1" | "p2",
@@ -341,7 +379,7 @@ function transicionar(
   });
 }
 
-function evento(
+export function evento(
   l: LojaDemonstracao,
   familiaId: string,
   tipo: string,
@@ -359,7 +397,7 @@ function evento(
   });
 }
 
-function contato(l: LojaDemonstracao, familiaId: string) {
+export function contato(l: LojaDemonstracao, familiaId: string) {
   const pessoas = l.pessoas.filter((p) => p.familiaId === familiaId);
   return (
     pessoas.find((p) => p.contatoPrincipal) ??
@@ -369,14 +407,14 @@ function contato(l: LojaDemonstracao, familiaId: string) {
   );
 }
 
-function gestante(l: LojaDemonstracao, familiaId: string) {
+export function gestante(l: LojaDemonstracao, familiaId: string) {
   const maes = l.pessoas.filter(
     (p) => p.familiaId === familiaId && p.papel === "mae",
   );
   return maes.find((p) => p.contatoPrincipal) ?? maes[0] ?? null;
 }
 
-function criarTarefa(
+export function criarTarefa(
   l: LojaDemonstracao,
   pedido: {
     familiaId: string;
@@ -388,6 +426,8 @@ function criarTarefa(
     variaveis: Record<string, string>;
     categoria: CategoriaTarefa;
     extra: Record<string, Json>;
+    prioridade?: Prioridade;
+    papelResponsavel?: Papel | null;
   },
 ): string | null {
   const familia = l.familias.find((f) => f.id === pedido.familiaId);
@@ -420,12 +460,12 @@ function criarTarefa(
     id,
     tipo: pedido.tipo,
     titulo: pedido.titulo,
-    prioridade: "normal",
+    prioridade: pedido.prioridade ?? "normal",
     status: "aberta",
     venceEm: pedido.venceEm,
     familiaId: familia.id,
     responsavelId: pedido.responsavelId,
-    papelResponsavel: null,
+    papelResponsavel: pedido.papelResponsavel ?? null,
     payload,
     criadoEm: new Date().toISOString(),
   });

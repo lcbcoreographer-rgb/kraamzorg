@@ -34,3 +34,8 @@ export type {
   TextosModelo,
 } from "./tipos";
 export type { CurvaPeso } from "./curva-peso";
+export { gerarPdfContrato } from "./gerar-contrato";
+export type { ResultadoContratoPdf } from "./gerar-contrato";
+export { montarConteudoContrato, textosDoContrato } from "./contrato-conteudo";
+export type { ConteudoContrato } from "./contrato-conteudo";
+export { nomeArquivoContrato } from "./contrato-documento";

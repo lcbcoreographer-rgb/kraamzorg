@@ -20,3 +20,9 @@ navegador (todos com `import "server-only"`).
   `EmissorNacionalAdaptador` (provedor comercial em [confirmar], T-05).
 - `email/`: envio transacional com Resend, com guarda contra nome de
   paciente no assunto.
+
+P31 e P32 (0019): `fabrica.ts` escolhe a Autentique e a InfinitePay do
+ambiente (duplo local só na demonstração); `links-pagamento.ts` pede e guarda
+o link de cada cobrança sem nunca lançar; `servico-webhooks.ts` é o que os
+dois webhooks fazem no banco, pelas funções `public.contrato_*` e
+`public.cobranca*`, só `service_role`.

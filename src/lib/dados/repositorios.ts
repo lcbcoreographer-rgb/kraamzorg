@@ -47,6 +47,16 @@ import type {
   SessaoVenda,
   TransferenciaReuniao,
 } from "./tipos-venda";
+import type {
+  CobrancaDetalhe,
+  DadosLinkPagamento,
+  DadosParaContrato,
+  ListaCobrancas,
+  PedidoBaixaManual,
+  ReservaEnvioContrato,
+  SituacaoCobranca,
+  SituacaoContrato,
+} from "./tipos-contrato";
 
 /**
  * Interfaces dos repositórios, uma por domínio. Toda tela lê e grava por
@@ -176,6 +186,40 @@ export interface VendaRepositorio {
   gerarLinkFormulario(oportunidadeId: string): Promise<LinkFormulario>;
 }
 
+/**
+ * Contrato e assinatura eletrônica (P31). O PDF e a Autentique ficam no
+ * servidor (src/modules/crm/contrato); aqui só o que o banco decide: etapa,
+ * dados para o PDF (com CPF, leitura registrada), contrato gerado e o envio
+ * em três passos (reservar, concluir, liberar).
+ */
+export interface ContratoRepositorio {
+  obterSituacao(familiaId: string): Promise<SituacaoContrato>;
+  dadosParaContrato(contratoId: string): Promise<DadosParaContrato>;
+  registrarGerado(
+    contratoId: string,
+    pdfPath: string,
+    pdfSha256: string,
+  ): Promise<void>;
+  reservarEnvio(contratoId: string): Promise<ReservaEnvioContrato>;
+  concluirEnvio(contratoId: string, documentoId: string): Promise<void>;
+  liberarEnvio(contratoId: string): Promise<void>;
+}
+
+/** Cobrança pela InfinitePay (P32): financeiro e diretoria, sempre em AAL2. */
+export interface CobrancaRepositorio {
+  listar(situacao?: SituacaoCobranca): Promise<ListaCobrancas>;
+  obter(cobrancaId: string): Promise<CobrancaDetalhe>;
+  /** Cobrança do contrato assinado (idempotente). Devolve o id da cobrança. */
+  gerarDoContrato(contratoId: string): Promise<string>;
+  dadosLinkPagamento(cobrancaId: string): Promise<DadosLinkPagamento>;
+  registrarLink(
+    cobrancaId: string,
+    url: string,
+    slug: string | null,
+  ): Promise<void>;
+  baixarManual(pedido: PedidoBaixaManual): Promise<void>;
+}
+
 export interface Repositorios {
   familias: FamiliasRepositorio;
   ficha: FichaRepositorio;
@@ -184,6 +228,8 @@ export interface Repositorios {
   agente: AgenteRepositorio;
   usuarios: UsuariosRepositorio;
   venda: VendaRepositorio;
+  contratos: ContratoRepositorio;
+  cobrancas: CobrancaRepositorio;
 }
 
 /**

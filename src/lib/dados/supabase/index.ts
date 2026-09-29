@@ -2,7 +2,9 @@ import "server-only";
 import type { Repositorios } from "../repositorios";
 import { criarAgenteSupabase } from "./agente";
 import type { ContextoSupabase } from "./comum";
+import { criarCobrancaSupabase } from "./cobranca";
 import { criarConfiguracoesSupabase } from "./configuracoes";
+import { criarContratoSupabase } from "./contrato";
 import { criarFamiliasSupabase } from "./familias";
 import { criarFichaSupabase } from "./ficha";
 import { criarTarefasSupabase } from "./tarefas";
@@ -23,5 +25,7 @@ export function criarRepositoriosSupabase(
     agente: criarAgenteSupabase(contexto),
     usuarios: criarUsuariosSupabase(contexto),
     venda: criarVendaSupabase(contexto),
+    contratos: criarContratoSupabase(contexto),
+    cobrancas: criarCobrancaSupabase(contexto),
   };
 }

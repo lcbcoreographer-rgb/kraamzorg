@@ -189,6 +189,22 @@ export default async function PaginaFicha({
                             Abrir a proposta
                           </Link>
                         </Botao>
+                        {ficha.oportunidade?.estagioP2 &&
+                        !["proposta_enviada", "em_negociacao"].includes(
+                          ficha.oportunidade.estagioP2,
+                        ) ? (
+                          <Botao
+                            asChild
+                            variante="secundario"
+                            tamanho="compacto"
+                          >
+                            <Link
+                              href={`/familias/${ficha.familiaId}/contrato`}
+                            >
+                              Abrir o contrato
+                            </Link>
+                          </Botao>
+                        ) : null}
                       </>
                     ) : null
                   }
