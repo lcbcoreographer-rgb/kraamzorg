@@ -188,7 +188,7 @@ export default async function PaginaSessaoVenda({
                   id="como-foi"
                   className="font-titulo text-2 text-texto font-medium"
                 >
-                  Como foi
+                  {jaPassou ? "Como foi" : "Antes da conversa"}
                 </h2>
                 <PainelDesfecho sessaoId={sessao.id} jaPassou={jaPassou} />
               </div>

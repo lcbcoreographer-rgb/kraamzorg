@@ -140,7 +140,15 @@ export default async function PaginaFicha({
           <div className="min-w-0">
             <AbasFicha familiaId={ficha.familiaId} abas={abas} ativa={aba} />
             <div className="pt-5">
-              {aba === "tempo" ? <LinhaDoTempo eventos={eventos} /> : null}
+              {aba === "tempo" ? (
+                <LinhaDoTempo
+                  eventos={eventos}
+                  emLuto={
+                    ficha.estadoSensivel === "bloqueio_total" ||
+                    ficha.estadoSensivel === "encerrado_sensivel"
+                  }
+                />
+              ) : null}
               {aba === "comercial" && vePainelComercial ? (
                 <PainelComercial
                   familiaId={ficha.familiaId}

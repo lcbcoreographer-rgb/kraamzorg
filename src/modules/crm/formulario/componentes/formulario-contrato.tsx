@@ -363,7 +363,7 @@ export function FormularioContrato({
           autoComplete: "postal-code",
           placeholder: EXEMPLOS.cep,
           maxLength: 9,
-          containerClassName: "max-w-[14rem]",
+          larguraCaixa: "max-w-[14rem]",
         },
         formatarCep,
       )}
@@ -392,7 +392,7 @@ export function FormularioContrato({
             placeholder: EXEMPLOS.uf,
             maxLength: 2,
             autoCapitalize: "characters",
-            containerClassName: "max-w-[8rem]",
+            larguraCaixa: "max-w-[8rem]",
           },
           (texto) => texto.toUpperCase(),
         )}
@@ -461,7 +461,7 @@ export function FormularioContrato({
                 autoComplete: "off",
                 placeholder: EXEMPLOS.cpf,
                 maxLength: 14,
-                containerClassName: "max-w-[18rem]",
+                larguraCaixa: "max-w-[18rem]",
               },
               formatarCpf,
             )}
@@ -473,7 +473,7 @@ export function FormularioContrato({
                 autoComplete: "bday",
                 placeholder: EXEMPLOS.dataNascimento,
                 maxLength: 10,
-                containerClassName: "max-w-[14rem]",
+                larguraCaixa: "max-w-[14rem]",
               },
               formatarData,
             )}
@@ -547,7 +547,7 @@ export function FormularioContrato({
                 autoComplete: "off",
                 placeholder: EXEMPLOS.cpf,
                 maxLength: 14,
-                containerClassName: "max-w-[18rem]",
+                larguraCaixa: "max-w-[18rem]",
               },
               formatarCpf,
             )}
@@ -581,7 +581,10 @@ export function FormularioContrato({
                 autoCapitalize: "words",
               })}
               {campo("testemunha.email", ROTULOS.testemunhaEmail, {
-                opcional: true,
+                // Com o nome da testemunha escrito (ou sugerido), o e-mail
+                // passa a ser pedido: é por ele que ela assina. "(opcional)"
+                // ali faria a família pular o campo e voltar com erro.
+                opcional: !v("testemunha.nomeCompleto").trim(),
                 type: "email",
                 inputMode: "email",
                 autoComplete: "off",

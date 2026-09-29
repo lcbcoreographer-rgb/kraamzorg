@@ -25,22 +25,48 @@ export function PainelDesfecho({
     acaoRegistrarDesfecho,
     estadoInicialSessao,
   );
-  const [desfecho, definirDesfecho] = React.useState(
-    jaPassou ? "" : "cancelada",
-  );
+  const [desfecho, definirDesfecho] = React.useState("");
   const [parceiro, definirParceiro] = React.useState("");
 
   if (estado.sucesso) {
     return <FaixaAlerta variante="sucesso" titulo={estado.sucesso} anunciar />;
   }
 
-  const opcoes = jaPassou
-    ? [
-        { valor: "realizada", rotulo: "Aconteceu" },
-        { valor: "nao_compareceu", rotulo: "A família não veio" },
-        { valor: "cancelada", rotulo: "Foi cancelada" },
-      ]
-    : [{ valor: "cancelada", rotulo: "Foi cancelada" }];
+  // Antes do horário, só cancelar faz sentido. Perguntar "como foi" de
+  // algo que ainda não aconteceu, com um botão escuro de registrar, faz a
+  // pessoa hesitar; aqui a tela diz quando a pergunta vai valer e deixa o
+  // cancelamento como ação secundária.
+  if (!jaPassou) {
+    return (
+      <form action={acao} className="flex flex-col gap-4">
+        <input type="hidden" name="sessaoId" value={sessaoId} />
+        <input type="hidden" name="desfecho" value="cancelada" />
+        <input type="hidden" name="parceiroPresente" value="" />
+        <p className="text-corpo text-texto-2 max-w-leitura">
+          Depois do horário marcado, é aqui que você registra como foi. Se a
+          família desmarcou, dá para cancelar agora.
+        </p>
+        {estado.erro ? (
+          <FaixaAlerta variante="erro" titulo={estado.erro} />
+        ) : null}
+        <Botao
+          type="submit"
+          variante="secundario"
+          carregando={enviando}
+          rotuloCarregando="Cancelando"
+          className="self-start"
+        >
+          Cancelar a conversa
+        </Botao>
+      </form>
+    );
+  }
+
+  const opcoes = [
+    { valor: "realizada", rotulo: "Aconteceu" },
+    { valor: "nao_compareceu", rotulo: "A família não veio" },
+    { valor: "cancelada", rotulo: "Foi cancelada" },
+  ];
 
   return (
     <form action={acao} className="flex flex-col gap-5">
@@ -52,16 +78,11 @@ export function PainelDesfecho({
         value={desfecho === "realizada" ? parceiro : ""}
       />
       <EscolhaUnica
-        rotulo="Como foi a conversa"
+        rotulo="O que aconteceu no horário marcado"
         name="desfecho-escolha"
         opcoes={opcoes}
         valor={desfecho}
         onMudar={definirDesfecho}
-        descricao={
-          jaPassou
-            ? undefined
-            : "Aconteceu e não veio ficam disponíveis depois do horário marcado."
-        }
       />
       {desfecho === "realizada" ? (
         <EscolhaUnica

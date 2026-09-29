@@ -25,6 +25,12 @@ export interface CampoFamiliaProps extends Omit<
   erro?: string;
   opcional?: boolean;
   containerClassName?: string;
+  /**
+   * Largura da caixa de digitação (CPF, data, CEP, UF). Só a caixa
+   * estreita: rótulo, ajuda e erro seguem na medida da coluna, sem quebrar
+   * em três linhas ao lado de um campo curto.
+   */
+  larguraCaixa?: string;
 }
 
 export function idDoCampo(nome: string): string {
@@ -45,6 +51,7 @@ export const CampoFamilia = React.forwardRef<
       erro,
       opcional,
       containerClassName,
+      larguraCaixa,
       className,
       ...props
     },
@@ -75,6 +82,7 @@ export const CampoFamilia = React.forwardRef<
           className={cn(
             "rounded-2 bg-superficie min-h-toque-campo ease-estado flex items-center transition-[border-color,box-shadow] duration-140",
             classeCaixaPorEstado(erro ? "erro" : "normal", props.disabled),
+            larguraCaixa,
           )}
         >
           <input

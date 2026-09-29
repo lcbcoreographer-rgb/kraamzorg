@@ -335,6 +335,24 @@ describe("proposta e formulário seguro (P30)", () => {
     );
   });
 
+  it("família que entrou em bloqueio total depois do link: não abre nem recebe, sem contar tentativa", async () => {
+    const { venda, oportunidadeId } = await propostaDaGruta(null);
+    const link = await venda.gerarLinkFormulario(oportunidadeId);
+    const gruta = obterLoja().familias.find(
+      (f) => f.id === familiaPorNome("Gruta").id,
+    )!;
+    gruta.estadoSensivel = "bloqueio_total";
+    const formulario = criarFormularioDemonstracao();
+    expect((await formulario.abrir(link.token, "203.0.113.16")).situacao).toBe(
+      "invalido",
+    );
+    expect(
+      await formulario.enviar(link.token, dadosValidos(), "203.0.113.16"),
+    ).toEqual({ situacao: "invalido" });
+    expect(obterLojaVenda().contratos.at(-1)!.tokenHash).not.toBeNull();
+    expect(obterLojaVenda().tentativas).toHaveLength(0);
+  });
+
   it("link vencido não abre", async () => {
     const { venda, oportunidadeId } = await propostaDaGruta(null);
     const link = await venda.gerarLinkFormulario(oportunidadeId);

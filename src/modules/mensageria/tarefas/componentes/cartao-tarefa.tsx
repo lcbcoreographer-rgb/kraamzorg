@@ -112,7 +112,11 @@ export function CartaoTarefa({
             {tarefa.titulo}
           </h3>
         </div>
-        {tarefa.prioridade !== "normal" ? (
+        {/* Tarefa de justificar o freio é sobre uma família em luto: sem
+            selo de prioridade em âmbar ou vermelho e sem relógio ao lado
+            dela (DESIGN.md 11.3 e 11.8). O prazo continua escrito, para
+            quem precisa agir. */}
+        {tarefa.prioridade !== "normal" && !justificarFreio ? (
           <Selo variante={tarefa.prioridade === "maxima" ? "alerta" : "aviso"}>
             {tarefa.prioridade === "maxima"
               ? "Prioridade máxima"
@@ -121,7 +125,9 @@ export function CartaoTarefa({
         ) : null}
         {tarefa.prazo ? (
           <span className="text-apoio text-texto-2 inline-flex shrink-0 items-center gap-1">
-            <Clock aria-hidden="true" className="size-4" strokeWidth={1.75} />
+            {justificarFreio ? null : (
+              <Clock aria-hidden="true" className="size-4" strokeWidth={1.75} />
+            )}
             {tarefa.prazo}
           </span>
         ) : null}
@@ -149,7 +155,8 @@ export function CartaoTarefa({
             ) : null
           }
         >
-          Sem texto sugerido: com o freio, a equipe escreve, pelo nome.
+          Nenhuma mensagem automática sai para esta família. A justificativa se
+          escreve na ficha e fecha esta tarefa.
         </FaixaAlerta>
       ) : formularioContrato && tarefa.familiaId ? (
         // P30: o link do formulário vale uma vez e não fica guardado; ele

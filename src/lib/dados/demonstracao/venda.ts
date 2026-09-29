@@ -1356,6 +1356,18 @@ export function criarVendaDemonstracao(
 
 // --- Formulário público (sem usuário) -----------------------------------------------
 
+/**
+ * Freio (PRD 8.1): família em bloqueio_total ou encerrado_sensivel só tem
+ * contato humano e nominal; o link do formulário responde como inválido,
+ * sem contar tentativa (mesma regra de public.formulario_contrato_abrir).
+ */
+function familiaComFreio(familiaId: string): boolean {
+  const estado = obterLoja().familias.find(
+    (f) => f.id === familiaId,
+  )?.estadoSensivel;
+  return estado === "bloqueio_total" || estado === "encerrado_sensivel";
+}
+
 function contratoDoToken(lv: LojaVenda, token: string): ContratoDemo | null {
   if (!token || token.length < 20 || token.length > 100) return null;
   const hash = hashToken(token);
@@ -1458,6 +1470,9 @@ export function criarFormularioDemonstracao(): FormularioContratoRepositorio {
         lv.tentativas.push({ origem: chave, contratoId: null, em: Date.now() });
         return { situacao: "invalido", textos: textosFormulario(null, {}) };
       }
+      if (familiaComFreio(k.familiaId)) {
+        return { situacao: "invalido", textos: textosFormulario(null, {}) };
+      }
       const pessoa = (id: string | null) =>
         l.pessoas.find((p) => p.id === id) ?? null;
       const mae = pessoa(k.contratantePessoaId);
@@ -1504,6 +1519,7 @@ export function criarFormularioDemonstracao(): FormularioContratoRepositorio {
         lv.tentativas.push({ origem: chave, contratoId: null, em: Date.now() });
         return { situacao: "invalido" };
       }
+      if (familiaComFreio(k.familiaId)) return { situacao: "invalido" };
       if (passouDoLimite(lv, chave, k.id))
         return { situacao: "limite", minutos: janela };
 

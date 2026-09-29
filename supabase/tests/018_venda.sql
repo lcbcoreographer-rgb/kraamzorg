@@ -25,7 +25,7 @@
 
 begin;
 
-select plan(144);
+select plan(160);
 
 -- -----------------------------------------------------------------------------
 -- 0. Preparação
@@ -158,6 +158,12 @@ select throws_ok(
 select is(
   testes.venda_afetadas($s$ update sessao_venda set link_reuniao = 'https://meet.exemplo.invalid/novo' where id = 'b1800000-0000-4000-8000-000000000005' $s$),
   1, 'comercial ainda edita o link da reunião direto');
+select throws_ok(
+  $s$ update sessao_venda set link_reuniao = 'javascript:alert(1)' where id = 'b1800000-0000-4000-8000-000000000005' $s$,
+  '23514', null, 'segurança: link direto sem https é recusado pela tabela (vira link clicável na tela)');
+select throws_ok(
+  $s$ update sessao_venda set opcoes_informadas = repeat('x', 201) where id = 'b1800000-0000-4000-8000-000000000005' $s$,
+  '23514', null, 'segurança: opções informadas direto acima de 200 caracteres são recusadas');
 select testes.encerrar();
 update sessao_venda set link_reuniao = 'https://meet.exemplo.invalid/desfecho' where id = 'b1800000-0000-4000-8000-000000000005';
 
@@ -645,6 +651,77 @@ select is(public.formulario_contrato_abrir((select r ->> 'token' from t_r where 
 select testes.encerrar();
 select ok(not exists (select 1 from privado.formulario_tentativa where origem_hmac like '%198.51.100%'),
   'limite: o IP nunca é gravado (só o HMAC)');
+
+
+-- -----------------------------------------------------------------------------
+-- 8b. segurança: IDOR, papel, AAL, freio e limite por contrato
+-- -----------------------------------------------------------------------------
+
+-- limite por contrato: link2 já tem uma recusa (CPF igual, acima); com o
+-- máximo em 3, mais duas de origens diferentes fecham o contrato
+select testes.autenticar_service_role();
+select is(public.formulario_contrato_enviar((select r ->> 'token' from t_r where chave = 'link2'), '{}', '192.0.2.61') ->> 'situacao',
+  'corrigir', 'limite por contrato: segunda recusa, outra origem');
+select is(public.formulario_contrato_enviar((select r ->> 'token' from t_r where chave = 'link2'), '{}', '192.0.2.62') ->> 'situacao',
+  'corrigir', 'limite por contrato: terceira recusa, outra origem');
+select is(public.formulario_contrato_enviar((select r ->> 'token' from t_r where chave = 'link2'), '{}', '192.0.2.63') ->> 'situacao',
+  'limite', 'segurança: trocar de origem não escapa do limite do contrato');
+select testes.encerrar();
+
+-- freio: contrato aguardando dados de família em bloqueio_total
+insert into contrato (id, familia_id, pacote_versao_id, valor_centavos, template_versao, status,
+                      formulario_token_hash, formulario_expira_em)
+values ('b1890000-0000-4000-8000-000000000004', 'c1800000-0000-4000-8000-000000000004',
+        (select (r #>> '{}')::uuid from t_r where chave = 'essencial'), 100000, 'C-11 teste', 'aguardando_dados',
+        encode(extensions.digest('token-de-teste-da-familia-com-freio-0001', 'sha256'), 'hex'), now() + interval '1 hour');
+select testes.autenticar_service_role();
+select is(public.formulario_contrato_abrir('token-de-teste-da-familia-com-freio-0001', '192.0.2.70') ->> 'situacao', 'invalido',
+  'segurança: família em bloqueio_total, o link não abre (freio, PRD 8.1)');
+select is(public.formulario_contrato_enviar('token-de-teste-da-familia-com-freio-0001',
+  '{"gestante":{"nome_completo":"Nome Teste Freio","cpf":"111.444.777-35","data_nascimento":"1990-01-01","email":"freio@exemplo.invalid",
+    "endereco":{"cep":"01000-000","logradouro":"Rua Teste","numero":"1","bairro":"Centro","cidade":"São Paulo","uf":"SP"}},
+    "consentimento":{"aceito":true,"versao":"lgpd-teste-1"}}', '192.0.2.70') ->> 'situacao', 'invalido',
+  'segurança: família em bloqueio_total, o formulário não recebe');
+select testes.encerrar();
+select ok((select formulario_token_hash is not null from contrato where id = 'b1890000-0000-4000-8000-000000000004')
+          and not exists (select 1 from privado.formulario_tentativa where contrato_id = 'b1890000-0000-4000-8000-000000000004')
+          and (select count(*) from privado.formulario_tentativa where origem_hmac = privado.formulario_origem('192.0.2.70')) = 0,
+  'segurança: o freio não grava dado nem conta tentativa da origem');
+
+-- IDOR: pagador e transferência de outra família
+select testes.autenticar_authenticated('a1800000-0000-4000-8000-000000000001', 'aal2');
+select throws_like(
+  format($s$ select api.salvar_proposta('e1800000-0000-4000-8000-000000000006', %L, 1, null, 'presente', 'd1800000-0000-4000-8000-000000000012') $s$,
+         (select r #>> '{}' from t_r where chave = 'essencial')),
+  '%venda:pagador_invalido%', 'IDOR: pagador de outra família é recusado');
+select throws_like(
+  format($s$ select api.agendar_sessao_venda('c1800000-0000-4000-8000-000000000013', %L, 'a1800000-0000-4000-8000-000000000003',
+                                             'https://meet.exemplo.invalid/idor', null, 'f1810000-0000-4000-8000-000000000001') $s$,
+         testes.venda_amanha_as('10:00')),
+  '%venda:transferencia_invalida%', 'IDOR: transferência de outra família é recusada');
+select is((select count(*)::integer from sessao_venda where familia_id = 'c1800000-0000-4000-8000-000000000013'), 0,
+  'IDOR: a recusa não deixa sessão criada');
+select testes.encerrar();
+
+-- papel e AAL
+select testes.autenticar_authenticated('a1800000-0000-4000-8000-000000000005', 'aal2');
+select throws_ok($s$ select api.proposta('e1800000-0000-4000-8000-000000000001') $s$, '42501', null,
+  'papel: o financeiro não lê proposta de família sem contrato');
+select testes.encerrar();
+select testes.autenticar_authenticated('a1800000-0000-4000-8000-000000000006', 'aal2');
+select throws_ok($s$ select api.proposta('e1800000-0000-4000-8000-000000000011') $s$, '42501', null,
+  'papel: a enfermeira não lê proposta');
+select throws_ok($s$ select api.gerar_link_formulario_contrato('e1800000-0000-4000-8000-000000000013') $s$, '42501', null,
+  'papel: a enfermeira não gera link do formulário');
+select testes.encerrar();
+select testes.autenticar_authenticated('a1800000-0000-4000-8000-000000000001', 'aal1');
+select throws_ok($s$ select api.gerar_link_formulario_contrato('e1800000-0000-4000-8000-000000000013') $s$, '42501', null,
+  'AAL: gerar o link do formulário exige AAL2');
+select testes.encerrar();
+select testes.autenticar_anon();
+select throws_ok($s$ select api.proposta('e1800000-0000-4000-8000-000000000011') $s$, '42501', null,
+  'anon: nenhuma função api da venda');
+select testes.encerrar();
 
 
 -- -----------------------------------------------------------------------------

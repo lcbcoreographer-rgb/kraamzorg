@@ -111,6 +111,9 @@
 --     nova. contrato.status fica em aguardando_dados até o P31 gerar o PDF.
 --   * Link vencido, usado ou inexistente recebem a mesma resposta
 --     ("invalido"): quem não tem o link certo não descobre nada.
+--   * Família em bloqueio_total ou encerrado_sensivel: o link não abre nem
+--     recebe (a mesma resposta "invalido", sem contar tentativa). O freio
+--     só deixa contato humano e nominal (PRD 8.1) [confirmar: Leonardo].
 --
 -- Nenhum preço, prazo, texto ou limite no SQL: valores vêm de
 -- pacote_versao, condicao_comercial e cidade; prazos e limites de
@@ -126,6 +129,17 @@
 revoke insert on public.sessao_venda from authenticated;
 revoke update on public.sessao_venda from authenticated;
 grant update (opcoes_informadas, link_reuniao, parceiro_presente) on public.sessao_venda to authenticated;
+
+-- O link e as opções continuam editáveis direto (grant acima), então a
+-- regra das funções mora também na tabela: link só https, sem espaço, até
+-- 500 caracteres (um "javascript:" gravado direto viraria link clicável na
+-- tela da sessão), e as opções no tamanho de privado.campo_livre.
+alter table public.sessao_venda
+  add constraint sessao_venda_link_reuniao_https
+    check (link_reuniao is null
+           or (link_reuniao ~ '^https://[^[:space:]]+$' and pg_catalog.length(link_reuniao) <= 500)),
+  add constraint sessao_venda_opcoes_informadas_tamanho
+    check (opcoes_informadas is null or pg_catalog.length(opcoes_informadas) <= 200);
 
 comment on table public.sessao_venda is 'Conversa de orientação com a Edilaine (PRD 6.3): agenda e desfecho. A gravação e a transcrição ficam em sessao_venda_gravacao, tabela separada, com RLS mais restrita. [P29] Agendar, remarcar e registrar o desfecho só pelas funções api.*_sessao_venda (0018), que movem o P1 e criam as tarefas na mesma transação.';
 
@@ -1614,6 +1628,15 @@ begin
     return pg_catalog.jsonb_build_object('situacao', 'invalido',
       'textos', privado.formulario_textos(null, '{}'::jsonb));
   end if;
+  -- Freio (PRD 8.1): em bloqueio_total ou encerrado_sensivel só há contato
+  -- humano e nominal. O link deixa de abrir, com a mesma resposta de link
+  -- inválido (quem tem o link não descobre o estado da família) e sem contar
+  -- como tentativa recusada.
+  if exists (select 1 from public.familia f
+             where f.id = v_k.familia_id and f.estado_sensivel in ('bloqueio_total', 'encerrado_sensivel')) then
+    return pg_catalog.jsonb_build_object('situacao', 'invalido',
+      'textos', privado.formulario_textos(null, '{}'::jsonb));
+  end if;
 
   v_o := privado.venda_oportunidade(v_k.familia_id);
   select p.* into v_gestante from public.pessoa p where p.id = v_k.contratante_pessoa_id;
@@ -1742,6 +1765,10 @@ begin
   for update;
   if not found then
     insert into privado.formulario_tentativa (origem_hmac, motivo) values (v_origem, 'link_invalido');
+    return pg_catalog.jsonb_build_object('situacao', 'invalido');
+  end if;
+  if exists (select 1 from public.familia f
+             where f.id = v_k.familia_id and f.estado_sensivel in ('bloqueio_total', 'encerrado_sensivel')) then
     return pg_catalog.jsonb_build_object('situacao', 'invalido');
   end if;
   if privado.formulario_limite(v_origem, v_k.id) then

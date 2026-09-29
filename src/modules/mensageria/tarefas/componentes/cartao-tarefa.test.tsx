@@ -322,4 +322,27 @@ describe("CartaoTarefa", () => {
       ).toBe("concluida");
     });
   });
+
+  it("justificar o freio: sem selo de prioridade e sem relógio ao lado de uma família em luto", () => {
+    render(
+      <CartaoTarefa
+        tarefa={tarefaComWhatsApp({
+          id: "tarefa-freio-teste",
+          titulo: "Justificar o freio da Família Teste Estrela",
+          familiaId: "familia-teste",
+          payload: { acao: "justificar_freio" },
+          temAcaoWhatsApp: false,
+          mensagem: {},
+        })}
+      />,
+    );
+    expect(screen.queryByText("Prioridade alta")).not.toBeInTheDocument();
+    expect(screen.getByText("até 24/09/2026, 17:00")).toBeVisible();
+    expect(
+      screen.getByText(/Nenhuma mensagem automática sai para esta família/),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: "Escrever justificativa" }),
+    ).toHaveAttribute("href", "/familias/familia-teste");
+  });
 });

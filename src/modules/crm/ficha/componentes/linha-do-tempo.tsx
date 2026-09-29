@@ -12,7 +12,26 @@ import { rotuloTipoEvento } from "../rotulos";
  * (o repositório da fundação decide); este componente só desenha o que
  * recebeu, com o título já em frase (`tituloEvento`, em `dados.ts`).
  */
-export function LinhaDoTempo({ eventos }: { eventos: EventoTela[] }) {
+export function LinhaDoTempo({
+  eventos,
+  emLuto = false,
+}: {
+  eventos: EventoTela[];
+  /**
+   * Família em bloqueio total ou encerrada em estado sensível: o vazio sai
+   * sem contorno tracejado e sem "ainda" (DESIGN.md 11.5 e 11.8: tracejado
+   * quer dizer "ainda não" e nunca aparece em luto, onde nada está
+   * pendente).
+   */
+  emLuto?: boolean;
+}) {
+  if (eventos.length === 0 && emLuto) {
+    return (
+      <p className="text-corpo text-texto-2">
+        Nenhum marco registrado para esta família.
+      </p>
+    );
+  }
   if (eventos.length === 0) {
     return (
       <EstadoVazio
