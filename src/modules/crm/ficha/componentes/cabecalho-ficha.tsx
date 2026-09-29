@@ -21,10 +21,10 @@ function textoFreioAtivo(estado: EstadoSensivel, em: string | null): string {
   const quando = em ? formatarDataHora(em) : null;
   const desde = quando ? ` desde ${quando}` : "";
   if (estado === "atencao") {
-    return `Freio em atenção${desde}. Réguas de conteúdo e marketing pausadas; o contato operacional continua.`;
+    return `Freio em atenção${desde}. Conteúdo e marketing pausados; os avisos da operação continuam.`;
   }
   if (estado === "encerrado_sensivel") {
-    return `Encerrado sensível${desde}. Fora de pesquisa, indicação e remarketing, para sempre.`;
+    return `Encerrado em estado sensível${desde}. Nenhuma pesquisa, pedido de indicação ou remarketing sai mais para esta família.`;
   }
   return `Freio em bloqueio total${desde}. Só contato humano e pelo nome.`;
 }
@@ -53,6 +53,8 @@ export interface CabecalhoFichaProps {
   justificativaPendente?: boolean;
   /** Vencimento da tarefa de justificativa, para o prazo na faixa (P2 item 13). */
   justificativaVenceEm?: string | null;
+  /** Linha da família no tempo (`linhaDaFicha`); some em modo sensível. */
+  linha?: React.ReactNode;
 }
 
 /**
@@ -72,6 +74,7 @@ export function CabecalhoFicha({
   freioDesfazerSegundos = 0,
   justificativaPendente = false,
   justificativaVenceEm = null,
+  linha,
 }: CabecalhoFichaProps) {
   const router = useRouter();
   const formDesfazerRef = React.useRef<HTMLFormElement>(null);
@@ -87,6 +90,11 @@ export function CabecalhoFicha({
   const [acionouAgora, definirAcionouAgora] = React.useState(false);
 
   const freioAtivo = estadoSensivelInicial !== "normal";
+  // Perda ou intercorrência (DESIGN.md, 11.8): datas sem promessa de
+  // futuro e nenhuma linha da gestação.
+  const modoSensivel =
+    estadoSensivelInicial === "bloqueio_total" ||
+    estadoSensivelInicial === "encerrado_sensivel";
   // Estável entre renderizações: o AvisoEfemero reinicia o temporizador
   // quando esta função muda, e o router.refresh() re-renderiza a ficha
   // logo depois do toque (o "Desfazer" não pode durar mais que o prazo).
@@ -137,6 +145,8 @@ export function CabecalhoFicha({
         nivelTitulo="h1"
         sangrar
         freioAtivo={freioAtivo}
+        modoSensivel={modoSensivel}
+        linha={modoSensivel ? undefined : linha}
         textoFreioAtivo={
           freioAtivo
             ? textoFreioAtivo(estadoSensivelInicial, estadoSensivelEmInicial)
@@ -161,7 +171,7 @@ export function CabecalhoFicha({
       />
 
       {estadoAcionar.erro ? (
-        <FaixaAlerta variante="imediato" titulo={estadoAcionar.erro} />
+        <FaixaAlerta variante="erro" titulo={estadoAcionar.erro} />
       ) : null}
 
       {freioAtivo ? (

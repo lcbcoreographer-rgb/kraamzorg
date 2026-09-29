@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { z } from "zod";
 import { Botao } from "@/components/ui/botao";
-import { Selo } from "@/components/ui/selo";
 import type { Papel } from "@/lib/auth/papeis";
 import { exigirSessao } from "@/lib/auth/sessao";
 import {
@@ -13,6 +12,11 @@ import {
 } from "@/modules/crm/ficha/componentes/abas-ficha";
 import { CabecalhoFicha } from "@/modules/crm/ficha/componentes/cabecalho-ficha";
 import { LinhaDoTempo } from "@/modules/crm/ficha/componentes/linha-do-tempo";
+import {
+  datasDoCabecalho,
+  linhaDaFicha,
+  MetaFicha,
+} from "@/modules/crm/ficha/componentes/meta-ficha";
 import { PainelComercial } from "@/modules/crm/ficha/componentes/painel-comercial";
 import { PainelConversas } from "@/modules/crm/ficha/componentes/painel-conversas";
 import { PainelPessoas } from "@/modules/crm/ficha/componentes/painel-pessoas";
@@ -25,7 +29,6 @@ import {
   temJustificativaPendente,
 } from "@/modules/crm/ficha/dados";
 import { hojeBrasilia } from "@/modules/crm/pipeline/idade-gestacional";
-import { formatarData, localidade } from "@/lib/formatacao";
 
 // Título sem nome de família (DESIGN.md, microcopy 11).
 export const metadata: Metadata = { title: "Ficha da família · Kraamzorg OS" };
@@ -100,12 +103,6 @@ export default async function PaginaFicha({
   if (veConversas) abas.push({ chave: "conversas", rotulo: "Conversas" });
   const aba = abas.some((a) => a.chave === abaPedida) ? abaPedida! : "tempo";
 
-  const datasCabecalho = ficha.datas.map((d) => ({
-    rotulo: d.rotulo,
-    valor: d.valor ? (formatarData(d.valor) ?? "ainda não") : "ainda não",
-    tipo: d.valor ? d.tipo : ("ausente" as const),
-  }));
-
   // Sem título genérico "Ficha da família": o nome já é o h1 do cabeçalho
   // da família logo abaixo, e um segundo h1 confunde o leitor de tela
   // (crítica do CRM, P1 item 12). No lugar, o link de volta, como no
@@ -128,29 +125,9 @@ export default async function PaginaFicha({
         <CabecalhoFicha
           familiaId={ficha.familiaId}
           nome={ficha.nome}
-          meta={
-            <>
-              {ficha.estagioRotulo ? (
-                <Selo variante="marinho">{ficha.estagioRotulo}</Selo>
-              ) : null}
-              {ficha.idadeGestacional ? (
-                <span
-                  className="text-corpo font-mono"
-                  title={
-                    ficha.datas[0]?.valor
-                      ? `Calculada da DPP ${formatarData(ficha.datas[0].valor)}`
-                      : undefined
-                  }
-                >
-                  {ficha.idadeGestacional}
-                </span>
-              ) : null}
-              {localidade(ficha.bairro, ficha.cidade) ? (
-                <span>{localidade(ficha.bairro, ficha.cidade)}</span>
-              ) : null}
-            </>
-          }
-          datas={datasCabecalho}
+          meta={<MetaFicha ficha={ficha} />}
+          linha={linhaDaFicha(ficha)}
+          datas={datasDoCabecalho(ficha)}
           estadoSensivelInicial={ficha.estadoSensivel}
           estadoSensivelEmInicial={ficha.estadoSensivelEm}
           podeReverter={podeReverterFreio}

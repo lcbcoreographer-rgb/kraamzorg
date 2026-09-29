@@ -15,7 +15,7 @@ export async function SecaoPacotes() {
     return (
       <EstadoVazio
         titulo="Nenhum pacote visível"
-        texto="Pacotes e preços aparecem aqui só para a diretoria (PRD 13)."
+        texto="Pacotes e preços aparecem aqui só para a diretoria."
       />
     );
   }

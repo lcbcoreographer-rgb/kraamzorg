@@ -130,7 +130,7 @@ export function FormularioCondicao({
           />
 
           {estado.erro ? (
-            <FaixaAlerta variante="imediato" titulo={estado.erro} />
+            <FaixaAlerta variante="erro" titulo={estado.erro} />
           ) : null}
 
           <DialogoRodape>

@@ -447,20 +447,24 @@ export function VitrineDesignSystem() {
             placeholder="Anotação livre sobre a visita de hoje"
             containerClassName="sm:col-span-2"
           />
+          {/* Exemplo clínico de verdade (lista de acolhimento, P2-4): 38 °C
+              ou mais dispara a PU-01 do seed (`regra_alerta`); 78 bpm é
+              normal e não pinta nada. A vitrine ensina o padrão a quem
+              constrói as telas clínicas. */}
           <CampoNumero
             rotulo="Temperatura"
             unidade="°C"
             faixa={{ min: 34, max: 42 }}
-            defaultValue="36,8"
-            descricao="Ontem: 36,6 °C."
+            defaultValue="38,4"
+            estado="alerta-clinico"
+            descricao="38 °C ou mais dispara a PU-01. No D3 foi 36,9 °C."
           />
           <CampoNumero
             rotulo="Frequência cardíaca"
             unidade="bpm"
             faixa={{ min: 40, max: 220 }}
             defaultValue="78"
-            estado="alerta-clinico"
-            descricao="Acima da faixa esperada para a puérpera."
+            descricao="No D3 foi 80 bpm."
           />
         </div>
       </Secao>
@@ -639,7 +643,7 @@ export function VitrineDesignSystem() {
             Restam 22 minutos para assumir esta transferência.
           </FaixaAlerta>
           <FaixaAlerta variante="sensivel" titulo="Freio em bloqueio total">
-            Só contato humano e nominal. Nenhuma mensagem automática sai para
+            Só contato humano, pelo nome. Nenhuma mensagem automática sai para
             esta família.
           </FaixaAlerta>
           <FaixaAlerta variante="info" titulo="Sem sinal agora">
@@ -735,7 +739,7 @@ export function VitrineDesignSystem() {
                 },
               ]}
               freioAtivo={freioAtivo}
-              textoFreioAtivo={`Freio em bloqueio total desde ${formatarDataHora("2026-09-24T12:14:00Z")}. Só contato humano e nominal.`}
+              textoFreioAtivo={`Freio em bloqueio total desde ${formatarDataHora("2026-09-24T12:14:00Z")}. Só contato humano e pelo nome.`}
               rotuloFreioAtivo="Freio ativo"
               acaoFreio={
                 <BotaoFreio

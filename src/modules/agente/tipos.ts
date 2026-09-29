@@ -20,8 +20,13 @@ import type {
  * `repositorio.ts`, com as mesmas regras de RLS/demonstração.
  */
 
-/** Em que mão está a conversa (protótipo `comercial-conversas.html`, C5). */
-export type SituacaoConversa = "isadora" | "equipe" | "pausada" | "nao_lead";
+/**
+ * Em que mão está a conversa (protótipo `comercial-conversas.html`, C5).
+ * `freio`: a família está em bloqueio total ou encerrada em estado
+ * sensível, e a Isadora está desligada para ela (PRD 8.3).
+ */
+export type SituacaoConversa =
+  "isadora" | "equipe" | "pausada" | "nao_lead" | "freio";
 
 export interface PreviaMensagem {
   conteudo: string | null;
@@ -116,11 +121,11 @@ export const ROTULO_MOTIVO_HANDOFF: Record<MotivoHandoff, string> = {
   outro: "Outra situação",
 };
 
-/** De quem é a transferência, em frase ("É do comercial"). */
+/** Com quem está a transferência, em frase ("com o comercial"). */
 export const FRASE_DESTINO_HANDOFF: Record<DestinoHandoff, string> = {
-  comercial: "É do comercial",
-  coordenacao_clinica: "É da coordenação clínica",
-  operacao: "É da operação",
+  comercial: "com o comercial",
+  coordenacao_clinica: "com a coordenação clínica",
+  operacao: "com a operação",
 };
 
 /**

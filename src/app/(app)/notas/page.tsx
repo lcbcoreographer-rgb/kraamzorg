@@ -11,8 +11,7 @@ export default function PaginaNotas() {
   return (
     <TelaEmConstrucao
       titulo="Notas"
-      tituloVazio="As notas fiscais vão aparecer aqui"
-      texto="Notas emitidas, em processamento e com erro, ligadas a cada cobrança."
+      texto="Aqui você vai ver as notas fiscais emitidas, as que ainda estão em processamento e as que voltaram com erro."
     />
   );
 }

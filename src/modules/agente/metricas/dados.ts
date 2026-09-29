@@ -1,4 +1,5 @@
 import "server-only";
+import { obterRepositorios } from "@/lib/dados/fabrica";
 import { obterMetricas } from "../repositorio";
 import type { MetricasAgente } from "../tipos";
 
@@ -128,4 +129,23 @@ export function periodoPadrao(agora: Date = new Date()): {
     }).format(d);
   const desdeData = new Date(agora.getTime() - 30 * 24 * 60 * 60_000);
   return { desde: diaBrasilia(desdeData), ate: diaBrasilia(agora) };
+}
+
+/**
+ * Limiar de amostra pequena dos números do mês (DESIGN.md, 11.10), em
+ * `parametro.agente_metricas_amostra_minima` (proposta: 20 [confirmar:
+ * Leonardo]). O parâmetro ainda não existe no seed: sem ele, ou para quem
+ * a RLS não deixa ler `parametro`, volta null e a tela não mostra a nota,
+ * em vez de fixar um número no código.
+ */
+export async function obterLimiarAmostra(): Promise<number | null> {
+  try {
+    const { configuracoes } = await obterRepositorios();
+    const parametro = await configuracoes.lerParametro(
+      "agente_metricas_amostra_minima",
+    );
+    return typeof parametro?.valor === "number" ? parametro.valor : null;
+  } catch {
+    return null;
+  }
 }

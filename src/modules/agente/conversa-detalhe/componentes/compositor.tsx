@@ -135,7 +135,7 @@ export function Compositor({
       ) : null}
 
       {estado.erro ? (
-        <FaixaAlerta variante="imediato" titulo="Não deu para enviar">
+        <FaixaAlerta variante="erro" titulo="A mensagem não saiu">
           {estado.erro}
         </FaixaAlerta>
       ) : null}

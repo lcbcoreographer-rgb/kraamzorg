@@ -814,7 +814,7 @@ export const TRANSFERENCIAS: TransferenciaDemonstracao[] = [
     destino: "coordenacao_clinica",
     prioridade: "maxima",
     resumo:
-      "Relato de perda gestacional. Freio em bloqueio total. Contato humano e nominal.",
+      "A família contou que perdeu o bebê. Nenhuma mensagem automática sai mais para ela. A coordenação clínica faz o contato, pelo nome.",
     status: "aberto",
     slaMinutos: -30,
     assumidoPorComercial: false,

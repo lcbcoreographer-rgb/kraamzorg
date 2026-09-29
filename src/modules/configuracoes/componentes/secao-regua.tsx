@@ -1,6 +1,7 @@
 import { Cartao } from "@/components/ui/cartao";
 import { obterRepositorioModulo } from "../dados";
 import { FormularioFaixa } from "./formulario-faixa";
+import { inicioDoTexto, TextoDaFamilia } from "./texto-da-familia";
 
 function descreverSemanas(min: number | null, max: number | null): string {
   if (min === null && max === null) return "Já nasceu";
@@ -18,14 +19,15 @@ export async function SecaoRegua() {
   ]);
   const opcoesMensagem = mensagens
     .filter((m) => m.destinatario === "familia")
-    .map((m) => ({ valor: m.chave, rotulo: m.chave }));
+    .map((m) => ({ valor: m.chave, rotulo: inicioDoTexto(m.texto, 56) }));
+  const mensagemPorChave = new Map(mensagens.map((m) => [m.chave, m]));
 
   return (
     <div className="flex flex-col gap-4">
       <p className="text-apoio text-texto-2 max-w-leitura">
         Uma tarefa por família a cada mudança de faixa, nunca repetida na mesma
-        semana. O texto sugerido vem da mensagem escolhida aqui; o comercial
-        pode editar antes de enviar (PRD 10.3).
+        semana. O texto sugerido vem da mensagem escolhida aqui, e o comercial
+        pode editar antes de enviar.
       </p>
       {faixas.map((faixa) => (
         <Cartao key={faixa.id} variante="plano">
@@ -39,10 +41,14 @@ export async function SecaoRegua() {
               <p className="text-apoio text-texto-2 mt-1">
                 Gatilho comercial: {faixa.gatilhoComercial}
               </p>
-              <p className="text-apoio text-texto-2 mt-1">
-                Mensagem:{" "}
-                <span className="font-mono">{faixa.mensagemChave}</span>
-              </p>
+              <div className="mt-2 flex flex-col gap-0.5">
+                <p className="text-apoio text-texto-2">
+                  Texto que a família recebe
+                </p>
+                <TextoDaFamilia
+                  mensagem={mensagemPorChave.get(faixa.mensagemChave)}
+                />
+              </div>
             </div>
             <FormularioFaixa faixa={faixa} opcoesMensagem={opcoesMensagem} />
           </div>

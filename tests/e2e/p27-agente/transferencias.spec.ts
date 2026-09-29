@@ -84,9 +84,19 @@ test("Assumir conversa pausa a Isadora, abre a conversa, e Marcar como resolvida
     .locator("xpath=ancestor::*[contains(@class,'rounded-3')][1]");
   await cartao.getByRole("button", { name: "Assumir conversa" }).click();
 
-  // Fluxo E, item 3: assumir mantém a IA pausada e abre a conversa.
+  // Fluxo E, item 3: assumir mantém a IA sem responder e abre a conversa.
+  // Na perda, a família está com o freio em bloqueio total: a Isadora está
+  // desligada, não só pausada (DESIGN.md, 11.8; camada de acolhimento).
   await page.waitForURL(/\/conversas\//);
-  await expect(page.getByText("Isadora pausada nesta conversa")).toBeVisible();
+  await expect(
+    page.getByText(
+      porProjeto(
+        info,
+        "Isadora pausada nesta conversa",
+        "A Isadora está desligada para esta família",
+      ),
+    ),
+  ).toBeVisible();
   const transferencia = page.getByRole("region", {
     name: "Transferência aberta",
   });

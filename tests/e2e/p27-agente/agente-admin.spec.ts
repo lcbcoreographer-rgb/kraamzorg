@@ -97,6 +97,9 @@ test("mostra os números do mês com base de comparação", async ({ page }) => 
   await expect(
     page.getByRole("heading", { name: "Números do mês" }),
   ).toBeVisible();
-  await expect(page.getByText("Leads que respondem à abertura")).toBeVisible();
+  // Números do mês em frase, uma linha por métrica (DESIGN.md, 11.10).
+  await expect(
+    page.getByText(/responderam à mensagem de abertura/),
+  ).toBeVisible();
   await expect(page.getByText(/Meta:/).first()).toBeVisible();
 });

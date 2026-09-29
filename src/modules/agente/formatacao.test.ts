@@ -88,6 +88,50 @@ describe("situacaoDaConversa (P27 item 1, PRD 7.1 e 11.7)", () => {
   });
 });
 
+describe("situacaoDaConversa com o freio (DESIGN.md 11.8, PRD 8.3)", () => {
+  it("bloqueio total vence pausa, encerramento e classificação: 'freio'", () => {
+    expect(
+      situacaoDaConversa(
+        {
+          classificacao: "fornecedor",
+          agenteEncerradoEm: "2026-09-24T14:02:00-03:00",
+          agentePausadoAte: "2026-09-24T18:00:00-03:00",
+        },
+        AGORA,
+        "bloqueio_total",
+      ),
+    ).toBe("freio");
+  });
+
+  it("encerrado sensível também desliga a Isadora", () => {
+    expect(
+      situacaoDaConversa(
+        {
+          classificacao: "lead",
+          agenteEncerradoEm: null,
+          agentePausadoAte: null,
+        },
+        AGORA,
+        "encerrado_sensivel",
+      ),
+    ).toBe("freio");
+  });
+
+  it("freio em atenção não desliga a Isadora", () => {
+    expect(
+      situacaoDaConversa(
+        {
+          classificacao: "lead",
+          agenteEncerradoEm: null,
+          agentePausadoAte: null,
+        },
+        AGORA,
+        "atencao",
+      ),
+    ).toBe("isadora");
+  });
+});
+
 describe("primeiroNome", () => {
   it("devolve o primeiro nome de um nome composto", () => {
     expect(primeiroNome("Bianca Teste Dália")).toBe("Bianca");

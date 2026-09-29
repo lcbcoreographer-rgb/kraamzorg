@@ -11,8 +11,7 @@ export default function PaginaCobrancas() {
   return (
     <TelaEmConstrucao
       titulo="Cobranças"
-      tituloVazio="As cobranças vão aparecer aqui"
-      texto="Links de pagamento, parcelas e baixas confirmadas pelo meio de pagamento."
+      texto="Aqui você vai ver os links de pagamento, as parcelas e as baixas confirmadas pelo meio de pagamento."
     />
   );
 }

@@ -39,7 +39,7 @@ export default async function PaginaCadastroMfa({
       </div>
 
       {"erro" in cadastro ? (
-        <FaixaAlerta variante="imediato" titulo={ERRO_AUTH[cadastro.erro]} />
+        <FaixaAlerta variante="erro" titulo={ERRO_AUTH[cadastro.erro]} />
       ) : (
         <>
           <ol className="text-corpo text-texto flex list-decimal flex-col gap-3 pl-5">

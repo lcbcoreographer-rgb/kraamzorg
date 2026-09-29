@@ -79,7 +79,7 @@ export function ControleDataFato({
             required
           />
           {estado.erro ? (
-            <FaixaAlerta variante="imediato" titulo={estado.erro} />
+            <FaixaAlerta variante="erro" titulo={estado.erro} />
           ) : null}
           <DialogoRodape>
             <DialogoFechar asChild>

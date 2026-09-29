@@ -11,8 +11,7 @@ export default function PaginaFinanceiro() {
   return (
     <TelaEmConstrucao
       titulo="Financeiro"
-      tituloVazio="O resumo financeiro vai aparecer aqui"
-      texto="Receita do mês, cobranças em aberto e pagamento da equipe."
+      texto="Aqui você vai ver a receita do mês, as cobranças em aberto e o pagamento da equipe."
       acao={{ rotulo: "Ver cobranças", href: "/cobrancas" }}
     />
   );

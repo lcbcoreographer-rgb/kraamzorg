@@ -11,8 +11,8 @@ export default function ErroTransferencias({ retry }: { retry: () => void }) {
   return (
     <div className="flex flex-col gap-4 pt-6">
       <FaixaAlerta
-        variante="imediato"
-        titulo="Não foi possível abrir esta tela agora"
+        variante="erro"
+        titulo="A fila de transferências não abriu agora"
         acoes={
           <Botao
             variante="secundario"
@@ -23,8 +23,8 @@ export default function ErroTransferencias({ retry }: { retry: () => void }) {
           </Botao>
         }
       >
-        Confira a conexão e tente de novo. Se continuar, avise a equipe técnica.
-        Nada foi alterado nas conversas.
+        Nada mudou na fila: as transferências continuam abertas. Confira a
+        conexão e toque em Tentar de novo; se continuar, avise a equipe técnica.
       </FaixaAlerta>
     </div>
   );

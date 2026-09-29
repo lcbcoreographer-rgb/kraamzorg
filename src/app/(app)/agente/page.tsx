@@ -5,6 +5,7 @@ import { exigirSessao } from "@/lib/auth/sessao";
 import { obterBaseConhecimentoTela } from "@/modules/agente/base-conhecimento/dados";
 import { PainelBaseConhecimento } from "@/modules/agente/base-conhecimento/componentes/painel-base-conhecimento";
 import {
+  obterLimiarAmostra,
   obterMetricasTela,
   periodoPadrao,
 } from "@/modules/agente/metricas/dados";
@@ -85,10 +86,7 @@ export default async function PaginaAgente() {
       />
       <div className="flex flex-col gap-8 pt-6">
         {!carregouTudo ? (
-          <FaixaAlerta
-            variante="imediato"
-            titulo="Alguma parte não carregou agora"
-          >
+          <FaixaAlerta variante="erro" titulo="Alguma parte não carregou agora">
             Confira a conexão e recarregue a página. Se continuar, avise a
             equipe técnica.
           </FaixaAlerta>
@@ -124,7 +122,7 @@ export default async function PaginaAgente() {
 
         <Secao
           titulo="Base de conhecimento"
-          texto="O que a Isadora pode responder. Só o que está aprovado entra na próxima reindexação."
+          texto="O que a Isadora pode responder. Só o que está aprovado entra na próxima atualização."
         >
           {base ? (
             <PainelBaseConhecimento base={base} podeAprovar={ehDiretoria} />
@@ -140,7 +138,10 @@ export default async function PaginaAgente() {
           texto="Últimos 30 dias, cada número ao lado da meta combinada para os primeiros 60 dias."
         >
           {metricas ? (
-            <PainelMetricas metricas={metricas} />
+            <PainelMetricas
+              metricas={metricas}
+              limiarAmostra={await obterLimiarAmostra()}
+            />
           ) : (
             <p className="text-apoio text-texto-2">
               Não foi possível carregar as métricas agora.

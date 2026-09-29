@@ -14,6 +14,7 @@ import {
 import { DESTINO_DO_PAPEL } from "@/modules/agente/tipos";
 import type { TransferenciaTela } from "@/modules/agente/tipos";
 import { ListaTarefas } from "@/modules/mensageria/tarefas/componentes/lista-tarefas";
+import { fraseDoDia } from "./frase-do-dia";
 import {
   listarTarefasTela,
   type TarefasTela,
@@ -21,58 +22,33 @@ import {
 
 export const metadata: Metadata = { title: "Início · Kraamzorg OS" };
 
-/** O que o Início de cada papel vai mostrar (PRD 20.4). */
+/**
+ * O que o Início de cada papel vai mostrar (PRD 20.4), no molde do estado
+ * "ainda em construção" (DESIGN.md, 11.7; voz.md, seção 5).
+ */
 const INICIO_POR_PAPEL: Record<
   Exclude<Papel, "enfermeira" | "comercial">,
-  { titulo: string; texto: string; acao?: { rotulo: string; href: string } }
+  { texto: string; acao?: { rotulo: string; href: string } }
 > = {
   coordenacao: {
-    titulo: "O que pede decisão vai aparecer aqui",
     texto:
-      "Alertas clínicos abertos, transferências de saúde, fichas pendentes, ofertas sem resposta e a síntese da equipe.",
+      "Aqui você vai ver primeiro o que pede a sua decisão: alertas clínicos abertos, fichas sem assinatura e ofertas sem resposta.",
   },
   financeiro: {
-    titulo: "O que pede atenção no financeiro vai aparecer aqui",
-    texto: "Cobranças vencendo, pagamentos confirmados e notas com erro.",
+    texto:
+      "Aqui você vai ver o que pede atenção no financeiro: cobranças vencendo, pagamentos confirmados e notas com erro.",
     acao: { rotulo: "Ver cobranças", href: "/cobrancas" },
   },
   marketing: {
-    titulo: "Os números de origem e funil vão aparecer aqui",
     texto:
-      "Leads por origem e por estágio, sempre em agregado, sem dado de família.",
+      "Aqui você vai ver os leads por origem e por estágio, sempre em número agregado, sem dado de família.",
   },
   diretoria: {
-    titulo: "As cinco perguntas do dia vão aparecer aqui",
     texto:
-      "Vendas, operação, equipe, financeiro e alertas, cada uma com a comparação ao período anterior.",
+      "Aqui você vai ver, uma linha para cada, como estão vendas, operação, equipe, financeiro e alertas, comparados com o período anterior.",
     acao: { rotulo: "Ver pipeline", href: "/pipeline" },
   },
 };
-
-const NUMERO_POR_EXTENSO = [
-  "Nenhuma",
-  "Uma",
-  "Duas",
-  "Três",
-  "Quatro",
-  "Cinco",
-  "Seis",
-  "Sete",
-  "Oito",
-  "Nove",
-  "Dez",
-];
-
-function fraseContagem(
-  n: number,
-  singular: string,
-  plural: string,
-  maiuscula = true,
-): string {
-  const extenso = n <= 10 ? (NUMERO_POR_EXTENSO[n] ?? String(n)) : String(n);
-  const numero = maiuscula || n > 10 ? extenso : extenso.toLowerCase();
-  return `${numero} ${n === 1 ? singular : plural}`;
-}
 
 /**
  * Dono: P18 (fila e tarefas do comercial) e P27 (transferências); cada
@@ -91,10 +67,12 @@ export default async function PaginaInicio() {
     INICIO_POR_PAPEL[
       principal && principal !== "enfermeira" ? principal : "diretoria"
     ];
+  // Tela de abertura: o título é o dia (DESIGN.md, 11.4); a aba e o
+  // <title> continuam "Início".
   return (
     <TelaEmConstrucao
-      titulo="Início"
-      tituloVazio={conteudo.titulo}
+      titulo={formatarDiaSemanaEData(new Date()) ?? "Início"}
+      abertura
       texto={conteudo.texto}
       acao={conteudo.acao}
     />
@@ -126,29 +104,31 @@ async function InicioComercial({ usuarioId }: { usuarioId: string }) {
     tela?.grupos.filter(
       (g) => g.balde === "vencida" || g.balde === "vence_hoje",
     ) ?? [];
-  const totalTarefasHoje = gruposHoje.reduce(
-    (acc, g) => acc + g.tarefas.length,
-    0,
-  );
-
-  const dataResumo = formatarDiaSemanaEData(new Date());
   const resumo =
-    fila && tela && dataResumo
-      ? `${dataResumo}. ${fraseContagem(
-          fila.length,
-          "transferência aberta",
-          "transferências abertas",
-        )} e ${fraseContagem(
-          totalTarefasHoje,
-          "tarefa com prazo hoje",
-          "tarefas com prazo hoje",
-          false,
-        )}.`
-      : dataResumo;
+    fila && tela
+      ? fraseDoDia({
+          transferenciasEsperando: fila.filter((t) => t.status === "aberto")
+            .length,
+          transferenciasComEquipe: fila.filter((t) => t.status === "assumido")
+            .length,
+          tarefasAtrasadas:
+            gruposHoje.find((g) => g.balde === "vencida")?.tarefas.length ?? 0,
+          tarefasHoje:
+            gruposHoje.find((g) => g.balde === "vence_hoje")?.tarefas.length ??
+            0,
+        })
+      : null;
 
   return (
     <>
-      <CabecalhoTela titulo="Início" subtitulo={resumo} />
+      {/* Tela de abertura: o dia como título e a frase de estado logo
+          abaixo, em marinho (DESIGN.md, 11.4). A aba e o <title>
+          continuam "Início". */}
+      <CabecalhoTela
+        titulo={formatarDiaSemanaEData(new Date()) ?? "Início"}
+        subtitulo={resumo}
+        abertura
+      />
       <div className="grid grid-cols-1 gap-8 pt-6 lg:grid-cols-[62fr_38fr]">
         <section aria-labelledby="inicio-transferencias">
           <h2
@@ -167,29 +147,34 @@ async function InicioComercial({ usuarioId }: { usuarioId: string }) {
           ) : (
             <FaixaAlerta
               variante="erro"
-              titulo="Não foi possível carregar a fila agora"
+              titulo="A fila de transferências não carregou"
             >
-              Confira a conexão e recarregue a página.
+              Nada se perdeu: as transferências continuam abertas. Confira a
+              conexão e recarregue a página.
             </FaixaAlerta>
           )}
         </section>
 
         <section aria-labelledby="inicio-tarefas">
-          <h2
-            id="inicio-tarefas"
-            className="font-titulo text-2 text-texto mb-3"
-          >
-            Tarefas de hoje
-          </h2>
           {tela ? (
-            <ListaTarefas grupos={gruposHoje} />
+            <ListaTarefas
+              grupos={gruposHoje}
+              titulo="Tarefas de hoje"
+              idTitulo="inicio-tarefas"
+            />
           ) : (
-            <FaixaAlerta
-              variante="erro"
-              titulo="Não foi possível carregar as tarefas agora"
-            >
-              Confira a conexão e recarregue a página.
-            </FaixaAlerta>
+            <>
+              <h2
+                id="inicio-tarefas"
+                className="font-titulo text-2 text-texto mb-3"
+              >
+                Tarefas de hoje
+              </h2>
+              <FaixaAlerta variante="erro" titulo="As tarefas não carregaram">
+                Nada se perdeu: as tarefas continuam abertas. Confira a conexão
+                e recarregue a página.
+              </FaixaAlerta>
+            </>
           )}
         </section>
       </div>

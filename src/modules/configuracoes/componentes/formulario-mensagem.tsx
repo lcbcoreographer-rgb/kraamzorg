@@ -137,7 +137,7 @@ export function FormularioMensagem({
           </div>
 
           {estado.erro ? (
-            <FaixaAlerta variante="imediato" titulo={estado.erro} />
+            <FaixaAlerta variante="erro" titulo={estado.erro} />
           ) : null}
           {estado.sucesso ? (
             <p role="status" className="text-apoio text-sucesso">

@@ -42,7 +42,7 @@ function ErroGeral({
 }) {
   const erro = semSinal ?? estado.erro;
   if (!erro) return null;
-  return <FaixaAlerta variante="imediato" titulo={erro} anunciar />;
+  return <FaixaAlerta variante="erro" titulo={erro} anunciar />;
 }
 
 /**

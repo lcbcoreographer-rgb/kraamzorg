@@ -37,14 +37,14 @@ describe("CabecalhoFamilia", () => {
         nome="Família Teste Brisa"
         datas={DATAS}
         freioAtivo
-        textoFreioAtivo="Freio em bloqueio total desde 24/09/2026, 09:14. Só contato humano e nominal."
+        textoFreioAtivo="Freio em bloqueio total desde 24/09/2026, 09:14. Só contato humano e pelo nome."
         rotuloFreioAtivo="Freio ativo"
       />,
     );
 
     expect(
       screen.getByText(
-        "Freio em bloqueio total desde 24/09/2026, 09:14. Só contato humano e nominal.",
+        "Freio em bloqueio total desde 24/09/2026, 09:14. Só contato humano e pelo nome.",
       ),
     ).toBeInTheDocument();
     expect(screen.getByText("Freio ativo")).toBeInTheDocument();
@@ -54,23 +54,77 @@ describe("CabecalhoFamilia", () => {
     expect(screen.getByText("25/09/2026")).toBeInTheDocument();
   });
 
-  it("mostra a data ausente como pílula tracejada, com a legenda de quando vira fato (P1 item 12)", () => {
+  it("data ausente mostra só 'ainda não', com uma legenda única para as quatro datas (DESIGN.md 11.1)", () => {
     render(
       <CabecalhoFamilia
         nome="Família Teste Cedro"
         datas={[
-          { rotulo: "Alta", valor: "Ainda não há", tipo: "ausente" as const },
+          { rotulo: "DPP", valor: "25/11/2026", tipo: "estimativa" as const },
+          {
+            rotulo: "Nascimento",
+            valor: "ainda não",
+            tipo: "ausente" as const,
+          },
+          { rotulo: "Alta", valor: "ainda não", tipo: "ausente" as const },
         ]}
         acaoFreio={<button>Freio</button>}
       />,
     );
 
-    const definicoes = screen.getAllByRole("definition");
-    // O valor ("Ainda não há") e a legenda ("vira fato quando acontecer"),
-    // nunca a legenda "estimativa"/"fato" de uma data que já aconteceu.
-    expect(definicoes).toHaveLength(2);
-    expect(definicoes[0]).toHaveTextContent("Ainda não há");
-    expect(definicoes[1]).toHaveTextContent("vira fato quando acontecer");
+    expect(screen.getAllByText("ainda não")).toHaveLength(2);
+    expect(
+      screen.queryByText("vira fato quando acontecer"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getAllByText(
+        "A DPP é estimativa. Nascimento, alta e início entram quando acontecem.",
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("sem data ausente, sem legenda", () => {
+    render(
+      <CabecalhoFamilia
+        nome="Família Teste Aurora"
+        datas={DATAS}
+        acaoFreio={<button>Freio</button>}
+      />,
+    );
+    expect(
+      screen.queryByText(/entram quando acontecem/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("modo sensível: as quatro datas ficam, a ausente vira 'sem registro' e nenhuma frase promete o futuro (DESIGN.md 11.8)", () => {
+    render(
+      <CabecalhoFamilia
+        nome="Família Teste Bruma"
+        datas={[
+          { rotulo: "DPP", valor: "ainda não", tipo: "ausente" as const },
+          {
+            rotulo: "Nascimento",
+            valor: "ainda não",
+            tipo: "ausente" as const,
+          },
+          { rotulo: "Alta", valor: "ainda não", tipo: "ausente" as const },
+          { rotulo: "Início", valor: "ainda não", tipo: "ausente" as const },
+        ]}
+        freioAtivo
+        modoSensivel
+        textoFreioAtivo="Freio em bloqueio total desde 23/09/2026, 01:15. Só contato humano e pelo nome."
+        rotuloFreioAtivo="Freio ativo"
+      />,
+    );
+
+    for (const rotulo of ["DPP", "Nascimento", "Alta", "Início"]) {
+      expect(screen.getByText(rotulo)).toBeInTheDocument();
+    }
+    expect(screen.getAllByText("sem registro")).toHaveLength(4);
+    expect(screen.queryByText("ainda não")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/entram quando acontecem/),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/vira fato/)).not.toBeInTheDocument();
   });
 
   it("leva o foco para o selo Freio ativo quando o botão de freio some do DOM", async () => {

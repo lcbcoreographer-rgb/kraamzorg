@@ -239,7 +239,7 @@ describe("CartaoTarefa", () => {
           podeEnviarMensagem: false,
           bloqueioSensivel: true,
           motivoBloqueio:
-            "O freio está acionado para essa família. Só contato humano e nominal.",
+            "O freio está acionado para essa família. Só contato humano, pelo nome.",
         })}
       />,
     );
@@ -257,7 +257,7 @@ describe("CartaoTarefa", () => {
     ).not.toBeInTheDocument();
     expect(
       screen.getByText(
-        /O freio está acionado para essa família\. Só contato humano e nominal\./,
+        /O freio está acionado para essa família\. Só contato humano, pelo nome\./,
       ),
     ).toBeInTheDocument();
   });

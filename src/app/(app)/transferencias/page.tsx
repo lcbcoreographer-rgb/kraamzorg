@@ -47,7 +47,7 @@ export default async function PaginaTransferencias() {
           />
         ) : (
           <FaixaAlerta
-            variante="imediato"
+            variante="erro"
             titulo="Não foi possível carregar a fila agora"
           >
             Confira a conexão e recarregue a página. Se continuar, avise a

@@ -72,7 +72,7 @@ export default async function PaginaFamilias({
       <div className="pt-4">
         {falhou ? (
           <FaixaAlerta
-            variante="imediato"
+            variante="erro"
             titulo="Não foi possível carregar as famílias agora"
           >
             Confira a conexão e recarregue a página. Se continuar, avise a
@@ -87,8 +87,8 @@ export default async function PaginaFamilias({
             }
             texto={
               busca
-                ? "Confira o nome digitado ou tente outra busca."
-                : "As famílias cadastradas no pipeline vão aparecer aqui, com acesso à ficha de cada uma."
+                ? `Nenhum nome parecido com "${busca}". Confira a grafia ou busque pelo sobrenome.`
+                : "Quando a primeira família chegar pela Isadora ou for cadastrada no pipeline, ela entra nesta lista, com a ficha a um toque."
             }
           />
         ) : (

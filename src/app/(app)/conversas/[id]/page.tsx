@@ -4,15 +4,20 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { ArrowLeft } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
-import { Selo } from "@/components/ui/selo";
 import { exigirSessao } from "@/lib/auth/sessao";
-import { formatarData } from "@/lib/formatacao";
 import { CabecalhoFicha } from "@/modules/crm/ficha/componentes/cabecalho-ficha";
+import {
+  datasDoCabecalho,
+  MetaFicha,
+} from "@/modules/crm/ficha/componentes/meta-ficha";
 import { obterFreioDesfazerSegundos } from "@/modules/crm/ficha/dados";
 import { obterConversaTela } from "@/modules/agente/conversa-detalhe/dados";
 import { Compositor } from "@/modules/agente/conversa-detalhe/componentes/compositor";
 import { FioMensagens } from "@/modules/agente/conversa-detalhe/componentes/fio-mensagens";
-import { PainelResumo } from "@/modules/agente/conversa-detalhe/componentes/painel-resumo";
+import {
+  FaixaEstadoConversa,
+  PainelResumo,
+} from "@/modules/agente/conversa-detalhe/componentes/painel-resumo";
 
 // Título sem nome de família (DESIGN.md, microcopy 11).
 export const metadata: Metadata = { title: "Conversa · Kraamzorg OS" };
@@ -74,30 +79,8 @@ export default async function PaginaConversa({
         <CabecalhoFicha
           familiaId={ficha.familiaId}
           nome={ficha.nome}
-          meta={
-            <>
-              {ficha.estagioRotulo ? (
-                <Selo variante="marinho">{ficha.estagioRotulo}</Selo>
-              ) : null}
-              {ficha.idadeGestacional ? (
-                <span className="text-corpo font-mono">
-                  {ficha.idadeGestacional}
-                </span>
-              ) : null}
-              {ficha.bairro || ficha.cidade ? (
-                <span>
-                  {[ficha.bairro, ficha.cidade].filter(Boolean).join(", ")}
-                </span>
-              ) : null}
-            </>
-          }
-          datas={ficha.datas.map((d) => ({
-            rotulo: d.rotulo,
-            valor: d.valor
-              ? (formatarData(d.valor) ?? "ainda não")
-              : "ainda não",
-            tipo: d.valor ? d.tipo : ("ausente" as const),
-          }))}
+          meta={<MetaFicha ficha={ficha} />}
+          datas={datasDoCabecalho(ficha)}
           estadoSensivelInicial={ficha.estadoSensivel}
           estadoSensivelEmInicial={ficha.estadoSensivelEm}
           podeReverter={podeReverterFreio}
@@ -105,15 +88,15 @@ export default async function PaginaConversa({
         />
       ) : null}
 
-      {/* Celular: resumo e ações acima das mensagens (fluxos.md, fluxo E,
-          "A conversa", item 2). Computador: painel ao lado, à direita. A
-          ordem no DOM segue a do celular, para o foco do teclado bater com
-          o que se vê. */}
-      <div className="grid grid-cols-1 gap-6 pt-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+      {/* Ordem humana (DESIGN.md, 11.5). Celular: a faixa de estado logo
+          abaixo do cabeçalho, depois o que a família disse, e o resumo com
+          as ações por último. Computador: mensagens à esquerda; faixa,
+          resumo e ações na coluna da direita. A ordem no DOM é a do
+          celular, para o foco do teclado bater com o que se vê. */}
+      <div className="grid grid-cols-1 gap-4 pt-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-x-6">
         <div className="lg:col-start-2 lg:row-start-1">
-          <PainelResumo
+          <FaixaEstadoConversa
             conversa={conversa}
-            ficha={ficha}
             transferenciaAberta={transferenciaAberta}
             horasPausaHumano={horasPausaHumano}
             textoNaoLead={textoNaoLead}
@@ -122,7 +105,7 @@ export default async function PaginaConversa({
 
         <section
           aria-label={`Conversa no WhatsApp com ${nome}`}
-          className="flex flex-col gap-4 lg:col-start-1 lg:row-start-1"
+          className="flex flex-col gap-4 lg:col-start-1 lg:row-span-2 lg:row-start-1"
         >
           <FioMensagens mensagens={mensagens} />
           <Compositor
@@ -133,9 +116,19 @@ export default async function PaginaConversa({
             formularioContrato={formularioContrato}
             comercialRespondeNoApp={comercialRespondeNoApp}
             freioAtivo={Boolean(ficha && ficha.estadoSensivel !== "normal")}
-            ofereceTextoComercial={conversa.situacao !== "nao_lead"}
+            ofereceTextoComercial={
+              conversa.situacao !== "nao_lead" && conversa.situacao !== "freio"
+            }
           />
         </section>
+
+        <div className="lg:col-start-2 lg:row-start-2">
+          <PainelResumo
+            conversa={conversa}
+            ficha={ficha}
+            transferenciaAberta={transferenciaAberta}
+          />
+        </div>
       </div>
     </>
   );

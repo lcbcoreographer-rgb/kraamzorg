@@ -102,7 +102,9 @@ describe("CartaoTransferencia (P27 item 2)", () => {
     expect(
       screen.getByRole("heading", { name: "Quer contratar" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/É do comercial/)).toBeInTheDocument();
+    expect(
+      screen.getByText("Família Teste Dália, com o comercial"),
+    ).toBeInTheDocument();
     expect(screen.getByText("vence em 38 min")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Assumir conversa" }),
@@ -159,5 +161,61 @@ describe("CartaoTransferencia (P27 item 2)", () => {
     expect(
       screen.getByRole("link", { name: "Abrir conversa" }),
     ).toHaveAttribute("href", "/conversas/c1");
+  });
+
+  it("perda com prazo vencido: hora do relato, sem vermelho e sem relógio (DESIGN.md 11.8)", () => {
+    const { container } = render(
+      <CartaoTransferencia
+        transferencia={transferencia({
+          nomeFamilia: "Família Teste Bruma",
+          motivo: "perda",
+          motivoRotulo: "Perda gestacional",
+          destino: "coordenacao_clinica",
+          prioridade: "maxima",
+          resumo: "A família contou que perdeu o bebê.",
+          criadoEm: "2026-09-24T16:18:00.000Z",
+          slaVenceEm: "2026-09-24T16:48:00.000Z",
+          notificacaoOk: false,
+        })}
+        agora={AGORA}
+      />,
+    );
+    expect(screen.getByText(/recebida às/)).toBeInTheDocument();
+    expect(screen.getByText("13:18")).toBeInTheDocument();
+    expect(
+      screen.getByText("Ainda sem contato da equipe."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Família Teste Bruma, com a coordenação clínica"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/venceu há/)).not.toBeInTheDocument();
+    // Nada em alerta no cartão: nem o prazo, nem a falha do aviso ao grupo.
+    expect(container.querySelector(".text-alerta")).toBeNull();
+    expect(container.querySelector(".bg-alerta-lavado")).toBeNull();
+    expect(container.querySelector(".lucide-clock-alert")).toBeNull();
+    expect(container.querySelector(".lucide-hourglass")).toBeNull();
+    // A falha do aviso continua visível, em ameixa.
+    expect(screen.getByText("O aviso ao grupo não saiu")).toBeInTheDocument();
+  });
+
+  it("perda já assumida: sem a linha de atraso", () => {
+    render(
+      <CartaoTransferencia
+        transferencia={transferencia({
+          motivo: "perda",
+          motivoRotulo: "Perda gestacional",
+          prioridade: "maxima",
+          status: "assumido",
+          assumidoPor: "u2",
+          assumidoEm: "2026-09-24T16:30:00.000Z",
+          criadoEm: "2026-09-24T16:18:00.000Z",
+          slaVenceEm: "2026-09-24T16:48:00.000Z",
+        })}
+        agora={AGORA}
+      />,
+    );
+    expect(
+      screen.queryByText("Ainda sem contato da equipe."),
+    ).not.toBeInTheDocument();
   });
 });

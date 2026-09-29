@@ -79,7 +79,7 @@ function Bolha({ mensagem }: { mensagem: Mensagem }) {
               : "text-apoio text-texto-inverso-2 mb-1 font-semibold"
           }
         >
-          {daSistema ? "Texto aprovado, enviado pelo sistema" : "Equipe"}
+          {daSistema ? "Resposta automática, texto aprovado" : "Equipe"}
         </div>
       ) : null}
       <p className="text-corpo whitespace-pre-wrap">

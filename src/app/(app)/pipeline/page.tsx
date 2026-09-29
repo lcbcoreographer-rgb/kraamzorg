@@ -145,7 +145,7 @@ export default async function PaginaPipeline({
       <div className="pt-2">
         {falhou ? (
           <FaixaAlerta
-            variante="imediato"
+            variante="erro"
             titulo="Não foi possível carregar o pipeline agora"
           >
             Confira a conexão e recarregue a página. Se continuar, avise a

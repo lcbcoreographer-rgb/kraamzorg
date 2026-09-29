@@ -11,8 +11,7 @@ export default function PaginaMinhasFamilias() {
   return (
     <TelaEmConstrucao
       titulo="Famílias"
-      tituloVazio="As famílias atribuídas a você vão aparecer aqui"
-      texto="Cada família com o dia do acompanhamento. Quando a coordenação oferecer uma família, a oferta aparece em Hoje para você aceitar ou recusar."
+      texto="Aqui você vai ver as famílias que você acompanha, cada uma com o dia do acompanhamento."
     />
   );
 }

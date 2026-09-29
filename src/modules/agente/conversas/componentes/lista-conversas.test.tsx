@@ -97,4 +97,67 @@ describe("ListaConversas (filtro por situação, C5)", () => {
       screen.getByText("Nenhuma conversa de não lead"),
     ).toBeInTheDocument();
   });
+
+  it("família com freio: Isadora desligada, sem assumir, sem pausar, sem triagem e sem prévia (DESIGN.md 11.8)", () => {
+    render(
+      <ListaConversas
+        conversas={[
+          conversa({
+            id: "c9",
+            nomeFamilia: "Família Teste Bruma",
+            situacao: "freio",
+            estadoSensivel: "bloqueio_total",
+            ultimaMensagem: {
+              conteudo: "Mensagem que não aparece na lista",
+              enviadoPor: "cliente",
+            },
+          }),
+        ]}
+      />,
+    );
+    expect(screen.getByText("Freio: Isadora desligada")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Abrir com cuidado" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Assumir conversa" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Mais ações/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Mensagem que não aparece na lista"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Com freio/ })).toHaveTextContent(
+      "1",
+    );
+  });
+
+  it("uma ação visível por cartão; pausar e triagem ficam em 'Mais ações' (DESIGN.md 11.5)", () => {
+    render(
+      <ListaConversas
+        conversas={[
+          conversa({
+            id: "c1",
+            nomeFamilia: "Família Teste Ipê",
+            situacao: "isadora",
+          }),
+        ]}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Assumir conversa" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: "Mais ações para Família Teste Ipê",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Pausar a Isadora" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Marcar como não lead" }),
+    ).not.toBeInTheDocument();
+  });
 });

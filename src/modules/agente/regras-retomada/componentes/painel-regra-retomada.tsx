@@ -60,7 +60,10 @@ export function PainelRegraRetomada({
             }))}
           />
           {estado.erro ? (
-            <FaixaAlerta variante="imediato" titulo="Não deu para salvar">
+            <FaixaAlerta
+              variante="erro"
+              titulo="A regra de retomada não foi salva"
+            >
               {estado.erro}
             </FaixaAlerta>
           ) : null}

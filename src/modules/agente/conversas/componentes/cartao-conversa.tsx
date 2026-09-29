@@ -2,12 +2,14 @@
 
 import { estadoInicialAgente } from "../../estado-acoes";
 import * as React from "react";
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import Link from "next/link";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   ArrowRightLeft,
   Bot,
   ClockAlert,
+  Ellipsis,
   Hourglass,
   MessageCircle,
   OctagonPause,
@@ -18,6 +20,7 @@ import { Cartao } from "@/components/ui/cartao";
 import { EscolhaUnica } from "@/components/ui/escolha-unica";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
+import { rotulo } from "@/lib/rotulos-a-confirmar";
 import {
   acaoMarcarNaoLead,
   acaoPausarConversa,
@@ -37,24 +40,35 @@ import {
   ROTULO_DESFECHO,
   ROTULO_NAO_LEAD,
 } from "../../tipos";
-import type { ConversaComPausa } from "../../tipos";
+import type { ConversaComPausa, SituacaoConversa } from "../../tipos";
 
 const horaCurta = horaBrasilia;
 
 function autorPrevia(autor: string): string {
   if (autor === "ia") return "Isadora";
   if (autor === "humano") return "Equipe";
-  if (autor === "sistema") return "Sistema";
+  if (autor === "sistema") return "Resposta automática";
   return "Família";
 }
 
-const variantePorSituacao = {
+const variantePorSituacao: Record<
+  SituacaoConversa,
+  "neutro" | "marinho" | "aviso" | "contorno" | "sensivel"
+> = {
   isadora: "neutro",
   equipe: "marinho",
   pausada: "aviso",
   nao_lead: "contorno",
-} as const;
+  freio: "sensivel",
+};
 
+/**
+ * Cartão da lista de conversas (P27 item 1, protótipo
+ * `comercial-conversas.html`, C5). Uma ação visível por cartão, a principal
+ * do estado ("Assumir conversa", "Abrir conversa", "Devolver agora" ou
+ * "Abrir com cuidado"); pausar, resolver e a triagem de não lead ficam no
+ * menu de três pontos, longe do nome da família (DESIGN.md, 11.5).
+ */
 export function CartaoConversa({ conversa }: { conversa: ConversaComPausa }) {
   const nome =
     conversa.nomeFamilia ??
@@ -71,6 +85,7 @@ export function CartaoConversa({ conversa }: { conversa: ConversaComPausa }) {
     );
   const [mostrarResolver, definirMostrarResolver] = useState(false);
   const [mostrarNaoLead, definirMostrarNaoLead] = useState(false);
+  const formPausarRef = useRef<HTMLFormElement>(null);
 
   const [estadoAssumir, acaoAssumir, assumindo] = useActionState(
     acaoPausarConversa,
@@ -93,12 +108,11 @@ export function CartaoConversa({ conversa }: { conversa: ConversaComPausa }) {
     estadoInicialAgente,
   );
 
-  // Freio em bloqueio total (PRD 8.3): a lista não oferece "Assumir
-  // conversa" nem "Pausar a Isadora" para uma família que só pode receber
-  // contato humano e pelo nome, e não mostra a prévia da última mensagem.
-  // Uma ação só, para abrir a conversa com cuidado (crítica do CRM, P0
-  // item 3).
-  if (conversa.estadoSensivel === "bloqueio_total") {
+  // Freio em bloqueio total ou encerrado sensível (PRD 8.3): a Isadora está
+  // desligada. A lista não oferece assumir, pausar nem triagem, e não
+  // mostra a prévia da última mensagem. Uma ação só, para abrir a conversa
+  // com cuidado (crítica do CRM, P0 item 3; DESIGN.md, 11.8).
+  if (conversa.situacao === "freio") {
     return (
       <Cartao
         className="bg-sensivel-lavado border-sensivel-borda flex flex-col gap-2 border"
@@ -113,18 +127,18 @@ export function CartaoConversa({ conversa }: { conversa: ConversaComPausa }) {
             {nome}
           </Link>
           {hora ? (
-            <span className="text-mini text-texto-2 font-mono whitespace-nowrap">
+            <span className="text-mini text-texto-2 min-h-toque inline-flex items-center font-mono whitespace-nowrap">
               {hora}
             </span>
           ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Selo variante="sensivel" icone={<OctagonPause />}>
-            Freio: Isadora desligada
+            {ROTULO_SITUACAO.freio}
           </Selo>
         </div>
         <p className="text-apoio text-texto-2">
-          Só contato humano e nominal. A prévia fica fechada nesta lista.
+          Só a equipe responde, pelo nome. A prévia fica fechada nesta lista.
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
           <Botao
@@ -146,6 +160,13 @@ export function CartaoConversa({ conversa }: { conversa: ConversaComPausa }) {
     );
   }
 
+  const podePausar = conversa.situacao === "isadora";
+  const podeTriar =
+    conversa.situacao === "isadora" || conversa.situacao === "pausada";
+  const podeResolver =
+    conversa.situacao === "equipe" && Boolean(conversa.transferenciaAbertaId);
+  const temMenu = podePausar || podeTriar || podeResolver;
+
   return (
     <Cartao
       className="flex flex-col gap-2"
@@ -160,7 +181,7 @@ export function CartaoConversa({ conversa }: { conversa: ConversaComPausa }) {
           {nome}
         </Link>
         {hora ? (
-          <span className="text-mini text-texto-2 font-mono whitespace-nowrap">
+          <span className="text-mini text-texto-2 min-h-toque inline-flex items-center font-mono whitespace-nowrap">
             {hora}
           </span>
         ) : null}
@@ -242,17 +263,52 @@ export function CartaoConversa({ conversa }: { conversa: ConversaComPausa }) {
         </p>
       ) : null}
 
-      <div className="flex flex-wrap gap-2 pt-1">
-        {conversa.situacao === "isadora" ? (
-          <form action={acaoAssumir} className="contents">
-            <input type="hidden" name="conversaId" value={conversa.id} />
-            <input type="hidden" name="origem" value="assumir" />
+      <div className="flex items-center justify-between gap-2 pt-1">
+        <div className="flex flex-wrap gap-2">
+          {conversa.situacao === "isadora" ? (
+            <form action={acaoAssumir} className="contents">
+              <input type="hidden" name="conversaId" value={conversa.id} />
+              <input type="hidden" name="origem" value="assumir" />
+              <Botao
+                type="submit"
+                variante="secundario"
+                tamanho="compacto"
+                carregando={assumindo}
+                rotuloCarregando="Assumindo"
+                iconeEsquerda={
+                  <UserCheck
+                    aria-hidden="true"
+                    className="size-4"
+                    strokeWidth={1.75}
+                  />
+                }
+              >
+                Assumir conversa
+              </Botao>
+            </form>
+          ) : null}
+
+          {conversa.situacao === "equipe" ? (
             <Botao
-              type="submit"
+              asChild
+              tamanho="compacto"
+              iconeEsquerda={
+                <MessageCircle
+                  aria-hidden="true"
+                  className="size-4"
+                  strokeWidth={1.75}
+                />
+              }
+            >
+              <Link href={`/conversas/${conversa.id}`}>Abrir conversa</Link>
+            </Botao>
+          ) : null}
+
+          {conversa.situacao === "pausada" && conversa.transferenciaAbertaId ? (
+            <Botao
+              asChild
               variante="secundario"
               tamanho="compacto"
-              carregando={assumindo}
-              rotuloCarregando="Assumindo"
               iconeEsquerda={
                 <UserCheck
                   aria-hidden="true"
@@ -261,100 +317,94 @@ export function CartaoConversa({ conversa }: { conversa: ConversaComPausa }) {
                 />
               }
             >
-              Assumir conversa
+              <Link href="/transferencias">Assumir na fila</Link>
             </Botao>
-          </form>
-        ) : null}
-        {conversa.situacao === "isadora" ? (
-          <form action={acaoPausar} className="contents">
-            <input type="hidden" name="conversaId" value={conversa.id} />
-            <input type="hidden" name="origem" value="pausar" />
-            <Botao
-              type="submit"
-              variante="fantasma"
-              tamanho="compacto"
-              carregando={pausando}
-            >
-              Pausar a Isadora
+          ) : null}
+          {conversa.situacao === "pausada" &&
+          !conversa.transferenciaAbertaId ? (
+            <form action={acaoRetomar} className="contents">
+              <input type="hidden" name="conversaId" value={conversa.id} />
+              <Botao
+                type="submit"
+                variante="secundario"
+                tamanho="compacto"
+                carregando={retomando}
+              >
+                Devolver agora
+              </Botao>
+            </form>
+          ) : null}
+
+          {conversa.situacao === "nao_lead" ? (
+            <Botao asChild variante="secundario" tamanho="compacto">
+              <Link href={`/conversas/${conversa.id}`}>Abrir conversa</Link>
             </Botao>
-          </form>
-        ) : null}
+          ) : null}
+        </div>
 
-        {conversa.situacao === "equipe" ? (
-          <Botao
-            asChild
-            tamanho="compacto"
-            iconeEsquerda={
-              <MessageCircle
-                aria-hidden="true"
-                className="size-4"
-                strokeWidth={1.75}
-              />
-            }
-          >
-            <Link href={`/conversas/${conversa.id}`}>Abrir conversa</Link>
-          </Botao>
-        ) : null}
-        {conversa.situacao === "equipe" && conversa.transferenciaAbertaId ? (
-          <Botao
-            type="button"
-            variante="fantasma"
-            tamanho="compacto"
-            onClick={() => definirMostrarResolver((v) => !v)}
-          >
-            Marcar como resolvida
-          </Botao>
-        ) : null}
-
-        {conversa.situacao === "pausada" && conversa.transferenciaAbertaId ? (
-          <Botao
-            asChild
-            variante="secundario"
-            tamanho="compacto"
-            iconeEsquerda={
-              <UserCheck
-                aria-hidden="true"
-                className="size-4"
-                strokeWidth={1.75}
-              />
-            }
-          >
-            <Link href="/transferencias">Assumir na fila</Link>
-          </Botao>
-        ) : null}
-        {conversa.situacao === "pausada" && !conversa.transferenciaAbertaId ? (
-          <form action={acaoRetomar} className="contents">
-            <input type="hidden" name="conversaId" value={conversa.id} />
-            <Botao
-              type="submit"
-              variante="secundario"
-              tamanho="compacto"
-              carregando={retomando}
-            >
-              Devolver agora
-            </Botao>
-          </form>
-        ) : null}
-
-        {conversa.situacao === "isadora" || conversa.situacao === "pausada" ? (
-          <Botao
-            type="button"
-            variante="fantasma"
-            tamanho="compacto"
-            onClick={() => definirMostrarNaoLead((v) => !v)}
-          >
-            Marcar como não lead
-          </Botao>
+        {temMenu ? (
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger asChild>
+              <Botao
+                variante="icone"
+                aria-label={`Mais ações para ${nome}`}
+                aria-busy={pausando || undefined}
+              >
+                <Ellipsis
+                  aria-hidden="true"
+                  className="size-5"
+                  strokeWidth={1.75}
+                />
+              </Botao>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content
+                align="end"
+                sideOffset={4}
+                className="rounded-2 border-linha bg-superficie shadow-2 z-50 flex min-w-56 flex-col gap-1 border p-2"
+              >
+                {podePausar ? (
+                  <ItemMenu
+                    onSelect={() => formPausarRef.current?.requestSubmit()}
+                  >
+                    Pausar a Isadora
+                  </ItemMenu>
+                ) : null}
+                {podeResolver ? (
+                  <ItemMenu onSelect={() => definirMostrarResolver(true)}>
+                    Marcar como resolvida
+                  </ItemMenu>
+                ) : null}
+                {podeTriar ? (
+                  <ItemMenu onSelect={() => definirMostrarNaoLead(true)}>
+                    {rotulo("marcarNaoLead")}
+                  </ItemMenu>
+                ) : null}
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
         ) : null}
       </div>
 
-      {estadoAssumir.erro || estadoPausar.erro ? (
-        <FaixaAlerta variante="erro" titulo="Não deu certo">
-          {estadoAssumir.erro ?? estadoPausar.erro}
+      {podePausar ? (
+        <form ref={formPausarRef} action={acaoPausar} hidden>
+          <input type="hidden" name="conversaId" value={conversa.id} />
+          <input type="hidden" name="origem" value="pausar" />
+        </form>
+      ) : null}
+
+      {estadoAssumir.erro ? (
+        <FaixaAlerta variante="erro" titulo="A conversa não foi assumida">
+          {estadoAssumir.erro}
+        </FaixaAlerta>
+      ) : null}
+      {estadoPausar.erro ? (
+        <FaixaAlerta variante="erro" titulo="A Isadora não foi pausada">
+          {estadoPausar.erro}
         </FaixaAlerta>
       ) : null}
       {estadoRetomar.erro ? (
-        <FaixaAlerta variante="erro" titulo="Não deu certo">
+        <FaixaAlerta variante="erro" titulo="A conversa não voltou à Isadora">
           {estadoRetomar.erro}
         </FaixaAlerta>
       ) : null}
@@ -379,7 +429,10 @@ export function CartaoConversa({ conversa }: { conversa: ConversaComPausa }) {
             }))}
           />
           {estadoResolver.erro ? (
-            <FaixaAlerta variante="erro" titulo="Não deu certo">
+            <FaixaAlerta
+              variante="erro"
+              titulo="A transferência continua aberta"
+            >
               {estadoResolver.erro}
             </FaixaAlerta>
           ) : null}
@@ -423,7 +476,7 @@ export function CartaoConversa({ conversa }: { conversa: ConversaComPausa }) {
             disso.
           </p>
           {estadoNaoLead.erro ? (
-            <FaixaAlerta variante="erro" titulo="Não deu certo">
+            <FaixaAlerta variante="erro" titulo="A classificação não foi salva">
               {estadoNaoLead.erro}
             </FaixaAlerta>
           ) : null}
@@ -434,7 +487,7 @@ export function CartaoConversa({ conversa }: { conversa: ConversaComPausa }) {
               carregando={marcandoNaoLead}
               rotuloCarregando="Salvando"
             >
-              Marcar como não lead
+              {rotulo("marcarNaoLead")}
             </Botao>
             <Botao
               type="button"
@@ -448,5 +501,22 @@ export function CartaoConversa({ conversa }: { conversa: ConversaComPausa }) {
         </form>
       ) : null}
     </Cartao>
+  );
+}
+
+function ItemMenu({
+  children,
+  onSelect,
+}: {
+  children: React.ReactNode;
+  onSelect: () => void;
+}) {
+  return (
+    <DropdownMenu.Item
+      onSelect={onSelect}
+      className="rounded-pilula text-apoio text-texto min-h-toque data-[highlighted]:bg-marinho-08 hover:bg-marinho-08 flex cursor-pointer items-center gap-2 px-3 font-medium outline-none select-none"
+    >
+      {children}
+    </DropdownMenu.Item>
   );
 }

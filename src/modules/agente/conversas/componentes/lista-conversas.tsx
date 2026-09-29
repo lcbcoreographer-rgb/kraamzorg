@@ -9,7 +9,14 @@ import { CartaoConversa } from "./cartao-conversa";
 
 type Filtro = "todas" | SituacaoConversa;
 
-const FILTROS: Filtro[] = ["todas", "isadora", "equipe", "pausada", "nao_lead"];
+const FILTROS: Filtro[] = [
+  "todas",
+  "isadora",
+  "equipe",
+  "pausada",
+  "freio",
+  "nao_lead",
+];
 
 const VAZIO: Record<Filtro, { titulo: string; texto: string }> = {
   todas: {
@@ -31,6 +38,11 @@ const VAZIO: Record<Filtro, { titulo: string; texto: string }> = {
     titulo: "Nenhuma conversa pausada",
     texto:
       "Quando uma transferência abrir ou alguém pausar a Isadora, a conversa aparece aqui com a hora em que ela volta.",
+  },
+  freio: {
+    titulo: "Nenhuma família com freio",
+    texto:
+      "Quando alguém da equipe aciona o freio de uma família, a conversa dela aparece aqui, só com resposta da equipe, pelo nome.",
   },
   nao_lead: {
     titulo: "Nenhuma conversa de não lead",
@@ -59,6 +71,7 @@ export function ListaConversas({
       equipe: 0,
       pausada: 0,
       nao_lead: 0,
+      freio: 0,
     };
     for (const c of conversas) {
       n.todas++;

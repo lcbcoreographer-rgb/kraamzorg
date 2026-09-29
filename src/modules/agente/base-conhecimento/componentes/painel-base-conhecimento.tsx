@@ -45,14 +45,14 @@ function CartaoItem({
 
   return (
     <Cartao variante="plano" className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <p className="text-mini text-texto-2">
-            {ROTULO_TIPO_CONTEUDO[item.tipo]}
-          </p>
-          <h3 className="text-3 text-texto font-semibold">{item.titulo}</h3>
+      <div className="flex flex-col gap-2">
+        <h3 className="text-3 text-texto font-semibold">{item.titulo}</h3>
+        {/* O tipo vira selo neutro ao lado do estado, não rótulo pequeno
+            acima do título (DESIGN.md, seção 8; voz.md, seção 8). */}
+        <div className="flex flex-wrap gap-1.5">
+          <Selo variante={status.variante}>{status.rotulo}</Selo>
+          <Selo variante="neutro">{ROTULO_TIPO_CONTEUDO[item.tipo]}</Selo>
         </div>
-        <Selo variante={status.variante}>{status.rotulo}</Selo>
       </div>
       <p className="text-corpo text-texto whitespace-pre-wrap">{item.texto}</p>
       {item.fonte ? (
@@ -62,7 +62,7 @@ function CartaoItem({
         <form action={acao} className="pt-1">
           <input type="hidden" name="id" value={item.id} />
           {estado.erro ? (
-            <FaixaAlerta variante="imediato" titulo="Não deu certo">
+            <FaixaAlerta variante="erro" titulo="O item não foi aprovado">
               {estado.erro}
             </FaixaAlerta>
           ) : null}
@@ -143,7 +143,7 @@ function FormularioNovoItem() {
         />
         <CampoTexto id="bc-fonte" name="fonte" rotulo="Fonte" opcional />
         {estado.erro ? (
-          <FaixaAlerta variante="imediato" titulo="Não deu para salvar">
+          <FaixaAlerta variante="erro" titulo="O item não foi salvo">
             {estado.erro}
           </FaixaAlerta>
         ) : null}
@@ -177,7 +177,8 @@ function FormularioNovoItem() {
 
 /**
  * Base de conhecimento da Isadora (P27 item 4, PRD 6.8, 11.9): cadastro com
- * status, aprovação pela diretoria e "Reindexar".
+ * status, aprovação pela diretoria e "Atualizar o que a Isadora sabe"
+ * (reindexação, no nome da rota).
  */
 export function PainelBaseConhecimento({
   base,
@@ -191,8 +192,10 @@ export function PainelBaseConhecimento({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-apoio text-texto-2">
           {base.ultimaIngestao
-            ? `Última ingestão em ${formatarDataHora(base.ultimaIngestao.em)}, ${base.ultimaIngestao.itens} itens${base.ultimaIngestao.ok ? "." : `, com erro: ${base.ultimaIngestao.erro ?? "não informado"}.`}`
-            : "Ainda não há registro de ingestão."}
+            ? base.ultimaIngestao.ok
+              ? `A Isadora leu a base pela última vez em ${formatarDataHora(base.ultimaIngestao.em)}, com ${base.ultimaIngestao.itens} ${base.ultimaIngestao.itens === 1 ? "item aprovado" : "itens aprovados"}.`
+              : `A última leitura da base, em ${formatarDataHora(base.ultimaIngestao.em)}, não terminou: ${base.ultimaIngestao.erro ?? "motivo não informado"}. A Isadora continua com o que sabia antes.`
+            : "A Isadora ainda não leu a base. Aprove os itens e toque em Atualizar o que a Isadora sabe."}
         </p>
         <BotaoReindexar />
       </div>
@@ -202,7 +205,7 @@ export function PainelBaseConhecimento({
       {base.itens.length === 0 ? (
         <EstadoVazio
           titulo="Nenhum item cadastrado"
-          texto="Cadastre o que a Isadora pode responder: institucional, FAQ, objeções, políticas e mais."
+          texto="Cadastre o que a Isadora pode responder: quem é a Kraamzorg, perguntas frequentes, objeções e políticas. Cada item entra em rascunho e só vale depois da aprovação."
         />
       ) : (
         <div className="flex flex-col gap-3">

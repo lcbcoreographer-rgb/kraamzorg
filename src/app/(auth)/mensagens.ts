@@ -20,7 +20,7 @@ export const ERRO_AUTH: Record<CodigoErroAuth, string> = {
   indisponivel:
     "Não foi possível falar com o servidor agora. Confira a conexão e tente de novo em instantes.",
   desconhecido:
-    "Algo não saiu como esperado. Tente de novo; se continuar, avise a diretoria.",
+    "O acesso não foi concluído agora. Tente de novo; se continuar, avise a diretoria.",
 };
 
 /** Avisos que chegam por ?aviso= na tela de entrar. */

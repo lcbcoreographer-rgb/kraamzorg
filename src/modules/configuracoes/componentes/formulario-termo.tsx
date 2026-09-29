@@ -27,7 +27,17 @@ const OPCOES_ACAO = [
   { valor: "bloqueio_total", rotulo: "Bloqueio total (freio)" },
 ];
 
-export function FormularioTermo({ termo }: { termo?: TermoAlerta }) {
+export function FormularioTermo({
+  termo,
+  opcoesMensagem,
+}: {
+  termo?: TermoAlerta;
+  /**
+   * Textos para a família (`mensagem_modelo`), com o começo do texto como
+   * rótulo. Sem a lista, o campo volta a pedir a chave digitada.
+   */
+  opcoesMensagem?: { valor: string; rotulo: string }[];
+}) {
   const [aberto, setAberto] = useState(false);
   const [ativo, definirAtivo] = useState(termo?.ativo ?? true);
   const [estado, acao, enviando] = useActionState(
@@ -60,7 +70,7 @@ export function FormularioTermo({ termo }: { termo?: TermoAlerta }) {
       </DialogoGatilho>
       <DialogoConteudo
         titulo={termo ? `Editar termo: ${termo.termo}` : "Novo termo de alerta"}
-        descricao="Quando a família escrever este termo para a Isadora, sem acento e em minúsculas, o sistema aplica a ação escolhida."
+        descricao="Quando uma família escrever este termo, com ou sem acento, o sistema aplica a ação escolhida antes de a Isadora responder."
         rotuloFechar="Fechar sem salvar"
       >
         <form action={acao} className="mt-2 flex flex-col gap-4">
@@ -79,13 +89,22 @@ export function FormularioTermo({ termo }: { termo?: TermoAlerta }) {
             defaultValue={termo?.acao ?? "handoff_saude"}
             opcoes={OPCOES_ACAO}
           />
-          <CampoTexto
-            rotulo="Chave da mensagem enviada"
-            name="mensagemChave"
-            defaultValue={termo?.mensagemChave ?? "alerta_saude"}
-            descricao="Ex.: alerta_saude, ou alerta_internacao para internação."
-            required
-          />
+          {opcoesMensagem && opcoesMensagem.length > 0 ? (
+            <CampoSelecao
+              rotulo="Texto que a família recebe"
+              name="mensagemChave"
+              defaultValue={termo?.mensagemChave ?? "alerta_saude"}
+              opcoes={opcoesMensagem}
+            />
+          ) : (
+            <CampoTexto
+              rotulo="Chave da mensagem enviada"
+              name="mensagemChave"
+              defaultValue={termo?.mensagemChave ?? "alerta_saude"}
+              descricao="Ex.: alerta_saude, ou alerta_internacao para internação."
+              required
+            />
+          )}
           <SimNao
             pergunta="Termo ativo"
             name="ativo-visivel"
@@ -96,7 +115,7 @@ export function FormularioTermo({ termo }: { termo?: TermoAlerta }) {
           />
 
           {estado.erro ? (
-            <FaixaAlerta variante="imediato" titulo={estado.erro} />
+            <FaixaAlerta variante="erro" titulo={estado.erro} />
           ) : null}
 
           <DialogoRodape>

@@ -13,7 +13,21 @@ import { CartaoTarefa, type TarefaFeita } from "./cartao-tarefa";
  * quando a tela revalida; a região é `role="status"`, lida pelo leitor de
  * tela sem roubar o foco.
  */
-export function ListaTarefas({ grupos }: { grupos: GrupoTarefasComFreio[] }) {
+export function ListaTarefas({
+  grupos,
+  titulo,
+  idTitulo,
+}: {
+  grupos: GrupoTarefasComFreio[];
+  /**
+   * Título da seção que contém a lista (ex: "Tarefas de hoje", no Início).
+   * Com um grupo só, vira um título único com a contagem ("Tarefas de
+   * hoje · 4"), sem repetir "Vencem hoje" logo abaixo (voz.md, seção 5);
+   * com mais de um, os grupos descem para h3.
+   */
+  titulo?: string;
+  idTitulo?: string;
+}) {
   const [feitas, setFeitas] = useState<TarefaFeita[]>([]);
   const aoFeita = useCallback((feita: TarefaFeita) => {
     setFeitas((anteriores) =>
@@ -31,11 +45,27 @@ export function ListaTarefas({ grupos }: { grupos: GrupoTarefasComFreio[] }) {
     }))
     .filter((grupo) => grupo.tarefas.length > 0);
 
+  const umGrupoSo = Boolean(titulo) && visiveis.length === 1;
+  const TituloGrupo = titulo ? "h3" : "h2";
+
   return (
     <div className="flex flex-col gap-8">
+      {titulo ? (
+        <h2
+          id={idTitulo}
+          className="font-titulo text-2 text-texto -mb-5 flex items-baseline gap-2"
+        >
+          {titulo}
+          {umGrupoSo ? (
+            <span className="text-texto-2 font-mono text-[length:inherit] tabular-nums">
+              · {visiveis[0]!.tarefas.length}
+            </span>
+          ) : null}
+        </h2>
+      ) : null}
       {visiveis.length === 0 ? (
         <EstadoVazio
-          nivelTitulo="h2"
+          nivelTitulo={titulo ? "h3" : "h2"}
           titulo={
             feitas.length > 0 ? "Tudo feito por agora" : "Nenhuma tarefa agora"
           }
@@ -43,20 +73,25 @@ export function ListaTarefas({ grupos }: { grupos: GrupoTarefasComFreio[] }) {
         />
       ) : (
         visiveis.map((grupo) => (
-          <section key={grupo.balde} aria-labelledby={`grupo-${grupo.balde}`}>
-            <div className="mb-3 flex items-baseline gap-3">
-              <h2
-                id={`grupo-${grupo.balde}`}
-                className="font-titulo text-2 text-texto"
-              >
-                {grupo.titulo}
-              </h2>
-              <span className="text-apoio text-texto-2">
-                {grupo.tarefas.length === 1
-                  ? "1 tarefa"
-                  : `${grupo.tarefas.length} tarefas`}
-              </span>
-            </div>
+          <section
+            key={grupo.balde}
+            aria-labelledby={umGrupoSo ? idTitulo : `grupo-${grupo.balde}`}
+          >
+            {umGrupoSo ? null : (
+              <div className="mb-3 flex items-baseline gap-3">
+                <TituloGrupo
+                  id={`grupo-${grupo.balde}`}
+                  className="font-titulo text-2 text-texto"
+                >
+                  {grupo.titulo}
+                </TituloGrupo>
+                <span className="text-apoio text-texto-2">
+                  {grupo.tarefas.length === 1
+                    ? "1 tarefa"
+                    : `${grupo.tarefas.length} tarefas`}
+                </span>
+              </div>
+            )}
             <div className="flex flex-col gap-3">
               {grupo.tarefas.map((tarefa) => (
                 <CartaoTarefa

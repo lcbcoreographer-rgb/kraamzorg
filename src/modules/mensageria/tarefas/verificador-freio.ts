@@ -63,7 +63,7 @@ const FRASES: Record<string, string> = {
   freio_atencao:
     "Essa família está em atenção. Por enquanto, só mensagem operacional.",
   freio_bloqueio_total:
-    "O freio está em bloqueio total para essa família. Só contato humano e nominal.",
+    "O freio está em bloqueio total para essa família. Só contato humano, pelo nome.",
   freio_encerrado_sensivel:
     "Essa família está em encerramento sensível. Nenhuma mensagem de régua sai para ela.",
   nao_contatar: "Essa família pediu para não ser contatada. Nada sai por aqui.",

@@ -66,14 +66,14 @@ export function FormularioFaixa({
             required
           />
           <CampoSelecao
-            rotulo="Mensagem enviada"
+            rotulo="Texto que a família recebe"
             name="mensagemChave"
             defaultValue={faixa.mensagemChave}
             opcoes={opcoesMensagem}
           />
 
           {estado.erro ? (
-            <FaixaAlerta variante="imediato" titulo={estado.erro} />
+            <FaixaAlerta variante="erro" titulo={estado.erro} />
           ) : null}
 
           <DialogoRodape>

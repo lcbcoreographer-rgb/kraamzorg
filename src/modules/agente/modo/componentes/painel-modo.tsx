@@ -80,7 +80,7 @@ export function PainelModo({
         descricao="Um número por linha, com +55 e DDD."
       />
       {estado.erro ? (
-        <FaixaAlerta variante="imediato" titulo="Não deu para salvar">
+        <FaixaAlerta variante="erro" titulo="O modo da Isadora não foi salvo">
           {estado.erro}
         </FaixaAlerta>
       ) : null}
