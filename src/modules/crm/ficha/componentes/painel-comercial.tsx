@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { FileText } from "lucide-react";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { Selo } from "@/components/ui/selo";
@@ -34,6 +35,7 @@ export function PainelComercial({
   veDadosContrato,
   dadosContratoIndisponiveis,
   hoje,
+  acoesVenda,
 }: {
   familiaId: string;
   oportunidade: CartaoOportunidade | null;
@@ -49,6 +51,8 @@ export function PainelComercial({
   /** A leitura mascarada falhou (MFA pendente, rede): explica, não esconde. */
   dadosContratoIndisponiveis: boolean;
   hoje: string;
+  /** Atalhos da venda (P29 e P30): marcar conversa, abrir a proposta. */
+  acoesVenda?: React.ReactNode;
 }) {
   const contatoPrincipal =
     pessoas.find((p) => p.contatoPrincipal) ?? pessoas[0];
@@ -100,7 +104,11 @@ export function PainelComercial({
             </>
           ) : null}
         </dl>
-      ) : (
+      ) : null}
+      {oportunidade && acoesVenda ? (
+        <div className="flex flex-wrap items-center gap-2">{acoesVenda}</div>
+      ) : null}
+      {oportunidade ? null : (
         <EstadoVazio
           titulo="Sem oportunidade comercial"
           texto="Esta família ainda não tem uma oportunidade aberta no pipeline."

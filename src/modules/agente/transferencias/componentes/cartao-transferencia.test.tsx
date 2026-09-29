@@ -71,6 +71,30 @@ describe("estadoPrazo (fluxos.md, fluxo E: aviso com menos de 25% da janela)", (
 });
 
 describe("CartaoTransferencia (P27 item 2)", () => {
+  it("pedido de conversa (reuniao) leva à agenda com a transferência (P29)", () => {
+    render(
+      <CartaoTransferencia
+        transferencia={transferencia({
+          motivo: "reuniao",
+          motivoRotulo: "Quer conversar",
+        })}
+        agora={AGORA}
+      />,
+    );
+    expect(
+      screen.getByRole("link", { name: "Marcar na agenda" }),
+    ).toHaveAttribute("href", "/sessoes-venda/nova?transferencia=t1");
+  });
+
+  it("outros motivos não oferecem a agenda", () => {
+    render(
+      <CartaoTransferencia transferencia={transferencia()} agora={AGORA} />,
+    );
+    expect(
+      screen.queryByRole("link", { name: "Marcar na agenda" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("mostra o motivo, de quem é e o prazo em frase", () => {
     render(
       <CartaoTransferencia transferencia={transferencia()} agora={AGORA} />,

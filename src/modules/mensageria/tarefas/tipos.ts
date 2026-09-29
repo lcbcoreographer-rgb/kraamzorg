@@ -59,6 +59,19 @@ export function ehJustificarFreio(payload: Json): boolean {
   return (payload as Record<string, unknown>).acao === "justificar_freio";
 }
 
+/**
+ * A tarefa é "Enviar o formulário do contrato" (P30)? O link é de uso
+ * único e o banco só guarda o hash dele, então a tarefa não carrega texto
+ * nem link: o cartão leva para a proposta, onde o link é gerado na hora de
+ * enviar, dentro do texto aprovado.
+ */
+export function ehFormularioContrato(payload: Json): boolean {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return false;
+  }
+  return (payload as Record<string, unknown>).acao === "formulario_contrato";
+}
+
 export function lerPayloadTarefa(payload: Json): PayloadTarefaMensagem {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
     return {};

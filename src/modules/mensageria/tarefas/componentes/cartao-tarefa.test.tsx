@@ -262,6 +262,30 @@ describe("CartaoTarefa", () => {
     ).toBeInTheDocument();
   });
 
+  it("enviar o formulário do contrato leva à proposta, sem link nem Concluir (P30)", () => {
+    render(
+      <CartaoTarefa
+        tarefa={tarefaComWhatsApp({
+          tipo: "enviar_formulario_contrato",
+          familiaId: "00000000-0000-4000-8002-000000000007",
+          payload: { acao: "formulario_contrato", contrato_id: "k" },
+          temAcaoWhatsApp: false,
+          mensagem: {},
+        })}
+      />,
+    );
+    expect(
+      screen.getByRole("link", { name: "Abrir a proposta" }),
+    ).toHaveAttribute(
+      "href",
+      "/familias/00000000-0000-4000-8002-000000000007/proposta",
+    );
+    expect(
+      screen.queryByRole("button", { name: "Concluir" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Texto sugerido")).not.toBeInTheDocument();
+  });
+
   it("tarefa interna (sem WhatsApp) mostra só o botão Concluir", async () => {
     const loja = obterLoja();
     loja.tarefas.push({

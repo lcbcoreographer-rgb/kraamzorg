@@ -21,6 +21,9 @@ const PUBLICAS = [
   "/auth/confirmar",
   "/design-system",
   "/sair",
+  // Formulário seguro do contrato (P30): sem sessão, protegido pelo token de
+  // uso único, pela validade, pelo limite de tentativas e pelo Turnstile.
+  "/formulario",
 ];
 
 /** Exigem sessão, mas não o AAL2 nem papel (o caminho até o MFA). */

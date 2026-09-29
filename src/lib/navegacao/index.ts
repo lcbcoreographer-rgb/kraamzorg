@@ -43,6 +43,7 @@ export type NomeIcone =
   | "configuracoes"
   | "equipe"
   | "sessoes"
+  | "sessoesVenda"
   | "radar"
   | "agenda"
   | "cobrancas"
@@ -132,6 +133,13 @@ export const ROTAS = {
     rotulo: "Sessões e acessos",
     icone: "sessoes",
     dono: "P07",
+    casca: "app",
+  },
+  sessoesVenda: {
+    caminho: "/sessoes-venda",
+    rotulo: "Sessões de venda",
+    icone: "sessoesVenda",
+    dono: "P29",
     casca: "app",
   },
   radar: {
@@ -228,6 +236,7 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
           "pipeline",
           "conversas",
           "transferencias",
+          "sessoesVenda",
           "familias",
           "tarefas",
         ],
@@ -241,7 +250,16 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
     grupos: [
       {
         titulo: "Operação",
-        itens: ["inicio", "radar", "agenda", "equipe", "tarefas"],
+        // P29: a coordenação conduz a conversa de orientação e cuida da
+        // gravação; a agenda das sessões fica com ela também (PRD 13).
+        itens: [
+          "inicio",
+          "radar",
+          "agenda",
+          "equipe",
+          "sessoesVenda",
+          "tarefas",
+        ],
       },
       {
         titulo: "Experiência",
@@ -274,6 +292,7 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
           "pipeline",
           "conversas",
           "transferencias",
+          "sessoesVenda",
           "familias",
           "tarefas",
         ],

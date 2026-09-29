@@ -320,7 +320,10 @@ insert into matriz values
   -- por funções security definer
   ('public.ocupacao_projetada',      '{}', 'nega'),
   ('privado.recalculo_execucao',     '{}', 'nega'),
-  ('privado.recalculo_etapa',        '{}', 'nega');
+  ('privado.recalculo_etapa',        '{}', 'nega'),
+  -- P30 (0018): tentativas recusadas do formulário público, lidas só pelas
+  -- funções do formulário
+  ('privado.formulario_tentativa',   '{}', 'nega');
 
 create temp table esperado on commit drop as
   select m.tabela, p.papel, a.aal,
@@ -953,7 +956,12 @@ select set_eq(
             ('api.pausar_conversa'), ('api.retomar_pausa_conversa'), ('api.resolver_transferencia'),
             ('api.reenviar_notificacao_handoff'), ('api.base_conhecimento_listar'),
             ('api.base_conhecimento_salvar'), ('api.base_conhecimento_aprovar'), ('api.metricas_agente'),
-            ('api.ultima_ingestao_base') $$,
+            ('api.ultima_ingestao_base'),
+            ('api.condutores_sessao_venda'), ('api.sessoes_venda'), ('api.agendar_sessao_venda'),
+            ('api.remarcar_sessao_venda'), ('api.registrar_desfecho_sessao_venda'),
+            ('api.registrar_gravacao_sessao_venda'), ('api.salvar_resumo_sessao_venda'),
+            ('api.proposta'), ('api.salvar_proposta'), ('api.aprovar_desconto'),
+            ('api.gerar_link_formulario_contrato') $$,
   'authenticated executa exatamente a lista do ADR 0002 seção 6');
 
 select is_empty(

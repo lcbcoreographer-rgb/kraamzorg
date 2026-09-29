@@ -27,6 +27,26 @@ import type {
   Transferencia,
   UsuarioSistema,
 } from "./tipos";
+import type {
+  AberturaFormulario,
+  Condutor,
+  DadosFormularioContrato,
+  DesfechoSessao,
+  FiltroSessoes,
+  GravacaoSessao,
+  LinkFormulario,
+  PedidoAgendarSessao,
+  PedidoProposta,
+  PedidoRemarcarSessao,
+  Proposta,
+  ResultadoAgendarSessao,
+  ResultadoDesfecho,
+  ResultadoEnvioFormulario,
+  ResultadoProposta,
+  ResumoSessao,
+  SessaoVenda,
+  TransferenciaReuniao,
+} from "./tipos-venda";
 
 /**
  * Interfaces dos repositórios, uma por domínio. Toda tela lê e grava por
@@ -114,6 +134,48 @@ export interface UsuariosRepositorio {
   revogarSessoes(usuarioId: string): Promise<void>;
 }
 
+/**
+ * Venda (P29 sessão de venda, P30 proposta e link do formulário). Toda
+ * escrita vai por função do schema api (0018_venda.sql), que move o P1 e o
+ * P2, cria as tarefas e grava o log na mesma transação. Recusa de negócio
+ * vira ErroRepositorio "recusado" com "venda:<código>" no detalhe
+ * (codigoVenda em erros.ts).
+ */
+export interface VendaRepositorio {
+  /** Quem pode conduzir a sessão (coordenação e diretoria ativas). */
+  listarCondutores(): Promise<Condutor[]>;
+  /** Agenda: `api.sessoes_venda`, com o nome de quem conduz. */
+  listarSessoes(filtro?: FiltroSessoes): Promise<SessaoVenda[]>;
+  /** A transferência "reuniao" com as opções que a família passou. */
+  obterTransferenciaReuniao(
+    handoffId: string,
+  ): Promise<TransferenciaReuniao | null>;
+  agendarSessao(pedido: PedidoAgendarSessao): Promise<ResultadoAgendarSessao>;
+  remarcarSessao(pedido: PedidoRemarcarSessao): Promise<{ sessaoId: string }>;
+  registrarDesfecho(
+    sessaoId: string,
+    desfecho: DesfechoSessao,
+    parceiroPresente: boolean | null,
+  ): Promise<ResultadoDesfecho>;
+  /**
+   * `api.sessao_venda_gravacao`: só quem conduziu e a diretoria, AAL2, com
+   * a leitura gravada no log. null quando ainda não há nada registrado.
+   */
+  obterGravacao(sessaoId: string): Promise<GravacaoSessao | null>;
+  registrarGravacao(
+    sessaoId: string,
+    consentimento: boolean,
+    transcricao: string | null,
+  ): Promise<void>;
+  salvarResumo(sessaoId: string, resumo: ResumoSessao): Promise<void>;
+  /** Oportunidade aberta da família (a proposta parte dela). */
+  oportunidadeDaFamilia(familiaId: string): Promise<string | null>;
+  obterProposta(oportunidadeId: string): Promise<Proposta>;
+  salvarProposta(pedido: PedidoProposta): Promise<ResultadoProposta>;
+  aprovarDesconto(oportunidadeId: string): Promise<void>;
+  gerarLinkFormulario(oportunidadeId: string): Promise<LinkFormulario>;
+}
+
 export interface Repositorios {
   familias: FamiliasRepositorio;
   ficha: FichaRepositorio;
@@ -121,4 +183,20 @@ export interface Repositorios {
   configuracoes: ConfiguracoesRepositorio;
   agente: AgenteRepositorio;
   usuarios: UsuariosRepositorio;
+  venda: VendaRepositorio;
+}
+
+/**
+ * Formulário seguro público (P30 item 2): sem usuário logado. Na real, o
+ * servidor chama as duas funções public.formulario_contrato_* com o
+ * cliente de serviço (único papel com execute); na demonstração, a loja em
+ * memória. A origem é o IP da requisição, que o banco guarda só como HMAC.
+ */
+export interface FormularioContratoRepositorio {
+  abrir(token: string, origem: string | null): Promise<AberturaFormulario>;
+  enviar(
+    token: string,
+    dados: DadosFormularioContrato,
+    origem: string | null,
+  ): Promise<ResultadoEnvioFormulario>;
 }

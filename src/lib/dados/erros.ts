@@ -59,3 +59,14 @@ export function traduzirErroBanco(
   }
   return new ErroRepositorio("desconhecido", detalhe);
 }
+
+/**
+ * Código da recusa de negócio das funções de venda (0018_venda.sql): o banco
+ * manda "venda:<código> <detalhe>" na mensagem. null quando o erro não é
+ * desse tipo.
+ */
+export function codigoVenda(erro: unknown): string | null {
+  const mensagem = erro instanceof Error ? erro.message : String(erro ?? "");
+  const achado = /venda:([a-z_]+)/.exec(mensagem);
+  return achado?.[1] ?? null;
+}

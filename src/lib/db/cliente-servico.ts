@@ -23,6 +23,13 @@ import type { Database } from "./types";
  *   cobrança depois de confirmar com `payment_check` (P32). Mesmo motivo:
  *   sem sessão de usuário.
  *
+ * - "formulario_contrato": o formulário seguro público `/formulario/[token]`
+ *   (P30) abre e recebe os dados do contrato sem usuário logado. O servidor
+ *   confere o Turnstile e chama só public.formulario_contrato_abrir e
+ *   public.formulario_contrato_enviar (0018), que validam o token de uso
+ *   único e o limite de tentativas por dentro; é o único papel com execute
+ *   nas duas (src/lib/dados/supabase/formulario.ts).
+ *
  * Rotas de webhook e jobs futuros (P18) acrescentam o próprio motivo aqui
  * quando chegarem. O teste src/lib/db/cliente-servico.test.ts falha se um
  * arquivo fora da lista de autorizados importar este módulo.
@@ -31,7 +38,8 @@ export type MotivoClienteServico =
   | "convite_usuario"
   | "sessoes_diretoria"
   | "webhook_autentique"
-  | "webhook_infinitepay";
+  | "webhook_infinitepay"
+  | "formulario_contrato";
 
 export function criarClienteServico(motivo: MotivoClienteServico) {
   const chave = process.env.SUPABASE_SERVICE_ROLE_KEY;

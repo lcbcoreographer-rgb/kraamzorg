@@ -17,6 +17,9 @@ const AUTORIZADOS = new Set([
   // Webhooks sem sessão de usuário (P31 e P32, motivos em cliente-servico.ts).
   "src/app/api/webhooks/autentique/[segredo]/route.ts",
   "src/app/api/webhooks/infinitepay/route.ts",
+  // Formulário seguro público, sem sessão de usuário (P30, motivo
+  // formulario_contrato): só as duas funções public.formulario_contrato_*.
+  "src/lib/dados/supabase/formulario.ts",
 ]);
 
 function arquivos(pasta: string): string[] {

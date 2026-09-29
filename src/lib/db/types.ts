@@ -31,6 +31,21 @@ export type Database = {
         };
         Returns: Json;
       };
+      agendar_sessao_venda: {
+        Args: {
+          agendada_para: string;
+          conduzida_por: string;
+          familia_id: string;
+          handoff_id?: string;
+          link_reuniao: string;
+          opcoes_informadas?: string;
+        };
+        Returns: Json;
+      };
+      aprovar_desconto: {
+        Args: { oportunidade_id: string };
+        Returns: Json;
+      };
       base_conhecimento_aprovar: {
         Args: { id: string };
         Returns: Json;
@@ -52,6 +67,10 @@ export type Database = {
       buscar_duplicatas_pipeline: {
         Args: never;
         Returns: Json;
+      };
+      condutores_sessao_venda: {
+        Args: never;
+        Returns: { id: string; nome: string }[];
       };
       dados_contrato: {
         Args: { completo?: boolean; pessoa_id: string };
@@ -92,6 +111,10 @@ export type Database = {
       };
       ficha_assistencial: {
         Args: { familia_id: string };
+        Returns: Json;
+      };
+      gerar_link_formulario_contrato: {
+        Args: { oportunidade_id: string };
         Returns: Json;
       };
       justificar_freio: {
@@ -160,12 +183,41 @@ export type Database = {
         };
         Returns: Json;
       };
+      proposta: {
+        Args: { oportunidade_id: string };
+        Returns: Json;
+      };
       reenviar_notificacao_handoff: {
         Args: { handoff_id: string };
         Returns: Json;
       };
+      registrar_desfecho_sessao_venda: {
+        Args: {
+          desfecho: Database["public"]["Enums"]["status_sessao"];
+          parceiro_presente?: boolean;
+          sessao_id: string;
+        };
+        Returns: Json;
+      };
       registrar_envio_tarefa: {
         Args: { tarefa_id: string; texto: string };
+        Returns: Json;
+      };
+      registrar_gravacao_sessao_venda: {
+        Args: {
+          consentimento: boolean;
+          sessao_id: string;
+          transcricao?: string;
+        };
+        Returns: Json;
+      };
+      remarcar_sessao_venda: {
+        Args: {
+          agendada_para: string;
+          conduzida_por?: string;
+          link_reuniao?: string;
+          sessao_id: string;
+        };
         Returns: Json;
       };
       resolver_transferencia: {
@@ -192,9 +244,54 @@ export type Database = {
         Args: { usuario_id: string };
         Returns: Json;
       };
+      salvar_proposta: {
+        Args: {
+          condicao_id?: string;
+          desconto_motivo?: string;
+          desconto_pct?: number;
+          oportunidade_id: string;
+          pacote_versao_id: string;
+          pagador_nome?: string;
+          pagador_pessoa_id?: string;
+          para_quem?: string;
+          parcelas: number;
+        };
+        Returns: Json;
+      };
+      salvar_resumo_sessao_venda: {
+        Args: { resumo: Json; sessao_id: string };
+        Returns: Json;
+      };
       sessao_venda_gravacao: {
         Args: { sessao_id: string };
         Returns: Json;
+      };
+      sessoes_venda: {
+        Args: {
+          ate?: string;
+          da_familia?: string;
+          da_sessao?: string;
+          desde?: string;
+        };
+        Returns: {
+          agendada_para: string;
+          conduzida_por: string;
+          conduzida_por_nome: string;
+          criado_em: string;
+          data_nascimento: string;
+          dpp: string;
+          estado_sensivel: Database["public"]["Enums"]["estado_sensivel"];
+          familia_id: string;
+          familia_nome: string;
+          gravacao_registrada: boolean;
+          id: string;
+          link_reuniao: string;
+          opcoes_informadas: string;
+          parceiro_presente: boolean;
+          pode_ver_gravacao: boolean;
+          realizada_em: string;
+          status: Database["public"]["Enums"]["status_sessao"];
+        }[];
       };
       status_cobranca: {
         Args: { familia_id: string };
@@ -3393,6 +3490,14 @@ export type Database = {
       };
     };
     Functions: {
+      formulario_contrato_abrir: {
+        Args: { origem?: string; token: string };
+        Returns: Json;
+      };
+      formulario_contrato_enviar: {
+        Args: { dados: Json; origem?: string; token: string };
+        Returns: Json;
+      };
       ig: {
         Args: { data: string; dpp: string };
         Returns: { dias: number; semanas: number; texto: string };

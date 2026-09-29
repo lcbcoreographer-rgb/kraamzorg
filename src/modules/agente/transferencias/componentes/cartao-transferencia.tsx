@@ -264,6 +264,19 @@ export function CartaoTransferencia({
             </Botao>
           </form>
         )}
+        {/* Pedido de conversa com a coordenação (D-15, P29): a agenda
+            abre com as opções que a família passou à Isadora. */}
+        {transferencia.motivo === "reuniao" &&
+        !naoEDoPapel &&
+        transferencia.familiaId ? (
+          <Botao asChild tamanho="compacto" variante="secundario">
+            <Link
+              href={`/sessoes-venda/nova?transferencia=${transferencia.id}`}
+            >
+              Marcar na agenda
+            </Link>
+          </Botao>
+        ) : null}
       </div>
       {estadoAssumir.erro ? (
         <FaixaAlerta variante="erro" titulo="Não deu certo">

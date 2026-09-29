@@ -18,6 +18,13 @@ const executablePath = process.env.PW_CHROMIUM_EXECUTABLE || undefined;
 // família que o outro ainda ia ler). Achado da integração do CRM.
 const porta = Number(process.env.PW_PORT || "3000");
 const portaComputador = porta + 1;
+// A venda (P29 e P30) marca conversas, move o P1 e o P2 e consome o link de
+// uso único do formulário: roda em dois servidores só dela, para não mudar
+// as famílias que os outros testes leem (e para eles não mudarem as dela).
+const portaVendaCelular = porta + 2;
+const portaVendaComputador = porta + 3;
+const PASTA_VENDA = "**/p29-p30-venda/**";
+const TESTES_VENDA = "**/p29-p30-venda/**/*.spec.ts";
 
 // /design-system só existe em desenvolvimento e homologação (P10 item 4):
 // sem isto, `vitrineLiberada()` recusa por omissão e os testes de
@@ -55,6 +62,20 @@ export default defineConfig({
       timeout: 60_000,
       env: ambienteDemonstracao,
     },
+    {
+      command: `pnpm start -p ${portaVendaCelular}`,
+      url: `http://127.0.0.1:${portaVendaCelular}`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+      env: ambienteDemonstracao,
+    },
+    {
+      command: `pnpm start -p ${portaVendaComputador}`,
+      url: `http://127.0.0.1:${portaVendaComputador}`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+      env: ambienteDemonstracao,
+    },
   ],
   use: {
     trace: "on-first-retry",
@@ -62,6 +83,7 @@ export default defineConfig({
   projects: [
     {
       name: "celular",
+      testIgnore: PASTA_VENDA,
       use: {
         ...devices["Pixel 7"],
         viewport: { width: 390, height: 844 },
@@ -71,9 +93,29 @@ export default defineConfig({
     },
     {
       name: "computador",
+      testIgnore: PASTA_VENDA,
       use: {
         ...devices["Desktop Chrome"],
         baseURL: `http://127.0.0.1:${portaComputador}`,
+        launchOptions: executablePath ? { executablePath } : undefined,
+      },
+    },
+    {
+      name: "celular-venda",
+      testMatch: TESTES_VENDA,
+      use: {
+        ...devices["Pixel 7"],
+        viewport: { width: 390, height: 844 },
+        baseURL: `http://127.0.0.1:${portaVendaCelular}`,
+        launchOptions: executablePath ? { executablePath } : undefined,
+      },
+    },
+    {
+      name: "computador-venda",
+      testMatch: TESTES_VENDA,
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: `http://127.0.0.1:${portaVendaComputador}`,
         launchOptions: executablePath ? { executablePath } : undefined,
       },
     },
