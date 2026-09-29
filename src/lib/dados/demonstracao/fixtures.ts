@@ -793,7 +793,7 @@ export const MENSAGENS: MensagemDemonstracao[] = [
 
 export interface TransferenciaDemonstracao {
   id: string;
-  conversaId: string;
+  conversaId: string | null;
   familiaId: string;
   motivo: MotivoHandoff;
   destino: DestinoHandoff;
@@ -842,6 +842,25 @@ export const TRANSFERENCIAS: TransferenciaDemonstracao[] = [
     status: "assumido",
     slaMinutos: 38,
     assumidoPorComercial: true,
+  },
+  {
+    // P29: quer a conversa com a coordenação e passou duas opções de
+    // horário (D-15). As opções ficam em venda-fixtures.ts
+    // (OPCOES_TRANSFERENCIA), como handoff.dados.opcoes no banco. Sem
+    // conversa ligada na demonstração: a conversa da Cedro já tem a
+    // transferência de condição comercial, e a tela da conversa mostra uma
+    // transferência aberta por vez (o e2e do P27 assume aquela).
+    id: id(10, 4),
+    conversaId: null,
+    familiaId: familiaPorNome("Cedro").id,
+    motivo: "reuniao",
+    destino: "comercial",
+    prioridade: "alta",
+    resumo:
+      "Quer a conversa com a coordenação. Opções que passou: quinta à noite ou sábado de manhã.",
+    status: "aberto",
+    slaMinutos: 95,
+    assumidoPorComercial: false,
   },
 ];
 

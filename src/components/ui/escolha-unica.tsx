@@ -83,6 +83,10 @@ export function EscolhaUnica({
                   tamanho === "checklist" ? "min-h-toque-campo" : "min-h-toque",
                   "hover:bg-marinho-08",
                   "peer-checked:border-acao peer-checked:bg-acao peer-checked:text-acao-texto",
+                  // Selecionada e sob o cursor continua escura: sem isto o
+                  // hover clareava o fundo e o texto creme sumia (contraste
+                  // de 1,2:1, achado do axe no e2e do P30 no computador).
+                  "peer-checked:hover:border-acao-hover peer-checked:hover:bg-acao-hover",
                   "peer-focus-visible:outline-foco peer-focus-visible:shadow-[0_0_0_5px_var(--foco-halo)] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2",
                   disabled &&
                     "bg-marinho-08 text-marinho-62 cursor-not-allowed",

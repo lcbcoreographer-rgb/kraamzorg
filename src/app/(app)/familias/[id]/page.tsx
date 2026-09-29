@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { z } from "zod";
+import { Botao } from "@/components/ui/botao";
 import { Selo } from "@/components/ui/selo";
 import type { Papel } from "@/lib/auth/papeis";
 import { exigirSessao } from "@/lib/auth/sessao";
@@ -176,6 +177,36 @@ export default async function PaginaFicha({
                   dataAlta={ficha.datas[2]?.valor ?? null}
                   podeEditar={podeEditarComercial}
                   hoje={hojeBrasilia()}
+                  acoesVenda={
+                    podeEditarComercial &&
+                    (ficha.estadoSensivel === "normal" ||
+                      ficha.estadoSensivel === "atencao") ? (
+                      <>
+                        {ficha.oportunidade?.pipeline === 1 &&
+                        ["em_conversa_ia", "qualificado", "nutricao"].includes(
+                          ficha.oportunidade.estagioP1 ?? "",
+                        ) &&
+                        !ficha.naoContatar ? (
+                          <Botao
+                            asChild
+                            variante="secundario"
+                            tamanho="compacto"
+                          >
+                            <Link
+                              href={`/sessoes-venda/nova?familia=${ficha.familiaId}`}
+                            >
+                              Marcar conversa de orientação
+                            </Link>
+                          </Botao>
+                        ) : null}
+                        <Botao asChild variante="secundario" tamanho="compacto">
+                          <Link href={`/familias/${ficha.familiaId}/proposta`}>
+                            Abrir a proposta
+                          </Link>
+                        </Botao>
+                      </>
+                    ) : null
+                  }
                 />
               ) : null}
               {aba === "conversas" && veConversas ? (

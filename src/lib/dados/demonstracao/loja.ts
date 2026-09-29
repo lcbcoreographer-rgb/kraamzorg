@@ -29,6 +29,7 @@ import {
   type TarefaDemonstracao,
   type UsuarioDemonstracao,
 } from "./fixtures";
+import { MENSAGENS_VENDA } from "./venda-fixtures";
 
 /**
  * Banco em memória do modo demonstração. Nasce das fixtures na primeira
@@ -178,11 +179,28 @@ export function criarLoja(agora = Date.now()): LojaDemonstracao {
       descricao: p.descricao,
       atualizadoEm: isoDaqui(agora, -7 * 24 * 60),
     })),
-    mensagensModelo: MENSAGENS_MODELO.map((m) => ({
-      ...m,
-      aprovadoEm:
-        m.status === "aprovado" ? isoDaqui(agora, -7 * 24 * 60) : null,
-    })),
+    mensagensModelo: [
+      ...MENSAGENS_MODELO.map((m) => ({
+        ...m,
+        aprovadoEm:
+          m.status === "aprovado" ? isoDaqui(agora, -7 * 24 * 60) : null,
+      })),
+      // Textos da venda (P29 e P30), em rascunho como no seed, para as
+      // telas lerem pelo mesmo caminho de configuracoes.obterMensagemModelo.
+      ...MENSAGENS_VENDA.filter(
+        (v) => !MENSAGENS_MODELO.some((m) => m.chave === v.chave),
+      ).map((v) => ({
+        chave: v.chave,
+        canal: v.canal,
+        destinatario: "familia",
+        texto: v.texto,
+        variaveis: [...v.texto.matchAll(/\{([a-z_]+)\}/g)].map(
+          (a) => a[1] ?? "",
+        ),
+        status: "rascunho" as const,
+        aprovadoEm: null,
+      })),
+    ],
     sessoesRevogadasEm: {},
     freios: {},
     proximoEvento: EVENTOS.length + 1,

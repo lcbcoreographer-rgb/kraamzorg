@@ -1,6 +1,7 @@
 import {
   Bot,
   CalendarDays,
+  CalendarClock,
   Ellipsis,
   FileText,
   House,
@@ -36,6 +37,7 @@ export const ICONES_NAVEGACAO: Record<NomeIcone, LucideIcon> = {
   configuracoes: Settings,
   equipe: UserCheck,
   sessoes: ShieldCheck,
+  sessoesVenda: CalendarClock,
   radar: Radar,
   agenda: CalendarDays,
   cobrancas: Receipt,

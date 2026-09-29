@@ -21,6 +21,7 @@ import type {
 } from "../tipos";
 import { PACOTES, REGIOES, TRANSICOES, VERSOES_PACOTE } from "./fixtures";
 import { cartaoDemonstracao, obterLoja, type LojaDemonstracao } from "./loja";
+import { criarVendaDemonstracao, dadosContratoDemonstracao } from "./venda";
 
 /**
  * Implementação de demonstração: as mesmas interfaces, sobre a loja em
@@ -323,6 +324,26 @@ export function criarRepositoriosDemonstracao(
       const pessoa = loja().pessoas.find((p) => p.id === pessoaId);
       if (!pessoa)
         throw new ErroRepositorio("nao_encontrado", "demonstração: pessoa");
+      // Dados que chegaram pelo formulário seguro (P30), com a mesma
+      // máscara de api.dados_contrato (0007).
+      const doFormulario = dadosContratoDemonstracao(pessoaId);
+      if (doFormulario) {
+        const d = doFormulario.cpf;
+        return {
+          pessoa_id: pessoaId,
+          completo,
+          cpf: completo ? d : `***.${d.slice(3, 6)}.${d.slice(6, 9)}-**`,
+          data_nascimento: completo ? doFormulario.dataNascimento : null,
+          endereco_residencial: completo
+            ? { ...doFormulario.endereco }
+            : {
+                ...doFormulario.endereco,
+                numero: null,
+                complemento: null,
+              },
+          preenchido_via: "formulario_seguro",
+        };
+      }
       return {
         pessoa_id: pessoaId,
         cpf: completo ? "000.000.000-00" : "***.000.000-**",
@@ -743,5 +764,13 @@ export function criarRepositoriosDemonstracao(
     },
   };
 
-  return { familias, ficha, tarefas, configuracoes, agente, usuarios };
+  return {
+    familias,
+    ficha,
+    tarefas,
+    configuracoes,
+    agente,
+    usuarios,
+    venda: criarVendaDemonstracao(contexto),
+  };
 }

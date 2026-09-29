@@ -7,6 +7,7 @@ import { criarFamiliasSupabase } from "./familias";
 import { criarFichaSupabase } from "./ficha";
 import { criarTarefasSupabase } from "./tarefas";
 import { criarUsuariosSupabase } from "./usuarios";
+import { criarVendaSupabase } from "./venda";
 
 export type { ContextoSupabase } from "./comum";
 
@@ -21,5 +22,6 @@ export function criarRepositoriosSupabase(
     configuracoes: criarConfiguracoesSupabase(contexto),
     agente: criarAgenteSupabase(contexto),
     usuarios: criarUsuariosSupabase(contexto),
+    venda: criarVendaSupabase(contexto),
   };
 }

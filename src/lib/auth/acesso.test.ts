@@ -41,6 +41,7 @@ describe("decidirAcesso: sem sessão", () => {
       "/esqueci-senha",
       "/auth/confirmar",
       "/design-system",
+      "/formulario/um-token-qualquer",
     ]) {
       expect(decidirAcesso(caminho, null)).toEqual(seguir);
     }

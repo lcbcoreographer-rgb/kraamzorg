@@ -322,6 +322,20 @@ insert into parametro (chave, valor, descricao) values
    'PRD 23.3 {motivo_legivel} do grupo_generico (P22), a partir da coluna Situação da 11.4. Motivo sem rótulo aparece pelo código.')
 on conflict (chave) do update set valor = excluded.valor, descricao = excluded.descricao;
 
+-- --- P29 e P30 (0018_venda): sessão de venda, proposta e formulário seguro ---
+insert into parametro (chave, valor, descricao) values
+  ('sessao_venda_retorno_horas', '48',
+   'P29, PRD 23.2 pos_sessao_48h: horas depois da conversa de orientação até a tarefa de perguntar como foi.'),
+  ('sessao_gravacao', '{"termo_versao":"1-rascunho","transcricao_max_caracteres":200000}',
+   'P29 item 3: versão do termo de consentimento de gravação da sessão de venda (texto em mensagem_modelo sessao_termo_gravacao) e tamanho máximo da transcrição colada [confirmar: jurídico, texto do termo].'),
+  ('formulario_contrato', '{"validade_horas":72,"duracao_minutos":3,"tentativas_max":10,"tentativas_janela_minutos":15}',
+   'P30 item 2, PRD 21.3: validade do link de uso único do formulário seguro, minutos que a abertura promete, e limite de tentativas recusadas por origem e por contrato na janela [confirmar: Leonardo, validade].'),
+  ('termo_lgpd_contrato_versao', '"1-rascunho"',
+   'P30 item 2, PRD 21.1: versão do consentimento LGPD do formulário do contrato (texto em mensagem_modelo formulario_consentimento) [confirmar: jurídico].'),
+  ('contrato_template_versao', '"C-11 provisório"',
+   'P30 e P31, PRD 22.2 C-11: versão do modelo de contrato gravada no contrato em rascunho [confirmar: Leonardo, modelo atualizado].')
+on conflict (chave) do update set valor = excluded.valor, descricao = excluded.descricao;
+
 
 -- =============================================================================
 -- 4. mensagem_modelo (PRD capítulo 23 inteiro + textos padrão da evolução,
@@ -630,6 +644,68 @@ insert into mensagem_modelo (chave, canal, destinatario, texto, variaveis, statu
   ('evo_neonatal_conclusao', 'email', 'medico',
    'Conclusão: RN estável, calmo, ativo e reativo, em evolução favorável, {tipo_aleitamento_conclusao}, apresentando {evolucao_peso}, {evolucao_ictericia}; condutas e orientações realizadas e registradas. Vínculo excelente dos pais com o bebê, com evolução progressiva da autonomia e segurança nos cuidados com {o_filho}.',
    array['tipo_aleitamento_conclusao','evolucao_peso','evolucao_ictericia','o_filho'], 'rascunho');
+
+-- --- P29 e P30 (0018_venda): formulário seguro e termo de gravação ---------
+-- Textos novos para a família, em rascunho até a aprovação do Leonardo (e do
+-- jurídico no consentimento e na linha de privacidade). O formulário público
+-- lê as chaves formulario_* com canal site (privado.formulario_textos).
+-- Rótulo de campo e mensagem de erro de digitação são microcopy da tela
+-- (src/modules/crm/formulario/textos.ts), como no resto do app.
+insert into mensagem_modelo (chave, canal, destinatario, texto, variaveis, status) values
+  ('formulario_abertura', 'site', 'familia',
+   'Oi, {nome}. {quem_pediu} pediu estes dados para preparar o contrato de vocês. Leva uns {minutos} minutos.',
+   array['nome','quem_pediu','minutos'], 'rascunho'),
+  ('formulario_abertura_apoio', 'site', 'familia',
+   'Se precisar parar no meio, o que você já preencheu continua aqui enquanto esta página estiver aberta.',
+   array[]::text[], 'rascunho'),
+  ('formulario_ajuda_cpf', 'site', 'familia',
+   'Vai no contrato. Fica guardado com a equipe da Kraamzorg e não aparece em nenhuma mensagem.',
+   array[]::text[], 'rascunho'),
+  ('formulario_ajuda_email', 'site', 'familia',
+   'O contrato chega neste e-mail, pela Autentique, para você assinar.',
+   array[]::text[], 'rascunho'),
+  ('formulario_ajuda_endereco', 'site', 'familia',
+   'O endereço de casa vai no contrato.',
+   array[]::text[], 'rascunho'),
+  ('formulario_pergunta_atendimento', 'site', 'familia',
+   'A enfermeira vai visitar vocês neste mesmo endereço?',
+   array[]::text[], 'rascunho'),
+  ('formulario_ajuda_atendimento', 'site', 'familia',
+   'Tem família que passa os primeiros dias na casa dos avós, por exemplo. Coloque o endereço onde vocês vão estar depois da alta.',
+   array[]::text[], 'rascunho'),
+  ('formulario_ajuda_pagador', 'site', 'familia',
+   'Como o acompanhamento é um presente, os dados de pagamento são de {pagador}. O contrato continua no seu nome.',
+   array['pagador'], 'rascunho'),
+  ('formulario_ajuda_testemunha', 'site', 'familia',
+   'Quem vai estar com você nesses dias pode assinar o contrato como testemunha. Se preferir, deixe em branco.',
+   array[]::text[], 'rascunho'),
+  ('formulario_consentimento', 'site', 'familia',
+   'Autorizo a Kraamzorg Brasil a usar estes dados para preparar e cumprir o contrato do acompanhamento pós-parto. Sei que posso pedir para ver ou corrigir meus dados quando quiser.',
+   array[]::text[], 'rascunho'),
+  ('formulario_privacidade', 'site', 'familia',
+   'Os dados vão direto para a equipe da Kraamzorg, por uma conexão protegida, e só são usados para o contrato.',
+   array[]::text[], 'rascunho'),
+  ('formulario_corrigir', 'site', 'familia',
+   'Alguns dados precisam de um ajuste. Os campos estão marcados logo abaixo, com o que falta.',
+   array[]::text[], 'rascunho'),
+  ('formulario_sem_conexao', 'site', 'familia',
+   'A conexão caiu. O que você já preencheu continua aqui; quando voltar, toque em Enviar de novo.',
+   array[]::text[], 'rascunho'),
+  ('formulario_erro_envio', 'site', 'familia',
+   'Não conseguimos receber agora. O que você preencheu continua aqui. Tente enviar de novo daqui a pouco.',
+   array[]::text[], 'rascunho'),
+  ('formulario_fim', 'site', 'familia',
+   'Recebemos, {nome}. Assim que o contrato estiver pronto, ele chega no seu e-mail pela Autentique, a plataforma de assinatura, e é só abrir e assinar por lá. Se surgir qualquer dúvida, fale com a gente pelo WhatsApp.',
+   array['nome'], 'rascunho'),
+  ('formulario_link_invalido', 'site', 'familia',
+   'Este link já foi usado ou venceu. Para receber um novo, é só pedir pelo WhatsApp da Kraamzorg.',
+   array[]::text[], 'rascunho'),
+  ('formulario_limite', 'site', 'familia',
+   'Foram muitas tentativas seguidas por aqui. Espere uns {minutos} minutos e abra o link de novo.',
+   array['minutos'], 'rascunho'),
+  ('sessao_termo_gravacao', 'outro', 'familia',
+   'Posso gravar esta conversa? A gravação serve só para a nossa equipe lembrar o que vocês contaram e preparar o cuidado. Ela fica guardada com a Kraamzorg, e vocês podem pedir para apagar quando quiserem.',
+   array[]::text[], 'rascunho');
 
 
 -- =============================================================================

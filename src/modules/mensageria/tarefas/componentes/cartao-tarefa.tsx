@@ -11,7 +11,11 @@ import { Selo } from "@/components/ui/selo";
 import { montarLinkWhatsApp } from "@/lib/messaging/link-whatsapp";
 import { concluirTarefaSemMensagem, enviarTarefa } from "../acoes";
 import { estadoInicialTarefa, type EstadoAcaoTarefa } from "../estado-acoes";
-import { ehJustificarFreio, ROTULO_TIPO_TAREFA } from "../tipos";
+import {
+  ehFormularioContrato,
+  ehJustificarFreio,
+  ROTULO_TIPO_TAREFA,
+} from "../tipos";
 import type { TarefaComFreio } from "../dados";
 
 export interface TarefaFeita {
@@ -87,6 +91,7 @@ export function CartaoTarefa({
   const editado = texto !== textoOriginal;
   const linkFicha = tarefa.familiaId ? `/familias/${tarefa.familiaId}` : null;
   const justificarFreio = ehJustificarFreio(tarefa.payload);
+  const formularioContrato = ehFormularioContrato(tarefa.payload);
 
   return (
     <Cartao
@@ -146,6 +151,25 @@ export function CartaoTarefa({
         >
           Sem texto sugerido: com o freio, só contato humano e nominal.
         </FaixaAlerta>
+      ) : formularioContrato && tarefa.familiaId ? (
+        // P30: o link do formulário vale uma vez e não fica guardado; ele
+        // nasce na proposta, dentro do texto aprovado, na hora de enviar.
+        <div className="flex flex-col gap-2">
+          <p className="text-apoio text-texto-2">
+            O link do formulário é gerado na proposta, na hora de enviar. Ele
+            vale uma vez e não fica guardado em lugar nenhum.
+          </p>
+          <Botao
+            asChild
+            tamanho="compacto"
+            variante="secundario"
+            className="self-start"
+          >
+            <Link href={`/familias/${tarefa.familiaId}/proposta`}>
+              Abrir a proposta
+            </Link>
+          </Botao>
+        </div>
       ) : !tarefa.temAcaoWhatsApp ? (
         <form action={acaoConcluir} className="flex flex-col gap-2">
           <input type="hidden" name="tarefaId" value={tarefa.id} />

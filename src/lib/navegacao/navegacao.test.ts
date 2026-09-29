@@ -64,6 +64,8 @@ describe("barra lateral agrupada (PRD 20.4)", () => {
       "Pipeline",
       "Conversas",
       "Transferências",
+      // P29: a agenda das conversas de orientação, logo depois dos pedidos.
+      "Sessões de venda",
       "Famílias",
       "Tarefas",
     ]);
@@ -116,7 +118,12 @@ describe("Mais, início e acesso", () => {
     const ids = gruposDoMais(["comercial"]).flatMap((g) =>
       g.itens.map((i) => i.id),
     );
-    expect(ids).toEqual(["transferencias", "tarefas", "agente"]);
+    expect(ids).toEqual([
+      "transferencias",
+      "sessoesVenda",
+      "tarefas",
+      "agente",
+    ]);
   });
 
   it("tela de entrada por papel", () => {
