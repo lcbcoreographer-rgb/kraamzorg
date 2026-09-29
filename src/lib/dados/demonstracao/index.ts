@@ -21,6 +21,7 @@ import type {
 } from "../tipos";
 import { PACOTES, REGIOES, TRANSICOES, VERSOES_PACOTE } from "./fixtures";
 import { cartaoDemonstracao, obterLoja, type LojaDemonstracao } from "./loja";
+import { criarOperacaoDemonstracao } from "./operacao";
 import { criarVendaDemonstracao, dadosContratoDemonstracao } from "./venda";
 
 /**
@@ -772,5 +773,6 @@ export function criarRepositoriosDemonstracao(
     agente,
     usuarios,
     venda: criarVendaDemonstracao(contexto),
+    operacao: criarOperacaoDemonstracao(contexto),
   };
 }

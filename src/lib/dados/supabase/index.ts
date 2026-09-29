@@ -5,6 +5,7 @@ import type { ContextoSupabase } from "./comum";
 import { criarConfiguracoesSupabase } from "./configuracoes";
 import { criarFamiliasSupabase } from "./familias";
 import { criarFichaSupabase } from "./ficha";
+import { criarOperacaoSupabase } from "./operacao";
 import { criarTarefasSupabase } from "./tarefas";
 import { criarUsuariosSupabase } from "./usuarios";
 import { criarVendaSupabase } from "./venda";
@@ -23,5 +24,6 @@ export function criarRepositoriosSupabase(
     agente: criarAgenteSupabase(contexto),
     usuarios: criarUsuariosSupabase(contexto),
     venda: criarVendaSupabase(contexto),
+    operacao: criarOperacaoSupabase(contexto),
   };
 }

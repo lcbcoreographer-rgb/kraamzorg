@@ -41,7 +41,7 @@
 --      insert e update direto saem do grant (oferta, resposta e atribuição
 --      só pelas funções abaixo). Uma titular e um backup ativos por
 --      acompanhamento, e a mesma profissional nunca nos dois papéis.
---   9. api.candidatas_designacao, api.oferecer_designacao,
+--   9. api.alocacao_familia (com as candidatas), api.oferecer_designacao,
 --      api.atribuir_designacao (direta, só em urgência, com motivo),
 --      api.minhas_ofertas e api.responder_designacao. Recusa ou vencimento
 --      do prazo da titular promove o backup e avisa a coordenação.
@@ -65,7 +65,7 @@
 --   prenatal_concluir, agendar_consulta_prenatal
 --                           coordenação, diretoria; AAL2 (dado assistencial)
 --   prenatal_estado         comercial, coordenação, diretoria; só o estado
---   candidatas_designacao, oferecer_designacao, atribuir_designacao,
+--   alocacao_familia, oferecer_designacao, atribuir_designacao,
 --   radar_nascimentos, registrar_nascimento, registrar_alta,
 --   registrar_previsao_alta coordenação, diretoria; AAL2
 --   minhas_ofertas, responder_designacao
@@ -167,6 +167,22 @@ create index fato_operacao_pendente on privado.fato_operacao (id) where processa
 alter table privado.fato_operacao enable row level security;
 revoke all on privado.fato_operacao from public, anon, authenticated, service_role;
 revoke all on sequence privado.fato_operacao_id_seq from public, anon, authenticated, service_role;
+
+
+-- Idempotência da sincronização offline (PRD 15, "id gerado no aparelho"): o
+-- resultado de cada item já aplicado, para reenviar o mesmo item nunca
+-- reaplicar nem virar conflito de versão. Técnica, sem grant. Guarda só
+-- versão e estado, nunca o valor da resposta.
+create table privado.sync_item (
+  item_id     uuid primary key,
+  criado_em   timestamptz not null default now(),
+  entidade    text not null,
+  entidade_id uuid not null,
+  resultado   jsonb not null
+);
+comment on table privado.sync_item is '[P35] Resultado de cada item da fila offline já aplicado (id gerado no aparelho): reenviar o mesmo item devolve o mesmo resultado, sem reaplicar. Só versão e estado, nunca o valor da resposta. Sem grant.';
+alter table privado.sync_item enable row level security;
+revoke all on privado.sync_item from public, anon, authenticated, service_role;
 
 
 -- =============================================================================
@@ -774,6 +790,9 @@ begin
              'dpp', f.dpp,
              'ig', case when f.dpp is not null then (public.ig(f.dpp, privado.op_hoje())).texto end,
              'ig_semanas', case when f.dpp is not null then (public.ig(f.dpp, privado.op_hoje())).semanas end,
+             'chegou_alerta', f.dpp is not null and f.data_nascimento is null
+                              and privado.venda_numero('prenatal_semanas_alerta') is not null
+                              and (privado.op_hoje() - (f.dpp - 280)) >= privado.venda_numero('prenatal_semanas_alerta')::integer * 7,
              'cidade', c.nome,
              'uf', c.uf,
              'estagio_p2', o.estagio_p2)
@@ -993,7 +1012,8 @@ create function api.prenatal_salvar_campo(
   valor       jsonb,
   versao_base integer default null,
   progresso   jsonb default null,
-  motivo      text default null
+  motivo      text default null,
+  item_id     uuid default null
 ) returns jsonb
   language plpgsql
   volatile
@@ -1017,6 +1037,7 @@ declare
   v_nome    text;
   v_tel     text;
   v_novo    integer;
+  v_repetido jsonb;
 begin
   perform privado.autorizar(array['coordenacao', 'diretoria']::public.papel_usuario[], true);
   if privado.origem_atual() is null then
@@ -1029,6 +1050,14 @@ begin
   end if;
   if v_cp.status not in ('pendente', 'agendada', 'realizada') then
     perform privado.operacao_recusar('consulta_encerrada');
+  end if;
+  -- item já aplicado (reenvio depois de queda de rede antes do ack): o mesmo resultado
+  if prenatal_salvar_campo.item_id is not null then
+    select si.resultado into v_repetido from privado.sync_item si
+    where si.item_id = prenatal_salvar_campo.item_id and si.entidade_id = v_cp.id;
+    if found then
+      return v_repetido || pg_catalog.jsonb_build_object('repetido', true);
+    end if;
   end if;
   if prenatal_salvar_campo.versao_base is not null and prenatal_salvar_campo.versao_base <> v_cp.versao then
     return pg_catalog.jsonb_build_object('ok', false, 'conflito', true, 'versao', v_cp.versao,
@@ -1055,6 +1084,11 @@ begin
     end if;
     update public.consulta_prenatal cp set progresso = v_prog where cp.id = v_cp.id
     returning cp.versao into v_novo;
+    if prenatal_salvar_campo.item_id is not null then
+      insert into privado.sync_item (item_id, entidade, entidade_id, resultado)
+      values (prenatal_salvar_campo.item_id, 'consulta_prenatal', v_cp.id,
+              pg_catalog.jsonb_build_object('ok', true, 'versao', v_novo));
+    end if;
     return pg_catalog.jsonb_build_object('ok', true, 'versao', v_novo);
   end if;
 
@@ -1166,10 +1200,15 @@ begin
                                     'campo', prenatal_salvar_campo.campo, 'motivo', v_motivo), true);
   end if;
 
+  if prenatal_salvar_campo.item_id is not null then
+    insert into privado.sync_item (item_id, entidade, entidade_id, resultado)
+    values (prenatal_salvar_campo.item_id, 'consulta_prenatal', v_cp.id,
+            pg_catalog.jsonb_build_object('ok', true, 'versao', v_novo));
+  end if;
   return pg_catalog.jsonb_build_object('ok', true, 'versao', v_novo);
 end;
 $$;
-comment on function api.prenatal_salvar_campo(uuid, text, text, jsonb, integer, jsonb, text) is '[P35 itens 2 e 3] Grava um campo do DOC 1 (o motor offline do P12 sobe um por vez): coordenação ou diretoria, AAL2. Valida bloco e campo na definição aprovada, recusa campo automático e bloco por bebê, troca ou apaga só aquele campo, guarda onde a pessoa parou (progresso) e leva os destinos do bloco H (médicos em medico, plano de cuidado, período preferido). versao_base diferente da atual devolve conflito sem gravar. Concluída, só com motivo, e deixa evento restrito com autor. O log de auditoria oculta a ficha (HMAC).';
+comment on function api.prenatal_salvar_campo(uuid, text, text, jsonb, integer, jsonb, text, uuid) is '[P35 itens 2 e 3] Grava um campo do DOC 1 (o motor offline do P12 sobe um por vez): coordenação ou diretoria, AAL2. Valida bloco e campo na definição aprovada, recusa campo automático e bloco por bebê, troca ou apaga só aquele campo, guarda onde a pessoa parou (progresso) e leva os destinos do bloco H (médicos em medico, plano de cuidado, período preferido). versao_base diferente da atual devolve conflito sem gravar. Concluída, só com motivo, e deixa evento restrito com autor. item_id (o id do item da fila do aparelho) torna o reenvio idempotente: o mesmo item devolve o mesmo resultado, sem reaplicar. O log de auditoria oculta a ficha (HMAC).';
 
 
 -- --- 6.6 api.prenatal_concluir ----------------------------------------------------------------
@@ -1476,7 +1515,21 @@ begin
     'acompanhamento', case when v_a.id is null then null else pg_catalog.jsonb_build_object(
       'id', v_a.id, 'estado', v_a.estado, 'dias', v_a.dias_contratados, 'horas_por_visita', v_a.horas_por_visita,
       'periodo', v_a.periodo, 'inicio_efetivo', v_a.inicio_efetivo, 'previsao_alta', v_a.previsao_alta,
-      'visitas', (select pg_catalog.count(*) from public.visita v where v.acompanhamento_id = v_a.id)) end,
+      'visitas', (select pg_catalog.count(*) from public.visita v where v.acompanhamento_id = v_a.id),
+      'lista_visitas', coalesce((
+        select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(
+                 'dia_numero', v.dia_numero, 'data', v.data, 'hora_prevista', v.hora_prevista,
+                 'estado', v.estado, 'profissional_id', v.profissional_id,
+                 'profissional', privado.op_nome_profissional(v.profissional_id))
+               order by v.dia_numero)
+        from public.visita v where v.acompanhamento_id = v_a.id), '[]'::jsonb)) end,
+    'tarefas', coalesce((
+      select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(
+               'tipo', t.tipo, 'titulo', t.titulo, 'prioridade', t.prioridade, 'vence_em', t.vence_em)
+             order by t.prioridade desc, t.criado_em, t.id)
+      from public.tarefa t
+      where t.familia_id = v_f.id and t.status in ('aberta', 'em_andamento')
+        and t.tipo in ('agendar_prenatal', 'designar_profissional', 'checkin_dpp', 'enviar_guia', 'outro')), '[]'::jsonb),
     'designacoes', coalesce((
       select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(
                'id', d.id, 'papel', d.papel, 'status', d.status, 'profissional_id', d.profissional_id,

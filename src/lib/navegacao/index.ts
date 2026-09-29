@@ -45,6 +45,7 @@ export type NomeIcone =
   | "sessoes"
   | "sessoesVenda"
   | "radar"
+  | "prenatal"
   | "agenda"
   | "cobrancas"
   | "notas"
@@ -149,6 +150,13 @@ export const ROTAS = {
     dono: "P36",
     casca: "app",
   },
+  prenatal: {
+    caminho: "/prenatal",
+    rotulo: "Pré-natal",
+    icone: "prenatal",
+    dono: "P35",
+    casca: "app",
+  },
   agenda: {
     caminho: "/agenda",
     rotulo: "Agenda",
@@ -212,6 +220,13 @@ export const ROTAS = {
     dono: "P38",
     casca: "enfermeira",
   },
+  ofertas: {
+    caminho: "/ofertas",
+    rotulo: "Ofertas",
+    icone: "tarefas",
+    dono: "P36",
+    casca: "enfermeira",
+  },
 } as const satisfies Record<string, Rota>;
 
 export type IdRota = keyof typeof ROTAS;
@@ -221,6 +236,12 @@ export interface NavegacaoPapel {
   abas: readonly IdRota[];
   /** Grupos da barra lateral do computador (só os que o papel tem). */
   grupos: readonly { titulo: GrupoLateral; itens: readonly IdRota[] }[];
+  /**
+   * Telas que o papel abre sem que apareçam nas abas nem na barra lateral:
+   * chegam por um cartão de outra tela (ex: as ofertas de designação, que o
+   * Hoje da enfermeira, P38, aponta).
+   */
+  ocultas?: readonly IdRota[];
   /** Tela de entrada do papel depois do login. */
   inicio: IdRota;
 }
@@ -257,6 +278,7 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
           "radar",
           "agenda",
           "equipe",
+          "prenatal",
           "sessoesVenda",
           "tarefas",
         ],
@@ -297,7 +319,7 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
           "tarefas",
         ],
       },
-      { titulo: "Operação", itens: ["radar", "agenda", "equipe"] },
+      { titulo: "Operação", itens: ["radar", "agenda", "equipe", "prenatal"] },
       { titulo: "Gestão", itens: ["financeiro", "cobrancas", "notas"] },
       { titulo: "Sistema", itens: ["agente", "configuracoes", "sessoes"] },
     ],
@@ -306,6 +328,7 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
   enfermeira: {
     abas: ["hoje", "minhasFamilias", "alertas", "perfil"],
     grupos: [],
+    ocultas: ["ofertas"],
     inicio: "hoje",
   },
 };
@@ -407,6 +430,7 @@ export function rotasPermitidas(papeis: readonly Papel[]): Set<IdRota> {
   const ids = new Set<IdRota>();
   for (const papel of papeis) {
     NAVEGACAO[papel].abas.forEach((id) => ids.add(id));
+    NAVEGACAO[papel].ocultas?.forEach((id) => ids.add(id));
     NAVEGACAO[papel].grupos.forEach((grupo) =>
       grupo.itens.forEach((id) => ids.add(id)),
     );

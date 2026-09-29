@@ -25,6 +25,12 @@ const portaVendaCelular = porta + 2;
 const portaVendaComputador = porta + 3;
 const PASTA_VENDA = "**/p29-p30-venda/**";
 const TESTES_VENDA = "**/p29-p30-venda/**/*.spec.ts";
+// A operação (P35 e P36) marca consultas, designa, registra nascimento e alta
+// na loja em memória: também roda em dois servidores só dela.
+const portaOperacaoCelular = porta + 4;
+const portaOperacaoComputador = porta + 5;
+const PASTA_OPERACAO = "**/p35-p36-operacao/**";
+const TESTES_OPERACAO = "**/p35-p36-operacao/**/*.spec.ts";
 
 // /design-system só existe em desenvolvimento e homologação (P10 item 4):
 // sem isto, `vitrineLiberada()` recusa por omissão e os testes de
@@ -76,6 +82,20 @@ export default defineConfig({
       timeout: 60_000,
       env: ambienteDemonstracao,
     },
+    {
+      command: `pnpm start -p ${portaOperacaoCelular}`,
+      url: `http://127.0.0.1:${portaOperacaoCelular}`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+      env: ambienteDemonstracao,
+    },
+    {
+      command: `pnpm start -p ${portaOperacaoComputador}`,
+      url: `http://127.0.0.1:${portaOperacaoComputador}`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+      env: ambienteDemonstracao,
+    },
   ],
   use: {
     trace: "on-first-retry",
@@ -83,7 +103,7 @@ export default defineConfig({
   projects: [
     {
       name: "celular",
-      testIgnore: PASTA_VENDA,
+      testIgnore: [PASTA_VENDA, PASTA_OPERACAO],
       use: {
         ...devices["Pixel 7"],
         viewport: { width: 390, height: 844 },
@@ -93,7 +113,7 @@ export default defineConfig({
     },
     {
       name: "computador",
-      testIgnore: PASTA_VENDA,
+      testIgnore: [PASTA_VENDA, PASTA_OPERACAO],
       use: {
         ...devices["Desktop Chrome"],
         baseURL: `http://127.0.0.1:${portaComputador}`,
@@ -116,6 +136,25 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         baseURL: `http://127.0.0.1:${portaVendaComputador}`,
+        launchOptions: executablePath ? { executablePath } : undefined,
+      },
+    },
+    {
+      name: "celular-operacao",
+      testMatch: TESTES_OPERACAO,
+      use: {
+        ...devices["Pixel 7"],
+        viewport: { width: 390, height: 844 },
+        baseURL: `http://127.0.0.1:${portaOperacaoCelular}`,
+        launchOptions: executablePath ? { executablePath } : undefined,
+      },
+    },
+    {
+      name: "computador-operacao",
+      testMatch: TESTES_OPERACAO,
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: `http://127.0.0.1:${portaOperacaoComputador}`,
         launchOptions: executablePath ? { executablePath } : undefined,
       },
     },

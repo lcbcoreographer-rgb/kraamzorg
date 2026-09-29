@@ -324,7 +324,8 @@ insert into matriz values
   -- P30 (0018): tentativas recusadas do formulário público, lidas só pelas
   -- funções do formulário
   ('privado.formulario_tentativa',   '{}', 'nega'),
-  ('privado.fato_operacao',          '{}', 'nega');
+  ('privado.fato_operacao',          '{}', 'nega'),
+  ('privado.sync_item',              '{}', 'nega');
 
 create temp table esperado on commit drop as
   select m.tabela, p.papel, a.aal,

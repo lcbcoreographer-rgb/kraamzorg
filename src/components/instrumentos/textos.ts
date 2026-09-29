@@ -14,6 +14,18 @@ export const textosFormulario = {
   concluir: "Concluir",
   etapa: (atual: number, total: number) => `Etapa ${atual} de ${total}`,
   listaDeEtapas: "Etapas do formulário",
+  todasAsEtapas: "Todas as etapas",
+  estadoEtapa: {
+    completa: "Completa",
+    emAndamento: (respondidas: number, total: number) =>
+      `Em andamento, ${respondidas} de ${total} respondidas`,
+    naoIniciada: "Não iniciada",
+  },
+  sugestao: {
+    veioDoCadastro: "Veio do cadastro",
+    confirmar: "Confirmar",
+    confirmarEste: (rotulo: string) => `Confirmar ${rotulo}`,
+  },
   faltaParaConcluir: "Falta responder para concluir:",
   tudoRespondido: "Todos os obrigatórios foram respondidos.",
   irPara: (rotulo: string) => `Ir para ${rotulo}`,

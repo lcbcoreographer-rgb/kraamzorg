@@ -1,11 +1,14 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import doc1 from "../../../supabase/dados/instrumentos/doc1.json";
 import doc2 from "../../../supabase/dados/instrumentos/doc2.json";
 import { lerDefinicao } from "@/lib/instrumentos/schema";
 import { criarPersistenciaEmMemoria } from "@/lib/instrumentos/persistencia";
-import { FormularioInstrumento } from "./formulario-instrumento";
+import {
+  FormularioInstrumento,
+  type EtapaPlano,
+} from "./formulario-instrumento";
 
 /**
  * Aceite do P34: o DOC 2 renderiza os blocos do 9.2 com os tipos certos,
@@ -411,5 +414,117 @@ describe("FormularioInstrumento com o DOC 1", () => {
       endereco: { bloco: "B", campo: "hora_de_inicio" },
       valor: "10:05",
     });
+  });
+});
+
+describe("FormularioInstrumento com plano de etapas (entrevista pré-natal, P35)", () => {
+  // Plano reduzido: só reorganiza campos que já existem na definição do DOC 1.
+  const PLANO: EtapaPlano[] = [
+    {
+      id: "1",
+      titulo: "Abertura",
+      itens: [{ bloco: "B", campos: ["data_da_entrevista", "hora_de_inicio"] }],
+    },
+    { id: "2", titulo: "Quem é a família", itens: [{ bloco: "C" }] },
+    {
+      id: "3",
+      titulo: "Esta gestação",
+      itens: [
+        { bloco: "B", campos: ["data_provavel_do_parto", "local_maternidade"] },
+      ],
+    },
+    { id: "4", titulo: "Gestações anteriores", itens: [{ bloco: "D" }] },
+  ];
+
+  function montarComPlano(
+    props: Partial<React.ComponentProps<typeof FormularioInstrumento>> = {},
+  ) {
+    const persistencia = criarPersistenciaEmMemoria();
+    const utils = render(
+      <FormularioInstrumento
+        definicao={DOC1}
+        persistencia={persistencia}
+        plano={PLANO}
+        agora={() => new Date("2030-01-10T13:05:00Z")}
+        {...props}
+      />,
+    );
+    return { persistencia, ...utils };
+  }
+
+  it("segue a ordem do plano e joga na última etapa o campo que o plano não cita", async () => {
+    const user = userEvent.setup();
+    montarComPlano();
+    expect(screen.getByText("Etapa 1 de 4")).toBeInTheDocument();
+    await avancar(user, 3);
+    expect(titulo()).toContain("Gestações anteriores");
+    // Campos do bloco B que o plano não cita (ex: percentil) aparecem na última etapa.
+    expect(screen.getByLabelText(/Percentil/)).toBeInTheDocument();
+  });
+
+  it("abre na etapa e no campo onde a pessoa parou", async () => {
+    montarComPlano({
+      etapaInicial: 3,
+      campoInicial: { bloco: "D", campo: "filhos_vivos" },
+    });
+    expect(screen.getByText("Etapa 4 de 4")).toBeInTheDocument();
+    await waitFor(() => {
+      const grupo = screen.getByRole("radiogroup", { name: /Filhos vivos/ });
+      expect(grupo.contains(document.activeElement)).toBe(true);
+    });
+  });
+
+  it("sugestão do cadastro só grava com o toque em Confirmar", async () => {
+    const user = userEvent.setup();
+    const { persistencia } = montarComPlano({
+      etapaInicial: 2,
+      sugestoes: {
+        "B.data_provavel_do_parto": {
+          valor: "2030-03-08",
+          exibicao: "08/03/2030",
+        },
+      },
+    });
+    expect(screen.getByText("Veio do cadastro")).toBeInTheDocument();
+    expect(screen.getByText(/08\/03\/2030/)).toBeInTheDocument();
+    expect(
+      persistencia.gravacoes.some(
+        (g) => g.endereco.campo === "data_provavel_do_parto",
+      ),
+    ).toBe(false);
+    await user.click(
+      screen.getByRole("button", { name: /Confirmar Data provável do parto/ }),
+    );
+    expect(persistencia.gravacoes).toContainEqual({
+      endereco: { bloco: "B", campo: "data_provavel_do_parto" },
+      valor: "2030-03-08",
+    });
+  });
+
+  it("no computador mostra a lista de etapas e o contexto ao lado", () => {
+    montarComPlano({
+      listaDeEtapas: true,
+      lateral: <p>Contexto da família</p>,
+    });
+    const lista = screen.getByRole("navigation", { name: "Todas as etapas" });
+    expect(within(lista).getAllByRole("listitem")).toHaveLength(PLANO.length);
+    expect(screen.getByText("Contexto da família")).toBeInTheDocument();
+  });
+
+  it("avisa a troca de etapa para a tela guardar onde a pessoa parou", async () => {
+    const user = userEvent.setup();
+    const trocas: number[] = [];
+    montarComPlano({ aoMudarEtapa: (indice) => trocas.push(indice) });
+    await avancar(user, 2);
+    expect(trocas).toEqual([1, 2]);
+  });
+
+  it("texto do botão da última etapa é configurável", async () => {
+    const user = userEvent.setup();
+    montarComPlano({ rotuloConcluir: "Concluir entrevista" });
+    await avancar(user, 3);
+    expect(
+      screen.getByRole("button", { name: "Concluir entrevista" }),
+    ).toBeInTheDocument();
   });
 });

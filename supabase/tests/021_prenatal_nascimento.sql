@@ -20,7 +20,7 @@
 
 begin;
 
-select plan(265);
+select plan(273);
 
 -- -----------------------------------------------------------------------------
 -- 0. Preparação
@@ -281,6 +281,13 @@ select is((select (e ->> 'urgente')::boolean from t_p21, jsonb_array_elements(r)
 select is((select (r -> 0 ->> 'urgente')::boolean from t_p21 where chave = 'lista'), true,
   'a urgente vem primeiro');
 
+select is((select (e ->> 'chegou_alerta')::boolean from t_p21, jsonb_array_elements(r) e
+            where chave = 'lista' and e ->> 'familia_id' = testes.p21_id('c', 2)::text), true,
+  'a lista marca quem já chegou às 34 semanas (aviso interno, só da coordenação)');
+select is((select (e ->> 'chegou_alerta')::boolean from t_p21, jsonb_array_elements(r) e
+            where chave = 'lista' and e ->> 'familia_id' = testes.p21_id('c', 1)::text), false,
+  'e não marca quem tem 25 semanas');
+
 -- agendar
 select testes.autenticar_authenticated('a2100000-0000-4000-8000-000000000001', 'aal2');
 select throws_ok($s$ select api.agendar_consulta_prenatal('c2100000-0000-4000-8000-000000000001', now() - interval '1 hour') $s$,
@@ -380,6 +387,22 @@ select results_eq(
   'sair na etapa 4 e voltar reabre na etapa 4, no campo onde parou');
 select is((select r -> 'respostas' -> 'A' ->> 'como_chegou' from t_p21 where chave = 'abrir2'), 'instagram',
   'ao voltar, as respostas já dadas estão lá');
+
+-- idempotência: o mesmo item da fila offline nunca reaplica
+insert into t_p21 select 'i1', testes.p21_coord(format(
+  $f$ select api.prenatal_salvar_campo(%L, 'F', 'medos_e_receios', '"Medo de não dar conta"', null, null, null, %L) $f$,
+  testes.p21_consulta(1), 'b2100000-0000-4000-8000-000000000001'));
+insert into t_p21 select 'i2', testes.p21_coord(format(
+  $f$ select api.prenatal_salvar_campo(%L, 'F', 'medos_e_receios', '"Outro texto qualquer"', null, null, null, %L) $f$,
+  testes.p21_consulta(1), 'b2100000-0000-4000-8000-000000000001'));
+select is((select (r ->> 'repetido')::boolean from t_p21 where chave = 'i2'), true,
+  'reenviar o mesmo item da fila devolve o resultado guardado');
+select is((select ficha -> 'F' ->> 'medos_e_receios' from consulta_prenatal where familia_id = testes.p21_id('c', 1)),
+  'Medo de não dar conta', 'e não reaplica o valor');
+select is((select (r ->> 'versao') from t_p21 where chave = 'i2'), (select (r ->> 'versao') from t_p21 where chave = 'i1'),
+  'nem sobe a versão');
+select is((select resultado::text like '%Medo%' from privado.sync_item where item_id = 'b2100000-0000-4000-8000-000000000001'), false,
+  'o registro de idempotência guarda só a versão, nunca a resposta');
 
 -- destinos do bloco H
 select testes.p21_coord(format($f$ select api.prenatal_salvar_campo(%L, 'H', 'nome_do_obstetra', '"Dra. Teste Obstetra"') $f$, testes.p21_consulta(1)));
@@ -1000,7 +1023,7 @@ begin
 end $$;
 insert into visita (acompanhamento_id, profissional_id, dia_numero, data, estado)
   select a.id, testes.p21_prof(12), 20 + n, testes.p21_hoje(), 'agendada'
-    from acompanhamento a, generate_series(1, 2) n where a.familia_id = testes.p21_id('c', 1);
+    from acompanhamento a, generate_series(1, 2) n where a.familia_id = testes.p21_id('c', 16);
 select testes.p21_coord(format($f$ select api.atribuir_designacao(%L, %L, 'titular', 'Mais ninguém na região') $f$,
                                testes.p21_id('c', 19), testes.p21_prof(12)));
 select testes.p21_nascer(19, testes.p21_hoje() - 3, '[{}]');
@@ -1183,6 +1206,15 @@ select results_eq(
        from t_p21, jsonb_array_elements(r -> 'candidatas') c where chave = 'aloc' $$,
   $$ values (true, 3) $$,
   'candidatas: as enfermeiras ativas (a inativa e a coordenação ficam de fora)');
+insert into t_p21 select 'aloc1', testes.p21_coord(format($f$ select api.alocacao_familia(%L) $f$, testes.p21_id('c', 1)));
+select results_eq(
+  $$ select jsonb_array_length(r -> 'acompanhamento' -> 'lista_visitas'), r -> 'acompanhamento' -> 'lista_visitas' -> 0 ->> 'data',
+            r -> 'acompanhamento' -> 'lista_visitas' -> 5 ->> 'profissional'
+       from t_p21 where chave = 'aloc1' $$,
+  $$ select 6, (testes.p21_hoje() + 1)::text, 'Ana Teste Enfermeira'::text $$,
+  'a tela de alocação mostra as seis visitas geradas, com data e profissional');
+select is((select r -> 'tarefas' -> 0 ->> 'tipo' from t_p21 where chave = 'aloc'), 'checkin_dpp',
+  'a tela Designar mostra o que a operação ainda precisa fazer (aqui, o check-in de DPP)');
 select is((select (r -> 'familia' ->> 'janela_inicio')::date from t_p21 where chave = 'aloc'), testes.p21_hoje() + 5 - 21,
   'a janela da DPP acompanha, só para escolher a candidata');
 select is((select count(*)::integer from log_auditoria where acao = 'leitura' and entidade = 'consulta_prenatal'

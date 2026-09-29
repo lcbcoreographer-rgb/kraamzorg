@@ -38,7 +38,8 @@ export interface CampoInstrumentoProps {
   valorAutomatico?: string;
 }
 
-function idDom(endereco: EnderecoCampo): string {
+/** Id do elemento do campo no DOM (também usado para levar o foco de volta ao campo onde a pessoa parou). */
+export function idDom(endereco: EnderecoCampo): string {
   return ["campo", endereco.bloco, endereco.campo, endereco.bebe ?? ""]
     .join("-")
     .replace(/[^a-zA-Z0-9_-]/g, "_");

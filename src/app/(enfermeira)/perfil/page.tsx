@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { TITULO_EM_CONSTRUCAO } from "@/components/shell/tela-em-construcao";
+import { Botao } from "@/components/ui/botao";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { exigirSessao } from "@/lib/auth/sessao";
 
@@ -23,6 +25,9 @@ export default async function PaginaPerfil() {
           <br />
           <span className="text-apoio text-texto-2">{sessao.email}</span>
         </p>
+        <Botao asChild variante="secundario" className="self-start">
+          <Link href="/ofertas">Ofertas de família</Link>
+        </Botao>
         <EstadoVazio
           nivelTitulo="h2"
           titulo={TITULO_EM_CONSTRUCAO}
