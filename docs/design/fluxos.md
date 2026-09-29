@@ -166,7 +166,7 @@ Uma enfermeira pode ter mais de um estado na semana; o selo mostra o de hoje pel
 
 ### Início do comercial: a fila
 
-1. A primeira tela do comercial é a **fila de transferências**, ordenada por prioridade e prazo. Prioridade máxima (saúde, perda) fica no topo em fundo de alerta e aparece também para a coordenação.
+1. A primeira tela do comercial é a **fila de transferências**, ordenada por prioridade e prazo. Prioridade máxima (saúde, perda) fica no topo e aparece também para a coordenação: saúde em fundo de alerta; perda e estado sensível em ameixa, com a hora do relato no lugar do prazo (DESIGN.md, seção 11.8).
 2. Cada cartão: motivo em frase ("Quer contratar", "Quer a conversa com a coordenação", "Pediu desconto", "Pediu para falar com uma pessoa"), família, IG e o que a Isadora já colheu (plano, DPP, pagamento preferido, duas opções de horário), o prazo ("vence em 38 min") e o botão "Assumir conversa".
 3. **Assumir** grava quem assumiu e a hora, mantém a IA pausada nessa conversa e abre a conversa. A partir daqui, para lead já qualificado, a Isadora não volta a responder nessa conversa (reunião, 11:22). Não existe botão "devolver para a Isadora" nesse caso.
 4. **Agendamento é humano** (reunião, 11:19): a transferência "Quer a conversa com a coordenação" mostra as duas opções que a família passou e o botão "Marcar na agenda", que cria o evento e sugere o texto `lembrete_sessao`.
@@ -181,7 +181,7 @@ Uma enfermeira pode ter mais de um estado na semana; o selo mostra o de hoje pel
 
 ### Prazos (SLA do PRD 11.4)
 
-- O prazo aparece como tempo restante em frase ("vence em 1 h 12 min"), com tabular, e muda para aviso quando falta menos de 25% e para alerta quando vence ("venceu há 8 min").
+- O prazo aparece como tempo restante em frase ("vence em 1 h 12 min"), com tabular, e muda para aviso quando falta menos de 25% e para alerta quando vence ("venceu há 8 min"). Exceção: em perda e estado sensível o cartão mostra a hora do relato ("recebida às 13:18") e, depois do prazo, "ainda sem contato da equipe", em texto secundário com o octógono de pausa, nunca em alerta (DESIGN.md, seção 11.8).
 - Horas úteis seguem o expediente do comercial [confirmar]; prioridade máxima é imediata a qualquer hora e gera push e grupo interno.
 - Transferência vencida sobe para o Início da diretoria.
 

@@ -1,6 +1,6 @@
 # DESIGN.md · Kraamzorg OS
 
-Direção visual e de experiência do Kraamzorg OS. Vale para todas as telas do app (enfermeira, comercial, coordenação, diretoria, financeiro). Tokens em `docs/prototipo/assets/tokens.css`; componentes em `docs/prototipo/assets/base.css`; vitrine em `docs/prototipo/_kit.html`. No produto, a fonte de tokens continua sendo `src/app/globals.css` (PRD 20.1): este arquivo diz o que entra lá.
+Direção visual e de experiência do Kraamzorg OS. Vale para todas as telas do app (enfermeira, comercial, coordenação, diretoria, financeiro). Tokens em `docs/prototipo/assets/tokens.css`; componentes em `docs/prototipo/assets/base.css`; vitrine em `docs/prototipo/_kit.html`. No produto, a fonte de tokens continua sendo `src/app/globals.css` (PRD 20.1): este arquivo diz o que entra lá. A camada de acolhimento, que vale sobre toda a direção, está na seção 11; voz e microcopy, em `docs/design/voz.md`.
 
 Leitura de contexto em três linhas. O PRD trava paleta, fontes e regras de acessibilidade; o que faltava era direção, hierarquia e padrão de componente. O arquivo de clima atual citado pela skill interface-2026 não existe nesta sessão, então a direção foi decidida por princípio (vocabulário estético, leis visuais), sem inventar tendência. O launcher da Impeccable não rodou (baixa binário); PRODUCT.md e este arquivo foram escritos lendo o projeto direto, e o sorteio de direção (`concept-seed`) não aconteceu.
 
@@ -65,7 +65,7 @@ Modo de redesign (protocolo Taste 11 e Impeccable): **overhaul visual com preser
 
 **Referência que ancora.** A própria planilha do DOC 2, com os dias lado a lado, e a caderneta de saúde que toda família brasileira leva para casa: papel, colunas por data, anotação curta, carimbo de quem atendeu. A tela é a caderneta da visita de hoje, não um painel.
 
-**Intenção em uma frase.** A enfermeira abre, vê em que dia está, responde com o polegar e só vê cor quando algo pede ação.
+**Intenção em uma frase.** A enfermeira abre, vê em que dia está, responde com o polegar e só vê cor quando algo pede ação. A seção 11 acrescenta o acolhimento: chamar pelo nome, situar no tempo da família, dizer o próximo passo e baixar o volume nos momentos difíceis.
 
 **Dispositivos de repertório escolhidos.**
 
@@ -245,7 +245,7 @@ Nomes de classe de `base.css` entre crases. Todo componente interativo tem repou
 
 **Indicador de sincronização** (`sinc`, `data-estado="local|enviando|sincronizado"`). Três estados do PRD 15: "Salvo no aparelho" (aviso lavado, ícone de celular), "Enviando 3 respostas" (neutro, ícone subindo), "Sincronizado 11:42" (sucesso). Sem sinal: o estado continua "local" e a faixa `--info` diz "Sem sinal agora. O registro está salvo no aparelho e sobe sozinho quando a conexão voltar." Falha de envio: estado "local" com "Não enviou. Tentamos de novo em 30 s." e botão "Tentar agora". Fica no cabeçalho de toda tela da enfermeira.
 
-**Cabeçalho da família com freio** (`familia-cab`, `botao-freio`, `data-freio="ativo"`). Faixa de areia de ponta a ponta: nome da família em Jost 26, selo do estágio, dia do acompanhamento, bairro, e as quatro datas em grade (DPP "estimativa"; nascimento, alta e início "fato"; "ainda não" tracejado quando não há). O botão "Freio" (mão, contorno ameixa, 44 px) fica no canto superior direito de toda tela da família. Um toque aciona bloqueio total, sem pergunta. Aparece o aviso efêmero "Freio acionado. Nenhuma mensagem automática sai para a Família Teste Aurora." e o cabeçalho inteiro vira ameixa com "Freio em bloqueio total desde 24/09/2026, 09:14. Só contato humano e nominal." Nasce a tarefa "Justificar o freio" para quem acionou. Reverter exige coordenação ou diretoria, com justificativa, numa folha inferior.
+**Cabeçalho da família com freio** (`familia-cab`, `botao-freio`, `data-freio="ativo"`). Faixa de areia de ponta a ponta: nome da família em Jost 26, selo do estágio, dia do acompanhamento, bairro, e as quatro datas em grade (DPP "estimativa"; nascimento, alta e início "fato"; "ainda não" tracejado quando não há). O botão "Freio" (mão, contorno ameixa, 44 px) fica no canto superior direito de toda tela da família. Um toque aciona bloqueio total, sem pergunta. Aparece o aviso efêmero "Freio acionado. Nenhuma mensagem automática sai para a Família Teste Aurora." e o cabeçalho inteiro vira ameixa com "Freio em bloqueio total desde 24/09/2026, 09:14. Só contato humano e nominal." Nasce a tarefa "Justificar o freio" para quem acionou. Reverter exige coordenação ou diretoria, com justificativa, numa folha inferior. Data ausente mostra só "ainda não" e uma legenda única para as quatro datas ("A DPP é estimativa. Nascimento, alta e início entram quando acontecem."); com o freio por perda ou intercorrência, as quatro datas continuam visíveis, as que não aconteceram aparecem como "sem registro" e nenhuma frase promete um nascimento (seção 11.8).
 
 **Régua de dias** (`regua`, `regua--12`, `regua--fina`, `data-estado="feito|hoje|pendente|alerta|sensivel"`). Um segmento por dia com "D4" em mono e a data curta. Versão fina (10 px) em linhas de lista e cartões. Mesma família de forma em `blocos` (progresso do checklist) e `semana` (escala da equipe).
 
@@ -253,11 +253,11 @@ Nomes de classe de `base.css` entre crases. Todo componente interativo tem repou
 
 **Tabela que vira lista** (`tabela`, `tabela__principal`, `tabela__canto`, `data-rotulo`). No computador, tabela com hairline entre linhas, número à direita em mono, ação da linha no menu de três pontos. Abaixo de 720 px, cada linha vira cartão: nome em destaque, selo no canto, demais campos como "Rótulo valor".
 
-**Fila de transferências** (`fila`, `fila-item`, `data-prioridade="maxima"`, `prazo`). Motivo em frase ("Quer contratar"), família, IG e contexto em uma linha, prazo à direita ("vence em 38 min", aviso quando falta menos de 25% do SLA, alerta quando vence), botão "Assumir" no próprio cartão. Prioridade máxima (saúde, perda) fica no topo em fundo alerta lavado e nunca some por filtro.
+**Fila de transferências** (`fila`, `fila-item`, `data-prioridade="maxima"`, `prazo`). Motivo em frase ("Quer contratar"), família, IG e contexto em uma linha, prazo à direita ("vence em 38 min", aviso quando falta menos de 25% do SLA, alerta quando vence), botão "Assumir" no próprio cartão. Prioridade máxima fica no topo e nunca some por filtro: saúde em fundo alerta lavado; perda e estado sensível em ameixa lavado, com a hora do relato no lugar do prazo, sem relógio e sem vermelho (seção 11.8).
 
 **Conversa** (`conversa`, `bolha--familia`, `bolha--isadora`, `bolha--pessoa`, `evento-conversa`). Família à esquerda em branco; Isadora à direita em areia com "Isadora (IA)" e ícone de robô; pessoa da equipe à direita em marinho com nome. Eventos do sistema centralizados ("Transferida ao comercial às 14:02. A IA não volta a responder nesta conversa.").
 
-**Estado vazio** (`vazio`). Contorno tracejado no lugar do conteúdo, título que diz o que é, texto que diz por que está vazio e o que vai aparecer, e a próxima ação como botão.
+**Estado vazio** (`vazio`). Contorno tracejado no lugar do conteúdo, título que diz o que é, texto que diz por que está vazio e o que vai aparecer, e a próxima ação como botão. Três tipos com texto diferente (dia tranquilo, primeira vez, ainda em construção), na seção 11.7; o texto fala do que a pessoa vai ter, nunca dos componentes da tela.
 
 **Carregando** (`esqueleto`). Blocos no formato do conteúdo que vem. Nunca spinner no meio da tela.
 
@@ -275,6 +275,8 @@ Nomes de classe de `base.css` entre crases. Todo componente interativo tem repou
 
 ## 7. Microcopy
 
+Regras completas por público, glossário e pares antes e depois em `docs/design/voz.md`.
+
 1. Frase completa, voz ativa, segunda pessoa para a equipe ("Confira e digite de novo"), primeira pessoa do plural para a Kraamzorg falando com a família.
 2. Rótulo diz o que é; botão diz o que acontece: "Assinar registro do D4", "Assumir conversa", "Cheguei, iniciar visita". Nada de "OK", "Enviar", "Sim" em confirmação.
 3. Erro diz o que aconteceu e o que fazer: "8 bpm parece um dígito a menos. Confira e digite de novo." "Não enviou. Tentamos de novo em 30 s."
@@ -282,7 +284,7 @@ Nomes de classe de `base.css` entre crases. Todo componente interativo tem repou
 5. Alerta clínico: código, achado com valor, conduta. "PU-01 · Febre de 38,2 °C na puérpera. Acione a supervisão médica agora e oriente a família a procurar atendimento de emergência."
 6. Vazio ensina: "Nenhuma visita marcada para hoje. Quando a coordenação oferecer uma família, a oferta aparece aqui para você aceitar ou recusar."
 7. Sucesso breve e sem exclamação: "Assinado às 11:42. Sobe quando houver sinal."
-8. Estado sensível sem eufemismo e sem alarme: "Freio em bloqueio total. Só contato humano e nominal."
+8. Estado sensível sem eufemismo e sem alarme: "Freio em bloqueio total. Só contato humano, pelo nome." Nunca prazo vencido nem relógio ao lado de uma perda (seção 11.8).
 9. Formatos: R$ 4.200 (sem centavos quando zero), 24/09/2026, 11:42, 38s2d, 36,9 °C, 3.240 g, D4 de 6. Fuso de Brasília.
 10. Proibido em qualquer texto: travessão e meia-risca (use vírgula, ponto, dois-pontos ou parênteses), "mãezinha", "mamãe", "papai", "Ops", jargão técnico para a família ("sincronização", "handoff", "SLA" ficam só para a equipe e, mesmo aí, "prazo" e "transferência" são preferidos), emoji em alerta.
 11. Nome de paciente nunca em título de aba do navegador, URL ou notificação push visível na tela bloqueada: a notificação diz "Alerta imediato numa família atribuída a você".
@@ -300,6 +302,9 @@ Nomes de classe de `base.css` entre crases. Todo componente interativo tem repou
 - Rótulo em caixa alta, kicker acima de título, numeração decorativa de seção.
 - KPI sem comparação, anel de progresso, barra padrão de biblioteca.
 - Dado real de qualquer paciente, médico ou profissional em protótipo, seed ou captura.
+- Relógio, contagem regressiva, vermelho ou ação comercial na tela de uma família em luto ou em intercorrência (seção 11.8).
+- Coração, bebê desenhado, confete, emoji, "parabéns" ou exclamação ditos pela interface; foto de banco e imagem gerada (seção 11.6).
+- Estado vazio que descreve os componentes da tela em vez do que a pessoa vai ter.
 
 ---
 
@@ -317,3 +322,216 @@ Nomes de classe de `base.css` entre crases. Todo componente interativo tem repou
 - `lint_slop.py` em `docs/prototipo`: seis achados ALTA, todos a declaração de Inter em `tokens.css`, justificada na seção 4. Nenhum travessão, emoji, gradiente, `outline: none` ou raio fora da escala.
 - Kit capturado em 390 x 844 e 1280 x 800, duas rodadas. Corrigidos na segunda: botão do aviso efêmero espremido, régua de 12 dias apertada no celular (virou duas semanas), frases inteiras em mono (prazo, "D4 de 6", rótulos da lista), cartão tocável sem espaçamento interno.
 - O que precisa de olho humano: legibilidade ao sol e com brilho baixo num aparelho real; alvo de 52 px com luva; leitura de tela do seletor sim ou não no VoiceOver e no TalkBack.
+
+---
+
+## 11. Acolhimento
+
+Pedido do dono do projeto para esta camada: como o assunto é gestação e pós-parto, a linguagem visual e a de fala precisam ser o mais aconchegantes e acolhedoras possível, no nível de excelência, sem nada genérico. Esta seção vale por cima da Caderneta de visita e não troca nenhum token: cor, fonte, raio, sombra e espaço continuam os da seção 4. Voz, microcopy e os pares antes e depois estão em `docs/design/voz.md`.
+
+Leitura de contexto. O arquivo de clima da interface-2026 continua ausente; a direção sai por princípio. O launcher da Impeccable rodou nesta rodada, mas procura PRODUCT.md e DESIGN.md na raiz e não os achou em `docs/design`; os dois foram lidos direto. O app foi rodado em modo demonstração em 29/09/2026 e capturado em 390 e 1280 px (34 rotas nos seis papéis, mais ficha e conversa de uma família com freio). Portal da família e formulário público ainda não existem (`(familia)` e `(publico)` só têm README): o que está aqui para eles vale quando o P30, o P47 e o P49 forem construídos.
+
+### 11.1 Onde o sistema esfria hoje
+
+> DEGRADED: contexto único (sem subagentes nesta sessão). Avaliação A (capturas e código) terminou antes da varredura B: `impeccable detect` em `src` achou 1 aviso, falso positivo (sublinhado da aba do pipeline); `lint_slop.py` da interface-2026 achou só as guardas contra travessão e o emoji permitido nos textos de mensagem (PRD 11.6).
+
+**Veredito.** A mecânica está boa: contraste, foco, alvo de toque, tokens, régua de dias, faixa de alerta clínico e freio passam, e o detector não acha vício de template. O que esfria a experiência está nas palavras, na ordem do que aparece e no jeito de tratar os momentos difíceis, e nenhum detector olha para isso. No teste dos trinta segundos da interface-2026, o Início do comercial reprova em dois itens: trocando fonte e acento vira qualquer CRM, e nenhuma forma da tela nasce do sistema (a régua de dias não aparece ali).
+
+| #   | Tela                                                                                                                               | O que se vê                                                                                                                                                                                                    | Por que esfria                                                                                                                                                                                                                                                                   |
+| :-- | :--------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Conversa de uma família em luto (Família Teste Bruma, `/conversas/[id]`)                                                           | "A Isadora está conduzindo esta conversa", "Perda gestacional, venceu há 35 min", "Marcar como resolvida", "Marcar como não lead" e, no cabeçalho ameixa, "Nascimento: ainda não, vira fato quando acontecer". | É a tela mais grave do sistema. O relato "Infelizmente perdi o bebê essa semana" divide a página com uma contagem vencida, uma ação de triagem comercial e a promessa de um nascimento que não vai acontecer. A faixa também está errada: com o freio, a Isadora está desligada. |
+| 2   | Fila de transferências (Início do comercial e Transferências)                                                                      | Cartão de perda em ameixa lavado, com o prazo "venceu há 31 min" em `alerta` e o texto "Relato de perda gestacional. Freio em bloqueio total. Contato humano e nominal."                                       | Vermelho encostado em luto, contra a seção 8. O luto aparece como prazo operacional, num texto em estilo de telegrama.                                                                                                                                                           |
+| 3   | Telas ainda sem módulo (Hoje, Famílias, Alertas e Perfil da enfermeira; Início, Radar, Agenda e Equipe da coordenação; Financeiro) | "As visitas de hoje vão aparecer aqui. A próxima visita com o endereço e a régua de dias, o botão para iniciar a visita e as fichas pendentes, em ordem de horário."                                           | É a especificação lida em voz alta. Fala de componente ("a régua de dias", "o botão") em vez do que a pessoa vai ter.                                                                                                                                                            |
+| 4   | Cabeçalho da família (ficha e conversa)                                                                                            | "ainda não" em pílula tracejada e "vira fato quando acontecer" em itálico, três vezes.                                                                                                                         | Linguagem de modelo de dados. São doze palavras de sistema logo abaixo do nome da família.                                                                                                                                                                                       |
+| 5   | Título das telas de trabalho                                                                                                       | "Início", "Conversas", "Tarefas" em Jost 40 px; a frase útil ("Terça, 29/09. Três transferências abertas e quatro tarefas com prazo hoje.") em 14 px cinza.                                                    | O maior texto da tela repete a aba. O dia e o que espera por você ficam pequenos.                                                                                                                                                                                                |
+| 6   | Conversas (lista)                                                                                                                  | Três ações por cartão; "Marcar como não lead" em todo cartão de família.                                                                                                                                       | Triagem comercial encostada no nome de uma gestante, com o mesmo peso da ação principal.                                                                                                                                                                                         |
+| 7   | Configurações da coordenação                                                                                                       | "(PRD 11.2)" no texto de ajuda; coluna "Mensagem enviada" mostrando a chave `alerta_saude`.                                                                                                                    | Número de seção de documento interno e nome de variável na tela de quem cuida da saúde das famílias.                                                                                                                                                                             |
+| 8   | Números do mês da Isadora                                                                                                          | Grade de sete cartões de KPI; "Conversão de leads 50%" calculado sobre 6 leads; o sétimo cartão sozinho na linha.                                                                                              | Grade de KPI está na lista de proibidos (seção 8); porcentagem sobre amostra pequena exagera; nenhum número diz se está bem ou mal diante da meta.                                                                                                                               |
+| 9   | Pipeline no celular                                                                                                                | Sete campos de filtro antes da primeira família; a página mede 395 px numa tela de 390.                                                                                                                        | A primeira coisa que o comercial vê é um formulário, e a página escorrega de lado.                                                                                                                                                                                               |
+| 10  | Evolução em PDF                                                                                                                    | Medidas em Inter, título de seção em 14 px cinza, parágrafos corridos.                                                                                                                                         | Lê como formulário preenchido. O médico não acha em um minuto o que importa.                                                                                                                                                                                                     |
+
+**Picos da experiência.** Os picos de carga do produto são o alerta clínico, a notícia de perda, a assinatura, o fechamento do contrato e o último dia do acompanhamento. O alerta clínico está bem resolvido (achado com valor, conduta, ligação em um toque). A perda recebe a gramática da venda: prazo, triagem, estágio. O fim de um acompanhamento (D6 ou D12 assinado) não tem momento desenhado, e é ele que a enfermeira e a família lembram (regra do pico e do fim).
+
+**O que já acolhe e fica.**
+
+- A faixa de alerta clínico: achado com o valor, conduta em frase completa, "Ligar para a supervisão" em um toque.
+- "Justificar depois é normal; o que importava era parar as mensagens automáticas." (faixa de justificar o freio): tira a culpa de quem acionou.
+- "Aqui há dados de saúde de gestantes e bebês, e todo acesso fica registrado." (entrar): diz o porquê em linguagem de gente.
+- "Escreva você, pelo nome" no campo de resposta de uma família com freio.
+- "Edite à vontade. O WhatsApp abre com este texto; nada sai antes de você tocar em enviar lá." (texto sugerido da tarefa): devolve o controle a quem envia.
+
+### 11.2 Princípios
+
+1. **Chamar pelo nome.** A família aparece pelo nome da família; a pessoa, pelo primeiro nome ("Mensagem para Marina"); o bebê, pelo nome assim que ele existe no cadastro; a enfermeira e quem assumiu uma conversa, pelo nome ("Otávio assumiu às 14:05"). "Lead", "contato" e "usuário" ficam para número agregado. Onde nome de paciente não pode aparecer (aba do navegador, URL, notificação na tela bloqueada, assunto de e-mail, nome de arquivo), vale a seção 7.
+2. **Situar no tempo da família.** Toda família está num ponto de uma linha que vai da gestação ao relatório final: 32s4d, "D4 de 6", "nasceu em 18/09", "alta em 20/09". Esse ponto aparece junto do nome em toda lista e todo cabeçalho, porque é ele que diz à equipe como falar com aquela família agora.
+3. **Dizer o que acontece depois.** Todo estado termina no próximo passo e em quem faz. Sucesso diz a consequência ("Sobe quando houver sinal"); erro diz o que está a salvo e o que fazer; vazio diz quando algo vai aparecer ali.
+4. **Poupar quem cuida.** A enfermeira tem uma mão livre, o comercial responde entre consultas, a coordenação recebe alerta a qualquer hora. Com a equipe, acolher quer dizer tirar trabalho: nada repetido na mesma tela, nenhuma confirmação à toa, nenhuma frase que culpe, e a certeza escrita de que o que foi feito está guardado.
+5. **Baixar o volume quando a notícia é difícil.** Em perda, intercorrência e alerta clínico, a tela perde elementos: sai a contagem regressiva, sai a ação comercial, sai a cor que não carrega significado. Ficam o que aconteceu, a próxima ação humana e quem a faz (11.8).
+6. **Nenhum calor fingido.** Coração, bebê desenhado, confete, "parabéns" dito pelo sistema, exclamação e adjetivo de entusiasmo ficam fora da interface. O carinho que a família sente vem da pessoa da equipe e dos textos aprovados em `mensagem_modelo`; a interface ajuda essa pessoa a acertar o tom, sem falar por cima dela.
+
+Âncora. O símbolo da marca desenha um colo: a curva dourada segura as duas figuras. A interface herda dele só a ordem do gesto, sem redesenhar nem citar o desenho. Primeiro mostra que a família e o trabalho estão seguros (quem é, em que dia está, o que já foi salvo), depois pede a próxima ação.
+
+### 11.3 Superfície e cor
+
+Cada token ganha um papel de acolhimento. Nenhuma cor nova, nenhum rosa, azul-bebê, pastel, gradiente ou textura: o creme já é o papel.
+
+| Token               | Papel no acolhimento                                                                                                     | Nunca                                                                  |
+| :------------------ | :----------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------- |
+| `creme`             | Papel de toda tela, formulário e documento.                                                                              | Atrás de texto de estado.                                              |
+| `areia`             | O lugar da família: cabeçalho da família, painel de pessoas, fala da Isadora, texto sugerido antes de ir para a família. | Erro, aviso de sistema, cartão comercial, bloco de números.            |
+| `branco`            | O lugar do trabalho: cartão, campo, folha.                                                                               |                                                                        |
+| `marinho`           | Tinta e ação primária.                                                                                                   |                                                                        |
+| `dourado`           | "Agora": hoje, ativo, atual. Uma vez por tela.                                                                           | Celebração; destaque de venda fora de "Quente" e "Oferta pendente".    |
+| `sensivel` (ameixa) | Pausa, perda, intercorrência, freio.                                                                                     | Relógio, contagem regressiva, botão de urgência.                       |
+| `alerta`            | Urgência clínica e erro operacional.                                                                                     | Qualquer elemento na tela de uma família em luto ou em intercorrência. |
+| `sucesso`           | Concluído, sincronizado, assinado.                                                                                       | Festa.                                                                 |
+| `aviso`             | Prazo perto, pendente.                                                                                                   | Momento sensível.                                                      |
+
+Medido com `validate_palette.js` (skill dataviz) sobre creme: `alerta` e `sensivel` ficam a ΔE 13,7 na visão normal, abaixo do piso de 15, e a 10,5 em protanopia; `sucesso` e `alerta` ficam a 4,7 em deuteranopia. Por isso luto e urgência se distinguem pela forma e pela palavra, além do matiz. Ameixa leva o octógono de pausa, borda contínua fina, nenhum relógio e nenhum botão de urgência. Alerta leva a sirene, a conduta e "Ligar para a supervisão". Sincronizado e erro sempre com ícone e palavra.
+
+Fundo lavado só atrás do bloco que tem o estado, nunca atrás da tela inteira. A exceção continua a da seção 6: o cabeçalho da família inteiro em ameixa com o freio puxado.
+
+### 11.4 Tipografia
+
+- Jost carrega a frase humana da tela: o nome da família, o dia ("Hoje, quinta 24/09"), a saudação nas superfícies da família. Nas telas de abertura (Hoje da enfermeira e Início de cada papel), o `t-display` é o dia, e a frase de estado vem logo abaixo em `text-3` marinho, nunca em cinza pequeno; o nome da aba fica na aba e no `<title>`. As outras telas mantêm o nome como título, com a frase de apoio em `texto-2`.
+- Inter para pergunta, ação e explicação. Pergunta de formulário em 500.
+- IBM Plex Mono só para medida: data, hora, IG, D4, R$, código de regra. Nunca nome de pessoa, nunca frase.
+- Itálico só nas marcas "estimativa" e "fato" das quatro datas. Frase de sistema em itálico sai.
+- Superfícies da família: nada abaixo de 16 px, pergunta em `text-3` (17 px) com peso 500, parágrafo com no máximo `container-leitura` (68ch). Proposta de token para parágrafo de leitura na 11.11.
+- Maiúscula só no início da frase e em nome próprio, como no resto do sistema.
+
+### 11.5 Ritmo, espaço e forma
+
+- **Ordem humana.** O que a família disse ou viveu vem antes do estado do sistema, que vem antes das ações. Na conversa, no celular, a última mensagem da família aparece na primeira dobra; o resumo da Isadora vira uma linha ("Resumo da Isadora: Pinheiros, 9s1d, DPP 03/05/2027") que abre ao tocar.
+- **Uma ação por cartão.** Em lista (Conversas, Pipeline, Tarefas, Transferências) o cartão mostra a ação principal e, quando o fluxo pede, a confirmação dela ("Abrir no WhatsApp" e "Enviei"); as outras vão para o menu de três pontos com nome acessível ("Mais ações para Família Teste Aurora").
+- **Espaço em volta do que é sensível.** Bloco sensível tem 32 px acima e abaixo e, no computador, nenhum cartão comercial ao lado na mesma linha.
+- **Filtro recolhido.** No celular, busca e um botão "Filtros" com a contagem dos ativos, que abre a folha inferior. A lista começa na primeira dobra.
+- **Forma.** Os quatro raios da seção 4 não mudam. Tracejado quer dizer "ainda não" ou "confirme" e por isso nunca aparece em luto, onde nada está pendente. Superfícies da família usam `raio-3` nos contêineres e pílula nas ações.
+- **Movimento.** Nenhuma animação de celebração. A faixa de alerta entra uma vez (220 ms) e para. Nada pulsa, nada pisca.
+
+### 11.6 Ícones e imagem
+
+Lucide com traço 1,75, como na seção 5. Ícone serve para identificar.
+
+- `baby` só onde separa o bebê da puérpera (abas do checklist, linha da pessoa). `heart`, `sparkles`, `party-popper`, `smile`, `gift` e `star` ficam fora.
+- Perda e intercorrência usam `octagon-pause`, o mesmo do freio. `siren`, `triangle-alert`, `clock-alert` e `hourglass` nunca aparecem numa família em luto.
+- Estado vazio sem ícone grande e sem ilustração.
+
+Imagem: só os arquivos de `/public/brand` (logo e símbolo provisórios) ou nada.
+
+- O logo entra em: entrar, topo do formulário público da família (uma vez), cabeçalho do PDF, portal da família (fase 3). O símbolo entra na barra lateral e no ícone do app.
+- Fora de: estado vazio, tela de sucesso, cartão, e-mail (que é texto puro).
+- Foto e ilustração: nenhuma nesta fase. Nada de banco de imagem e nada gerado por IA (pé de bebê na palma da mão, barriga em contraluz dourado, mãos em coração): é o visual que a anti-ai-slop-visual aponta como padrão de IA e que a família reconhece como anúncio. Se um dia entrar foto, ela é da Kraamzorg, real, com autorização de imagem registrada, e a decisão é do cliente.
+
+### 11.7 Estados
+
+**Vazio**, em três tipos, escrito para quem não conhece o sistema:
+
+| Tipo                | Quando                                           | Exemplo                                                                                                                                            |
+| :------------------ | :----------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dia tranquilo       | Não há nada a fazer.                             | "Nenhum alerta aberto. Quando um valor do checklist passar do limite, o alerta aparece aqui e na tela da visita."                                  |
+| Primeira vez        | A pessoa ainda não tem nada ali.                 | "Você ainda não tem famílias atribuídas. Quando a coordenação oferecer uma, a oferta aparece em Hoje para você aceitar ou recusar."                |
+| Ainda em construção | A rota existe na navegação e o módulo ainda não. | "Esta parte ainda está em construção. Aqui você vai ver as visitas do dia, com endereço e horário." Em produção, item sem módulo sai da navegação. |
+
+Filtro sem resultado diz qual filtro está ligado e oferece "Limpar filtros".
+
+**Carregando.** Esqueleto no formato do conteúdo. Texto só se passar de 2 s, com o nome da operação ("Carregando as visitas de hoje"). No portal da enfermeira, nenhum carregamento bloqueia um campo já aberto.
+
+**Erro.** O título diz a ação que falhou ("O aviso ao grupo não saiu", "O código não confere"); o texto diz o que está a salvo e o que fazer. "Não deu certo", "Algo não saiu como esperado" e "Erro" sozinhos saem. Erro não culpa: "8 bpm parece um dígito a menos" no lugar de "valor inválido".
+
+**Sucesso.** Uma linha, sem exclamação: o fato e a consequência. "Assinado às 11:42. Sobe quando houver sinal." Marcos da família (nascimento registrado, alta registrada, contrato assinado, último dia assinado) entram na linha do tempo com a data em mono e a consequência operacional ("Nascimento registrado em 18/09/2026. A designação da enfermeira passa a ser urgente.").
+
+**Fim do acompanhamento.** Quando o último dia é assinado, o cartão da família fecha com a régua completa em marinho e uma linha: "Acompanhamento da Família Teste Aurora concluído em 26/09/2026. A evolução final vai para a revisão da coordenação." Sem agradecimento automático e sem festa: o reconhecimento à enfermeira vem da coordenação, pessoa para pessoa.
+
+### 11.8 Momentos sensíveis
+
+| Momento                                                                       | Cor e forma                                                                     | O que some da tela                                                                                                                                                                                                  | O que fica                                                                                                                                                                                                                                                  |
+| :---------------------------------------------------------------------------- | :------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Perda gestacional ou neonatal (freio em bloqueio total ou encerrado sensível) | Ameixa, octógono de pausa, borda contínua.                                      | Prazo e contagem ("vence", "venceu"), ação comercial (mover estágio, texto sugerido, marcar como outro assunto, faixa da Isadora), IG, régua da gestação, a promessa de data futura (pílula tracejada "ainda não"). | Nome da família e da pessoa; as quatro datas (PRD 20.4), com "sem registro" nas que não aconteceram; o que ela escreveu, uma vez, na conversa; o que o sistema já fez ("Nenhuma mensagem automática sai para esta família"); quem faz o contato, pelo nome. |
+| Intercorrência ou internação (mãe ou bebê)                                    | Ameixa, octógono de pausa.                                                      | Ação comercial, régua automática, texto sugerido.                                                                                                                                                                   | Quem da equipe acompanha, o último contato, a próxima ação.                                                                                                                                                                                                 |
+| Alerta clínico imediato                                                       | `alerta` só na faixa; o resto da tela quieto.                                   | Nada do registro; saem os atalhos que tirem a enfermeira da visita antes de registrar o acionamento.                                                                                                                | Achado com valor, conduta aprovada, "Ligar para a supervisão", o que falta registrar.                                                                                                                                                                       |
+| Saúde mental materna                                                          | `alerta` na faixa para quem atende; na lista, "Ocorrência privada" sem detalhe. | Detalhe na lista, prévia da conversa.                                                                                                                                                                               | Quem pode ver, a próxima ação. A conduta é a aprovada (PRD 9.3); a interface não parafraseia.                                                                                                                                                               |
+| Família em estado sensível que volta a escrever                               | Ameixa na conversa.                                                             | Texto sugerido, atalhos de modelo.                                                                                                                                                                                  | A mensagem dela e "Responda você, pelo nome".                                                                                                                                                                                                               |
+| Nota baixa na pesquisa                                                        | Neutro; ocorrência privada da coordenação.                                      | Qualquer mensagem automática (PRD 23.2 já tira).                                                                                                                                                                    | O contato pessoal da coordenação.                                                                                                                                                                                                                           |
+
+Regras:
+
+1. Em momento sensível, prazo vira a hora do acontecimento: "recebida às 13:18", em `texto-2`. O atraso continua visível para quem precisa agir ("ainda sem contato da equipe"), com o octógono, sem vermelho e sem relógio. A fila continua ordenada pelo prazo, e prioridade máxima fica sempre no topo.
+2. Uma ação principal, nomeando a pessoa quando der: "Ligar para Camila", "Escrever para Camila". "Marcar como resolvida" vira "Registrar o contato com a família" [confirmar: Leonardo e Edilaine].
+3. O cabeçalho ameixa depois de uma perda mantém as quatro datas visíveis (PRD 20.4): as que existem, como fato; as outras, como "sem registro", em texto simples, sem pílula tracejada e sem legenda de futuro. "vira fato quando acontecer" nunca aparece nele.
+4. O texto automático que a família recebeu aparece na conversa com o rótulo "Resposta automática, texto aprovado", sem destaque. Foi o sistema quem falou, e a equipe precisa saber exatamente o quê.
+5. Enfermeira e coordenação veem o estado sensível em toda tela da família, inclusive no portal da enfermeira, com o selo e a frase do estado.
+
+### 11.9 Por superfície
+
+**Telas da equipe (comercial, coordenação, diretoria, financeiro).**
+
+- Abrem pelo dia e pela frase de estado (11.4).
+- Cartão de lista: nome da família, tempo da família (IG ou "D4 de 6") e uma ação.
+- Palavras de venda (lead, frio, morno, quente, ganho) só nas telas comerciais e em número agregado; nunca na visão da enfermeira e nunca ao lado de uma família em estado sensível.
+- Linha da família (proposta, P2 na lista de mudanças): nos cartões do pipeline e no cabeçalho da ficha, uma régua fina da gestação herdada da régua de dias. Dez blocos de quatro semanas, cheios em marinho até a semana atual, os seguintes tracejados, e a DPP em mono com "estimativa". Na ficha, o bloco atual ganha a borda dourada; nas listas fica em marinho cheio, para não repetir o acento. Depois do nascimento, a mesma linha passa a mostrar D1 a Dn. Some em estado sensível. Nenhum token novo.
+
+**Portal da enfermeira.**
+
+- Hoje abre com o dia, o indicador de sincronização e a próxima visita (seção 2, primeira dobra).
+- Fala curta, clínica e no imperativo gentil ("Confira", "Ligue"), com número e unidade.
+- A frase mais acolhedora do portal é a que diz que nada se perdeu. "Salvo no aparelho" aparece em todo campo respondido, sem pedir atenção.
+- Nenhum elogio automático ("Ótimo trabalho!"). A visita termina em "Assinado às 11:42. Sobe quando houver sinal." e na próxima visita.
+
+**Formulário público da família (contrato no P30, captação no P47, pesquisa).**
+
+- Creme de fundo, logo no topo uma vez, coluna única de até `container-leitura`, sem barra lateral.
+- Abre dizendo quem pediu e por quê, com a duração: "Oi, Marina. O Leonardo pediu estes dados para preparar o contrato de vocês. Leva uns 3 minutos." Nome de quem pede, duração e texto vêm de `mensagem_modelo` e `parametro`.
+- Mais de seis campos viram etapas, com "Etapa 2 de 3" em blocos (a mesma forma da régua).
+- Opcional marcado com "(opcional)"; nenhum asterisco vermelho.
+- Campo sensível explica em uma linha por que é pedido e onde fica ("Vai no contrato. Fica guardado com a equipe da Kraamzorg.") [confirmar: jurídico].
+- Erro gentil e específico; o que foi digitado nunca some.
+- A última tela diz o que acontece depois, por qual canal e quando.
+- Sem temporizador, sem pop-up, sem "últimas vagas" (palavra que a marca evita, PRD 11.6).
+- Pesquisa: uma pergunta por tela, escala 0 a 10 sem verde para vermelho (o componente já faz assim), texto livre com "Se quiser, conte mais".
+
+**PDF (evolução aos médicos, contrato).**
+
+- No PDF, acolher quer dizer respeitar o tempo do médico e a família: mãe e bebê pelo nome no corpo do documento (nunca no nome do arquivo nem nos metadados), período e plano na primeira linha, quem assina (nome e COREN) visível na primeira página [confirmar: Edilaine].
+- Título de seção em Jost 500 marinho; medidas em IBM Plex Mono tabular; curva de peso em tabela de duas colunas (data e valor) alinhada, porque o médico lê o valor exato.
+- Se um gráfico de peso entrar: uma linha marinho de 2 px, pontos de 8 px, o peso de nascimento como referência tracejada em `marinho-50`, nenhum vermelho para a perda esperada dos primeiros dias. Cor de estado só no dia em que uma regra de `regra_alerta` disparou.
+- Rodapé LGPD como está. Sem marca d'água, sem ícone, sem caixa colorida.
+
+**E-mail.**
+
+- Texto puro, vindo de `mensagem_modelo`. Assunto sem nome de paciente e dizendo o que é ("Evolução de enfermagem, período de 05/09 a 11/09/2026"). Primeira linha: o que é e o que fazer. Assinatura com pessoa, papel e "Kraamzorg Brasil". Sem imagem, sem banner, sem modelo de marketing.
+
+### 11.10 Dados e painéis
+
+Com a skill dataviz e a interface-2026:
+
+- **Painel que fala.** As cinco perguntas da diretoria e os números da Isadora respondem em frase, com o número em mono e a comparação ao lado: "Vendas: 4 contratos nesta semana, 1 a mais que na anterior." Uma linha por pergunta, nenhuma grade de KPI. Com meta, a palavra de estado vem com ícone ("abaixo da meta").
+- **Amostra pequena.** Abaixo de um limiar guardado em `parametro` (proposta: 20 casos [confirmar: Leonardo]), a contagem vem antes da porcentagem ("3 de 6 leads, 50%"), com a nota "amostra pequena".
+- **Forma-assinatura.** Blocos segmentados (régua) para meta, capacidade e prazo; hachura para o que é estimativa. Nenhuma barra padrão de biblioteca, nenhum anel de progresso.
+- **Cor pelo dado, com parcimônia.** `sucesso`, `aviso` e `alerta` só quando uma regra diz que o número saiu do esperado. `sensivel` nunca entra em gráfico.
+- **Ninguém vira ranking.** Nenhuma família, bebê ou enfermeira ordenada por número na tela. Ocupação é por praça.
+- **O dado do bebê não assusta.** Perda de peso dentro do esperado aparece neutra; cor só quando `regra_alerta` dispara.
+
+### 11.11 Proposta de token (não usar até aprovação)
+
+`text-leitura`: 17 px (1,0625rem), entrelinha 1,55, Inter 400, para parágrafo lido pela família no formulário público e no portal. O `text-3` tem o mesmo tamanho com entrelinha 1,35, curta para parágrafo. Enquanto o token não entrar no PRD 20.2 e no `globals.css`, parágrafo da família usa `corpo` (16/1,5).
+
+### 11.12 O que esta camada recusa
+
+- Coração, bebê desenhado, cegonha, confete, estrela e emoji na interface. Emoji fica só nos textos aprovados de mensagem, no limite do PRD 11.6.
+- Rosa, azul-bebê, pastel, gradiente, textura, foto de banco e imagem gerada.
+- "Parabéns", "Que alegria", "Ótimo trabalho", exclamação e adjetivo de entusiasmo ditos pela interface.
+- Relógio, contagem regressiva e vermelho em qualquer tela de família em luto ou em intercorrência.
+- Ação comercial visível ao lado de relato de saúde, perda ou intercorrência.
+- Especificação lida em voz alta como estado vazio.
+- Jargão de sistema na tela: "nominal", "vira fato", "handoff", "SLA", "ingestão", "reindexar", nome de variável, número de seção do PRD.
+- Diminutivo carinhoso e intimidade forçada: "mãezinha", "mamãe", "papai", "bebezinho", "amiga", "princesa".
+- Slogan e frase de efeito dentro do produto.
+
+### 11.13 Verificação feita e chutes
+
+- Capturas 390 x 844 e 1280 x 800 das 34 rotas em modo demonstração, mais ficha e conversa da Família Teste Bruma (freio em bloqueio total), guardadas fora do repositório (scratchpad da sessão).
+- `validate_palette.js` (dataviz) nos estados sobre creme: `alerta` e `sensivel` a 13,7 (visão normal); `sucesso` e `alerta` a 4,7 (deuteranopia). A regra de forma e palavra da 11.3 e da 11.8 sai daí.
+- `impeccable detect` em `src`: 1 aviso, falso positivo. `lint_slop.py` em `src`: só guardas contra travessão e emoji permitido em texto de mensagem.
+- Chutes, na lista de pendências: "Não seguiu" no lugar de "Perdido" e "Outro assunto" no lugar de "Não lead" são propostas de rótulo, sem mudar enum [confirmar: Leonardo]; quem assina na primeira página do PDF [confirmar: Edilaine]; linha de privacidade do formulário [confirmar: jurídico]; a linha da família é proposta da direção, sem pedido do cliente.
+- Precisa de olho humano: ler a conversa de uma família em luto junto com a coordenação clínica antes de fechar o texto dela; testar o formulário público com uma gestante de verdade (fora do sistema, nenhum dado no repositório) quando ele existir.
