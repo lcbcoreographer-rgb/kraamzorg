@@ -336,6 +336,24 @@ insert into parametro (chave, valor, descricao) values
    'P30 e P31, PRD 22.2 C-11: versão do modelo de contrato gravada no contrato em rascunho [confirmar: Leonardo, modelo atualizado].')
 on conflict (chave) do update set valor = excluded.valor, descricao = excluded.descricao;
 
+-- --- P35 e P36 (0021_prenatal_nascimento): pré-natal, designação, nascimento e alta ---
+insert into parametro (chave, valor, descricao) values
+  ('prenatal_semanas_alerta', '34',
+   'P35, PRD 10.1 e D-10: semanas de gestação em que o alerta_34s avisa a coordenação e acima das quais o pagamento confirmado abre a consulta pré-natal como urgente (mais de 34s0d).'),
+  ('designacao_prazo_resposta_horas', '24',
+   'P36 item 1, PRD 3.4 e O-01: horas que a enfermeira tem para aceitar ou recusar uma oferta de titular ou backup; vencido, vale como recusa [confirmar: Edilaine, prazo].'),
+  ('alta_primeira_visita_dias', '1',
+   'P36 item 4, PRD 7.3: dias entre a alta e o D1 do acompanhamento quando quem registra não informa a data (1 = dia seguinte). A DPP nunca entra na conta [confirmar: Edilaine].'),
+  ('visita_hora_por_periodo', '{"manha":"09:00","tarde":"14:00"}',
+   'P36 item 4, PRD 3.4: hora prevista das visitas geradas na alta, por período (sempre o mesmo do D1 ao último dia) [confirmar: Edilaine, horários].'),
+  ('visitas_maximo_por_dia', '2',
+   'PRD 3.4: no máximo 2 visitas por profissional por dia; acima disso, a geração das visitas avisa a coordenação.'),
+  ('radar_horizonte_dias', '56',
+   'P36 item 2: até quantos dias à frente o radar de nascimentos mostra as famílias pela DPP (8 semanas) [confirmar: Edilaine].'),
+  ('radar_sem_contato_dias', '7',
+   'P36 item 2: dias sem mensagem da família nem contato da equipe para o radar marcar "sem contato" [confirmar: Edilaine].')
+on conflict (chave) do update set valor = excluded.valor, descricao = excluded.descricao;
+
 
 -- =============================================================================
 -- 4. mensagem_modelo (PRD capítulo 23 inteiro + textos padrão da evolução,
@@ -802,31 +820,31 @@ insert into automacao (id, nome, categoria, executor, gatilho, condicoes, acoes,
   ('prenatal_urgente', 'Pré-natal urgente', 'interna', 'sistema',
    '{"tipo":"pagamento_confirmado_ig_maior_34s"}', '[]',
    '[{"tipo":"criar_tarefa","prioridade":"maxima"},{"tipo":"notificar","destino":"coordenacao"}]',
-   false, 'PRD 10.1: Fase 2 (pré-natal online).'),
+   true, 'PRD 10.1:'),
   ('alerta_34s', 'Alerta de 34 semanas', 'interna', 'sistema',
    '{"tipo":"diario","hora_utc":"10:00"}', '[]',
    '[{"tipo":"notificar","destino":"coordenacao"}]',
-   false, 'PRD 10.1, D-10: interno, nada à família. Fase 2.'),
+   true, 'PRD 10.1, D-10: interno, nada à família.'),
   ('checkin_dpp', 'Check-in de DPP', 'interna', 'humano_tarefa',
    '{"tipo":"dpp_menos_dias","dias":7}', '[]',
    '[{"tipo":"criar_tarefa"},{"tipo":"sinalizar_radar"},{"tipo":"confirmar_alocacao_backup"}]',
-   false, 'PRD 10.1: sinaliza a equipe, confirma alocação e backup. Fase 2.'),
+   true, 'PRD 10.1: sinaliza a equipe, confirma alocação e backup.'),
   ('dpp_sem_confirmacao', 'DPP sem confirmação', 'interna', 'sistema',
    '{"tipo":"dpp_mais_dias","dias":3}', '[]',
    '[{"tipo":"alerta_interno","prioridade":"alta"}]',
-   false, 'PRD 10.1: Fase 2.'),
+   true, 'PRD 10.1:'),
   ('dpp_sem_contato', 'DPP sem contato', 'interna', 'sistema',
    '{"tipo":"dpp_mais_dias","dias":10}', '[]',
    '[{"tipo":"criar_ocorrencia"}]',
-   false, 'PRD 10.1: Fase 2.'),
+   true, 'PRD 10.1:'),
   ('nascimento', 'Nascimento confirmado', 'operacional', 'sistema',
    '{"tipo":"data_nascimento_preenchida"}', '[]',
    '[{"tipo":"recalcular_agenda"},{"tipo":"notificar_operacao"},{"tipo":"pedir_previsao_alta"}]',
-   false, 'PRD 10.1: Fase 2.'),
+   true, 'PRD 10.1:'),
   ('alta', 'Alta confirmada', 'operacional', 'sistema',
    '{"tipo":"data_alta_preenchida"}', '[]',
    '[{"tipo":"ativar_acompanhamento"},{"tipo":"gerar_visitas"},{"tipo":"criar_tarefa","tipo_tarefa":"enviar_guia"},{"tipo":"notificar_profissional"}]',
-   false, 'PRD 10.1: gatilho real do início do atendimento. Fase 2.'),
+   true, 'PRD 10.1: gatilho real do início do atendimento.'),
   ('ficha_pendente', 'Ficha pendente', 'interna', 'sistema',
    '{"tipo":"visita_concluida_sem_registro_horas","horas":6}', '[]',
    '[{"tipo":"notificar_profissional"},{"tipo":"escalar_coordenacao_horas","horas":6}]',
@@ -1603,6 +1621,22 @@ from (values
   ('humano_comercial', 'saida', 'humano', 'Que alegria, Vanessa! Vou te mandar o formulário seguro para os dados do contrato.', now() - interval '5 days' + interval '6 minutes')
 ) as v(chave, direcao, enviado_por, conteudo, quando)
 join seed_conversa sc on sc.chave = v.chave;
+
+-- --- P35 e P36: Íris (pagamento confirmado) com a consulta pré-natal a agendar
+-- e o acompanhamento em aguardando, como o gatilho do pagamento deixaria ---
+insert into acompanhamento (contrato_id, familia_id, dias_contratados, horas_por_visita, estado)
+select sc.id, f.id, 6, 3.0, 'aguardando'
+from seed_contrato sc join seed_familia f on f.chave = sc.chave
+where sc.chave = 'iris';
+
+insert into consulta_prenatal (familia_id, instrumento_versao, urgente, status)
+select f.id, 'v1-2026-09', false, 'pendente' from seed_familia f where f.chave = 'iris';
+
+insert into tarefa (tipo, familia_id, papel_responsavel, prioridade, titulo, payload, vence_em)
+select 'agendar_prenatal', f.id, 'coordenacao', 'normal', 'Agendar a consulta pré-natal',
+       jsonb_build_object('consulta_prenatal_id', cp.id, 'urgente', false),
+       now() + interval '3 days'
+from seed_familia f join consulta_prenatal cp on cp.familia_id = f.id where f.chave = 'iris';
 
 commit;
 

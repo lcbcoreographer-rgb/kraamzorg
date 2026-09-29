@@ -323,7 +323,8 @@ insert into matriz values
   ('privado.recalculo_etapa',        '{}', 'nega'),
   -- P30 (0018): tentativas recusadas do formulário público, lidas só pelas
   -- funções do formulário
-  ('privado.formulario_tentativa',   '{}', 'nega');
+  ('privado.formulario_tentativa',   '{}', 'nega'),
+  ('privado.fato_operacao',          '{}', 'nega');
 
 create temp table esperado on commit drop as
   select m.tabela, p.papel, a.aal,
@@ -961,7 +962,12 @@ select set_eq(
             ('api.remarcar_sessao_venda'), ('api.registrar_desfecho_sessao_venda'),
             ('api.registrar_gravacao_sessao_venda'), ('api.salvar_resumo_sessao_venda'),
             ('api.proposta'), ('api.salvar_proposta'), ('api.aprovar_desconto'),
-            ('api.gerar_link_formulario_contrato') $$,
+            ('api.gerar_link_formulario_contrato'),
+            ('api.prenatal_consultas'), ('api.prenatal_estado'), ('api.agendar_consulta_prenatal'),
+            ('api.prenatal_abrir'), ('api.prenatal_salvar_campo'), ('api.prenatal_concluir'),
+            ('api.alocacao_familia'), ('api.oferecer_designacao'), ('api.atribuir_designacao'),
+            ('api.minhas_ofertas'), ('api.responder_designacao'), ('api.radar_nascimentos'),
+            ('api.registrar_nascimento'), ('api.registrar_previsao_alta'), ('api.registrar_alta') $$,
   'authenticated executa exatamente a lista do ADR 0002 seção 6');
 
 select is_empty(
