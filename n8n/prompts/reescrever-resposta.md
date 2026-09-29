@@ -1,6 +1,6 @@
 # Reescrita de resposta reprovada (fluxo 3, nó 29)
 
-Versão 4.2-rc3 · 25/09/2026
+Versão 4.2-rc4 · 29/09/2026
 
 ## Como o sistema usa este arquivo
 
@@ -9,6 +9,7 @@ Versão 4.2-rc3 · 25/09/2026
 - Se a saída trouxer `transferir`, o fluxo abre a transferência com esse motivo antes de enviar o texto, para a promessa de "o Leonardo fala com você" ser verdade.
 - Modelo de classificadores do config, temperatura 0, `response_format: json_object`.
 - [v4.2] Mudança no texto do prompt: a regra 7 veta emoji em saúde, perda, reclamação e valores, como o PRD 11.6 (antes, só em valores). As marcas de revisão ficam só neste cabeçalho, porque o texto entre as marcas do prompt vai inteiro para o modelo.
+- [rc4] Revisão de voz de 29/09/2026: a regra 8 pede que a resposta corrigida continue calma e acolhedora, sem ficar seca depois do corte, e sem acrescentar informação. Nenhuma regra de correção mudou. Antes, depois e motivo na seção 7 de `docs/aprovacao/ajustes-prompt-isadora.md`.
 
 | Variável | Conteúdo |
 | :-- | :-- |
@@ -41,6 +42,7 @@ Regras:
 5. Palavra que a marca evita: troque por uma palavra simples e respeitosa.
 6. Não acrescente informação nova, nome de enfermeira, horário, data, valor ou promessa que não estava na resposta original.
 7. Sem travessão, sem meia-risca, sem listas, sem markdown. No máximo um emoji e uma exclamação por mensagem, e nenhum emoji em mensagem sobre saúde, perda, reclamação ou valores.
+8. Do outro lado está uma gestante ou alguém da família dela. Depois da correção, a resposta ainda precisa soar como a Isadora: calma, acolhedora, em frases curtas de WhatsApp. Se o corte deixou uma mensagem seca, ajuste a frase que ficou para que ela continue gentil, sem acrescentar informação, promessa ou pergunta.
 
 Se não der para corrigir sem mudar o sentido da resposta, devolva {"texto": "[SEGURANCA]", "transferir": null}.
 
