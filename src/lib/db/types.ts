@@ -31,6 +31,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      agenda: {
+        Args: { ate: string; desde: string; profissional_id?: string };
+        Returns: Json;
+      };
       agendar_sessao_venda: {
         Args: {
           agendada_para: string;
@@ -82,6 +86,14 @@ export type Database = {
       };
       eliminar_titular: {
         Args: { familia_id: string; motivo: string };
+        Returns: Json;
+      };
+      equipe: {
+        Args: { dia?: string; incluir_inativas?: boolean; regiao_id?: string };
+        Returns: Json;
+      };
+      escala_semanal: {
+        Args: { regiao_id?: string; semana?: string };
         Returns: Json;
       };
       familias_do_dia: {
@@ -183,12 +195,54 @@ export type Database = {
         };
         Returns: Json;
       };
+      portal_familias: {
+        Args: never;
+        Returns: Json;
+      };
+      portal_hoje: {
+        Args: { dia?: string };
+        Returns: Json;
+      };
+      portal_perfil: {
+        Args: never;
+        Returns: Json;
+      };
       proposta: {
         Args: { oportunidade_id: string };
         Returns: Json;
       };
+      reagendar_cascata: {
+        Args: {
+          acompanhamento_id: string;
+          forcar?: boolean;
+          motivo?: string;
+          nova_data_inicio: string;
+          simular?: boolean;
+        };
+        Returns: Json;
+      };
+      reagendar_visita: {
+        Args: {
+          data: string;
+          forcar?: boolean;
+          hora_prevista?: string;
+          motivo?: string;
+          profissional_id?: string;
+          simular?: boolean;
+          visita_id: string;
+        };
+        Returns: Json;
+      };
       reenviar_notificacao_handoff: {
         Args: { handoff_id: string };
+        Returns: Json;
+      };
+      registrar_chegada: {
+        Args: {
+          quando?: string;
+          via_sincronizacao?: boolean;
+          visita_id: string;
+        };
         Returns: Json;
       };
       registrar_desfecho_sessao_venda: {
@@ -211,6 +265,14 @@ export type Database = {
         };
         Returns: Json;
       };
+      registrar_saida: {
+        Args: {
+          quando?: string;
+          via_sincronizacao?: boolean;
+          visita_id: string;
+        };
+        Returns: Json;
+      };
       remarcar_sessao_venda: {
         Args: {
           agendada_para: string;
@@ -218,6 +280,10 @@ export type Database = {
           link_reuniao?: string;
           sessao_id: string;
         };
+        Returns: Json;
+      };
+      remover_bloqueio_agenda: {
+        Args: { id: string };
         Returns: Json;
       };
       resolver_transferencia: {
@@ -242,6 +308,43 @@ export type Database = {
       };
       revogar_sessoes: {
         Args: { usuario_id: string };
+        Returns: Json;
+      };
+      salvar_bloqueio_agenda: {
+        Args: {
+          fim: string;
+          id: string;
+          inicio: string;
+          motivo: string;
+          profissional_id: string;
+        };
+        Returns: Json;
+      };
+      salvar_documento_profissional: {
+        Args: {
+          id: string;
+          numero: string;
+          profissional_id: string;
+          tipo: string;
+          validade: string;
+        };
+        Returns: Json;
+      };
+      salvar_profissional: {
+        Args: {
+          adicional_deslocamento_centavos: number;
+          ativa: boolean;
+          conselho_numero: string;
+          conselho_uf: string;
+          funcao: string;
+          id: string;
+          nome: string;
+          regioes: string[];
+          telefone_e164: string;
+          usuario_id?: string;
+          valor_hora_centavos: number;
+          vinculo: Database["public"]["Enums"]["vinculo_profissional"];
+        };
         Returns: Json;
       };
       salvar_proposta: {
@@ -292,6 +395,24 @@ export type Database = {
           realizada_em: string;
           status: Database["public"]["Enums"]["status_sessao"];
         }[];
+      };
+      sincronizacao_item: {
+        Args: { item_id: string };
+        Returns: Json;
+      };
+      sincronizacao_registrar: {
+        Args: {
+          campo: string;
+          conflito?: Json;
+          criado_no_cliente_em: string;
+          entidade: string;
+          entidade_id: string;
+          item_id: string;
+          payload: Json;
+          status: Database["public"]["Enums"]["status_sync"];
+          versao_base: number;
+        };
+        Returns: undefined;
       };
       status_cobranca: {
         Args: { familia_id: string };

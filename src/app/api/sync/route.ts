@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { vitrineLiberada } from "@/lib/ambiente";
 import { obterSessao } from "@/lib/auth/sessao";
+import { obterRepositorios } from "@/lib/dados/fabrica";
 import { processarLote } from "@/lib/sync/protocolo";
+import { RepositorioSincronizacaoComposto } from "@/lib/sync/repositorio-composto";
 import { RepositorioSincronizacaoMemoria } from "@/lib/sync/repositorio-memoria";
+import { RepositorioSincronizacaoVisita } from "@/lib/sync/repositorio-visita";
 import type {
   RequisicaoSincronizacao,
   RespostaSincronizacao,
@@ -48,16 +51,23 @@ function idInformado(bruto: unknown): string {
 }
 
 /**
- * Repositório de processo (ver `src/lib/sync/repositorio.ts` e
- * `docs/sessoes/P12.md`, "Pendências"): sem `src/lib/db` (P01) e sem as
- * tabelas assistenciais escritas por formulário (P34 a P39), ainda não há
- * onde persistir de verdade. Um deploy serverless pode reiniciar este
- * módulo a qualquer chamada; quando o P01 e os formulários existirem,
- * troque esta linha por uma implementação de `RepositorioSincronizacao`
- * que fale com `api.*` (PostgREST só expõe `public` e `api`, PRD 5.2). O
- * motor do aparelho (`src/lib/sync/motor.ts`) e esta rota não mudam.
+ * Repositório de processo para as entidades que ainda não têm repositório
+ * de verdade (pré-natal, áudio, alerta e registro: P35, P39 e P40). Só
+ * existe fora de produção (`vitrineLiberada()`); um deploy serverless pode
+ * reiniciar este módulo a qualquer chamada. A visita (chegada e saída do
+ * portal da enfermeira, P38) não passa por aqui: vai para as funções
+ * `api.*` do banco, com a sessão da própria enfermeira.
  */
-const repositorio = new RepositorioSincronizacaoMemoria();
+const repositorioDeProcesso = new RepositorioSincronizacaoMemoria();
+
+async function repositorioDoLote() {
+  const { portal } = await obterRepositorios();
+  return new RepositorioSincronizacaoComposto(
+    new RepositorioSincronizacaoVisita(portal),
+    ["visita"],
+    vitrineLiberada() ? repositorioDeProcesso : null,
+  );
+}
 
 /**
  * `POST /api/sync` (PRD 15, invariante 4): idempotente pelo `id` de cada
@@ -76,16 +86,12 @@ const repositorio = new RepositorioSincronizacaoMemoria();
  * `usuarioId` de cada item é conferido contra o da sessão: item de outra
  * pessoa recebe "erro" sozinho, sem derrubar o lote, como o item inválido.
  *
- * A trava de produção continua (`vitrineLiberada()`, a mesma de
- * `/dev/sync`): enquanto o repositório for o de memória, em produção a
- * rota devolve 404 sem ler sessão nem corpo. Sai quando o repositório real
- * (`api.*`) existir.
+ * Produção (P38): só a entidade `visita` (chegada e saída) é aceita; as
+ * outras recebem "erro" no próprio item até ganharem repositório real. Fora
+ * de produção (`vitrineLiberada()`), o resto continua na memória de
+ * processo, para a demonstração do motor (`/dev/sync`).
  */
 export async function POST(request: Request) {
-  if (!vitrineLiberada()) {
-    return NextResponse.json({ erro: "não encontrado" }, { status: 404 });
-  }
-
   const sessao = await obterSessao();
   if (!sessao || !sessao.ativo || sessao.papeis.length === 0) {
     return NextResponse.json(
@@ -128,6 +134,16 @@ export async function POST(request: Request) {
         status: "erro",
         erro: "item de outro usuário",
       });
+    } else if (
+      item.success &&
+      item.data.entidade !== "visita" &&
+      !vitrineLiberada()
+    ) {
+      recusados.push({
+        id: item.data.id,
+        status: "erro",
+        erro: "este tipo de registro ainda não sobe por aqui",
+      });
     } else if (item.success) {
       validos.push(item.data);
     } else {
@@ -141,7 +157,7 @@ export async function POST(request: Request) {
 
   const resposta =
     validos.length > 0
-      ? await processarLote({ itens: validos }, repositorio)
+      ? await processarLote({ itens: validos }, await repositorioDoLote())
       : { resultados: [] };
   return NextResponse.json({
     resultados: [...resposta.resultados, ...recusados],

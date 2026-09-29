@@ -13,6 +13,7 @@ import {
 } from "@/modules/agente/transferencias/dados";
 import { DESTINO_DO_PAPEL } from "@/modules/agente/tipos";
 import type { TransferenciaTela } from "@/modules/agente/tipos";
+import { obterFraseEquipe } from "@/modules/operacao/equipe/dados";
 import { ListaTarefas } from "@/modules/mensageria/tarefas/componentes/lista-tarefas";
 import { fraseDoDia } from "./frase-do-dia";
 import {
@@ -67,14 +68,25 @@ export default async function PaginaInicio() {
     INICIO_POR_PAPEL[
       principal && principal !== "enfermeira" ? principal : "diretoria"
     ];
+  // Coordenação e diretoria abrem o dia com a síntese da equipe (P37, fluxo
+  // C): "3 em visita agora, 1 livre, 2 reservadas para esta semana...".
+  const fraseEquipe =
+    principal === "coordenacao" || principal === "diretoria"
+      ? await obterFraseEquipe()
+      : null;
   // Tela de abertura: o título é o dia (DESIGN.md, 11.4); a aba e o
   // <title> continuam "Início".
   return (
     <TelaEmConstrucao
       titulo={formatarDiaSemanaEData(new Date()) ?? "Início"}
       abertura
+      subtitulo={fraseEquipe ? `Equipe agora: ${fraseEquipe}` : undefined}
       texto={conteudo.texto}
-      acao={conteudo.acao}
+      acao={
+        fraseEquipe && principal === "coordenacao"
+          ? { rotulo: "Ver a equipe", href: "/equipe" }
+          : conteudo.acao
+      }
     />
   );
 }

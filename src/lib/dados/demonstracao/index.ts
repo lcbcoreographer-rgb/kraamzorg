@@ -19,6 +19,7 @@ import type {
   ResultadoFreio,
   ResumoFamilia,
 } from "../tipos";
+import { criarEquipeDemonstracao, criarPortalDemonstracao } from "./equipe";
 import { PACOTES, REGIOES, TRANSICOES, VERSOES_PACOTE } from "./fixtures";
 import { cartaoDemonstracao, obterLoja, type LojaDemonstracao } from "./loja";
 import { criarVendaDemonstracao, dadosContratoDemonstracao } from "./venda";
@@ -772,5 +773,7 @@ export function criarRepositoriosDemonstracao(
     agente,
     usuarios,
     venda: criarVendaDemonstracao(contexto),
+    equipe: criarEquipeDemonstracao(contexto),
+    portal: criarPortalDemonstracao(contexto),
   };
 }

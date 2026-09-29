@@ -3,8 +3,10 @@ import type { Repositorios } from "../repositorios";
 import { criarAgenteSupabase } from "./agente";
 import type { ContextoSupabase } from "./comum";
 import { criarConfiguracoesSupabase } from "./configuracoes";
+import { criarEquipeSupabase } from "./equipe";
 import { criarFamiliasSupabase } from "./familias";
 import { criarFichaSupabase } from "./ficha";
+import { criarPortalSupabase } from "./portal";
 import { criarTarefasSupabase } from "./tarefas";
 import { criarUsuariosSupabase } from "./usuarios";
 import { criarVendaSupabase } from "./venda";
@@ -23,5 +25,7 @@ export function criarRepositoriosSupabase(
     agente: criarAgenteSupabase(contexto),
     usuarios: criarUsuariosSupabase(contexto),
     venda: criarVendaSupabase(contexto),
+    equipe: criarEquipeSupabase(contexto),
+    portal: criarPortalSupabase(contexto),
   };
 }

@@ -31,7 +31,7 @@
 
 begin;
 
-select plan(58);
+select plan(59);
 
 
 -- -----------------------------------------------------------------------------
@@ -278,9 +278,16 @@ update visita set hora_prevista = '09:00' where id = current_setting('testes.vis
 select is((select versao from visita where id = current_setting('testes.visita')::uuid), 2,
   'visita: primeiro UPDATE leva versao de 1 para 2');
 
+-- 0022: a versão sobe uma vez por transação e por linha. O teste roda numa
+-- transação só; o começo de uma transação nova é simulado zerando a marca.
+select set_config('app.versao_incrementada', '', true);
 update visita set versao = 99, hora_prevista = '10:00' where id = current_setting('testes.visita')::uuid;
 select is((select versao from visita where id = current_setting('testes.visita')::uuid), 3,
-  'visita: versao enviada pelo cliente é ignorada, o gatilho sempre grava a anterior + 1');
+  'visita: versao enviada pelo cliente é ignorada, o gatilho sempre grava a anterior + 1 (uma vez por transação)');
+
+update visita set hora_prevista = '11:00' where id = current_setting('testes.visita')::uuid;
+select is((select versao from visita where id = current_setting('testes.visita')::uuid), 3,
+  'visita: outro UPDATE na mesma transação é a mesma gravação lógica e não sobe a versao de novo (0022)');
 
 
 -- =============================================================================

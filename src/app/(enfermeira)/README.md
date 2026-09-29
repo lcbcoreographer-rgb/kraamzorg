@@ -1,3 +1,3 @@
 Portal da enfermeira: Hoje, Famílias, Alertas e Perfil, com abas inferiores em qualquer largura (casca `CascaEnfermeira`).
-As rotas existem com o estado vazio (P10); o P38 preenche sobre o motor offline do P12, e o P40 preenche Alertas.
-PWA instalável, prioridade em mobile (D-01 e D-02 do PRD).
+Hoje, Famílias (com a ficha em `minhas-familias/[id]`) e Perfil são do P38, sobre o motor offline do P12 (`ProvedorPortal` no layout). Alertas continua o estado vazio do P10 até o P40.
+PWA instalável (D-01 e D-02 do PRD): `public/manifest.webmanifest`, `public/sw.js` e a página pública `src/app/portal-offline`, que abre sem sinal lendo o IndexedDB.

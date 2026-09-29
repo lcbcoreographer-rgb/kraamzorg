@@ -24,6 +24,9 @@ const PUBLICAS = [
   // Formulário seguro do contrato (P30): sem sessão, protegido pelo token de
   // uso único, pela validade, pelo limite de tentativas e pelo Turnstile.
   "/formulario",
+  // Casco do portal da enfermeira sem sinal (P38): página sem dado nenhum,
+  // que o service worker guarda para abrir quando não há conexão.
+  "/portal-offline",
 ];
 
 /** Exigem sessão, mas não o AAL2 nem papel (o caminho até o MFA). */
