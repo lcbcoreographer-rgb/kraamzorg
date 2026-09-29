@@ -13,6 +13,7 @@ import {
 import { EscolhaUnica } from "@/components/ui/escolha-unica";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import type { NumeroPipeline } from "@/lib/dados/tipos";
+import { rotulo } from "@/lib/rotulos-a-confirmar";
 import { acaoMarcarPerdido } from "../acoes";
 import { estadoInicialPipeline } from "../estado-acoes";
 import { MOTIVOS_PERDA, ROTULO_MOTIVO_PERDA } from "../estagios";
@@ -56,7 +57,7 @@ export function FolhaPerda({
       }}
     >
       <DialogoConteudo
-        titulo="Marcar como perdido"
+        titulo={rotulo("marcarPerdido")}
         descricao={`A ${nomeFamilia} sai do pipeline e para de receber follow-up. Se a família voltar a escrever, ela reabre em Em conversa.`}
         rotuloFechar="Fechar sem marcar como perdido"
       >
@@ -64,7 +65,7 @@ export function FolhaPerda({
           <input type="hidden" name="oportunidadeId" value={oportunidadeId} />
           <input type="hidden" name="pipeline" value={pipeline} />
           <EscolhaUnica
-            rotulo="Motivo da perda"
+            rotulo={rotulo("motivoPerda")}
             name="motivo"
             opcoes={MOTIVOS_PERDA.map((motivo) => ({
               valor: motivo,
@@ -77,10 +78,10 @@ export function FolhaPerda({
             opcional
             multilinha
             linhas={3}
-            descricao="Ajuda quem ler o relatório de perdas a entender o motivo."
+            descricao="Ajuda quem lê o relatório a entender o motivo."
           />
           {estado.erro ? (
-            <FaixaAlerta variante="imediato" titulo={estado.erro} />
+            <FaixaAlerta variante="erro" titulo={estado.erro} />
           ) : null}
           <DialogoRodape>
             <DialogoFechar asChild>
@@ -91,7 +92,7 @@ export function FolhaPerda({
               carregando={enviando}
               rotuloCarregando="Marcando"
             >
-              Marcar como perdido
+              {rotulo("marcarPerdido")}
             </Botao>
           </DialogoRodape>
         </form>

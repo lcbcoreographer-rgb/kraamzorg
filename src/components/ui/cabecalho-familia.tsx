@@ -12,6 +12,12 @@ import { cn } from "@/lib/utils";
  * freio está puxado, a faixa inteira vira ameixa (`sensivel`); as quatro
  * datas continuam visíveis (PRD 20.4: "sempre visíveis na ficha"), só a
  * linha de meta dá lugar à frase de bloqueio.
+ *
+ * Acolhimento (DESIGN.md, 11.1 item 4 e 11.8 regra 3): a data que ainda não
+ * aconteceu mostra só "ainda não", e uma legenda única explica as quatro.
+ * Em `modoSensivel` (perda ou intercorrência com o freio), nenhuma frase
+ * promete o que vem: a data ausente é "sem registro", em texto simples, e
+ * a legenda sai.
  */
 export interface DataChaveFamilia {
   rotulo: string;
@@ -39,6 +45,13 @@ export interface CabecalhoFamiliaProps {
    * sem função. Com ela, vira botão com a área de toque de 44 px.
    */
   acaoFreioAtivo?: () => void;
+  /**
+   * Freio por bloqueio total ou encerrado sensível: a data que não
+   * aconteceu vira "sem registro" e a legenda de futuro some.
+   */
+  modoSensivel?: boolean;
+  /** Linha da família no tempo (ex: `LinhaGestacao`), abaixo da meta. */
+  linha?: React.ReactNode;
   /** Título da seção (`h1` na ficha da família, `h3` num cartão de lista). */
   nivelTitulo?: "h1" | "h2" | "h3";
   /**
@@ -59,6 +72,8 @@ export function CabecalhoFamilia({
   textoFreioAtivo,
   rotuloFreioAtivo,
   acaoFreioAtivo,
+  modoSensivel,
+  linha,
   nivelTitulo = "h3",
   sangrar,
   className,
@@ -140,6 +155,8 @@ export function CabecalhoFamilia({
         acaoFreio
       )}
 
+      {linha ? <div className="col-span-full max-w-md">{linha}</div> : null}
+
       <dl className="tablet:grid-cols-4 col-span-full grid grid-cols-2 gap-x-4 gap-y-2">
         {datas.map((data) => (
           <div key={data.rotulo} className="flex flex-col gap-0.5">
@@ -152,51 +169,66 @@ export function CabecalhoFamilia({
               {data.rotulo}
             </dt>
             {data.tipo === "ausente" ? (
-              // "ainda não" é frase, não dado: pílula tracejada em Inter,
-              // não em mono, que é reservado a valor (crítica do CRM, P1
-              // item 12).
-              <dd
-                className={cn(
-                  "rounded-pilula text-mini w-fit border border-dashed px-2 py-0.5 font-medium",
-                  freioAtivo
-                    ? "border-texto-inverso-2 text-texto-inverso"
-                    : "border-marinho-50 text-texto-2",
-                )}
-              >
-                {data.valor}
-              </dd>
+              modoSensivel ? (
+                // Depois de uma perda nada está pendente: "sem registro",
+                // em texto simples, sem o tracejado de "ainda não" (DESIGN.md,
+                // 11.5 e 11.8 regra 3).
+                <dd
+                  className={cn(
+                    "text-apoio",
+                    freioAtivo ? "text-texto-inverso" : "text-texto-2",
+                  )}
+                >
+                  sem registro
+                </dd>
+              ) : (
+                // "ainda não" é frase, não dado: pílula tracejada em Inter,
+                // não em mono, que é reservado a valor (crítica do CRM, P1
+                // item 12).
+                <dd
+                  className={cn(
+                    "rounded-pilula text-mini w-fit border border-dashed px-2 py-0.5 font-medium",
+                    freioAtivo
+                      ? "border-texto-inverso-2 text-texto-inverso"
+                      : "border-marinho-50 text-texto-2",
+                  )}
+                >
+                  {data.valor}
+                </dd>
+              )
             ) : (
-              <dd
-                className={cn(
-                  "text-corpo font-mono font-medium tabular-nums",
-                  freioAtivo ? "text-texto-inverso" : "text-texto",
-                )}
-              >
-                {data.valor}
-              </dd>
-            )}
-            {data.tipo === "ausente" ? (
-              <dd
-                className={cn(
-                  "text-mini italic",
-                  freioAtivo ? "text-texto-inverso" : "text-marinho-72",
-                )}
-              >
-                vira fato quando acontecer
-              </dd>
-            ) : (
-              <dd
-                className={cn(
-                  "text-mini italic",
-                  freioAtivo ? "text-texto-inverso" : "text-marinho-72",
-                )}
-              >
-                {data.tipo === "estimativa" ? "estimativa" : "fato"}
-              </dd>
+              <>
+                <dd
+                  className={cn(
+                    "text-corpo font-mono font-medium tabular-nums",
+                    freioAtivo ? "text-texto-inverso" : "text-texto",
+                  )}
+                >
+                  {data.valor}
+                </dd>
+                <dd
+                  className={cn(
+                    "text-mini italic",
+                    freioAtivo ? "text-texto-inverso" : "text-marinho-72",
+                  )}
+                >
+                  {data.tipo === "estimativa" ? "estimativa" : "fato"}
+                </dd>
+              </>
             )}
           </div>
         ))}
       </dl>
+      {!modoSensivel && datas.some((d) => d.tipo === "ausente") ? (
+        <p
+          className={cn(
+            "text-mini col-span-full -mt-1",
+            freioAtivo ? "text-texto-inverso" : "text-marinho-72",
+          )}
+        >
+          A DPP é estimativa. Nascimento, alta e início entram quando acontecem.
+        </p>
+      ) : null}
     </div>
   );
 }

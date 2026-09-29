@@ -11,8 +11,7 @@ export default function PaginaAlertas() {
   return (
     <TelaEmConstrucao
       titulo="Alertas"
-      tituloVazio="Os alertas abertos vão aparecer aqui"
-      texto="Quando um valor do checklist passar do limite, o alerta aparece aqui e na tela da visita, com o que falta registrar."
+      texto="Aqui você vai ver os alertas abertos das famílias que você acompanha, com o que falta registrar em cada um."
     />
   );
 }

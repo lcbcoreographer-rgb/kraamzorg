@@ -11,8 +11,7 @@ export default function PaginaEquipe() {
   return (
     <TelaEmConstrucao
       titulo="Equipe"
-      tituloVazio="O estado da equipe vai aparecer aqui"
-      texto="Cada enfermeira com o selo de hoje e a semana em turnos, com a legenda sempre visível."
+      texto="Aqui você vai ver como está cada enfermeira hoje e a semana da equipe em turnos."
     />
   );
 }

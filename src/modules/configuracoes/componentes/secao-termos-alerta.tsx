@@ -1,9 +1,11 @@
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { Selo } from "@/components/ui/selo";
 import { TabelaLista } from "@/components/ui/tabela-lista";
+import { obterRepositorios } from "@/lib/dados/fabrica";
 import { obterRepositorioModulo } from "../dados";
 import { AlternarTermoAtivo } from "./alternar-termo-ativo";
 import { FormularioTermo } from "./formulario-termo";
+import { inicioDoTexto, TextoDaFamilia } from "./texto-da-familia";
 
 const ROTULO_ACAO: Record<string, string> = {
   handoff_saude: "Transfere para a equipe de saúde",
@@ -16,22 +18,34 @@ const ROTULO_ACAO: Record<string, string> = {
  */
 export async function SecaoTermosAlerta() {
   const repositorio = await obterRepositorioModulo();
-  const termos = await repositorio.listarTermosAlerta();
+  const { configuracoes } = await obterRepositorios();
+  const [termos, mensagens] = await Promise.all([
+    repositorio.listarTermosAlerta(),
+    // Leitura comum de `mensagem_modelo` (a RLS deixa a coordenação ler);
+    // sem ela, a tabela continua de pé e a coluna avisa onde conferir.
+    configuracoes
+      .listarMensagensModelo({ destinatario: "familia" })
+      .catch(() => []),
+  ]);
+  const mensagemPorChave = new Map(mensagens.map((m) => [m.chave, m]));
+  const opcoesMensagem = mensagens.map((m) => ({
+    valor: m.chave,
+    rotulo: inicioDoTexto(m.texto, 56),
+  }));
 
   return (
     <div className="flex flex-col gap-4">
       <p className="text-apoio text-texto-2 max-w-leitura">
-        Quando a família escrever um destes termos para a Isadora, o sistema
-        aplica a ação na hora, antes de qualquer outra decisão do agente (PRD
-        11.2).
+        Quando uma família escreve um destes termos, o sistema age na hora,
+        antes de a Isadora responder.
       </p>
       <div className="flex items-center justify-end">
-        <FormularioTermo />
+        <FormularioTermo opcoesMensagem={opcoesMensagem} />
       </div>
       {termos.length === 0 ? (
         <EstadoVazio
           titulo="Nenhum termo de alerta cadastrado"
-          texto="A lista de termos que disparam alerta ou bloqueio aparece aqui. Cadastre o primeiro termo para começar."
+          texto="Cadastre o primeiro termo. Quando uma família escrever esse termo, o sistema transfere para a equipe de saúde ou aciona o freio, conforme a ação escolhida."
         />
       ) : (
         <TabelaLista
@@ -40,7 +54,7 @@ export async function SecaoTermosAlerta() {
             { chave: "termo", rotulo: "Termo", principal: true },
             { chave: "situacao", rotulo: "Situação", canto: true },
             { chave: "acao", rotulo: "Ação" },
-            { chave: "mensagem", rotulo: "Mensagem enviada" },
+            { chave: "mensagem", rotulo: "Texto que a família recebe" },
             { chave: "botao", rotulo: "Editar" },
           ]}
           linhas={termos.map((termo) => ({
@@ -56,12 +70,17 @@ export async function SecaoTermosAlerta() {
               ),
               acao: ROTULO_ACAO[termo.acao] ?? termo.acao,
               mensagem: (
-                <span className="font-mono">{termo.mensagemChave}</span>
+                <TextoDaFamilia
+                  mensagem={mensagemPorChave.get(termo.mensagemChave)}
+                />
               ),
               botao: (
                 <div className="flex items-center gap-2">
                   <AlternarTermoAtivo id={termo.id} ativo={termo.ativo} />
-                  <FormularioTermo termo={termo} />
+                  <FormularioTermo
+                    termo={termo}
+                    opcoesMensagem={opcoesMensagem}
+                  />
                 </div>
               ),
             },

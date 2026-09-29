@@ -62,7 +62,7 @@ export function RevogarSessoes({
           <form action={acao} className="mt-6 flex flex-col gap-3">
             <input type="hidden" name="usuarioId" value={usuarioId} />
             {estado.erro ? (
-              <FaixaAlerta variante="imediato" titulo={estado.erro} />
+              <FaixaAlerta variante="erro" titulo={estado.erro} />
             ) : null}
             <Botao
               type="submit"

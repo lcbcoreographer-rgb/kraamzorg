@@ -179,7 +179,7 @@ export function MesclagemForm({
       ) : null}
 
       {estado.erro ? (
-        <FaixaAlerta variante="imediato" titulo={estado.erro} />
+        <FaixaAlerta variante="erro" titulo={estado.erro} />
       ) : null}
 
       <FaixaAlerta variante="prioritario" titulo="Não há como desfazer">

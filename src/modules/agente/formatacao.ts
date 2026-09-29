@@ -1,11 +1,25 @@
-import type { ResumoConversa } from "@/lib/dados/tipos";
+import type { EstadoSensivel, ResumoConversa } from "@/lib/dados/tipos";
+import { rotulo } from "@/lib/rotulos-a-confirmar";
 import type { ConversaComPausa, SituacaoConversa } from "./tipos";
 
 /**
- * Em que mão está a conversa (protótipo `comercial-conversas.html`, C5;
- * espelha exatamente o filtro que `AgenteRepositorio.listarConversas` já
- * aplica em `situacao`, para a tela calcular o selo sem pedir de novo ao
- * banco por filtro).
+ * Freio que desliga a Isadora para a família inteira (PRD 8.3): bloqueio
+ * total e encerrado sensível. Em "atenção" a Isadora continua; só conteúdo
+ * e marketing param.
+ */
+export function freioDesligaIsadora(
+  estado: EstadoSensivel | null | undefined,
+): boolean {
+  return estado === "bloqueio_total" || estado === "encerrado_sensivel";
+}
+
+/**
+ * Em que mão está a conversa (protótipo `comercial-conversas.html`, C5).
+ * O freio vem antes de tudo (PRD 11.7, precedência do silêncio): com
+ * bloqueio total ou encerrado sensível a Isadora está desligada, e a tela
+ * nunca diz que ela conduz nem oferece triagem comercial (DESIGN.md, 11.8).
+ * Sem freio, espelha o filtro que `AgenteRepositorio.listarConversas`
+ * aplica em `situacao`.
  */
 export function situacaoDaConversa(
   conversa: Pick<
@@ -13,7 +27,9 @@ export function situacaoDaConversa(
     "classificacao" | "agenteEncerradoEm" | "agentePausadoAte"
   >,
   agora: Date = new Date(),
+  estadoSensivel: EstadoSensivel = "normal",
 ): SituacaoConversa {
+  if (freioDesligaIsadora(estadoSensivel)) return "freio";
   const ehLead = ["lead", "cliente", "nao_classificado"].includes(
     conversa.classificacao,
   );
@@ -42,7 +58,7 @@ export function paraConversaComPausa(
   return {
     ...conversa,
     pausaMotivo,
-    situacao: situacaoDaConversa(conversa, agora),
+    situacao: situacaoDaConversa(conversa, agora, estadoSensivel),
     ultimaMensagem,
     transferenciaAberta,
     estadoSensivel,
@@ -128,7 +144,8 @@ export const ROTULO_SITUACAO: Record<SituacaoConversa, string> = {
   isadora: "Isadora conduzindo",
   equipe: "Com a equipe",
   pausada: "Pausada",
-  nao_lead: "Não lead",
+  nao_lead: rotulo("naoLead"),
+  freio: "Freio: Isadora desligada",
 };
 
 export const TITULO_FILTRO: Record<"todas" | SituacaoConversa, string> = {
@@ -136,7 +153,8 @@ export const TITULO_FILTRO: Record<"todas" | SituacaoConversa, string> = {
   isadora: "Isadora conduzindo",
   equipe: "Com a equipe",
   pausada: "Pausadas",
-  nao_lead: "Não lead",
+  nao_lead: rotulo("naoLead"),
+  freio: "Com freio",
 };
 
 /** Primeiro nome, para textos como "Escreva para Bianca". */

@@ -119,13 +119,15 @@ export const estilos = StyleSheet.create({
   secao: {
     marginTop: 10,
   },
+  // Título de seção em Jost 500 marinho (DESIGN.md, 11.9 "PDF"): o médico
+  // acha a seção pelo título, e o cinza pequeno de antes lia como rótulo.
   rotuloSecao: {
-    fontFamily: FAMILIA_CORPO,
-    fontWeight: 600,
-    fontSize: 9.5,
-    color: MARINHO_72,
+    fontFamily: FAMILIA_TITULO,
+    fontWeight: 500,
+    fontSize: 12,
+    color: CORES.marinho,
     textTransform: "none",
-    marginBottom: 3,
+    marginBottom: 4,
   },
   campo: {
     marginBottom: 2,
@@ -141,6 +143,31 @@ export const estilos = StyleSheet.create({
   dado: {
     fontFamily: FAMILIA_DADO,
   },
+  tabela: {
+    marginTop: 2,
+    marginBottom: 6,
+  },
+  tabelaCabecalho: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: MARINHO_14,
+    paddingBottom: 3,
+    marginBottom: 2,
+  },
+  tabelaLinha: {
+    flexDirection: "row",
+    paddingVertical: 2,
+    borderBottomWidth: 0.5,
+    borderBottomColor: MARINHO_14,
+  },
+  tabelaRotulo: {
+    fontSize: 8.5,
+    color: MARINHO_72,
+  },
+  colunaData: { width: 92 },
+  colunaDia: { width: 70, textAlign: "right" },
+  colunaPeso: { width: 78, textAlign: "right" },
+  colunaOrigem: { flex: 1, paddingLeft: 14, color: MARINHO_72 },
   listaItem: {
     flexDirection: "row",
     marginBottom: 2,
@@ -210,13 +237,84 @@ export function Secao({
   );
 }
 
+/**
+ * Medidas dentro de um texto (DESIGN.md, 11.9: data, peso, temperatura,
+ * frequência e porcentagem em IBM Plex Mono). Só o número com a unidade
+ * vai em mono; a frase em volta continua em Inter.
+ */
+const MEDIDA =
+  /(\d{2}\/\d{2}\/\d{4}|\d[\d.]*(?:,\d+)?\s?(?:°C|bpm|irpm|rpm|mmHg|g\/dia|kg|g|%|cm|mL)(?![\p{L}]))/u;
+
+export function partesComMedidas(
+  texto: string,
+): { texto: string; medida: boolean }[] {
+  return texto
+    .split(new RegExp(MEDIDA.source, "gu"))
+    .filter((parte) => parte !== "")
+    .map((parte) => ({ texto: parte, medida: MEDIDA.test(parte) }));
+}
+
+export function TextoComMedidas({ texto }: { texto: string }) {
+  return (
+    <>
+      {partesComMedidas(texto).map((parte, i) =>
+        parte.medida ? (
+          <Text key={i} style={estilos.dado}>
+            {parte.texto}
+          </Text>
+        ) : (
+          parte.texto
+        ),
+      )}
+    </>
+  );
+}
+
 /** "Rótulo: valor", como os documentos reais (docs/analise-evolucoes.md, seção 1): rótulo em negrito, sem dois-pontos duplicado. */
 export function Campo({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
     <Text style={estilos.campo}>
       <Text style={estilos.campoRotulo}>{rotulo}: </Text>
-      {valor}
+      <TextoComMedidas texto={valor} />
     </Text>
+  );
+}
+
+export interface LinhaPeso {
+  data: string;
+  diaVida: string;
+  peso: string;
+  origem: string;
+}
+
+/**
+ * Pesagens em tabela (DESIGN.md, 11.9: "curva de peso em tabela de duas
+ * colunas, data e valor, com o dia de vida, alinhada à direita"), porque o
+ * médico lê o valor exato. Sem cor: a perda esperada dos primeiros dias
+ * não é alerta.
+ */
+export function TabelaPeso({ linhas }: { linhas: LinhaPeso[] }) {
+  return (
+    <View style={estilos.tabela}>
+      <View style={estilos.tabelaCabecalho}>
+        <Text style={[estilos.tabelaRotulo, estilos.colunaData]}>Data</Text>
+        <Text style={[estilos.tabelaRotulo, estilos.colunaDia]}>
+          Dia de vida
+        </Text>
+        <Text style={[estilos.tabelaRotulo, estilos.colunaPeso]}>Peso</Text>
+        <Text style={[estilos.tabelaRotulo, estilos.colunaOrigem]}>
+          Onde foi pesado
+        </Text>
+      </View>
+      {linhas.map((linha) => (
+        <View key={`${linha.data}-${linha.peso}`} style={estilos.tabelaLinha}>
+          <Text style={[estilos.dado, estilos.colunaData]}>{linha.data}</Text>
+          <Text style={[estilos.dado, estilos.colunaDia]}>{linha.diaVida}</Text>
+          <Text style={[estilos.dado, estilos.colunaPeso]}>{linha.peso}</Text>
+          <Text style={estilos.colunaOrigem}>{linha.origem}</Text>
+        </View>
+      ))}
+    </View>
   );
 }
 

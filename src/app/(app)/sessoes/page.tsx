@@ -57,7 +57,7 @@ export default async function PaginaSessoes() {
       <div className="pt-6">
         {falhou ? (
           <FaixaAlerta
-            variante="imediato"
+            variante="erro"
             titulo="Não foi possível carregar a lista agora"
           >
             Confira a conexão e recarregue a página. Se continuar, avise a

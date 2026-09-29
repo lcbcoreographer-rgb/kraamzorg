@@ -16,8 +16,8 @@ export function LinhaDoTempo({ eventos }: { eventos: EventoTela[] }) {
   if (eventos.length === 0) {
     return (
       <EstadoVazio
-        titulo="Nenhum evento ainda"
-        texto="Entrada, mudanças de estágio, apresentação enviada e outros marcos desta família vão aparecer aqui, do mais recente para o mais antigo."
+        titulo="Nenhum marco registrado ainda"
+        texto="O que acontece com esta família entra aqui, do mais recente para o mais antigo."
       />
     );
   }

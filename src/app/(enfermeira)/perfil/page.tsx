@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LogOut } from "lucide-react";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
+import { TITULO_EM_CONSTRUCAO } from "@/components/shell/tela-em-construcao";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { exigirSessao } from "@/lib/auth/sessao";
 
@@ -24,8 +25,8 @@ export default async function PaginaPerfil() {
         </p>
         <EstadoVazio
           nivelTitulo="h2"
-          titulo="A sua semana vai aparecer aqui"
-          texto="O estado de hoje, a semana em turnos, as ofertas de família para aceitar ou recusar e os documentos com a validade."
+          titulo={TITULO_EM_CONSTRUCAO}
+          texto="Aqui você vai ver a sua semana, as ofertas de família e a validade dos seus documentos."
         />
         <form action="/sair" method="post">
           <button

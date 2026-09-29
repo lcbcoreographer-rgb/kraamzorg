@@ -1,6 +1,7 @@
 import type { Papel } from "@/lib/auth/papeis";
 import { Constants } from "@/lib/db/types";
 import type { EstagioP1, EstagioP2, NumeroPipeline } from "@/lib/dados/tipos";
+import { rotulo } from "@/lib/rotulos-a-confirmar";
 
 /**
  * Estágios e transições dos pipelines 1 e 2 (P15, PRD 7.1 e 7.2). Espelha
@@ -59,7 +60,9 @@ export const ROTULO_ESTAGIO_P1: Record<EstagioP1, string> = {
   nutricao: "Nutrição",
   nao_qualificado: "Não qualificado",
   fora_de_cobertura: "Fora de cobertura",
-  perdido: "Perdido",
+  // "Não seguiu" à espera do Leonardo: "perda" já nomeia a perda
+  // gestacional no mesmo sistema (voz.md, seção 7). O enum não muda.
+  perdido: rotulo("estagioPerdido"),
 };
 
 export const ROTULO_ESTAGIO_P2: Record<EstagioP2, string> = {
@@ -79,7 +82,7 @@ export const ROTULO_ESTAGIO_P2: Record<EstagioP2, string> = {
   bebe_nasceu: "Bebê nasceu",
   aguardando_alta: "Aguardando alta",
   atendimento_liberado: "Atendimento liberado",
-  perdido: "Perdido",
+  perdido: rotulo("estagioPerdido"),
   cancelado: "Cancelado",
   distrato: "Distrato",
   intercorrencia: "Intercorrência",

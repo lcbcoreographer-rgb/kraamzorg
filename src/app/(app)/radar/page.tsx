@@ -11,8 +11,7 @@ export default function PaginaRadar() {
   return (
     <TelaEmConstrucao
       titulo="Radar"
-      tituloVazio="O radar de nascimentos vai aparecer aqui"
-      texto="As famílias que podem nascer nas próximas semanas, com titular e backup de cada uma e a ocupação por praça."
+      texto="Aqui você vai ver as famílias com parto provável nas próximas semanas, com titular e backup de cada uma e a ocupação por praça."
     />
   );
 }

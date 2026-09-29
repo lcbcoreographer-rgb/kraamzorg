@@ -26,14 +26,14 @@ export default async function PaginaConversas() {
     <>
       <CabecalhoTela
         titulo="Conversas"
-        subtitulo="Em que mão está cada conversa: com a Isadora, com a equipe, pausada ou fora do comercial."
+        subtitulo="Em que mão está cada conversa: com a Isadora, com a equipe, pausada, com o freio ou fora do comercial."
       />
       <div className="pt-6">
         {conversas ? (
           <ListaConversas conversas={conversas} />
         ) : (
           <FaixaAlerta
-            variante="imediato"
+            variante="erro"
             titulo="Não foi possível carregar as conversas agora"
           >
             Confira a conexão e recarregue a página. Se continuar, avise a

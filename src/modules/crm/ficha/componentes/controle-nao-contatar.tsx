@@ -101,7 +101,7 @@ export function ControleNaoContatar({
             required
           />
           {estadoMarcar.erro ? (
-            <FaixaAlerta variante="imediato" titulo={estadoMarcar.erro} />
+            <FaixaAlerta variante="erro" titulo={estadoMarcar.erro} />
           ) : null}
           <DialogoRodape>
             <DialogoFechar asChild>

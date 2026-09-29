@@ -30,14 +30,14 @@ test("comercial abre a ficha pela lista de famílias e vê o resumo, a linha do 
       page.locator("dt", { hasText: new RegExp(`^${rotulo}$`) }),
     ).toBeVisible();
   }
-  await expect(page.getByText("estimativa")).toBeVisible();
+  await expect(page.getByText("estimativa", { exact: true })).toBeVisible();
 
   // O título da aba nunca leva o nome da família (DESIGN.md, microcopy 11).
   await expect(page).toHaveTitle(/^Ficha da família/);
 
   // Linha do tempo (aba ativa por padrão): a Família Teste Dália não tem
   // evento no seed, então o estado vazio ensina o que vai aparecer.
-  await expect(page.getByText("Nenhum evento ainda")).toBeVisible();
+  await expect(page.getByText("Nenhum marco registrado ainda")).toBeVisible();
 
   // Pessoas, na lateral.
   await expect(page.getByRole("heading", { name: "Pessoas" })).toBeVisible();

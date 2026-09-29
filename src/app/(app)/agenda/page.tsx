@@ -11,8 +11,7 @@ export default function PaginaAgenda() {
   return (
     <TelaEmConstrucao
       titulo="Agenda"
-      tituloVazio="A agenda da semana vai aparecer aqui"
-      texto="Visitas, sessões de venda e consultas pré-natais, com os conflitos marcados."
+      texto="Aqui você vai ver as visitas, as sessões de venda e as consultas pré-natais da semana, com os conflitos marcados."
     />
   );
 }

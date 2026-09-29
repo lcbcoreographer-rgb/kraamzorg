@@ -71,6 +71,7 @@ export function CartaoTransferencia({
   const sensivel = MOTIVOS_SENSIVEIS.includes(transferencia.motivo);
   const assumida = transferencia.status === "assumido";
   const horaAssumida = horaBrasilia(transferencia.assumidoEm);
+  const horaRecebida = horaBrasilia(transferencia.criadoEm);
   const quemAssumiu =
     usuarioId && transferencia.assumidoPor === usuarioId
       ? "Você assumiu"
@@ -86,14 +87,13 @@ export function CartaoTransferencia({
     <Cartao
       className={cn(
         "flex flex-col gap-3",
-        // Prioridade máxima em fundo de alerta, no topo da fila
-        // (fluxos.md, fluxo E, item 1; protótipo comercial-inicio). Perda
-        // gestacional e estado sensível nunca em vermelho (DESIGN.md,
-        // seção 8): ficam em ameixa, mesmo com prioridade máxima.
-        maxima &&
-          (sensivel
-            ? "bg-sensivel-lavado border-sensivel-borda border shadow-none"
-            : "bg-alerta-lavado border-alerta-borda border shadow-none"),
+        // Perda gestacional e estado sensível sempre em ameixa lavado, com
+        // qualquer prioridade (DESIGN.md, seções 8 e 11.8). Prioridade
+        // máxima de outro motivo (saúde) em alerta lavado, no topo da fila
+        // (fluxos.md, fluxo E, item 1).
+        sensivel
+          ? "bg-sensivel-lavado border-sensivel-borda border shadow-none"
+          : maxima && "bg-alerta-lavado border-alerta-borda border shadow-none",
       )}
       aria-labelledby={`transf-${transferencia.id}`}
     >
@@ -101,54 +101,75 @@ export function CartaoTransferencia({
         <h3
           id={`transf-${transferencia.id}`}
           className={cn(
-            "text-3 flex items-center gap-1.5 font-semibold",
-            maxima && (sensivel ? "text-sensivel" : "text-alerta"),
-            !maxima && "text-texto",
+            "text-3 font-semibold",
+            sensivel ? "text-sensivel" : maxima ? "text-alerta" : "text-texto",
           )}
         >
-          {maxima && sensivel ? (
-            <OctagonPause
-              aria-hidden="true"
-              className="size-4 shrink-0"
-              strokeWidth={1.75}
-            />
-          ) : null}
           {transferencia.motivoRotulo}
         </h3>
-        <span
-          className={cn(
-            "text-apoio inline-flex items-center gap-1 whitespace-nowrap tabular-nums",
-            prazo === "vencido" && "text-alerta font-medium",
-            prazo === "perto" && "text-aviso-texto font-medium",
-            prazo === "normal" && "text-texto-2",
-          )}
-        >
-          {prazo === "vencido" ? (
-            <ClockAlert
+        {sensivel ? (
+          // Em momento sensível, prazo vira a hora do acontecimento, sem
+          // relógio e sem vermelho (DESIGN.md, 11.8, regra 1). O atraso
+          // continua visível para quem precisa agir, numa linha própria
+          // abaixo da família.
+          <span className="text-apoio text-texto-2 inline-flex items-center gap-1 whitespace-nowrap">
+            <OctagonPause
               aria-hidden="true"
-              className="size-4"
+              className="text-sensivel size-4"
               strokeWidth={1.75}
             />
-          ) : (
-            <Hourglass
-              aria-hidden="true"
-              className="size-4"
-              strokeWidth={1.75}
-            />
-          )}
-          {prazoTexto ?? "sem prazo"}
-        </span>
+            {horaRecebida ? (
+              <>
+                recebida às{" "}
+                <span className="font-mono tabular-nums">{horaRecebida}</span>
+              </>
+            ) : (
+              "recebida hoje"
+            )}
+          </span>
+        ) : (
+          <span
+            className={cn(
+              "text-apoio inline-flex items-center gap-1 whitespace-nowrap tabular-nums",
+              prazo === "vencido" && "text-alerta font-medium",
+              prazo === "perto" && "text-aviso-texto font-medium",
+              prazo === "normal" && "text-texto-2",
+            )}
+          >
+            {prazo === "vencido" ? (
+              <ClockAlert
+                aria-hidden="true"
+                className="size-4"
+                strokeWidth={1.75}
+              />
+            ) : (
+              <Hourglass
+                aria-hidden="true"
+                className="size-4"
+                strokeWidth={1.75}
+              />
+            )}
+            {prazoTexto ?? "sem prazo"}
+          </span>
+        )}
         <p className="text-apoio text-texto-2 col-span-2">
-          {transferencia.nomeFamilia ?? "Contato sem família"} ·{" "}
+          {transferencia.nomeFamilia ?? "Contato sem família"},{" "}
           {FRASE_DESTINO_HANDOFF[transferencia.destino]}
         </p>
+        {sensivel && prazo === "vencido" && !assumida ? (
+          <p className="text-apoio text-texto-2 col-span-2">
+            Ainda sem contato da equipe.
+          </p>
+        ) : null}
       </div>
 
       <p className="text-corpo text-texto">{transferencia.resumo}</p>
 
       {transferencia.notificacaoOk === false ? (
         <FaixaAlerta
-          variante="erro"
+          // Ao lado de uma perda, a falha do aviso continua visível, em
+          // ameixa: nada vermelho no cartão de uma família em luto.
+          variante={sensivel ? "sensivel" : "erro"}
           titulo="O aviso ao grupo não saiu"
           acoes={
             <form action={acaoReenviar}>
@@ -180,13 +201,16 @@ export function CartaoTransferencia({
         </FaixaAlerta>
       ) : null}
       {estadoReenviar.erro ? (
-        <FaixaAlerta variante="erro" titulo="Não deu certo">
+        <FaixaAlerta
+          variante={sensivel ? "sensivel" : "erro"}
+          titulo="O aviso não foi reenviado"
+        >
           {estadoReenviar.erro}
         </FaixaAlerta>
       ) : null}
 
-      {transferencia.pausaVenceu ? (
-        <FaixaAlerta variante="imediato" titulo="A Isadora voltou a responder">
+      {transferencia.pausaVenceu && !sensivel ? (
+        <FaixaAlerta variante="erro" titulo="A Isadora voltou a responder">
           A pausa venceu com esta transferência aberta. Ela não retoma o assunto
           transferido; assuma para responder a família.
         </FaixaAlerta>
@@ -266,7 +290,10 @@ export function CartaoTransferencia({
         )}
       </div>
       {estadoAssumir.erro ? (
-        <FaixaAlerta variante="erro" titulo="Não deu certo">
+        <FaixaAlerta
+          variante={sensivel ? "sensivel" : "erro"}
+          titulo="A conversa não foi assumida"
+        >
           {estadoAssumir.erro}
         </FaixaAlerta>
       ) : null}

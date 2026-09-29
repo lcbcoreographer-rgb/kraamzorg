@@ -60,7 +60,7 @@ export function FolhaSaidaIntercorrencia({
     >
       <DialogoConteudo
         titulo={`Sair de intercorrência para ${destinoRotulo}`}
-        descricao={`Decisão da coordenação (PRD 7.2). Escreva o motivo antes de voltar a ${nomeFamilia} para ${destinoRotulo}.`}
+        descricao={`Decisão da coordenação. Escreva o motivo antes de voltar a ${nomeFamilia} para ${destinoRotulo}.`}
         rotuloFechar="Fechar sem sair da intercorrência"
       >
         <form action={acao} className="flex flex-col gap-6">
@@ -76,7 +76,7 @@ export function FolhaSaidaIntercorrencia({
             descricao="Fica registrado na linha do tempo e na auditoria."
           />
           {estado.erro ? (
-            <FaixaAlerta variante="imediato" titulo={estado.erro} />
+            <FaixaAlerta variante="erro" titulo={estado.erro} />
           ) : null}
           <DialogoRodape>
             <DialogoFechar asChild>

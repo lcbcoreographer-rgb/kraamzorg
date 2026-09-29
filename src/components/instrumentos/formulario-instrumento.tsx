@@ -7,6 +7,7 @@ import {
   type EstadoSincronizacao,
 } from "@/components/ui/indicador-sincronizacao";
 import { cn } from "@/lib/utils";
+import { ProgressoEtapas } from "@/components/ui/progresso-etapas";
 import type {
   AlertaLigado,
   Bloco,
@@ -329,15 +330,7 @@ export function FormularioInstrumento({
             />
           ) : null}
         </div>
-        <div
-          className="bg-marinho-14 rounded-pilula h-1.5 w-full overflow-hidden"
-          aria-hidden="true"
-        >
-          <div
-            className="bg-acao rounded-pilula h-full"
-            style={{ width: `${((indiceAtual + 1) / etapas.length) * 100}%` }}
-          />
-        </div>
+        <ProgressoEtapas etapas={etapas.map((b) => b.id)} atual={indiceAtual} />
         {estadoSinc?.online === false ? (
           <p className="text-apoio text-texto-2">{t.sincronizacao.semSinal}</p>
         ) : null}

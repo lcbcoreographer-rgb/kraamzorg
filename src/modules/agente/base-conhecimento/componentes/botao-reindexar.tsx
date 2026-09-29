@@ -29,11 +29,17 @@ export function BotaoReindexar() {
       if (!resposta.ok) {
         definirEstado({
           tipo: "erro",
-          texto: corpo?.erro ?? "Não foi possível iniciar a reindexação agora.",
+          texto:
+            corpo?.erro ??
+            "A atualização não começou. Tente de novo em alguns minutos.",
         });
         return;
       }
-      definirEstado({ tipo: "ok", texto: "Reindexação iniciada." });
+      definirEstado({
+        tipo: "ok",
+        texto:
+          "Atualização iniciada. A Isadora passa a usar os itens aprovados quando terminar.",
+      });
     } catch {
       definirEstado({
         tipo: "erro",
@@ -50,7 +56,7 @@ export function BotaoReindexar() {
           variante="secundario"
           tamanho="compacto"
           carregando={estado.tipo === "enviando"}
-          rotuloCarregando="Reindexando"
+          rotuloCarregando="Atualizando"
           iconeEsquerda={
             <RefreshCw
               aria-hidden="true"
@@ -60,11 +66,14 @@ export function BotaoReindexar() {
           }
           onClick={reindexar}
         >
-          Reindexar
+          Atualizar o que a Isadora sabe
         </Botao>
       </div>
       {estado.tipo === "erro" ? (
-        <FaixaAlerta variante="imediato" titulo="Não deu certo">
+        <FaixaAlerta
+          variante="erro"
+          titulo="A Isadora não atualizou o que sabe"
+        >
           {estado.texto}
         </FaixaAlerta>
       ) : null}

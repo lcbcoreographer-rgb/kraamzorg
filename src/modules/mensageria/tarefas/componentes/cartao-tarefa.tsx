@@ -144,13 +144,16 @@ export function CartaoTarefa({
             ) : null
           }
         >
-          Sem texto sugerido: com o freio, só contato humano e nominal.
+          Sem texto sugerido: com o freio, a equipe escreve, pelo nome.
         </FaixaAlerta>
       ) : !tarefa.temAcaoWhatsApp ? (
         <form action={acaoConcluir} className="flex flex-col gap-2">
           <input type="hidden" name="tarefaId" value={tarefa.id} />
           {estadoConcluir.erro ? (
-            <FaixaAlerta variante="prioritario" titulo="Não deu para concluir">
+            <FaixaAlerta
+              variante="prioritario"
+              titulo="A tarefa não foi concluída"
+            >
               {estadoConcluir.erro}
             </FaixaAlerta>
           ) : null}
@@ -196,7 +199,7 @@ export function CartaoTarefa({
           }
         >
           {tarefa.motivoBloqueio ??
-            "O freio está acionado para essa família. Só contato humano e nominal."}
+            "O freio está acionado para essa família. Só contato humano, pelo nome."}
         </FaixaAlerta>
       ) : (
         <form action={acaoEnviar} className="flex flex-col gap-3">
@@ -214,7 +217,7 @@ export function CartaoTarefa({
           {estadoEnvio.erro ? (
             <FaixaAlerta
               variante="prioritario"
-              titulo="Não deu para registrar o envio"
+              titulo="O envio não foi registrado"
             >
               {estadoEnvio.erro}
             </FaixaAlerta>

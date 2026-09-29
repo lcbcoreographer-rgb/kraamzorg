@@ -25,9 +25,8 @@ export default function PaginaHoje() {
   return (
     <TelaEmConstrucao
       titulo={tituloDeHoje()}
-      tituloVazio="As visitas de hoje vão aparecer aqui"
-      texto="A próxima visita com o endereço e a régua de dias, o botão para iniciar a visita e as fichas pendentes, em ordem de horário."
-      acao={{ rotulo: "Ver minhas famílias", href: "/minhas-familias" }}
+      abertura
+      texto="Aqui você vai ver as visitas do dia, com endereço e horário, e as fichas que faltam assinar."
     />
   );
 }
