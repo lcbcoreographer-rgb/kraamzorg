@@ -87,14 +87,21 @@ export function frasePrazo(
   prazoAviso: string,
   prazoEscala: string,
   formatar: (data: string) => string | null,
+  /** Quem lê: na tela da própria enfermeira a frase fala com ela. */
+  leitor: "equipe" | "enfermeira" = "equipe",
 ): string {
   const aviso = formatar(prazoAviso) ?? prazoAviso;
   const escala = formatar(prazoEscala) ?? prazoEscala;
+  const paraEla = leitor === "enfermeira";
   switch (situacao) {
     case "no_prazo":
-      return `A enfermeira tem até ${aviso} para preencher e mandar para a revisão.`;
+      return paraEla
+        ? `Você tem até ${aviso} para preencher e mandar para a revisão.`
+        : `A enfermeira tem até ${aviso} para preencher e mandar para a revisão.`;
     case "aviso":
-      return `O prazo da enfermeira é hoje (${aviso}). Se passar de ${escala}, a coordenação assume.`;
+      return paraEla
+        ? `O seu prazo é hoje (${aviso}). Se passar de ${escala}, a coordenação assume.`
+        : `O prazo da enfermeira é hoje (${aviso}). Se passar de ${escala}, a coordenação assume.`;
     case "escalada":
       return `Passou de ${escala}. A coordenação assume o preenchimento e a revisão.`;
     case "em_andamento":

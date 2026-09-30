@@ -150,7 +150,6 @@ export function PainelOcorrencia({
         <p className="text-apoio text-texto-2">
           {ocorrencia.familiaNome ? (
             <>
-              Família{" "}
               {ocorrencia.familiaId ? (
                 <Link
                   href={`/familias/${ocorrencia.familiaId}`}

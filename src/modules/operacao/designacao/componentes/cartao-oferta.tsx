@@ -79,6 +79,9 @@ export function CartaoOferta({
         <dt className="text-texto-2">Parto provável</dt>
         <dd className="text-texto font-mono">
           {o.dpp ? (formatarData(o.dpp) ?? o.dpp) : "sem data"}
+          {o.dpp ? (
+            <span className="text-texto-2 font-sans italic"> estimativa</span>
+          ) : null}
         </dd>
         <dt className="text-texto-2">Pacote</dt>
         <dd className="text-texto">
@@ -117,8 +120,8 @@ export function CartaoOferta({
               Aceitar a família
             </Botao>
           </form>
-          <details className="border-linha rounded-3 border p-4">
-            <summary className="text-corpo text-texto min-h-toque cursor-pointer font-semibold">
+          <details className="group">
+            <summary className="rounded-pilula border-borda-campo bg-superficie text-corpo text-texto hover:bg-marinho-08 tablet:w-auto tablet:inline-flex flex min-h-12 cursor-pointer list-none items-center justify-center border-[1.5px] px-6 font-semibold group-open:mb-2 [&::-webkit-details-marker]:hidden">
               Não posso aceitar
             </summary>
             <form
@@ -134,7 +137,7 @@ export function CartaoOferta({
                 opcoes={MOTIVOS}
               />
               <CampoTexto
-                rotulo="Quer contar mais"
+                rotulo="Se quiser, conte mais para a coordenação"
                 name="motivoTexto"
                 multilinha
                 linhas={2}

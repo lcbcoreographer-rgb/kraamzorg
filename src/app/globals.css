@@ -308,6 +308,15 @@
     border-radius: inherit;
   }
 
+  /* Alvo de foco programático (título da etapa, <main> do pular para o
+     conteúdo): recebe o foco para o leitor de tela anunciar, mas não é
+     controle. O anel e o halo em volta de um título pareciam um campo
+     selecionado (passe visual final). */
+  [tabindex="-1"]:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
   /* Seleção de texto no tom da marca (craft floor: a superfície do
      navegador também é desenho). Marinho sobre dourado lavado: 13:1. */
   ::selection {

@@ -62,10 +62,13 @@ function CartaoParceiro({ p }: { p: ParceiroMedico }) {
         {p.email ?? ""}
       </p>
       <p className="text-corpo text-texto">
-        {p.indicacoes}{" "}
-        {p.indicacoes === 1 ? "indicação recebida" : "indicações recebidas"},{" "}
-        {p.contratos}{" "}
-        {p.contratos === 1 ? "virou contrato" : "viraram contrato"}.{" "}
+        {p.indicacoes === 0
+          ? "Nenhuma indicação recebida ainda."
+          : `${p.indicacoes} ${p.indicacoes === 1 ? "indicação recebida" : "indicações recebidas"}, ${
+              p.contratos === 0
+                ? "nenhuma virou contrato"
+                : `${p.contratos} ${p.contratos === 1 ? "virou contrato" : "viraram contrato"}`
+            }.`}{" "}
         {p.ultimoContatoEm
           ? `Último contato em ${formatarData(p.ultimoContatoEm)}${p.diasSemContato !== null ? `, há ${p.diasSemContato} ${p.diasSemContato === 1 ? "dia" : "dias"}` : ""}.`
           : "Ainda sem contato registrado."}{" "}

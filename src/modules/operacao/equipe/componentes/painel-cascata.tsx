@@ -114,11 +114,18 @@ export function PainelCascata({
                     <span className="font-mono font-semibold">
                       D{v.diaNumero}
                     </span>
-                    <span className="text-texto-2 font-mono">
-                      {formatarData(v.de)}
-                    </span>
-                    <span aria-hidden="true">para</span>
-                    <span className="sr-only">passa para</span>
+                    {/* Data igual à de hoje: só a data, sem "de 30/09 para
+                        30/09", que obrigava a ler seis linhas para saber
+                        que nada muda. */}
+                    {v.de !== v.para ? (
+                      <>
+                        <span className="text-texto-2 font-mono">
+                          {formatarData(v.de)}
+                        </span>
+                        <span aria-hidden="true">para</span>
+                        <span className="sr-only">passa para</span>
+                      </>
+                    ) : null}
                     <span className="font-mono font-semibold">
                       {formatarData(v.para)}
                     </span>

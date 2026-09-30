@@ -128,6 +128,7 @@ export function ListaEvolucoesTela({
                 a.prazoAviso,
                 a.prazoEscala,
                 formatarData,
+                base === "/minhas-evolucoes" ? "enfermeira" : "equipe",
               )}
             </p>
             {a.bloqueadoContato ? (

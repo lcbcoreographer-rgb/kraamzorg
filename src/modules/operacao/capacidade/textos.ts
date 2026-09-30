@@ -85,7 +85,7 @@ export function fraseResumo(v: CapacidadeVisao): string {
   const partes: string[] = [];
   if (sobre.length > 0) {
     partes.push(
-      `${regioesDe(sobre)} ${sobre.length === 1 ? "tem" : "têm"} ${plural(sobre.length, "semana", "semanas")} com chance de sobrevenda`,
+      `${regioesDe(sobre)} ${new Set(sobre.map((a) => a.regiao)).size === 1 ? "tem" : "têm"} ${plural(sobre.length, "semana", "semanas")} com chance de sobrevenda`,
     );
   }
   if (atencao.length > 0) {
@@ -93,7 +93,7 @@ export function fraseResumo(v: CapacidadeVisao): string {
       `${plural(atencao.length, "semana pede", "semanas pedem")} atenção por ocupação alta ou por falta de reserva de backup`,
     );
   }
-  return `${capitalizar(partes.join(" e "))}. ${sobre.length > 0 ? "Vale conversar antes de fechar novos contratos nessa região." : "Nenhuma passa do limite de famílias."}`;
+  return `${capitalizar(partes.join(" e "))}. ${sobre.length > 0 ? (new Set(sobre.map((a) => a.regiao)).size === 1 ? "Vale conversar antes de fechar novos contratos nessa região." : "Vale conversar antes de fechar novos contratos nessas regiões.") : "Nenhuma passa do limite de famílias."}`;
 }
 
 function capitalizar(t: string): string {

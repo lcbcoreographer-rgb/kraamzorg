@@ -403,7 +403,7 @@ export const TEXTOS_RELACAO: {
     chave: "portal_titulo",
     canal: "site",
     destinatario: "familia",
-    texto: "Olá, {nome}.",
+    texto: "Oi, {nome}.",
   },
   {
     chave: "portal_boas_vindas",
@@ -616,7 +616,7 @@ export const TEXTOS_RELACAO: {
     canal: "site",
     destinatario: "familia",
     texto:
-      "Para qualquer dúvida, é só chamar. Este espaço não atende urgências: em caso de urgência com a mãe ou com o bebê, procurem o serviço de saúde mais próximo.",
+      "Para qualquer dúvida, é só chamar. Este espaço não atende urgências: se algo preocupar com você ou com o bebê, liguem para o SAMU (192) ou procurem o pronto-socorro mais próximo.",
   },
   {
     chave: "portal_sensivel_titulo",

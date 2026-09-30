@@ -165,14 +165,10 @@ function ItemPosVenda({ item }: { item: PosVendaItem }) {
           />
           <div className="flex flex-wrap items-center gap-3">
             <Botao
+              className="max-w-full text-balance whitespace-normal"
               variante="secundario"
               tamanho="compacto"
-              iconeEsquerda={
-                <Copy
-                  className="size-4 max-w-full text-balance whitespace-normal"
-                  aria-hidden="true"
-                />
-              }
+              iconeEsquerda={<Copy className="size-4" aria-hidden="true" />}
               onClick={copiar}
             >
               Copiar o texto

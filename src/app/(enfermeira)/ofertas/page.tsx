@@ -41,7 +41,7 @@ export default async function PaginaOfertas() {
     <>
       <CabecalhoTela
         titulo="Ofertas"
-        subtitulo="Famílias que a coordenação quer que você acompanhe. Responda dentro do prazo."
+        subtitulo="A coordenação convidou você para acompanhar estas famílias. Responda até o prazo de cada uma; se não puder, conte o motivo."
       />
       <div className="flex flex-col gap-4 pt-6">
         <ListaOfertas ofertas={ofertas} />

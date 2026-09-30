@@ -26,7 +26,9 @@ function rotuloCandidata(c: Candidata) {
     );
   }
   if (c.bloqueioNaJanela) notas.push("com bloqueio na janela");
-  if (c.ofertaPendente) notas.push("oferta pendente");
+  // O estado de hoje já pode ser "oferta pendente": não repetir na linha.
+  if (c.ofertaPendente && !notas.includes("oferta pendente"))
+    notas.push("oferta pendente");
   return (
     <span className="flex flex-col text-left leading-tight">
       <span>{c.nome}</span>

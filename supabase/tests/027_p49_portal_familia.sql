@@ -211,7 +211,7 @@ select is((select j #>> '{pesquisa,enviada}' from t_r where chave = 'pa'), 'true
 select is((select j #>> '{evolucoes,ativo}' from t_r where chave = 'pa'), 'false', 'evoluções desligadas até o K-10 ser decidido');
 select is((select j #>> '{enfermeira,nome}' from t_r where chave = 'pa'), null, 'a enfermeira sem autorização não tem nome no portal');
 select ok((select j -> 'enfermeira' from t_r where chave = 'pa') is not null, 'mas o portal sabe que há enfermeira designada');
-select ok((select j #>> '{textos,titulo}' from t_r where chave = 'pa') = 'Olá, Aurora.', 'os textos vêm de mensagem_modelo, com o nome');
+select ok((select j #>> '{textos,titulo}' from t_r where chave = 'pa') = 'Oi, Aurora.', 'os textos vêm de mensagem_modelo, com o nome');
 
 -- suspensão vale na hora
 select testes.autenticar_authenticated('a2900000-0000-4000-8000-000000000002', 'aal2');

@@ -60,6 +60,13 @@ function ItemPasso({ passo }: { passo: Passo }) {
       : passo.estado === "agora"
         ? CircleDot
         : Circle;
+  // O que já aconteceu fica quieto (linha simples, sem cartão); o passo de
+  // agora é o único cartão com a borda dourada; o que vem depois fica
+  // tracejado. Assim a família acha o "agora" sem ler a lista inteira.
+  // Com a data da próxima visita já marcada, a frase de espera ("as visitas
+  // aparecem aqui quando a coordenação confirmar") contradiz a data e sai.
+  const apoio =
+    passo.chave === "visitas" && passo.dataMarcada ? null : passo.apoio;
   return (
     <li
       data-passo={passo.chave}
@@ -67,26 +74,49 @@ function ItemPasso({ passo }: { passo: Passo }) {
       aria-current={passo.estado === "agora" ? "step" : undefined}
       className={
         passo.estado === "agora"
-          ? "rounded-3 border-dourado bg-superficie flex gap-4 border-2 p-4"
+          ? "rounded-3 border-dourado bg-superficie shadow-1 my-2 flex gap-4 border-2 p-4"
           : passo.estado === "depois"
             ? "rounded-3 border-marinho-50 flex gap-4 border-[1.5px] border-dashed p-4"
-            : "rounded-3 bg-superficie flex gap-4 p-4"
+            : "border-linha flex gap-4 border-b px-1 py-3"
       }
     >
       <Icone
         aria-hidden="true"
         strokeWidth={1.75}
-        className="text-texto mt-1 size-5 shrink-0"
+        className={
+          passo.estado === "feito"
+            ? "text-sucesso mt-0.5 size-5 shrink-0"
+            : "text-texto mt-1 size-5 shrink-0"
+        }
       />
-      <div className="flex min-w-0 flex-col gap-1">
-        <p className="text-3 text-texto font-medium">
-          {passo.titulo}
-          <span className="text-corpo text-texto-2 font-normal">
-            {" "}
-            · {ROTULO_ESTADO[passo.estado]}
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <p
+          className={
+            passo.estado === "feito"
+              ? "text-corpo text-texto flex flex-wrap items-baseline justify-between gap-x-3"
+              : "text-3 text-texto font-medium"
+          }
+        >
+          <span>
+            {passo.titulo}
+            <span
+              className={
+                passo.estado === "feito"
+                  ? "sr-only"
+                  : "text-corpo text-texto-2 font-normal"
+              }
+            >
+              {" "}
+              · {ROTULO_ESTADO[passo.estado]}
+            </span>
           </span>
+          {passo.estado === "feito" && passo.data ? (
+            <span className="text-apoio text-texto-2 font-mono">
+              {formatarData(passo.data)}
+            </span>
+          ) : null}
         </p>
-        {passo.data ? (
+        {passo.estado !== "feito" && passo.data ? (
           <p className="text-corpo text-texto-2 font-mono">
             {passo.dataMarcada ? "Marcada para " : ""}
             {passo.chave === "prenatal" && passo.dataMarcada
@@ -94,8 +124,8 @@ function ItemPasso({ passo }: { passo: Passo }) {
               : formatarData(passo.data)}
           </p>
         ) : null}
-        {passo.apoio ? (
-          <p className="text-corpo text-texto max-w-[56ch]">{passo.apoio}</p>
+        {apoio ? (
+          <p className="text-corpo text-texto max-w-[56ch]">{apoio}</p>
         ) : null}
       </div>
     </li>
@@ -176,7 +206,7 @@ function Completo({
       </header>
 
       <Secao id="passos" titulo={t.passos_titulo ?? "Seus próximos passos"}>
-        <ol className="flex flex-col gap-3">
+        <ol className="flex flex-col gap-2">
           {passos.map((p) => (
             <ItemPasso key={p.chave} passo={p} />
           ))}
@@ -189,7 +219,7 @@ function Completo({
             {datas.map((x) => (
               <div
                 key={x.chave}
-                className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1"
+                className="tablet:flex-row tablet:items-baseline tablet:justify-between tablet:gap-4 flex flex-col gap-0.5"
               >
                 <dt className="text-corpo text-texto">
                   {x.rotulo}{" "}
@@ -237,20 +267,20 @@ function Completo({
             {portal.visitas.map((v) => (
               <li
                 key={v.dia}
-                className="rounded-3 bg-superficie flex flex-wrap items-baseline justify-between gap-2 p-4"
+                className="rounded-3 bg-superficie tablet:grid-cols-[auto_1fr_auto] grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 p-4"
               >
-                <span className="text-corpo text-texto">
+                <span className="text-corpo text-texto font-medium">
                   Dia {v.dia}
                   {portal.acompanhamento
                     ? ` de ${portal.acompanhamento.diasContratados}`
                     : ""}
                 </span>
-                <span className="text-corpo text-texto font-mono">
+                <span className="text-corpo text-texto-2 tablet:order-last text-right">
+                  {v.feita ? "Feita" : "Marcada"}
+                </span>
+                <span className="text-corpo text-texto tablet:col-span-1 col-span-2 font-mono">
                   {formatarData(v.data)}
                   {v.hora ? `, ${v.hora}` : ""}
-                </span>
-                <span className="text-corpo text-texto-2">
-                  {v.feita ? "Feita" : "A caminho"}
                 </span>
               </li>
             ))}

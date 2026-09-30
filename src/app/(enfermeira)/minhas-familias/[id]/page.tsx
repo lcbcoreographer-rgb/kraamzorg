@@ -9,6 +9,8 @@ import { hojeEmBrasilia } from "@/lib/agenda/datas";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { obterRepositorios } from "@/lib/dados/fabrica";
 import { formatarData, formatarTelefone } from "@/lib/formatacao";
+import { ROTULO_PAPEL_PESSOA } from "@/modules/crm/ficha/rotulos";
+import { ROTULO_ESPECIALIDADE } from "@/modules/relacao/rotulos";
 import { ROTULO_ESTADO_VISITA } from "@/modules/operacao/equipe/textos";
 import { IndicadorPortal } from "@/modules/operacao/portal/componentes/indicador-portal";
 import {
@@ -125,7 +127,12 @@ export default async function PaginaFamiliaDaEnfermeira({
                 <span className="text-corpo text-texto">
                   {p.nome}{" "}
                   <span className="text-apoio text-texto-2">
-                    ({p.papel.replaceAll("_", " ")}
+                    (
+                    {(
+                      ROTULO_PAPEL_PESSOA[
+                        p.papel as keyof typeof ROTULO_PAPEL_PESSOA
+                      ] ?? p.papel.replaceAll("_", " ")
+                    ).toLowerCase()}
                     {p.contatoPrincipal ? ", contato principal" : ""})
                   </span>
                 </span>
@@ -200,7 +207,7 @@ export default async function PaginaFamiliaDaEnfermeira({
                     ? `, nascido em ${formatarData(b.dataNascimento)}`
                     : ""}
                   {b.pesoNascimentoG
-                    ? `, ao nascer ${b.pesoNascimentoG} g`
+                    ? `, ao nascer ${b.pesoNascimentoG.toLocaleString("pt-BR")} g`
                     : ""}
                 </li>
               ))}
@@ -215,7 +222,12 @@ export default async function PaginaFamiliaDaEnfermeira({
                 <li key={m.id} className="text-corpo text-texto">
                   {m.nome}{" "}
                   <span className="text-apoio text-texto-2">
-                    ({m.especialidade.replaceAll("_", " ")}
+                    (
+                    {(
+                      ROTULO_ESPECIALIDADE[
+                        m.especialidade as keyof typeof ROTULO_ESPECIALIDADE
+                      ] ?? m.especialidade.replaceAll("_", " ")
+                    ).toLowerCase()}
                     {m.hospital ? `, ${m.hospital}` : ""})
                   </span>
                 </li>
@@ -230,7 +242,7 @@ export default async function PaginaFamiliaDaEnfermeira({
               {familia.visitas.map((v) => (
                 <li
                   key={v.visitaId}
-                  className="border-linha flex flex-wrap items-center justify-between gap-2 border-b pb-2"
+                  className="border-linha grid grid-cols-[1fr_auto] items-center gap-3 border-b pb-2 last:border-b-0 last:pb-0"
                 >
                   <span className="text-corpo text-texto">
                     Dia {v.diaNumero}, {diaEmFrase(v.data)}

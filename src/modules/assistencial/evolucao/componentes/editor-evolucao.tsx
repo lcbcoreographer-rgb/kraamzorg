@@ -150,13 +150,9 @@ export function EditorEvolucao({
           acoes={
             detalhe.podeReenviar ? (
               <Botao
+                className="max-w-full text-balance whitespace-normal"
                 tamanho="compacto"
-                iconeEsquerda={
-                  <Send
-                    className="size-4 max-w-full text-balance whitespace-normal"
-                    aria-hidden="true"
-                  />
-                }
+                iconeEsquerda={<Send className="size-4" aria-hidden="true" />}
                 carregando={ocupado}
                 rotuloCarregando="Reenviando"
                 onClick={() => executar(() => acaoReenviarEvolucao(detalhe.id))}
@@ -289,15 +285,11 @@ export function EditorEvolucao({
         <div className="flex flex-wrap gap-3">
           {detalhe.status === "rascunho" ? (
             <Botao
+              className="max-w-full text-balance whitespace-normal"
               disabled={!detalhe.podeEnviarRevisao}
               carregando={ocupado}
               rotuloCarregando="Enviando"
-              iconeEsquerda={
-                <Send
-                  className="size-4 max-w-full text-balance whitespace-normal"
-                  aria-hidden="true"
-                />
-              }
+              iconeEsquerda={<Send className="size-4" aria-hidden="true" />}
               onClick={() =>
                 executar(() =>
                   acaoEnviarParaRevisao(detalhe.id, detalhe.versao),
@@ -310,15 +302,11 @@ export function EditorEvolucao({
           {ehCoordenacao && detalhe.status === "em_revisao" ? (
             <>
               <Botao
+                className="max-w-full text-balance whitespace-normal"
                 disabled={!detalhe.podeAprovar}
                 carregando={ocupado}
                 rotuloCarregando="Aprovando e enviando"
-                iconeEsquerda={
-                  <Send
-                    className="size-4 max-w-full text-balance whitespace-normal"
-                    aria-hidden="true"
-                  />
-                }
+                iconeEsquerda={<Send className="size-4" aria-hidden="true" />}
                 onClick={() =>
                   executar(() => acaoAprovarEEnviar(detalhe.id, detalhe.versao))
                 }
@@ -337,14 +325,10 @@ export function EditorEvolucao({
           ) : null}
           {conteudo ? (
             <Botao
+              className="max-w-full text-balance whitespace-normal"
               asChild
               variante="secundario"
-              iconeEsquerda={
-                <FileText
-                  className="size-4 max-w-full text-balance whitespace-normal"
-                  aria-hidden="true"
-                />
-              }
+              iconeEsquerda={<FileText className="size-4" aria-hidden="true" />}
             >
               <a href={caminhoPdf} target="_blank" rel="noreferrer noopener">
                 {detalhe.temPdf ? "Abrir o PDF enviado" : "Ver como PDF"}

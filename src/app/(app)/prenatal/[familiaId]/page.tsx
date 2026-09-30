@@ -135,7 +135,7 @@ export default async function PaginaEntrevista({
                 ),
               )}
             </div>
-            <aside>{contexto}</aside>
+            <aside className="tablet:order-last order-first">{contexto}</aside>
           </div>
         ) : (
           <Entrevista

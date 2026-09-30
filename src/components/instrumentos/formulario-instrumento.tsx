@@ -661,7 +661,10 @@ export function FormularioInstrumento({
   if (!listaDeEtapas && !lateral) return conteudo;
 
   return (
-    <div className="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)_20rem] lg:gap-6">
+    // No celular, quem é a família vem antes da pergunta (DESIGN.md 11.5,
+    // ordem humana): o contexto lateral sobe para o topo; no computador
+    // volta para a terceira coluna.
+    <div className="flex flex-col lg:grid lg:grid-cols-[15rem_minmax(0,1fr)_20rem] lg:gap-6">
       {listaDeEtapas ? (
         <nav
           aria-label={t.todasAsEtapas}
@@ -703,7 +706,10 @@ export function FormularioInstrumento({
       ) : null}
       {conteudo}
       {lateral ? (
-        <aside className="px-4 pt-4 lg:px-0 lg:pt-0" data-lateral>
+        <aside
+          className="order-first px-4 pb-4 lg:order-none lg:px-0 lg:pb-0"
+          data-lateral
+        >
           {lateral}
         </aside>
       ) : null}

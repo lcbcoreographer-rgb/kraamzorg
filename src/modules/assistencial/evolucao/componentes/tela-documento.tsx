@@ -52,7 +52,7 @@ export function TelaDocumentoEvolucao({
             {documento.rotulo}
           </h1>
           <p className="text-corpo text-texto-2">
-            Família {tela.base.familiaNome}
+            {tela.base.familiaNome}
             {periodo.inicio && periodo.fim
               ? `, de ${formatarData(periodo.inicio)} a ${formatarData(periodo.fim)}`
               : ""}

@@ -39,16 +39,19 @@ export const PERGUNTAS: Record<
   financeiro: "Como está o dinheiro?",
 };
 
-/** Frase de abertura da tela: o mês, as metas e o congelamento. */
+function maiuscula(t: string): string {
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+
+/** Frase de abertura da tela: o mês e as metas (o congelamento fica no cartão das metas). */
 export function fraseDoPainel(p: PainelExecutivo): string {
   const c = p.comercial;
   const meta = p.metas;
   const partes = [
-    `${rotuloMes(p.mes)}: ${plural(c.contratosAssinados, "contrato assinado", "contratos assinados")} de ${meta.contratosMes} e ${formatarMoeda(c.faturamentoCentavos)} de faturamento, para uma meta de ${formatarMoeda(meta.faturamentoMesCentavos)}.`,
+    `${maiuscula(rotuloMes(p.mes))}: ${plural(c.contratosAssinados, "contrato assinado", "contratos assinados")} de ${meta.contratosMes} e ${formatarMoeda(c.faturamentoCentavos)} de faturamento, para uma meta de ${formatarMoeda(meta.faturamentoMesCentavos)}.`,
   ];
-  if (p.congelamento) {
-    partes.push(textoDoCongelamento(p.congelamento));
-  }
+  // O congelamento fica só no cartão das metas: repetido na abertura, a
+  // frase do mês perdia o foco (passe visual final).
   return partes.join(" ");
 }
 
@@ -59,15 +62,15 @@ export function textoDoCongelamento(c: {
 }): string {
   const data = formatarData(c.data) ?? c.data;
   if (c.diasRestantes > 1) {
-    return `O desenvolvimento congela em ${data}, com a tag ${c.tag}: faltam ${c.diasRestantes} dias.`;
+    return `O desenvolvimento congela em ${data}, na versão ${c.tag}: faltam ${c.diasRestantes} dias.`;
   }
   if (c.diasRestantes === 1) {
-    return `O desenvolvimento congela amanhã, ${data}, com a tag ${c.tag}.`;
+    return `O desenvolvimento congela amanhã, ${data}, na versão ${c.tag}.`;
   }
   if (c.diasRestantes === 0) {
-    return `O desenvolvimento congela hoje, ${data}, com a tag ${c.tag}.`;
+    return `O desenvolvimento congela hoje, ${data}, na versão ${c.tag}.`;
   }
-  return `O desenvolvimento está congelado desde ${data}, com a tag ${c.tag}.`;
+  return `O desenvolvimento está congelado desde ${data}, na versão ${c.tag}.`;
 }
 
 /** Comparação com o mês anterior, em frase curta. Vazio sem mês anterior. */

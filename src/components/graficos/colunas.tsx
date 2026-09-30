@@ -174,7 +174,7 @@ export function Colunas({
         role="group"
         aria-label={descricao}
         className="block h-auto w-full max-w-full overflow-visible"
-        style={{ maxWidth: `${Math.round(largura * 1.5)}px` }}
+        style={{ maxWidth: `${Math.round(largura * 1.2)}px` }}
       >
         <defs>
           <pattern

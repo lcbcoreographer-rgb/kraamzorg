@@ -121,7 +121,9 @@ function BlocoPapel({
           ))}
         </ul>
       ) : (
-        <p className="text-corpo text-texto-2">Ninguém designada ainda.</p>
+        <p className="text-corpo text-texto-2">
+          Nenhuma enfermeira designada ainda.
+        </p>
       )}
       {!viva ? (
         <FormularioDesignar

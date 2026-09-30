@@ -129,10 +129,11 @@ export default async function PaginaCopiloto() {
             <p className="text-corpo text-texto" data-teste="custo-mes">
               {config.perguntasMes === 0
                 ? "Nenhuma pergunta neste mês ainda."
-                : `${config.perguntasMes} ${config.perguntasMes === 1 ? "pergunta" : "perguntas"} neste mês, com custo de ${formatarMoeda(config.custoMesCentavos)}`}
-              {config.orcamentoMensalCentavos !== null
-                ? `, de um limite de ${formatarMoeda(config.orcamentoMensalCentavos)}.`
-                : "."}
+                : `${config.perguntasMes} ${config.perguntasMes === 1 ? "pergunta" : "perguntas"} neste mês, com custo de ${formatarMoeda(config.custoMesCentavos)}${config.orcamentoMensalCentavos !== null ? `, de um limite de ${formatarMoeda(config.orcamentoMensalCentavos)}` : ""}.`}
+              {config.perguntasMes === 0 &&
+              config.orcamentoMensalCentavos !== null
+                ? ` O limite do mês é de ${formatarMoeda(config.orcamentoMensalCentavos)}.`
+                : ""}
             </p>
           </section>
 
