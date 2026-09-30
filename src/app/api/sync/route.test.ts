@@ -7,6 +7,15 @@ const obterSessao = vi.hoisted(() =>
 );
 vi.mock("@/lib/auth/sessao", () => ({ obterSessao }));
 
+// A rota grava pelo banco (P39 e P40); aqui o que se prova é o protocolo, com
+// o repositório de memória do P12 no lugar do banco.
+vi.mock("@/lib/sync/repositorio-do-servidor", async () => {
+  const { RepositorioSincronizacaoMemoria } =
+    await import("@/lib/sync/repositorio-memoria");
+  const memoria = new RepositorioSincronizacaoMemoria();
+  return { repositorioDaRequisicao: async () => memoria };
+});
+
 import { POST } from "./route";
 
 function sessao(extra: Partial<SessaoUsuario> = {}): SessaoUsuario {

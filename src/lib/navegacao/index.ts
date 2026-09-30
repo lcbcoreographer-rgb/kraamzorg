@@ -205,6 +205,13 @@ export const ROTAS = {
     dono: "P40",
     casca: "enfermeira",
   },
+  alertasClinicos: {
+    caminho: "/alertas-clinicos",
+    rotulo: "Alertas clínicos",
+    icone: "alertas",
+    dono: "P40",
+    casca: "app",
+  },
   perfil: {
     caminho: "/perfil",
     rotulo: "Perfil",
@@ -259,6 +266,7 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
           "equipe",
           "sessoesVenda",
           "tarefas",
+          "alertasClinicos",
         ],
       },
       {
@@ -297,7 +305,10 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
           "tarefas",
         ],
       },
-      { titulo: "Operação", itens: ["radar", "agenda", "equipe"] },
+      {
+        titulo: "Operação",
+        itens: ["radar", "agenda", "equipe", "alertasClinicos"],
+      },
       { titulo: "Gestão", itens: ["financeiro", "cobrancas", "notas"] },
       { titulo: "Sistema", itens: ["agente", "configuracoes", "sessoes"] },
     ],

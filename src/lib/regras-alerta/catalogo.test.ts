@@ -95,7 +95,9 @@ describe("CATALOGO_REGRAS confere com regra_alerta do seed", () => {
       expect(regra.grupo, regra.id).toBe(linha.grupo);
       expect(regra.severidade, regra.id).toBe(linha.severidade);
       expect(regra.conduta, regra.id).toBe(linha.conduta);
-      if (linha.campo !== null) expect(regra.campo, regra.id).toBe(linha.campo);
+      // Vínculo extra do mesmo código (PU-04 pela episiotomia) tem o próprio campo.
+      if (linha.campo !== null && regra.id === regra.codigo)
+        expect(regra.campo, regra.id).toBe(linha.campo);
     }
   });
 

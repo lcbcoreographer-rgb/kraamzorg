@@ -1,6 +1,7 @@
 import "server-only";
 import type { Repositorios } from "../repositorios";
 import { criarAgenteSupabase } from "./agente";
+import { criarAssistencialSupabase } from "./assistencial";
 import type { ContextoSupabase } from "./comum";
 import { criarConfiguracoesSupabase } from "./configuracoes";
 import { criarFamiliasSupabase } from "./familias";
@@ -23,5 +24,6 @@ export function criarRepositoriosSupabase(
     agente: criarAgenteSupabase(contexto),
     usuarios: criarUsuariosSupabase(contexto),
     venda: criarVendaSupabase(contexto),
+    assistencial: criarAssistencialSupabase(contexto),
   };
 }

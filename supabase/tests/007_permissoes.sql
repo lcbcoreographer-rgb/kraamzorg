@@ -961,7 +961,12 @@ select set_eq(
             ('api.remarcar_sessao_venda'), ('api.registrar_desfecho_sessao_venda'),
             ('api.registrar_gravacao_sessao_venda'), ('api.salvar_resumo_sessao_venda'),
             ('api.proposta'), ('api.salvar_proposta'), ('api.aprovar_desconto'),
-            ('api.gerar_link_formulario_contrato') $$,
+            ('api.gerar_link_formulario_contrato'),
+            ('api.checklist_visita'), ('api.registrar_atendimento'), ('api.registrar_adendo'),
+            ('api.registrar_alerta_clinico'), ('api.alertas_clinicos'),
+            ('api.registrar_acionamento_alerta'), ('api.fechar_alerta_clinico'),
+            ('api.registrar_anexo_audio'), ('api.audio_da_visita_para_ouvir'),
+            ('api.contato_medico_situacao'), ('api.supervisao_medica_telefone') $$,
   'authenticated executa exatamente a lista do ADR 0002 seção 6');
 
 select is_empty(

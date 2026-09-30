@@ -27,6 +27,7 @@ import type {
   Transferencia,
   UsuarioSistema,
 } from "./tipos";
+import type { AssistencialRepositorio } from "./tipos-assistencial";
 import type {
   AberturaFormulario,
   Condutor,
@@ -184,6 +185,8 @@ export interface Repositorios {
   agente: AgenteRepositorio;
   usuarios: UsuariosRepositorio;
   venda: VendaRepositorio;
+  /** Checklist diário, registro assinado e alertas clínicos (P39 e P40). */
+  assistencial: AssistencialRepositorio;
 }
 
 /**

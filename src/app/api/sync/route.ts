@@ -3,7 +3,7 @@ import { z } from "zod";
 import { vitrineLiberada } from "@/lib/ambiente";
 import { obterSessao } from "@/lib/auth/sessao";
 import { processarLote } from "@/lib/sync/protocolo";
-import { RepositorioSincronizacaoMemoria } from "@/lib/sync/repositorio-memoria";
+import { repositorioDaRequisicao } from "@/lib/sync/repositorio-do-servidor";
 import type {
   RequisicaoSincronizacao,
   RespostaSincronizacao,
@@ -48,18 +48,6 @@ function idInformado(bruto: unknown): string {
 }
 
 /**
- * Repositório de processo (ver `src/lib/sync/repositorio.ts` e
- * `docs/sessoes/P12.md`, "Pendências"): sem `src/lib/db` (P01) e sem as
- * tabelas assistenciais escritas por formulário (P34 a P39), ainda não há
- * onde persistir de verdade. Um deploy serverless pode reiniciar este
- * módulo a qualquer chamada; quando o P01 e os formulários existirem,
- * troque esta linha por uma implementação de `RepositorioSincronizacao`
- * que fale com `api.*` (PostgREST só expõe `public` e `api`, PRD 5.2). O
- * motor do aparelho (`src/lib/sync/motor.ts`) e esta rota não mudam.
- */
-const repositorio = new RepositorioSincronizacaoMemoria();
-
-/**
  * `POST /api/sync` (PRD 15, invariante 4): idempotente pelo `id` de cada
  * item (gerado no aparelho), aplicado na ordem de criação, conflito
  * resolvido pela coluna `versao` com o original preservado, e registro
@@ -76,10 +64,14 @@ const repositorio = new RepositorioSincronizacaoMemoria();
  * `usuarioId` de cada item é conferido contra o da sessão: item de outra
  * pessoa recebe "erro" sozinho, sem derrubar o lote, como o item inválido.
  *
+ * Gravação (P39 e P40): registro assistencial e alerta clínico vão para o
+ * banco pelo schema api, com a sessão de quem enviou
+ * (`src/lib/sync/repositorio-do-servidor.ts`). As outras entidades da fila
+ * (visita, consulta pré-natal, áudio) ainda não têm gravação no banco.
+ *
  * A trava de produção continua (`vitrineLiberada()`, a mesma de
- * `/dev/sync`): enquanto o repositório for o de memória, em produção a
- * rota devolve 404 sem ler sessão nem corpo. Sai quando o repositório real
- * (`api.*`) existir.
+ * `/dev/sync`): em produção a rota devolve 404 sem ler sessão nem corpo até
+ * as entidades restantes terem gravação real (P35 e P38).
  */
 export async function POST(request: Request) {
   if (!vitrineLiberada()) {
@@ -141,7 +133,7 @@ export async function POST(request: Request) {
 
   const resposta =
     validos.length > 0
-      ? await processarLote({ itens: validos }, repositorio)
+      ? await processarLote({ itens: validos }, await repositorioDaRequisicao())
       : { resultados: [] };
   return NextResponse.json({
     resultados: [...resposta.resultados, ...recusados],
