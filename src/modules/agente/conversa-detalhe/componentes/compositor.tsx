@@ -71,7 +71,12 @@ export function Compositor({
   }
 
   return (
-    <form action={acaoEnviar} className="flex flex-col gap-3">
+    // A resposta é o trabalho que falta nesta tela (DESIGN.md, 2.5): mora
+    // num bloco branco com sombra leve, logo abaixo das mensagens.
+    <form
+      action={acaoEnviar}
+      className="rounded-3 bg-superficie shadow-1 flex flex-col gap-3 p-4 lg:p-5"
+    >
       <input type="hidden" name="conversaId" value={conversaId} />
       <input type="hidden" name="familiaId" value={familiaId ?? ""} />
       <input type="hidden" name="telefoneE164" value={telefoneE164} />

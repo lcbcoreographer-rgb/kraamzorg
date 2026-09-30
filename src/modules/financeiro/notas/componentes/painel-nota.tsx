@@ -7,7 +7,9 @@ import { Copy, FileText, Paperclip, RefreshCw, Send } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
 import { CampoTexto } from "@/components/ui/campo-texto";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
+import { cn } from "@/lib/utils";
 import { Selo } from "@/components/ui/selo";
+import { TileIcone } from "@/components/ui/tile-icone";
 import type { NotaDetalhe } from "@/lib/dados/tipos-nota";
 import {
   formatarData,
@@ -112,9 +114,15 @@ export function PainelNota({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* O valor da nota em número grande (DESIGN.md, 2.6). Emitida é o
+          feito (sálvia); as outras ficam em branco, porque o estado dela
+          (a emitir, com erro, no provedor) mora no selo, com a palavra. */}
       <section
         aria-label="Situação da nota"
-        className="rounded-3 bg-superficie shadow-1 flex flex-col gap-3 p-5"
+        className={cn(
+          "rounded-3 flex flex-col gap-3 p-5 lg:p-6",
+          emitida ? "bg-salvia-clara" : "bg-superficie shadow-1",
+        )}
       >
         <div className="flex flex-wrap items-center gap-2">
           <Selo variante={VARIANTE_ESTADO[nota.status]}>
@@ -129,7 +137,7 @@ export function PainelNota({
             </Selo>
           ) : null}
         </div>
-        <p className="text-1 text-texto font-mono">
+        <p className="font-titulo text-numero text-texto font-medium tabular-nums">
           {formatarMoeda(nota.valorCentavos)}
         </p>
         <p className="text-corpo text-texto-2">
@@ -273,7 +281,13 @@ export function PainelNota({
           aria-labelledby="emissao"
           className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5"
         >
-          <h2 id="emissao" className="text-3 text-texto font-semibold">
+          <h2
+            id="emissao"
+            className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+          >
+            <TileIcone tom="dourado" forma="quadrado" tamanho="p">
+              <FileText />
+            </TileIcone>
             Emitir a nota
           </h2>
           {nota.status === "processando" ? (

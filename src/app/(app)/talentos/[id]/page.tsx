@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowLeft, ClipboardCheck, MessageSquareText } from "lucide-react";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { notFound } from "next/navigation";
 import { Selo } from "@/components/ui/selo";
 import { exigirSessao } from "@/lib/auth/sessao";
@@ -36,8 +38,9 @@ export default async function PaginaCandidata({
       <div className="flex flex-col gap-2">
         <Link
           href="/talentos"
-          className="text-apoio text-texto-2 underline underline-offset-4"
+          className="text-apoio text-texto-2 hover:text-texto min-h-toque -ml-1 inline-flex items-center gap-1.5 self-start font-medium no-underline"
         >
+          <ArrowLeft aria-hidden="true" className="size-4" strokeWidth={1.75} />
           Voltar para o banco de talentos
         </Link>
         <h1 className="font-titulo text-display lg:text-display-lg text-texto font-normal">
@@ -62,12 +65,15 @@ export default async function PaginaCandidata({
       <section aria-labelledby="avaliacoes" className="flex flex-col gap-3">
         <h2
           id="avaliacoes"
-          className="font-titulo text-1 text-texto font-normal"
+          className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
         >
+          <TileIcone tom="areia" forma="quadrado">
+            <ClipboardCheck />
+          </TileIcone>
           Entrevistas
         </h2>
         {candidata.avaliacoes.length === 0 ? (
-          <p className="text-corpo text-texto-2">
+          <p className="rounded-3 bg-areia-clara text-corpo text-texto-2 p-5">
             Nenhuma entrevista registrada ainda.
           </p>
         ) : (
@@ -75,7 +81,7 @@ export default async function PaginaCandidata({
             {candidata.avaliacoes.map((a) => (
               <li
                 key={a.id}
-                className="rounded-3 bg-superficie shadow-1 flex flex-col gap-1 p-4"
+                className="rounded-3 bg-areia-clara flex flex-col gap-1 p-5"
               >
                 <p className="text-corpo text-texto">
                   {formatarData(a.em)}, por {a.avaliador ?? "equipe"}, roteiro{" "}
@@ -104,8 +110,11 @@ export default async function PaginaCandidata({
       >
         <h2
           id="nova-entrevista"
-          className="font-titulo text-1 text-texto font-normal"
+          className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
         >
+          <TileIcone tom="dourado" forma="quadrado">
+            <MessageSquareText />
+          </TileIcone>
           Registrar entrevista
         </h2>
         <FormularioAvaliacao

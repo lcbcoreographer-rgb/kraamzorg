@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { CalendarClock, Phone, Users } from "lucide-react";
+import { FolhaLupa } from "@/components/ilustracoes";
 import { Cartao } from "@/components/ui/cartao";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { formatarData } from "@/lib/formatacao";
 import type { ResultadoDeteccao } from "../deteccao";
 import type { ParDuplicataCerta, ParDuplicataProvavel } from "../tipos";
@@ -14,6 +17,21 @@ function caminhoComparar(par: {
   return `/pipeline/duplicatas/${par.a.id}~${par.b.id}`;
 }
 
+/**
+ * As duas famílias do par como duas pílulas areia (a cor da família,
+ * DESIGN.md 2.5) com o "e" entre elas: o texto continua uma frase só
+ * ("Família A e Família B"), para quem lê e para o leitor de tela.
+ */
+function NomesDoPar({ a, b }: { a: string; b: string }) {
+  return (
+    <p className="text-corpo text-texto flex flex-wrap items-center gap-x-2 gap-y-1.5 font-semibold">
+      <span className="rounded-pilula bg-areia-clara px-3 py-1">{a}</span>{" "}
+      <span className="text-texto-2 font-normal">e</span>{" "}
+      <span className="rounded-pilula bg-areia-clara px-3 py-1">{b}</span>
+    </p>
+  );
+}
+
 function LinhaDuplicata({
   par,
   meta,
@@ -22,15 +40,9 @@ function LinhaDuplicata({
   meta: string;
 }) {
   return (
-    <Cartao
-      variante="plano"
-      className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-    >
-      <div>
-        <p className="text-corpo font-semibold">
-          {par.a.nome} <span className="text-texto-2 font-normal">e</span>{" "}
-          {par.b.nome}
-        </p>
+    <Cartao className="tablet:flex-row tablet:items-center tablet:justify-between flex flex-col gap-3">
+      <div className="flex min-w-0 flex-col gap-2">
+        <NomesDoPar a={par.a.nome} b={par.b.nome} />
         <p className="text-apoio text-texto-2">{meta}</p>
       </div>
       <Link
@@ -76,6 +88,7 @@ export function ListaDuplicatas({
     return (
       <EstadoVazio
         nivelTitulo="h2"
+        ilustracao={<FolhaLupa tamanho={104} />}
         titulo="Nenhuma duplicata encontrada"
         texto="Quando duas famílias tiverem o mesmo telefone ou nomes parecidos com DPP próxima, elas aparecem aqui."
       />
@@ -89,7 +102,13 @@ export function ListaDuplicatas({
           aria-labelledby="titulo-certas"
           className="flex flex-col gap-3"
         >
-          <h2 id="titulo-certas" className="font-titulo text-2 font-medium">
+          <h2
+            id="titulo-certas"
+            className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+          >
+            <TileIcone tom="argila" forma="quadrado">
+              <Phone />
+            </TileIcone>
             Duplicata certa
           </h2>
           <p className="text-apoio text-texto-2">Mesmo telefone cadastrado.</p>
@@ -108,7 +127,13 @@ export function ListaDuplicatas({
           aria-labelledby="titulo-provaveis"
           className="flex flex-col gap-3"
         >
-          <h2 id="titulo-provaveis" className="font-titulo text-2 font-medium">
+          <h2
+            id="titulo-provaveis"
+            className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+          >
+            <TileIcone tom="areia" forma="quadrado">
+              <Users />
+            </TileIcone>
             Provável duplicata
           </h2>
           <p className="text-apoio text-texto-2">
@@ -133,7 +158,13 @@ export function ListaDuplicatas({
           aria-labelledby="titulo-vinculo"
           className="flex flex-col gap-3"
         >
-          <h2 id="titulo-vinculo" className="font-titulo text-2 font-medium">
+          <h2
+            id="titulo-vinculo"
+            className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+          >
+            <TileIcone tom="lavanda" forma="quadrado">
+              <CalendarClock />
+            </TileIcone>
             Pode ser nova gestação
           </h2>
           <p className="text-apoio text-texto-2">
@@ -148,15 +179,10 @@ export function ListaDuplicatas({
             return (
               <Cartao
                 key={caminhoComparar(par)}
-                variante="plano"
-                className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+                className="tablet:flex-row tablet:items-center tablet:justify-between flex flex-col gap-3"
               >
-                <div>
-                  <p className="text-corpo font-semibold">
-                    {par.a.nome}{" "}
-                    <span className="text-texto-2 font-normal">e</span>{" "}
-                    {par.b.nome}
-                  </p>
+                <div className="flex min-w-0 flex-col gap-2">
+                  <NomesDoPar a={par.a.nome} b={par.b.nome} />
                   <p className="text-apoio text-texto-2">
                     Telefone em comum: {par.telefone}
                     {par.a.dpp

@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import { useFormularioSemReset } from "@/modules/relacao/usar-formulario";
+import { UserPlus } from "lucide-react";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { Botao } from "@/components/ui/botao";
 import { CampoTexto } from "@/components/ui/campo-texto";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
@@ -30,9 +32,12 @@ export function FormularioCandidata({
     <form
       ref={ref}
       onSubmit={acao}
-      className="rounded-3 bg-superficie-2 flex max-w-[560px] flex-col gap-4 p-5"
+      className="rounded-3 bg-superficie shadow-1 flex w-full max-w-[560px] flex-col gap-4 p-5 lg:p-6"
     >
-      <h3 className="font-titulo text-2 text-texto font-medium">
+      <h3 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+        <TileIcone tom="dourado" forma="quadrado" tamanho="p">
+          <UserPlus />
+        </TileIcone>
         {candidata ? "Dados da candidata" : "Nova candidata"}
       </h3>
       {candidata ? (

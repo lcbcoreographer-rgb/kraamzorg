@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowLeft, History, Users } from "lucide-react";
+import { BarraProgresso } from "@/components/ui/barra-progresso";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { notFound } from "next/navigation";
 import { Selo } from "@/components/ui/selo";
 import { exigirSessao } from "@/lib/auth/sessao";
@@ -39,8 +42,9 @@ export default async function PaginaManual({
       <div className="flex flex-col gap-2">
         <Link
           href="/manuais"
-          className="text-apoio text-texto-2 underline underline-offset-4"
+          className="text-apoio text-texto-2 hover:text-texto min-h-toque -ml-1 inline-flex items-center gap-1.5 self-start font-medium no-underline"
         >
+          <ArrowLeft aria-hidden="true" className="size-4" strokeWidth={1.75} />
           Voltar para os manuais
         </Link>
         <h1 className="font-titulo text-display lg:text-display-lg text-texto font-normal">
@@ -52,62 +56,94 @@ export default async function PaginaManual({
         </p>
       </div>
 
-      <article className="rounded-3 bg-superficie shadow-1 p-5">
-        <div className="text-corpo text-texto max-w-[72ch] whitespace-pre-wrap">
-          {manual.conteudo}
+      {/* A leitura numa folha branca de medida confortável, com a
+          confirmação logo abaixo; no computador, as versões e quem já
+          confirmou ficam na coluna da direita. */}
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[62fr_38fr]">
+        <div className="flex min-w-0 flex-col gap-4">
+          <article className="rounded-3 bg-superficie shadow-1 p-6 lg:p-8">
+            <div className="text-corpo text-texto max-w-[68ch] leading-relaxed whitespace-pre-wrap">
+              {manual.conteudo}
+            </div>
+          </article>
+
+          <ConfirmarLeitura versaoId={manual.versaoId} jaLido={manual.lido} />
         </div>
-      </article>
 
-      <ConfirmarLeitura versaoId={manual.versaoId} jaLido={manual.lido} />
-
-      <section aria-labelledby="historico" className="flex flex-col gap-2">
-        <h2
-          id="historico"
-          className="font-titulo text-1 text-texto font-normal"
-        >
-          Versões
-        </h2>
-        <ul className="flex flex-col gap-1">
-          {manual.historico.map((h) => (
-            <li key={h.versao} className="text-corpo text-texto">
-              Versão {h.versao}, {formatarData(h.publicadaEm)}
-              {h.resumoMudanca ? `: ${h.resumoMudanca}` : ""}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {leituras ? (
-        <section aria-labelledby="leituras" className="flex flex-col gap-2">
-          <h2
-            id="leituras"
-            className="font-titulo text-1 text-texto font-normal"
+        <div className="flex min-w-0 flex-col gap-4">
+          <section
+            aria-labelledby="historico"
+            className="rounded-3 bg-lavanda-clara flex flex-col gap-3 p-5"
           >
-            Quem confirmou a versão {leituras.versao}
-          </h2>
-          {leituras.pessoas.length === 0 ? (
-            <p className="text-corpo text-texto-2">
-              Nenhuma função marcada para ler este manual.
-            </p>
-          ) : (
+            <h2
+              id="historico"
+              className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+            >
+              <TileIcone tom="lavanda" forma="quadrado" tamanho="p">
+                <History />
+              </TileIcone>
+              Versões
+            </h2>
             <ul className="flex flex-col gap-2">
-              {leituras.pessoas.map((p) => (
+              {manual.historico.map((h) => (
                 <li
-                  key={p.usuarioId}
-                  className="text-corpo text-texto flex flex-wrap items-center gap-3"
+                  key={h.versao}
+                  className="rounded-2 bg-superficie text-corpo text-texto px-4 py-3"
                 >
-                  {p.nome}
-                  <Selo variante={p.confirmou ? "sucesso" : "aviso"}>
-                    {p.confirmou && p.confirmadaEm
-                      ? `Confirmou em ${formatarData(p.confirmadaEm)}`
-                      : "Ainda não confirmou"}
-                  </Selo>
+                  Versão {h.versao}, {formatarData(h.publicadaEm)}
+                  {h.resumoMudanca ? `: ${h.resumoMudanca}` : ""}
                 </li>
               ))}
             </ul>
-          )}
-        </section>
-      ) : null}
+          </section>
+
+          {leituras ? (
+            <section
+              aria-labelledby="leituras"
+              className="rounded-3 bg-argila-clara flex flex-col gap-3 p-5"
+            >
+              <h2
+                id="leituras"
+                className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+              >
+                <TileIcone tom="argila" forma="quadrado" tamanho="p">
+                  <Users />
+                </TileIcone>
+                Quem confirmou a versão {leituras.versao}
+              </h2>
+              {leituras.pessoas.length > 0 ? (
+                <BarraProgresso
+                  valor={leituras.pessoas.filter((p) => p.confirmou).length}
+                  total={leituras.pessoas.length}
+                  texto={`${leituras.pessoas.filter((p) => p.confirmou).length} de ${leituras.pessoas.length} confirmaram`}
+                  textoCompleta="Todos confirmaram esta versão"
+                />
+              ) : null}
+              {leituras.pessoas.length === 0 ? (
+                <p className="text-corpo text-texto-2">
+                  Nenhuma função marcada para ler este manual.
+                </p>
+              ) : (
+                <ul className="flex flex-col gap-2">
+                  {leituras.pessoas.map((p) => (
+                    <li
+                      key={p.usuarioId}
+                      className="rounded-2 bg-superficie text-corpo text-texto flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+                    >
+                      {p.nome}
+                      <Selo variante={p.confirmou ? "sucesso" : "aviso"}>
+                        {p.confirmou && p.confirmadaEm
+                          ? `Confirmou em ${formatarData(p.confirmadaEm)}`
+                          : "Ainda não confirmou"}
+                      </Selo>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ) : null}
+        </div>
+      </div>
 
       {gestao ? <FormularioManual manual={manual} /> : null}
     </div>

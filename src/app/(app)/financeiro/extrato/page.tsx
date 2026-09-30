@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { z } from "zod";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { AvisoAcesso } from "@/components/shell/aviso-acesso";
+import { FileUp } from "lucide-react";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { obterTelaExtrato } from "@/modules/financeiro/gestao/dados";
 import { ImportarExtrato } from "@/modules/financeiro/gestao/componentes/importar-extrato";
@@ -58,12 +60,15 @@ export default async function PaginaExtrato({
           <>
             <section
               aria-labelledby="ext-importar"
-              className="bg-superficie rounded-3 shadow-1 flex max-w-[720px] flex-col gap-4 p-5"
+              className="bg-superficie rounded-3 shadow-1 flex max-w-[720px] flex-col gap-4 p-5 lg:p-6"
             >
               <h2
                 id="ext-importar"
-                className="font-titulo text-2 text-texto font-medium"
+                className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
               >
+                <TileIcone tom="dourado" forma="quadrado" tamanho="p">
+                  <FileUp />
+                </TileIcone>
                 Importar um extrato
               </h2>
               <ImportarExtrato />

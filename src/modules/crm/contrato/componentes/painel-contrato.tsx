@@ -2,8 +2,15 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { CircleCheck, FileText, LockKeyhole, Send } from "lucide-react";
+import {
+  CircleCheck,
+  FileText,
+  LockKeyhole,
+  PenLine,
+  Send,
+} from "lucide-react";
 import { Botao } from "@/components/ui/botao";
+import { TileIcone } from "@/components/ui/tile-icone";
 import {
   Dialogo,
   DialogoConteudo,
@@ -23,6 +30,7 @@ import {
   formatarDataHora,
   formatarMoeda,
 } from "@/lib/formatacao";
+import { cn } from "@/lib/utils";
 import {
   acaoEnviarContrato,
   acaoGerarContrato,
@@ -181,18 +189,27 @@ export function PainelContrato({
         </FaixaAlerta>
       ) : null}
 
+      {/* O andamento num bloco próprio (direção "Colo"): a frase da etapa
+          em cima, os blocos das cinco etapas embaixo. */}
       <section
         aria-label="Andamento do contrato"
-        className="flex flex-col gap-3"
+        className="rounded-3 bg-areia-clara flex flex-col gap-3 p-5"
       >
-        <ProgressoEtapas etapas={ETAPAS} atual={atual} />
-        <p className="text-apoio text-texto-2" aria-live="polite">
+        <p className="text-3 text-texto font-semibold" aria-live="polite">
           Etapa {atual + 1} de {ETAPAS.length}: {NOMES_ETAPAS[atual]}.
         </p>
+        <ProgressoEtapas etapas={ETAPAS} atual={atual} />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <section className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5">
+        {/* O trabalho da etapa em branco; assinado, o bloco vira o que está
+            feito (sálvia, DESIGN.md 2.5). */}
+        <section
+          className={cn(
+            "rounded-3 flex flex-col gap-4 p-5 lg:p-6",
+            etapa === "assinado" ? "bg-salvia-clara" : "bg-superficie shadow-1",
+          )}
+        >
           {semFormulario ? (
             <>
               <h2 className="text-3 text-texto font-semibold">
@@ -345,12 +362,10 @@ export function PainelContrato({
 
           {etapa === "assinado" ? (
             <>
-              <h2 className="text-sucesso text-3 flex items-start gap-2 font-semibold">
-                <CircleCheck
-                  className="mt-1 size-5 shrink-0"
-                  aria-hidden="true"
-                  strokeWidth={1.75}
-                />
+              <h2 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+                <TileIcone tom="salvia" forma="quadrado">
+                  <CircleCheck />
+                </TileIcone>
                 Contrato assinado
                 {contrato.assinadoEm
                   ? ` em ${formatarData(contrato.assinadoEm)}`
@@ -369,7 +384,7 @@ export function PainelContrato({
                   Abrir o PDF assinado
                 </a>
               </Botao>
-              <div className="border-linha flex flex-col gap-2 border-t pt-4">
+              <div className="rounded-3 bg-superficie flex flex-col gap-2 p-4">
                 <h3 className="text-corpo text-texto font-semibold">
                   Cobrança
                 </h3>
@@ -441,12 +456,14 @@ export function PainelContrato({
           ) : null}
         </section>
 
-        <aside
-          aria-label="Resumo do contrato"
-          className="rounded-3 bg-superficie-2 flex flex-col gap-4 p-5"
-        >
-          <div className="flex flex-col gap-1">
-            <h2 className="text-corpo text-texto font-semibold">Quem assina</h2>
+        <aside aria-label="Resumo do contrato" className="flex flex-col gap-3">
+          <div className="rounded-3 bg-argila-clara flex flex-col gap-2 p-5">
+            <h2 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+              <TileIcone tom="argila" forma="quadrado" tamanho="p">
+                <PenLine />
+              </TileIcone>
+              Quem assina
+            </h2>
             <ul className="flex flex-col gap-2">
               {situacao.assinantes.map((a) => (
                 <li key={a.papel} className="flex flex-col">
@@ -473,8 +490,8 @@ export function PainelContrato({
           </div>
 
           {contrato.conta ? (
-            <div className="flex flex-col gap-1">
-              <h2 className="text-corpo text-texto font-semibold">
+            <div className="rounded-3 bg-areia-clara flex flex-col gap-1 p-5">
+              <h2 className="font-titulo text-2 text-texto font-medium">
                 {contrato.variante === "presente"
                   ? "Contrato de presente"
                   : "Valores"}
@@ -503,7 +520,7 @@ export function PainelContrato({
             </div>
           ) : null}
 
-          <p className="text-apoio text-texto-2 flex items-start gap-2">
+          <p className="text-apoio text-texto-2 flex items-start gap-2 px-2">
             <LockKeyhole
               className="mt-0.5 size-4 shrink-0"
               aria-hidden="true"

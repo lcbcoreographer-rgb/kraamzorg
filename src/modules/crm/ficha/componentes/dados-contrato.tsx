@@ -6,6 +6,7 @@ import { Lock } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
 import { Cartao } from "@/components/ui/cartao";
 import { Selo } from "@/components/ui/selo";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { formatarData } from "@/lib/formatacao";
 import { acaoVerDadosContratoCompletos } from "../acoes";
 import { estadoInicialDadosContrato } from "../estado-acoes";
@@ -36,9 +37,13 @@ export function DadosContrato({
 
   return (
     <Cartao className="flex flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <Lock aria-hidden="true" className="text-texto-2 size-5" />
-        <h2 className="font-titulo text-3 font-medium">Dados do contrato</h2>
+      <div className="flex flex-wrap items-center gap-3">
+        <TileIcone tom="areia" forma="quadrado">
+          <Lock />
+        </TileIcone>
+        <h2 className="font-titulo text-2 text-texto font-medium">
+          Dados do contrato
+        </h2>
         {mascarado?.preenchidoVia ? (
           <Selo variante="sucesso" className="ml-auto">
             Formulário preenchido

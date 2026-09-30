@@ -107,7 +107,8 @@ export default async function PaginaContrato({
     <>
       {voltar}
       <div className="flex flex-col gap-6 pt-2">
-        <header className="bg-superficie-2 -mx-4 flex flex-col gap-3 px-4 pt-4 pb-5 lg:-mx-8 lg:px-8">
+        {/* A família num bloco macio de areia (direção "Colo"). */}
+        <header className="rounded-3 bg-superficie-2 flex flex-col gap-3 p-5 lg:px-8 lg:py-6">
           <h1 className="font-titulo text-1 text-texto font-normal">
             Contrato da {situacao.familia.nome}
           </h1>

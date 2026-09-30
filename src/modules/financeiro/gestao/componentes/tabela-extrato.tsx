@@ -1,7 +1,11 @@
 import Link from "next/link";
+import { Landmark, ListChecks } from "lucide-react";
+import { FolhaLupa } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { Selo } from "@/components/ui/selo";
 import { TabelaLista } from "@/components/ui/tabela-lista";
+import { cn } from "@/lib/utils";
 import type {
   ExtratoVisao,
   ImportacaoExtrato,
@@ -92,8 +96,11 @@ export function VisaoExtrato({
         <section aria-labelledby="ext-lista" className="flex flex-col gap-3">
           <h2
             id="ext-lista"
-            className="font-titulo text-2 text-texto font-medium"
+            className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
           >
+            <TileIcone tom="areia" forma="quadrado">
+              <Landmark />
+            </TileIcone>
             Extratos importados
           </h2>
           <ul className="flex flex-col gap-2">
@@ -108,7 +115,14 @@ export function VisaoExtrato({
                         : `/financeiro/extrato?importacao=${i.id}`
                     }
                     aria-current={aberta ? "page" : undefined}
-                    className="rounded-3 bg-superficie shadow-1 hover:shadow-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 p-4 no-underline"
+                    className={cn(
+                      "rounded-3 ease-estado flex flex-wrap items-center justify-between gap-x-4 gap-y-2 p-4 no-underline transition-[box-shadow] duration-140",
+                      // O extrato aberto é o agora (dourado-claro); os
+                      // outros ficam guardados em areia.
+                      aberta
+                        ? "bg-dourado-claro"
+                        : "bg-areia-clara hover:shadow-1",
+                    )}
                   >
                     <span className="text-corpo text-texto font-semibold">
                       {periodo(i)}
@@ -137,8 +151,11 @@ export function VisaoExtrato({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2
               id="ext-linhas"
-              className="font-titulo text-2 text-texto font-medium"
+              className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
             >
+              <TileIcone tom="salvia" forma="quadrado">
+                <ListChecks />
+              </TileIcone>
               Conferência
             </h2>
             <ReconferirExtrato importacaoId={importacaoId} />
@@ -146,34 +163,37 @@ export function VisaoExtrato({
           {visao.linhas.length === 0 ? (
             <EstadoVazio
               nivelTitulo="h3"
+              ilustracao={<FolhaLupa tamanho={96} />}
               titulo="Esse extrato não tem lançamentos para mostrar"
               texto="Escolha outro extrato da lista ou importe um arquivo novo."
             />
           ) : (
-            <TabelaLista
-              rotulo="Lançamentos do extrato e o par de cada um"
-              colunas={[
-                { chave: "descricao", rotulo: "Lançamento", principal: true },
-                { chave: "situacao", rotulo: "Situação", canto: true },
-                { chave: "data", rotulo: "Dia" },
-                { chave: "valor", rotulo: "Valor", numerica: true },
-                { chave: "par", rotulo: "Par encontrado" },
-              ]}
-              linhas={visao.linhas.map((l) => ({
-                id: l.id,
-                valores: {
-                  descricao: l.descricao,
-                  situacao: (
-                    <Selo variante={VARIANTE[l.situacao]}>
-                      {ROTULO_SITUACAO_EXTRATO[l.situacao]}
-                    </Selo>
-                  ),
-                  data: formatarData(l.data) ?? l.data,
-                  valor: formatarMoeda(l.valorCentavos),
-                  par: <ParDaLinha l={l} />,
-                },
-              }))}
-            />
+            <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
+              <TabelaLista
+                rotulo="Lançamentos do extrato e o par de cada um"
+                colunas={[
+                  { chave: "descricao", rotulo: "Lançamento", principal: true },
+                  { chave: "situacao", rotulo: "Situação", canto: true },
+                  { chave: "data", rotulo: "Dia" },
+                  { chave: "valor", rotulo: "Valor", numerica: true },
+                  { chave: "par", rotulo: "Par encontrado" },
+                ]}
+                linhas={visao.linhas.map((l) => ({
+                  id: l.id,
+                  valores: {
+                    descricao: l.descricao,
+                    situacao: (
+                      <Selo variante={VARIANTE[l.situacao]}>
+                        {ROTULO_SITUACAO_EXTRATO[l.situacao]}
+                      </Selo>
+                    ),
+                    data: formatarData(l.data) ?? l.data,
+                    valor: formatarMoeda(l.valorCentavos),
+                    par: <ParDaLinha l={l} />,
+                  },
+                }))}
+              />
+            </div>
           )}
         </section>
       ) : null}

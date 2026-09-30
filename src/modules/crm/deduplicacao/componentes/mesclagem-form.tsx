@@ -3,7 +3,9 @@
 import * as React from "react";
 import { useActionState } from "react";
 import { Botao } from "@/components/ui/botao";
+import { House } from "lucide-react";
 import { Cartao } from "@/components/ui/cartao";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
 import { formatarData } from "@/lib/formatacao";
@@ -31,11 +33,25 @@ function LadoCartao({
   destaque: boolean;
 }) {
   return (
+    // A família que fica vira o bloco areia da família (DESIGN.md, 2.5),
+    // com a casa num tile e a frase que diz a escolha; a outra fica branca.
     <Cartao
-      variante={destaque ? "padrao" : "plano"}
-      className="flex flex-col gap-2"
+      variante={destaque ? "areia-clara" : "plano"}
+      className="flex flex-col gap-3"
     >
-      <p className="text-3 font-titulo font-medium">{lado.familia.nome}</p>
+      <div className="flex items-center gap-3">
+        <TileIcone tom="areia" forma="quadrado">
+          <House />
+        </TileIcone>
+        <p className="text-3 font-titulo min-w-0 flex-1 font-medium">
+          {lado.familia.nome}
+        </p>
+        {destaque ? (
+          <span className="rounded-pilula bg-superficie text-mini text-texto px-2.5 py-1 font-semibold whitespace-nowrap">
+            Esta fica
+          </span>
+        ) : null}
+      </div>
       <dl className="text-apoio text-texto-2 flex flex-col gap-1">
         <div className="flex gap-2">
           <dt className="font-medium">DPP</dt>

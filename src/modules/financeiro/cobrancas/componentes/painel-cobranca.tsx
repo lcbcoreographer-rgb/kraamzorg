@@ -3,12 +3,21 @@
 import * as React from "react";
 import { useActionState } from "react";
 import Link from "next/link";
-import { CircleCheck, Copy, ExternalLink, Paperclip } from "lucide-react";
+import {
+  Banknote,
+  CircleCheck,
+  Copy,
+  ExternalLink,
+  Link2,
+  Paperclip,
+} from "lucide-react";
 import { Botao } from "@/components/ui/botao";
 import { CampoTexto } from "@/components/ui/campo-texto";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
+import { TileIcone } from "@/components/ui/tile-icone";
 import type { CobrancaDetalhe } from "@/lib/dados/tipos-contrato";
+import { cn } from "@/lib/utils";
 import {
   formatarData,
   formatarDataHora,
@@ -87,9 +96,20 @@ export function PainelCobranca({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* O valor é o número da cobrança (DESIGN.md, 2.6): em Jost, grande,
+          num bloco com a cor do que ela é. Paga é o feito (sálvia); a
+          receber é o agora (dourado); encerrada fica em branco. O estado
+          continua no selo, com a palavra. */}
       <section
         aria-label="Situação da cobrança"
-        className="rounded-3 bg-superficie shadow-1 flex flex-col gap-3 p-5"
+        className={cn(
+          "rounded-3 flex flex-col gap-3 p-5 lg:p-6",
+          paga
+            ? "bg-salvia-clara"
+            : encerrada
+              ? "bg-superficie border-linha border"
+              : "bg-dourado-claro",
+        )}
       >
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <Selo variante={VARIANTE_SITUACAO[cobranca.situacao]}>
@@ -105,10 +125,10 @@ export function PainelCobranca({
             </Selo>
           ) : null}
         </div>
-        <p className="text-1 text-texto font-mono">
+        <p className="font-titulo text-numero text-texto font-medium tabular-nums">
           {formatarMoeda(cobranca.valorCentavos)}
         </p>
-        <p className="text-corpo text-texto-2">
+        <p className="text-corpo text-texto">
           {paga && cobranca.pagoEm ? (
             <>
               Pago em{" "}
@@ -194,7 +214,12 @@ export function PainelCobranca({
 
       {!paga && !encerrada ? (
         <section className="rounded-3 bg-superficie shadow-1 flex flex-col gap-3 p-5">
-          <h2 className="text-3 text-texto font-semibold">Link de pagamento</h2>
+          <h2 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+            <TileIcone tom="areia" forma="quadrado" tamanho="p">
+              <Link2 />
+            </TileIcone>
+            Link de pagamento
+          </h2>
           {cobranca.acimaDoLimite ? (
             <FaixaAlerta
               variante="prioritario"
@@ -269,9 +294,12 @@ export function PainelCobranca({
       ) : null}
 
       {cobranca.podeBaixarManual ? (
-        <section className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5">
+        <section className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5 lg:p-6">
           <div className="flex flex-col gap-1">
-            <h2 className="text-3 text-texto font-semibold">
+            <h2 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+              <TileIcone tom="areia" forma="quadrado" tamanho="p">
+                <Banknote />
+              </TileIcone>
               Pix recebido fora do sistema
             </h2>
             <p className="text-corpo text-texto-2">

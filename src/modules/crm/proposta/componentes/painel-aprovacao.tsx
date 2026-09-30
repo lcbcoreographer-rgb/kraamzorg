@@ -1,8 +1,9 @@
 "use client";
 
 import { useActionState } from "react";
-import { CircleCheck } from "lucide-react";
+import { CircleCheck, ShieldCheck } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { acaoAprovarDesconto } from "../acoes";
 import { estadoInicialProposta } from "../estado-acoes";
@@ -46,7 +47,10 @@ export function PainelAprovacao({
 
   return (
     <section className="rounded-3 bg-superficie shadow-1 flex flex-col gap-3 p-5">
-      <h2 className="text-3 text-texto font-semibold">
+      <h2 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+        <TileIcone tom="argila" forma="quadrado" tamanho="p">
+          <ShieldCheck />
+        </TileIcone>
         Aprovação da diretoria
       </h2>
       <p className="text-corpo text-texto-2">

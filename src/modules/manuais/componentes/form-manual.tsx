@@ -19,7 +19,7 @@ export function FormularioManual({ manual }: { manual?: DetalheManual }) {
   return (
     <form
       onSubmit={acao}
-      className="rounded-3 bg-superficie-2 flex max-w-[720px] flex-col gap-4 p-5"
+      className="rounded-3 bg-superficie shadow-1 flex max-w-[720px] flex-col gap-4 p-5 lg:p-6"
     >
       <h3 className="font-titulo text-2 text-texto font-medium">
         {manual ? "Editar este manual" : "Novo manual ou protocolo"}

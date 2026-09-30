@@ -9,6 +9,7 @@ import { CampoTexto } from "@/components/ui/campo-texto";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
 import { montarLinkWhatsApp } from "@/lib/messaging/link-whatsapp";
+import { cn } from "@/lib/utils";
 import { concluirTarefaSemMensagem, enviarTarefa } from "../acoes";
 import { estadoInicialTarefa, type EstadoAcaoTarefa } from "../estado-acoes";
 import {
@@ -124,7 +125,16 @@ export function CartaoTarefa({
           </Selo>
         ) : null}
         {tarefa.prazo ? (
-          <span className="text-apoio text-texto-2 inline-flex shrink-0 items-center gap-1">
+          // O prazo numa pílula areia (direção "Colo"); na tarefa do freio,
+          // só a frase, sem relógio e sem pílula (DESIGN.md 11.8).
+          <span
+            className={cn(
+              "text-apoio inline-flex shrink-0 items-center gap-1.5",
+              justificarFreio
+                ? "text-texto-2"
+                : "rounded-pilula bg-areia-clara text-texto min-h-7 px-3 font-medium",
+            )}
+          >
             {justificarFreio ? null : (
               <Clock aria-hidden="true" className="size-4" strokeWidth={1.75} />
             )}
@@ -235,16 +245,20 @@ export function CartaoTarefa({
       ) : (
         <form action={acaoEnviar} className="flex flex-col gap-3">
           <input type="hidden" name="tarefaId" value={tarefa.id} />
-          <CampoTexto
-            id={idTexto}
-            name="texto"
-            rotulo="Texto sugerido"
-            multilinha
-            linhas={5}
-            value={texto}
-            onChange={(evento) => setTexto(evento.target.value)}
-            descricao="Edite à vontade. O WhatsApp abre com este texto; nada sai antes de você tocar em enviar lá."
-          />
+          {/* O texto sugerido como a bolha que vai sair (DESIGN.md, 2.5:
+              conversas em argila), com o canto de cima mais fechado. */}
+          <div className="rounded-3 bg-argila-clara rounded-tl-1 p-3 pb-2">
+            <CampoTexto
+              id={idTexto}
+              name="texto"
+              rotulo="Texto sugerido"
+              multilinha
+              linhas={5}
+              value={texto}
+              onChange={(evento) => setTexto(evento.target.value)}
+              descricao="Edite à vontade. O WhatsApp abre com este texto; nada sai antes de você tocar em enviar lá."
+            />
+          </div>
           {estadoEnvio.erro ? (
             <FaixaAlerta
               variante="prioritario"

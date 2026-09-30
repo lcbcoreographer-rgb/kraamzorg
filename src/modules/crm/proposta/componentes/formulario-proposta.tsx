@@ -2,10 +2,12 @@
 
 import * as React from "react";
 import { useActionState } from "react";
+import { CreditCard, HandHeart, Package, ReceiptText } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
 import { CampoTexto } from "@/components/ui/campo-texto";
 import { EscolhaUnica } from "@/components/ui/escolha-unica";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
+import { TileIcone } from "@/components/ui/tile-icone";
 import type { PacoteProposta, Proposta } from "@/lib/dados/tipos-venda";
 import { formatarMoeda } from "@/lib/formatacao";
 import { cn } from "@/lib/utils";
@@ -152,7 +154,10 @@ export function FormularioProposta({
           />
 
           <fieldset className="flex flex-col gap-3">
-            <legend className="font-titulo text-2 text-texto mb-3 font-medium">
+            <legend className="font-titulo text-2 text-texto mb-3 flex items-center gap-3 font-medium">
+              <TileIcone tom="dourado" forma="quadrado">
+                <Package />
+              </TileIcone>
               Pacote
             </legend>
             {pacotes.map((p) => {
@@ -161,10 +166,13 @@ export function FormularioProposta({
                 <label
                   key={p.pacoteVersaoId}
                   className={cn(
-                    "rounded-3 bg-superficie ease-estado flex cursor-pointer flex-col gap-3 border-[1.5px] p-4 transition-[border-color,box-shadow] duration-140",
+                    "rounded-3 ease-estado flex cursor-pointer flex-col gap-3 border-[1.5px] p-4 transition-[border-color,background-color,box-shadow] duration-140",
+                    !marcado && "bg-superficie",
                     "has-[:focus-visible]:outline-foco has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2",
+                    // O pacote escolhido vira o agora (dourado-claro, DESIGN.md
+                    // 2.5), com a borda dourada; os outros ficam brancos.
                     marcado
-                      ? "border-dourado shadow-1"
+                      ? "border-dourado bg-dourado-claro"
                       : "border-linha hover:border-marinho-50",
                   )}
                 >
@@ -195,8 +203,11 @@ export function FormularioProposta({
             })}
           </fieldset>
 
-          <div className="flex flex-col gap-5">
-            <h2 className="font-titulo text-2 text-texto font-medium">
+          <div className="rounded-3 bg-superficie shadow-1 flex flex-col gap-5 p-5 lg:p-6">
+            <h2 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+              <TileIcone tom="areia" forma="quadrado">
+                <CreditCard />
+              </TileIcone>
               Condição e parcelas
             </h2>
             <EscolhaUnica
@@ -262,8 +273,11 @@ export function FormularioProposta({
             />
           </div>
 
-          <div className="flex flex-col gap-5">
-            <h2 className="font-titulo text-2 text-texto font-medium">
+          <div className="rounded-3 bg-superficie shadow-1 flex flex-col gap-5 p-5 lg:p-6">
+            <h2 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+              <TileIcone tom="argila" forma="quadrado">
+                <HandHeart />
+              </TileIcone>
               Quem paga
             </h2>
             <EscolhaUnica
@@ -332,8 +346,15 @@ export function FormularioProposta({
         className="flex min-w-0 flex-col gap-4"
         aria-label="Resumo da proposta"
       >
-        <section className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5 lg:sticky lg:top-24">
-          <h2 className="font-titulo text-2 text-texto font-medium">Resumo</h2>
+        {/* O resumo é a proposta sendo montada agora (dourado-claro), com
+            o total grande num bloco branco que encaixa nele. */}
+        <section className="rounded-3 bg-dourado-claro flex flex-col gap-4 p-5 lg:sticky lg:top-24">
+          <h2 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+            <TileIcone tom="dourado" forma="quadrado" tamanho="p">
+              <ReceiptText />
+            </TileIcone>
+            Resumo
+          </h2>
           {fechada && contrato ? (
             <ReciboConta
               conta={contrato.conta}

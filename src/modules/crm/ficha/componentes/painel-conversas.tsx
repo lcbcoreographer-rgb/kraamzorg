@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Bot, MessageCircle, User, UserCheck } from "lucide-react";
+import { SinoCalmo } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { Selo } from "@/components/ui/selo";
 import { formatarDataHora } from "@/lib/formatacao";
@@ -13,12 +14,17 @@ import type { ConversaResumoTela } from "../tipos";
  */
 export function PainelConversas({
   conversa,
+  semTom = false,
 }: {
   conversa: ConversaResumoTela | null;
+  /** Família com o freio puxado: sem tom de apoio e sem ilustração. */
+  semTom?: boolean;
 }) {
   if (!conversa || conversa.mensagens.length === 0) {
     return (
       <EstadoVazio
+        semTom={semTom}
+        ilustracao={semTom ? undefined : <SinoCalmo tamanho={96} />}
         titulo="Nenhuma conversa ainda"
         texto="Quando esta família escrever no WhatsApp, as últimas mensagens aparecem aqui, em leitura."
       />
@@ -28,7 +34,15 @@ export function PainelConversas({
   return (
     <div className="flex flex-col gap-4">
       {conversa.quemConduz ? <QuemConduz quem={conversa.quemConduz} /> : null}
-      <div className="flex flex-col gap-3">
+      {/* A conversa num bloco próprio (DESIGN.md, 2.5: conversas em
+          argila), com as bolhas da família em branco, da Isadora em areia
+          e da equipe em marinho. Com o freio puxado, o fundo fica creme. */}
+      <div
+        className={cn(
+          "rounded-3 flex flex-col gap-3 p-4",
+          semTom ? "bg-fundo border-linha border" : "bg-argila-clara",
+        )}
+      >
         {conversa.mensagens.map((mensagem) => {
           const daFamilia = mensagem.direcao === "entrada";
           const daIsadora = !daFamilia && mensagem.enviadoPor === "ia";
@@ -38,10 +52,10 @@ export function PainelConversas({
               className={cn(
                 "rounded-3 max-w-[85%] px-4 py-2.5",
                 daFamilia
-                  ? "bg-superficie shadow-1 self-start"
+                  ? "bg-superficie rounded-bl-1 self-start"
                   : daIsadora
-                    ? "bg-superficie-2 self-end"
-                    : "bg-marinho text-texto-inverso self-end",
+                    ? "bg-superficie-2 rounded-br-1 self-end"
+                    : "bg-marinho text-texto-inverso rounded-br-1 self-end",
               )}
             >
               {!daFamilia ? (

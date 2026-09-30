@@ -128,12 +128,15 @@ export function CartaoTransferencia({
             )}
           </span>
         ) : (
+          // O prazo numa pílula (DESIGN.md, 2.3): lavado do estado quando
+          // está perto ou venceu, areia quando está no tempo. Sempre com
+          // ícone e frase, nunca só a cor.
           <span
             className={cn(
-              "text-apoio inline-flex items-center gap-1 whitespace-nowrap tabular-nums",
-              prazo === "vencido" && "text-alerta font-medium",
-              prazo === "perto" && "text-aviso-texto font-medium",
-              prazo === "normal" && "text-texto-2",
+              "rounded-pilula text-apoio inline-flex min-h-7 items-center gap-1.5 px-3 font-medium whitespace-nowrap tabular-nums",
+              prazo === "vencido" && "bg-alerta-lavado text-alerta",
+              prazo === "perto" && "bg-aviso-lavado text-aviso-texto",
+              prazo === "normal" && "bg-areia-clara text-texto",
             )}
           >
             {prazo === "vencido" ? (

@@ -21,7 +21,7 @@ export default function CarregandoTarefas() {
           <div
             key={indice}
             aria-hidden="true"
-            className="bg-superficie border-linha rounded-2 h-32 animate-pulse border motion-reduce:animate-none"
+            className="bg-superficie shadow-1 rounded-3 h-32 animate-pulse motion-reduce:animate-none"
           />
         ))}
       </div>

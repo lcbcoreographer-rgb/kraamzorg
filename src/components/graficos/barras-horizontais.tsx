@@ -2,8 +2,8 @@ import { cn } from "@/lib/utils";
 
 /**
  * Barras horizontais (skill dataviz): uma série, uma cor, o valor na ponta da
- * barra, rótulo em texto (nunca na cor da barra), barra de até 12 px com a
- * ponta de 4 px arredondada e a base reta. Serve a comparação de magnitude
+ * barra, rótulo em texto (nunca na cor da barra), barra de 12 px com a
+ * ponta em pílula e a base reta [v4.4]. Serve a comparação de magnitude
  * entre poucas categorias (despesas por categoria, leads por origem, receita
  * por origem, faixas de atraso). Com mais de oito categorias, use uma tabela.
  */
@@ -29,13 +29,18 @@ export function BarrasHorizontais({
 }) {
   const maior = Math.max(...dados.map((d) => d.valor), 0);
   return (
-    <ul aria-label={descricao} className={cn("flex flex-col gap-3", className)}>
+    // Container query: numa coluna estreita (menos de 28rem) o rótulo e o
+    // valor ficam em cima e a barra ganha a largura toda, embaixo.
+    <ul
+      aria-label={descricao}
+      className={cn("@container flex flex-col gap-3", className)}
+    >
       {dados.map((d) => {
         const largura = maior > 0 ? (d.valor / maior) * 100 : 0;
         return (
           <li
             key={d.id}
-            className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 max-[520px]:grid-cols-[minmax(0,1fr)_auto]"
+            className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 @max-md:grid-cols-[minmax(0,1fr)_auto]"
           >
             <span className="text-apoio text-texto">
               {d.rotulo}
@@ -43,12 +48,14 @@ export function BarrasHorizontais({
                 <span className="text-mini text-texto-2 block">{d.apoio}</span>
               ) : null}
             </span>
+            {/* Trilha areia e barra marinho com a ponta em pílula (direção
+                "Colo", DESIGN.md 2.4); a base continua reta, no zero. */}
             <span
               aria-hidden="true"
-              className="bg-marinho-08 h-3 w-full rounded-r-[4px] max-[520px]:order-3 max-[520px]:col-span-2"
+              className="bg-areia-clara rounded-r-pilula h-3 w-full @max-md:order-3 @max-md:col-span-2"
             >
               <span
-                className="bg-marinho-50 block h-3 rounded-r-[4px]"
+                className="bg-marinho rounded-r-pilula block h-3"
                 style={{
                   width: `${Math.max(largura, d.valor > 0 ? 1.5 : 0)}%`,
                 }}

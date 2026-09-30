@@ -1,5 +1,7 @@
+import { House, MapPin } from "lucide-react";
 import { Selo } from "@/components/ui/selo";
 import { TabelaLista } from "@/components/ui/tabela-lista";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { formatarMoeda } from "@/lib/formatacao";
 import { obterRepositorioModulo } from "../dados";
 import { FormularioCidade } from "./formulario-cidade";
@@ -19,7 +21,12 @@ export async function SecaoRegioes() {
     <div className="flex flex-col gap-8">
       <section>
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-2 font-titulo text-texto font-medium">Regiões</h2>
+          <h2 className="text-2 font-titulo text-texto flex items-center gap-3 font-medium">
+            <TileIcone tom="lavanda" forma="quadrado" tamanho="p">
+              <MapPin />
+            </TileIcone>
+            Regiões
+          </h2>
           <FormularioRegiao />
         </div>
         <div className="mt-3">
@@ -62,7 +69,10 @@ export async function SecaoRegioes() {
 
       <section>
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-2 font-titulo text-texto font-medium">
+          <h2 className="text-2 font-titulo text-texto flex items-center gap-3 font-medium">
+            <TileIcone tom="areia" forma="quadrado" tamanho="p">
+              <House />
+            </TileIcone>
             Localidades
           </h2>
           <FormularioCidade regioes={regioes} />

@@ -34,7 +34,7 @@ export default async function PaginaTarefas() {
       />
       <div className="pt-6">
         {tela ? (
-          <ListaTarefas grupos={tela.grupos} />
+          <ListaTarefas grupos={tela.grupos} colunas />
         ) : (
           <FaixaAlerta
             variante="prioritario"

@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 
 /**
  * Colunas (skill dataviz + DESIGN.md, seção "gráficos"): uma série, uma cor
- * (marinho), coluna de até 24 px com a ponta de 4 px arredondada e a base
- * reta, grade de 1 px, valor só nas colunas que a regra marcou. Cor de estado
+ * (marinho), coluna de até 24 px com a ponta em meia pílula e a base reta
+ * [v4.4], grade de 1 px, valor só nas colunas que a regra marcou. Cor de estado
  * só quando uma regra disse que o número saiu do esperado, e nunca sozinha:
  * `atencao` leva hachura e `alerta` leva cor cheia e o valor escrito sobre a
  * coluna, os dois com palavra na legenda e no detalhe. Cada coluna abre o detalhe ao passar o mouse, tocar
@@ -91,14 +91,16 @@ function caminhoColuna(
   positivo: boolean,
 ): string {
   const l = LARGURA_COLUNA;
-  const r = Math.min(4, altura);
+  // Ponta em meia pílula (direção "Colo", DESIGN.md 2.4): a coluna termina
+  // redonda, como os blocos e botões; a base continua reta, no zero.
+  const r = Math.min(LARGURA_COLUNA / 2, altura);
   if (altura < 1) return `M${x},${base}h${l}v0h${-l}z`;
   return positivo
     ? `M${x},${base}v${-(altura - r)}a${r},${r} 0 0 1 ${r},${-r}h${l - 2 * r}a${r},${r} 0 0 1 ${r},${r}v${altura - r}z`
     : `M${x},${base}v${altura - r}a${r},${r} 0 0 0 ${r},${r}h${l - 2 * r}a${r},${r} 0 0 0 ${r},${-r}v${-(altura - r)}z`;
 }
 
-function Amostra({ estado }: { estado: EstadoColuna }) {
+function Amostra({ estado, neutro }: { estado: EstadoColuna; neutro: string }) {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
       {estado === "atencao" ? (
@@ -126,7 +128,7 @@ function Amostra({ estado }: { estado: EstadoColuna }) {
           width="14"
           height="14"
           rx="3"
-          fill={estado === "alerta" ? "var(--alerta)" : "var(--marinho-50)"}
+          fill={estado === "alerta" ? "var(--alerta)" : neutro}
         />
       )}
     </svg>
@@ -145,6 +147,13 @@ export function Colunas({
 }: ColunasProps) {
   const idPadrao = React.useId();
   const [ativa, setAtiva] = React.useState<number | null>(null);
+  // Uma série só: a coluna em marinho, a tinta da casa. Com estado no
+  // gráfico (atenção, alerta), a coluna tranquila recua para marinho-50,
+  // para o estado aparecer primeiro.
+  const comEstado =
+    Boolean(legenda?.length) ||
+    dados.some((d) => d.estado && d.estado !== "neutro");
+  const neutro = comEstado ? "var(--marinho-50)" : "var(--marinho)";
 
   const teto =
     maximo ??
@@ -247,7 +256,7 @@ export function Colunas({
               ? `url(#${idPadrao}-hachura)`
               : estado === "alerta"
                 ? "var(--alerta)"
-                : "var(--marinho-50)";
+                : neutro;
           const topo = positivo ? yZero - alt : yZero + alt;
           return (
             <g
@@ -327,7 +336,7 @@ export function Colunas({
         <ul className="text-apoio text-texto-2 mt-2 flex flex-wrap gap-x-5 gap-y-1">
           {legenda.map((item) => (
             <li key={item.estado} className="inline-flex items-center gap-2">
-              <Amostra estado={item.estado} />
+              <Amostra estado={item.estado} neutro={neutro} />
               {item.rotulo}
             </li>
           ))}

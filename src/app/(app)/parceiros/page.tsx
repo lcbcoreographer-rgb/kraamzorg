@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LockKeyhole } from "lucide-react";
+import { ChartColumn, LockKeyhole } from "lucide-react";
+import { SinoCalmo } from "@/components/ilustracoes";
+import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { Botao } from "@/components/ui/botao";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { TabelaLista } from "@/components/ui/tabela-lista";
@@ -50,135 +53,150 @@ export default async function PaginaParceiros() {
   }
 
   return (
-    <div className="flex flex-col gap-8 pt-2">
-      <div className="flex flex-col gap-2">
-        <h1 className="font-titulo text-display lg:text-display-lg text-texto font-normal">
-          Parceiros médicos
-        </h1>
-        <p className="text-corpo text-texto-2 max-w-[60ch]">
-          Os médicos que conhecem a Kraamzorg, as indicações que chegaram e o
-          contato combinado com cada um.
-        </p>
-      </div>
-
-      {semMfa ? (
-        <div className="rounded-3 bg-superficie shadow-1 flex max-w-[560px] flex-col gap-3 p-5">
-          <p className="text-corpo text-texto flex items-start gap-3">
-            <LockKeyhole
-              className="text-texto-2 mt-1 size-4 shrink-0"
-              aria-hidden="true"
-              strokeWidth={1.75}
-            />
-            Esta tela cruza médicos e famílias, por isso pede o código do
-            aplicativo (MFA) antes de abrir.
-          </p>
-          <Botao
-            asChild
-            variante="secundario"
-            tamanho="compacto"
-            className="self-start"
-          >
-            <Link
-              href={`${usuario.aalPossivel === "aal2" ? "/mfa/desafio" : "/mfa/cadastro"}?proximo=${encodeURIComponent("/parceiros")}`}
+    <>
+      <CabecalhoTela
+        titulo="Parceiros médicos"
+        subtitulo="Os médicos que conhecem a Kraamzorg, as indicações que chegaram e o contato combinado com cada um."
+      />
+      <div className="flex flex-col gap-8 pt-6">
+        {semMfa ? (
+          <div className="rounded-3 bg-superficie shadow-1 flex max-w-[560px] flex-col gap-3 p-5">
+            <p className="text-corpo text-texto flex items-start gap-3">
+              <LockKeyhole
+                className="text-texto-2 mt-1 size-4 shrink-0"
+                aria-hidden="true"
+                strokeWidth={1.75}
+              />
+              Esta tela cruza médicos e famílias, por isso pede o código do
+              aplicativo (MFA) antes de abrir.
+            </p>
+            <Botao
+              asChild
+              variante="secundario"
+              tamanho="compacto"
+              className="self-start"
             >
-              Confirmar com o código
-            </Link>
-          </Botao>
-        </div>
-      ) : falhou || !lista ? (
-        <FaixaAlerta
-          variante={falhou ? "erro" : "info"}
-          titulo={
-            falhou
-              ? "Os parceiros não abriram agora"
-              : "Os parceiros não estão com o seu papel"
-          }
-        >
-          {falhou
-            ? "Confira a conexão e recarregue a página. Nada foi alterado."
-            : "Parceiros médicos e indicações são do comercial e da diretoria."}
-        </FaixaAlerta>
-      ) : (
-        <>
+              <Link
+                href={`${usuario.aalPossivel === "aal2" ? "/mfa/desafio" : "/mfa/cadastro"}?proximo=${encodeURIComponent("/parceiros")}`}
+              >
+                Confirmar com o código
+              </Link>
+            </Botao>
+          </div>
+        ) : falhou || !lista ? (
           <FaixaAlerta
-            variante="info"
-            titulo="Parceria não tem contrapartida financeira"
+            variante={falhou ? "erro" : "info"}
+            titulo={
+              falhou
+                ? "Os parceiros não abriram agora"
+                : "Os parceiros não estão com o seu papel"
+            }
           >
-            {lista.aviso}
+            {falhou
+              ? "Confira a conexão e recarregue a página. Nada foi alterado."
+              : "Parceiros médicos e indicações são do comercial e da diretoria."}
           </FaixaAlerta>
-          <PainelParceiros parceiros={lista.parceiros} familias={familias} />
-          <section aria-labelledby="relatorio" className="flex flex-col gap-3">
-            <h2
-              id="relatorio"
-              className="font-titulo text-1 text-texto font-normal"
+        ) : (
+          <>
+            <FaixaAlerta
+              variante="info"
+              titulo="Parceria não tem contrapartida financeira"
             >
-              Relatório por médico
-            </h2>
-            {relatorio && relatorio.porMedico.length > 0 ? (
-              <TabelaLista
-                rotulo="Indicações por médico parceiro"
-                colunas={[
-                  { chave: "nome", rotulo: "Médico", principal: true },
-                  { chave: "especialidade", rotulo: "Especialidade" },
-                  { chave: "indicacoes", rotulo: "Indicações", numerica: true },
-                  {
-                    chave: "qualificadas",
-                    rotulo: "Qualificadas",
-                    numerica: true,
-                  },
-                  {
-                    chave: "contratos",
-                    rotulo: "Viraram contrato",
-                    numerica: true,
-                  },
-                ]}
-                linhas={relatorio.porMedico.map((m) => ({
-                  id: m.medicoId,
-                  valores: {
-                    nome: m.nome,
-                    especialidade: ROTULO_ESPECIALIDADE[m.especialidade],
-                    indicacoes: String(m.indicacoes),
-                    qualificadas: String(m.qualificadas),
-                    contratos: String(m.contratos),
-                  },
-                }))}
-              />
-            ) : (
-              <EstadoVazio
-                nivelTitulo="h3"
-                titulo="Nenhuma indicação de médico ainda"
-                texto="Quando você registrar uma indicação de um médico parceiro, ela aparece aqui e também no relatório de origem do marketing."
-              />
-            )}
-            {relatorio && relatorio.porPromotora.length > 0 ? (
-              <TabelaLista
-                rotulo="Indicações por família promotora"
-                colunas={[
-                  {
-                    chave: "nome",
-                    rotulo: "Família que indicou",
-                    principal: true,
-                  },
-                  { chave: "indicacoes", rotulo: "Indicações", numerica: true },
-                  {
-                    chave: "contratos",
-                    rotulo: "Viraram contrato",
-                    numerica: true,
-                  },
-                ]}
-                linhas={relatorio.porPromotora.map((f) => ({
-                  id: f.familiaId,
-                  valores: {
-                    nome: f.nomeExibicao,
-                    indicacoes: String(f.indicacoes),
-                    contratos: String(f.contratos),
-                  },
-                }))}
-              />
-            ) : null}
-          </section>
-        </>
-      )}
-    </div>
+              {lista.aviso}
+            </FaixaAlerta>
+            <PainelParceiros parceiros={lista.parceiros} familias={familias} />
+            <section
+              aria-labelledby="relatorio"
+              className="flex flex-col gap-3"
+            >
+              <h2
+                id="relatorio"
+                className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
+              >
+                <TileIcone tom="areia" forma="quadrado">
+                  <ChartColumn />
+                </TileIcone>
+                Relatório por médico
+              </h2>
+              {relatorio && relatorio.porMedico.length > 0 ? (
+                <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
+                  <TabelaLista
+                    rotulo="Indicações por médico parceiro"
+                    colunas={[
+                      { chave: "nome", rotulo: "Médico", principal: true },
+                      { chave: "especialidade", rotulo: "Especialidade" },
+                      {
+                        chave: "indicacoes",
+                        rotulo: "Indicações",
+                        numerica: true,
+                      },
+                      {
+                        chave: "qualificadas",
+                        rotulo: "Qualificadas",
+                        numerica: true,
+                      },
+                      {
+                        chave: "contratos",
+                        rotulo: "Viraram contrato",
+                        numerica: true,
+                      },
+                    ]}
+                    linhas={relatorio.porMedico.map((m) => ({
+                      id: m.medicoId,
+                      valores: {
+                        nome: m.nome,
+                        especialidade: ROTULO_ESPECIALIDADE[m.especialidade],
+                        indicacoes: String(m.indicacoes),
+                        qualificadas: String(m.qualificadas),
+                        contratos: String(m.contratos),
+                      },
+                    }))}
+                  />
+                </div>
+              ) : (
+                <EstadoVazio
+                  nivelTitulo="h3"
+                  ilustracao={<SinoCalmo tamanho={96} />}
+                  titulo="Nenhuma indicação de médico ainda"
+                  texto="Quando você registrar uma indicação de um médico parceiro, ela aparece aqui e também no relatório de origem do marketing."
+                />
+              )}
+              {relatorio && relatorio.porPromotora.length > 0 ? (
+                <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
+                  <TabelaLista
+                    rotulo="Indicações por família promotora"
+                    colunas={[
+                      {
+                        chave: "nome",
+                        rotulo: "Família que indicou",
+                        principal: true,
+                      },
+                      {
+                        chave: "indicacoes",
+                        rotulo: "Indicações",
+                        numerica: true,
+                      },
+                      {
+                        chave: "contratos",
+                        rotulo: "Viraram contrato",
+                        numerica: true,
+                      },
+                    ]}
+                    linhas={relatorio.porPromotora.map((f) => ({
+                      id: f.familiaId,
+                      valores: {
+                        nome: f.nomeExibicao,
+                        indicacoes: String(f.indicacoes),
+                        contratos: String(f.contratos),
+                      },
+                    }))}
+                  />
+                </div>
+              ) : null}
+            </section>
+          </>
+        )}
+      </div>
+    </>
   );
 }

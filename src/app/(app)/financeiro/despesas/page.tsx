@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { AvisoAcesso } from "@/components/shell/aviso-acesso";
+import { Plus } from "lucide-react";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { hojeEmBrasilia } from "@/lib/agenda/datas";
 import { buscaParaMes, mesParaBusca } from "@/lib/gestao/formato";
@@ -66,12 +68,15 @@ export default async function PaginaDespesas({
           <>
             <section
               aria-labelledby="desp-form"
-              className="bg-superficie rounded-3 shadow-1 flex max-w-[720px] flex-col gap-4 p-5"
+              className="bg-superficie rounded-3 shadow-1 flex max-w-[720px] flex-col gap-4 p-5 lg:p-6"
             >
               <h2
                 id="desp-form"
-                className="font-titulo text-2 text-texto font-medium"
+                className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
               >
+                <TileIcone tom="dourado" forma="quadrado" tamanho="p">
+                  <Plus />
+                </TileIcone>
                 {emCorrecao ? "Corrigir a despesa" : "Lançar uma despesa"}
               </h2>
               <FormDespesa

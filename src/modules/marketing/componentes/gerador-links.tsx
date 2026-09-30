@@ -5,7 +5,9 @@ import { useFormularioSemReset } from "@/modules/relacao/usar-formulario";
 import { Botao } from "@/components/ui/botao";
 import { CampoTexto } from "@/components/ui/campo-texto";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
+import { Plus } from "lucide-react";
 import { Selo } from "@/components/ui/selo";
+import { TileIcone } from "@/components/ui/tile-icone";
 import type { CanaisMarketing, CanalCaptacao } from "@/lib/dados/tipos-relacao";
 import { CampoSelecao } from "@/modules/configuracoes/componentes/campo-selecao";
 import { BotaoCopiar } from "@/modules/relacao/botao-copiar";
@@ -38,7 +40,7 @@ function CartaoCanal({
         <h3 className="font-titulo text-2 text-texto font-medium">
           {canal.nome}
         </h3>
-        <span className="text-apoio text-texto-2 font-mono">
+        <span className="rounded-pilula bg-areia-clara text-apoio text-texto px-2.5 py-0.5 font-mono">
           {codigoDeOrigem(canais.prefixo, canal.codigo)}
         </span>
         <Selo variante={canal.ativo ? "sucesso" : "neutro"}>
@@ -55,7 +57,7 @@ function CartaoCanal({
       </p>
 
       <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1">
+        <div className="rounded-2 bg-areia-clara flex flex-col gap-1 p-3">
           <span className="text-apoio text-texto font-semibold">
             Página de captação (com verificação e UTM)
           </span>
@@ -66,7 +68,7 @@ function CartaoCanal({
             rotuloAcessivel={`Copiar o endereço da página do canal ${canal.nome}`}
           />
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="rounded-2 bg-areia-clara flex flex-col gap-1 p-3">
           <span className="text-apoio text-texto font-semibold">
             Link direto do WhatsApp (código no texto)
           </span>
@@ -126,9 +128,14 @@ function FormularioNovoCanal() {
     <form
       ref={ref}
       onSubmit={acao}
-      className="rounded-3 bg-superficie-2 flex max-w-[560px] flex-col gap-4 p-5"
+      className="rounded-3 bg-dourado-claro flex max-w-[560px] flex-col gap-4 p-5 lg:p-6"
     >
-      <h3 className="font-titulo text-2 text-texto font-medium">Novo canal</h3>
+      <h3 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+        <TileIcone tom="dourado" forma="quadrado" tamanho="p">
+          <Plus />
+        </TileIcone>
+        Novo canal
+      </h3>
       <CampoTexto
         rotulo="Código"
         name="codigo"
@@ -190,7 +197,7 @@ export function GeradorLinks({
           código que vai no texto da mensagem e diz de onde a família veio.
         </p>
       ) : (
-        <ul className="flex flex-col gap-4">
+        <ul className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
           {canais.canais.map((canal) => (
             <CartaoCanal
               key={canal.id}

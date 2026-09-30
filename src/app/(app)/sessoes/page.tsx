@@ -75,45 +75,49 @@ export default async function PaginaSessoes() {
             }
           />
         ) : (
-          <TabelaLista
-            rotulo="Pessoas com acesso ao sistema"
-            colunas={[
-              { chave: "pessoa", rotulo: "Pessoa", principal: true },
-              { chave: "situacao", rotulo: "Situação", canto: true },
-              { chave: "papeis", rotulo: "Papéis" },
-              { chave: "acesso", rotulo: "Último acesso", numerica: true },
-              { chave: "acao", rotulo: "Sessões" },
-            ]}
-            linhas={usuarios.map((u) => ({
-              id: u.id,
-              valores: {
-                pessoa: (
-                  <span className="flex flex-col">
-                    <span className="text-texto font-semibold">{u.nome}</span>
-                    <span className="text-apoio text-texto-2 font-normal [overflow-wrap:anywhere]">
-                      {u.email}
+          // Tela densa: a tabela mora num bloco branco no computador; no
+          // celular cada linha já vira um cartão.
+          <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
+            <TabelaLista
+              rotulo="Pessoas com acesso ao sistema"
+              colunas={[
+                { chave: "pessoa", rotulo: "Pessoa", principal: true },
+                { chave: "situacao", rotulo: "Situação", canto: true },
+                { chave: "papeis", rotulo: "Papéis" },
+                { chave: "acesso", rotulo: "Último acesso", numerica: true },
+                { chave: "acao", rotulo: "Sessões" },
+              ]}
+              linhas={usuarios.map((u) => ({
+                id: u.id,
+                valores: {
+                  pessoa: (
+                    <span className="flex flex-col">
+                      <span className="text-texto font-semibold">{u.nome}</span>
+                      <span className="text-apoio text-texto-2 font-normal [overflow-wrap:anywhere]">
+                        {u.email}
+                      </span>
                     </span>
-                  </span>
-                ),
-                situacao: u.ativo ? (
-                  <Selo variante="sucesso">Ativo</Selo>
-                ) : (
-                  <Selo variante="neutro">Desativado</Selo>
-                ),
-                papeis: u.papeis.length
-                  ? descreverPapeis(u.papeis)
-                  : "Sem papel",
-                acesso: u.ultimoAcessoEm ? (
-                  <span className="font-mono">
-                    {formatarDataHora(u.ultimoAcessoEm)}
-                  </span>
-                ) : (
-                  "Nunca entrou"
-                ),
-                acao: <RevogarSessoes usuarioId={u.id} nome={u.nome} />,
-              },
-            }))}
-          />
+                  ),
+                  situacao: u.ativo ? (
+                    <Selo variante="sucesso">Ativo</Selo>
+                  ) : (
+                    <Selo variante="neutro">Desativado</Selo>
+                  ),
+                  papeis: u.papeis.length
+                    ? descreverPapeis(u.papeis)
+                    : "Sem papel",
+                  acesso: u.ultimoAcessoEm ? (
+                    <span className="font-mono">
+                      {formatarDataHora(u.ultimoAcessoEm)}
+                    </span>
+                  ) : (
+                    "Nunca entrou"
+                  ),
+                  acao: <RevogarSessoes usuarioId={u.id} nome={u.nome} />,
+                },
+              }))}
+            />
+          </div>
         )}
       </div>
     </>

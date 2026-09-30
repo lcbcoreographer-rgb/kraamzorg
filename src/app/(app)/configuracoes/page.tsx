@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
+import { ChaveDeCasa } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { exigirSessao } from "@/lib/auth/sessao";
 import {
@@ -30,6 +31,9 @@ const ABAS_DIRETORIA: AbaConfiguracoes[] = [
 const ABAS_COORDENACAO: AbaConfiguracoes[] = [
   { chave: "termos-alerta", rotulo: "Termos de alerta" },
 ];
+
+const BLOCO_TABELA =
+  "min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-4 lg:p-5";
 
 /**
  * Configurações (P13): parâmetros com validação por tipo e histórico,
@@ -71,23 +75,32 @@ export default async function PaginaConfiguracoes({
       <div className="mt-4">
         <AbasConfiguracoes abas={abas} ativa={aba} />
       </div>
+      {/* Tela densa (DESIGN.md, 2: Restrained): as tabelas moram num bloco
+          branco no computador; no celular cada linha já vira um cartão. */}
       <div className="pt-6">
         {aba === "parametros" && vePreco ? (
-          <SecaoParametros />
+          <div className={BLOCO_TABELA}>
+            <SecaoParametros />
+          </div>
         ) : aba === "pacotes" && vePreco ? (
           <SecaoPacotes />
         ) : aba === "regioes" && vePreco ? (
           <SecaoRegioes />
         ) : aba === "condicoes" && vePreco ? (
-          <SecaoCondicoes />
+          <div className={BLOCO_TABELA}>
+            <SecaoCondicoes />
+          </div>
         ) : aba === "mensagens" && vePreco ? (
           <SecaoMensagens />
         ) : aba === "termos-alerta" ? (
-          <SecaoTermosAlerta />
+          <div className={BLOCO_TABELA}>
+            <SecaoTermosAlerta />
+          </div>
         ) : aba === "regua" && vePreco ? (
           <SecaoRegua />
         ) : (
           <EstadoVazio
+            ilustracao={<ChaveDeCasa tamanho={104} />}
             titulo="Esta seção não está disponível para o seu papel"
             texto="Volte para os termos de alerta ou fale com a diretoria se precisar de mais acesso."
           />

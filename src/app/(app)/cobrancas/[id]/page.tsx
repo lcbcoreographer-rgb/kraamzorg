@@ -97,7 +97,7 @@ export default async function PaginaCobranca({
     <>
       {voltar}
       <div className="flex flex-col gap-6 pt-2">
-        <header className="bg-superficie-2 -mx-4 flex flex-col gap-2 px-4 pt-4 pb-5 lg:-mx-8 lg:px-8">
+        <header className="rounded-3 bg-superficie-2 flex flex-col gap-2 p-5 lg:px-8 lg:py-6">
           <h1 className="font-titulo text-1 text-texto font-normal">
             Cobrança da {cobranca.familiaNome}
           </h1>
