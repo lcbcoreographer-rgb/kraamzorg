@@ -88,14 +88,17 @@ export function ReciboConta({
             </dd>
           </>
         ) : null}
-        <dt className="text-texto border-linha border-t pt-2 font-semibold">
-          Total
-        </dt>
-        <dd className="text-texto text-dado-lg border-linha border-t pt-2 pl-4 text-right font-mono font-semibold tabular-nums">
-          {formatarMoeda(conta.totalCentavos)}
-        </dd>
       </dl>
-      <div className="flex flex-col gap-2">
+      {/* O total é o número da proposta (DESIGN.md, 2.6): em Jost, grande,
+          num bloco branco que encaixa no resumo, com as parcelas logo
+          abaixo em blocos. */}
+      <div className="rounded-3 bg-superficie flex flex-col gap-3 p-4">
+        <p className="flex flex-col gap-1">
+          <span className="text-apoio text-texto-2 font-medium">Total</span>
+          <span className="font-titulo text-display text-texto font-medium tabular-nums">
+            {formatarMoeda(conta.totalCentavos)}
+          </span>
+        </p>
         <ReguaFina total={conta.parcelas} preenchida />
         <p className="text-apoio text-texto-2">{fraseParcelas(conta)}</p>
       </div>

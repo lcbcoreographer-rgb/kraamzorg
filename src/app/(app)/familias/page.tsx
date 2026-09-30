@@ -1,12 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { OctagonPause, Search } from "lucide-react";
+import type * as React from "react";
+import {
+  CalendarClock,
+  House,
+  Kanban,
+  OctagonPause,
+  Search,
+  Users,
+} from "lucide-react";
+import { SecaoBloco } from "@/components/blocos/secao-bloco";
+import { ChaveDeCasa, FolhaLupa } from "@/components/ilustracoes";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
-import { Cartao } from "@/components/ui/cartao";
+import { Botao } from "@/components/ui/botao";
 import { CampoTexto } from "@/components/ui/campo-texto";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
+import { ItemBloco, ListaBlocos } from "@/components/ui/lista-blocos";
 import { Selo } from "@/components/ui/selo";
+import type { Tom } from "@/components/ui/tons";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { localidade } from "@/lib/formatacao";
 import { listarFamiliasTela } from "@/modules/crm/ficha/dados";
@@ -19,6 +31,100 @@ function texto(pesquisa: Pesquisa, chave: string): string | undefined {
   const valor = pesquisa[chave];
   const primeiro = Array.isArray(valor) ? valor[0] : valor;
   return primeiro?.trim() || undefined;
+}
+
+type Familia = Awaited<ReturnType<typeof listarFamiliasTela>>[number];
+type ChaveGrupo = "gestando" | "nasceu" | "sem_data" | "freio";
+
+const GRUPOS: {
+  chave: ChaveGrupo;
+  titulo: string;
+  icone: React.ReactNode;
+  /** Sem tom: o grupo das famílias com o freio (momento sensível). */
+  tom?: Tom;
+}[] = [
+  {
+    chave: "gestando",
+    titulo: "Gestando",
+    icone: <CalendarClock />,
+    tom: "lavanda",
+  },
+  {
+    chave: "nasceu",
+    titulo: "O bebê já nasceu",
+    icone: <House />,
+    tom: "areia",
+  },
+  {
+    chave: "sem_data",
+    titulo: "Sem data registrada",
+    icone: <Users />,
+    tom: "areia",
+  },
+  { chave: "freio", titulo: "Com o freio puxado", icone: <OctagonPause /> },
+];
+
+function grupoDa(familia: Familia): ChaveGrupo {
+  if (
+    familia.estadoSensivel === "bloqueio_total" ||
+    familia.estadoSensivel === "encerrado_sensivel"
+  ) {
+    return "freio";
+  }
+  if (familia.dataNascimento) return "nasceu";
+  if (familia.dpp) return "gestando";
+  return "sem_data";
+}
+
+/**
+ * Uma família na lista: bloco no tom do grupo com a casa num tile; a ficha
+ * abre com um toque. Com o freio, bloco branco, sem tile e sem tom.
+ */
+function LinhaFamilia({ familia, tom }: { familia: Familia; tom?: Tom }) {
+  const lugar = localidade(familia.bairro, familia.cidade);
+  const comFreio = familia.estadoSensivel !== "normal";
+  return (
+    <ItemBloco
+      href={`/familias/${familia.id}`}
+      fundo={tom && !comFreio ? "tom" : "branco"}
+      tom={tom ?? "areia"}
+      icone={tom && !comFreio ? <House /> : undefined}
+      titulo={familia.nome}
+      apoio={
+        <span className="flex flex-col gap-1.5">
+          {familia.idadeGestacional || lugar ? (
+            <span className="flex flex-wrap gap-x-3 gap-y-0.5">
+              {familia.idadeGestacional ? (
+                <span className="font-mono">{familia.idadeGestacional}</span>
+              ) : null}
+              {lugar ? <span>{lugar}</span> : null}
+            </span>
+          ) : null}
+          {familia.naoContatar || comFreio ? (
+            // Selo abaixo do bairro e da cidade, nunca ao lado do nome
+            // (crítica do CRM, P1 item 17).
+            <span className="flex flex-wrap gap-1.5">
+              {familia.naoContatar ? (
+                <Selo variante="aviso">Não contatar</Selo>
+              ) : null}
+              {comFreio ? (
+                <Selo
+                  variante="sensivel"
+                  icone={<OctagonPause aria-hidden="true" />}
+                >
+                  {familia.estadoSensivel === "bloqueio_total"
+                    ? "Freio em bloqueio total"
+                    : familia.estadoSensivel === "atencao"
+                      ? "Freio em atenção"
+                      : "Encerrado sensível"}
+                </Selo>
+              ) : null}
+            </span>
+          ) : null}
+        </span>
+      }
+    />
+  );
 }
 
 /**
@@ -47,12 +153,26 @@ export default async function PaginaFamilias({
 
   return (
     <>
-      <CabecalhoTela titulo="Famílias" />
+      <CabecalhoTela
+        titulo="Famílias"
+        lateral={
+          <Botao
+            asChild
+            variante="fantasma"
+            tamanho="compacto"
+            iconeEsquerda={<Kanban aria-hidden="true" className="size-4" />}
+          >
+            <Link href="/pipeline">Ver pelo pipeline</Link>
+          </Botao>
+        }
+      />
 
+      {/* A busca num bloco macio (direção "Colo", DESIGN.md 2.3), como os
+          filtros do pipeline. */}
       <form
         method="get"
         action="/familias"
-        className="border-linha flex flex-col gap-3 border-b pt-4 pb-4 sm:flex-row sm:items-end"
+        className="rounded-3 bg-areia-clara tablet:flex-row tablet:items-end mt-2 flex flex-col gap-3 p-4"
       >
         <CampoTexto
           rotulo="Buscar"
@@ -67,9 +187,12 @@ export default async function PaginaFamilias({
             />
           }
         />
+        <Botao type="submit" variante="secundario" className="tablet:self-end">
+          Buscar
+        </Botao>
       </form>
 
-      <div className="pt-4">
+      <div className="pt-8">
         {falhou ? (
           <FaixaAlerta
             variante="erro"
@@ -80,6 +203,14 @@ export default async function PaginaFamilias({
           </FaixaAlerta>
         ) : familias.length === 0 ? (
           <EstadoVazio
+            nivelTitulo="h2"
+            ilustracao={
+              busca ? (
+                <FolhaLupa tamanho={104} />
+              ) : (
+                <ChaveDeCasa tamanho={104} />
+              )
+            }
             titulo={
               busca
                 ? "Nenhuma família encontrada"
@@ -92,63 +223,43 @@ export default async function PaginaFamilias({
             }
           />
         ) : (
-          <ul className="flex flex-col gap-2">
-            {familias.map((familia) => (
-              <li key={familia.id}>
-                {/* Selo de freio abaixo do bairro e da cidade, nunca ao
-                    lado do nome (o nome ficava espremido, crítica do CRM,
-                    P1 item 17). */}
-                <Cartao
-                  tocavel
-                  href={`/familias/${familia.id}`}
-                  className="flex flex-col gap-1.5"
+          // Três blocos pela fase da família (DESIGN.md, 6.1, item 1): quem
+          // está gestando (o tempo até a DPP, lavanda), quem já teve o bebê
+          // (areia, a família) e quem está com o freio em bloqueio ou
+          // encerrada em estado sensível, em branco e sem tom, fora da
+          // palavra "gestando" (seção 11.8). Freio em atenção fica na fase
+          // dela, com o selo.
+          <div className="flex flex-col gap-10">
+            {GRUPOS.map((grupo) => {
+              const doGrupo = familias.filter(
+                (f) => grupoDa(f) === grupo.chave,
+              );
+              if (doGrupo.length === 0) return null;
+              return (
+                <SecaoBloco
+                  key={grupo.chave}
+                  idTitulo={`t-familias-${grupo.chave}`}
+                  titulo={grupo.titulo}
+                  icone={grupo.icone}
+                  tom={grupo.tom ?? "areia"}
+                  semTom={!grupo.tom}
+                  contagem={doGrupo.length}
                 >
-                  <span className="text-corpo font-semibold">
-                    {familia.nome}
-                  </span>
-                  <span className="text-apoio text-texto-2 flex flex-wrap gap-x-3 gap-y-0.5">
-                    {familia.idadeGestacional ? (
-                      <span className="font-mono">
-                        {familia.idadeGestacional}
-                      </span>
-                    ) : null}
-                    {localidade(familia.bairro, familia.cidade) ? (
-                      <span>{localidade(familia.bairro, familia.cidade)}</span>
-                    ) : null}
-                  </span>
-                  {familia.naoContatar ||
-                  familia.estadoSensivel !== "normal" ? (
-                    <div className="flex flex-wrap gap-1.5 pt-0.5">
-                      {familia.naoContatar ? (
-                        <Selo variante="aviso">Não contatar</Selo>
-                      ) : null}
-                      {familia.estadoSensivel !== "normal" ? (
-                        <Selo
-                          variante="sensivel"
-                          icone={<OctagonPause aria-hidden="true" />}
-                        >
-                          {familia.estadoSensivel === "bloqueio_total"
-                            ? "Freio em bloqueio total"
-                            : familia.estadoSensivel === "atencao"
-                              ? "Freio em atenção"
-                              : "Encerrado sensível"}
-                        </Selo>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </Cartao>
-              </li>
-            ))}
-          </ul>
+                  <ListaBlocos className="tablet:grid tablet:grid-cols-2 lg:grid-cols-3">
+                    {doGrupo.map((familia) => (
+                      <LinhaFamilia
+                        key={familia.id}
+                        familia={familia}
+                        tom={grupo.tom}
+                      />
+                    ))}
+                  </ListaBlocos>
+                </SecaoBloco>
+              );
+            })}
+          </div>
         )}
       </div>
-
-      <p className="text-mini text-texto-2 mt-2">
-        <Link href="/pipeline" className="underline underline-offset-2">
-          Ver pelo pipeline
-        </Link>{" "}
-        agrupa por estágio comercial, com mais filtros.
-      </p>
     </>
   );
 }

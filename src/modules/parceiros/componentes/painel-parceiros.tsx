@@ -1,11 +1,13 @@
 "use client";
 
+import { HeartHandshake, Stethoscope, UserPlus } from "lucide-react";
 import * as React from "react";
 import { useFormularioSemReset } from "@/modules/relacao/usar-formulario";
 import { Botao } from "@/components/ui/botao";
 import { CampoTexto } from "@/components/ui/campo-texto";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
+import { TileIcone } from "@/components/ui/tile-icone";
 import type { ParceiroMedico } from "@/lib/dados/tipos-relacao";
 import { formatarData, formatarTelefone } from "@/lib/formatacao";
 import { CampoSelecao } from "@/modules/configuracoes/componentes/campo-selecao";
@@ -37,6 +39,9 @@ function CartaoParceiro({ p }: { p: ParceiroMedico }) {
       data-parceiro={p.nome}
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <TileIcone tom="argila" forma="quadrado">
+          <Stethoscope />
+        </TileIcone>
         <h3 className="font-titulo text-2 text-texto font-medium">{p.nome}</h3>
         <Selo variante="contorno">{ROTULO_ESPECIALIDADE[p.especialidade]}</Selo>
         <Selo
@@ -146,9 +151,12 @@ function FormularioParceiro() {
     <form
       ref={ref}
       onSubmit={acao}
-      className="rounded-3 bg-superficie-2 flex max-w-[560px] flex-col gap-4 p-5"
+      className="rounded-3 bg-dourado-claro flex w-full max-w-[560px] flex-col gap-4 p-5 lg:p-6"
     >
-      <h3 className="font-titulo text-2 text-texto font-medium">
+      <h3 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+        <TileIcone tom="dourado" forma="quadrado" tamanho="p">
+          <UserPlus />
+        </TileIcone>
         Novo médico parceiro
       </h3>
       <CampoTexto rotulo="Nome" name="nome" required maxLength={120} />
@@ -230,9 +238,12 @@ function FormularioIndicacao({
   return (
     <form
       onSubmit={acao}
-      className="rounded-3 bg-superficie-2 flex max-w-[560px] flex-col gap-4 p-5"
+      className="rounded-3 bg-argila-clara flex w-full max-w-[560px] flex-col gap-4 p-5 lg:p-6"
     >
-      <h3 className="font-titulo text-2 text-texto font-medium">
+      <h3 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+        <TileIcone tom="argila" forma="quadrado" tamanho="p">
+          <HeartHandshake />
+        </TileIcone>
         Registrar uma indicação
       </h3>
       <CampoSelecao
@@ -292,7 +303,7 @@ export function PainelParceiros({
           as indicações passam a ficar registrados aqui.
         </p>
       ) : (
-        <ul className="flex flex-col gap-4">
+        <ul className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
           {parceiros.map((p) => (
             <CartaoParceiro key={p.medicoId} p={p} />
           ))}

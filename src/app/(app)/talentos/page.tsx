@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LockKeyhole } from "lucide-react";
+import { LockKeyhole, Users } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
+import { SecaoBloco } from "@/components/blocos/secao-bloco";
+import { ChaveDeCasa } from "@/components/ilustracoes";
+import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
@@ -39,125 +42,140 @@ export default async function PaginaTalentos() {
   }
 
   return (
-    <div className="flex flex-col gap-8 pt-2">
-      <div className="flex flex-col gap-2">
-        <h1 className="font-titulo text-display lg:text-display-lg text-texto font-normal">
-          Banco de talentos
-        </h1>
-        <p className="text-corpo text-texto-2 max-w-[60ch]">
-          As candidatas em seleção, a etapa de cada uma e a nota da entrevista.
-        </p>
-      </div>
-
-      {semMfa ? (
-        <div className="rounded-3 bg-superficie shadow-1 flex max-w-[560px] flex-col gap-3 p-5">
-          <p className="text-corpo text-texto flex items-start gap-3">
-            <LockKeyhole
-              className="text-texto-2 mt-1 size-4 shrink-0"
-              aria-hidden="true"
-              strokeWidth={1.75}
-            />
-            Esta tela guarda dados de candidatas, por isso pede o código do
-            aplicativo (MFA) antes de abrir.
-          </p>
-          <Botao
-            asChild
-            variante="secundario"
-            tamanho="compacto"
-            className="self-start"
-          >
-            <Link
-              href={`${usuario.aalPossivel === "aal2" ? "/mfa/desafio" : "/mfa/cadastro"}?proximo=${encodeURIComponent("/talentos")}`}
+    <>
+      <CabecalhoTela
+        titulo="Banco de talentos"
+        subtitulo="As candidatas em seleção, a etapa de cada uma e a nota da entrevista."
+      />
+      <div className="flex flex-col gap-8 pt-6">
+        {semMfa ? (
+          <div className="rounded-3 bg-superficie shadow-1 flex max-w-[560px] flex-col gap-3 p-5">
+            <p className="text-corpo text-texto flex items-start gap-3">
+              <LockKeyhole
+                className="text-texto-2 mt-1 size-4 shrink-0"
+                aria-hidden="true"
+                strokeWidth={1.75}
+              />
+              Esta tela guarda dados de candidatas, por isso pede o código do
+              aplicativo (MFA) antes de abrir.
+            </p>
+            <Botao
+              asChild
+              variante="secundario"
+              tamanho="compacto"
+              className="self-start"
             >
-              Confirmar com o código
-            </Link>
-          </Botao>
-        </div>
-      ) : falhou || !lista ? (
-        <FaixaAlerta
-          variante={falhou ? "erro" : "info"}
-          titulo={
-            falhou
-              ? "O banco de talentos não abriu agora"
-              : "O banco de talentos é da coordenação e da diretoria"
-          }
-        >
-          {falhou
-            ? "Confira a conexão e recarregue a página. Nada foi alterado."
-            : "Peça o acesso à coordenação."}
-        </FaixaAlerta>
-      ) : (
-        <>
+              <Link
+                href={`${usuario.aalPossivel === "aal2" ? "/mfa/desafio" : "/mfa/cadastro"}?proximo=${encodeURIComponent("/talentos")}`}
+              >
+                Confirmar com o código
+              </Link>
+            </Botao>
+          </div>
+        ) : falhou || !lista ? (
           <FaixaAlerta
-            variante="info"
+            variante={falhou ? "erro" : "info"}
             titulo={
-              lista.paginaPublicaAtiva
-                ? "Página de candidatura aberta"
-                : "Página de candidatura desligada"
+              falhou
+                ? "O banco de talentos não abriu agora"
+                : "O banco de talentos é da coordenação e da diretoria"
             }
           >
-            {lista.paginaPublicaAtiva
-              ? "Quem se candidatar pelo site entra aqui como Nova."
-              : "Por enquanto ninguém se candidata pelo site. Para abrir, a diretoria liga o parâmetro da página de candidatura em Configurações."}
+            {falhou
+              ? "Confira a conexão e recarregue a página. Nada foi alterado."
+              : "Peça o acesso à coordenação."}
           </FaixaAlerta>
-          {lista.candidatas.length === 0 ? (
-            <EstadoVazio
-              nivelTitulo="h2"
-              titulo="Nenhuma candidata ainda"
-              texto="Cadastre a primeira abaixo. A entrevista e as notas ficam na ficha de cada uma."
-            />
-          ) : (
-            <TabelaLista
-              rotulo="Candidatas"
-              colunas={[
-                { chave: "nome", rotulo: "Candidata", principal: true },
-                { chave: "estado", rotulo: "Etapa", canto: true },
-                { chave: "cidade", rotulo: "Cidade" },
-                { chave: "chegou", rotulo: "Chegou em" },
-                { chave: "avaliacoes", rotulo: "Entrevistas", numerica: true },
-                { chave: "media", rotulo: "Média", numerica: true },
-              ]}
-              linhas={lista.candidatas.map((c) => ({
-                id: c.id,
-                valores: {
-                  nome: (
-                    <Link
-                      href={`/talentos/${c.id}`}
-                      className="text-texto underline underline-offset-4"
-                    >
-                      {c.nome}
-                    </Link>
-                  ),
-                  estado: (
-                    <Selo
-                      variante={
-                        c.estado === "aprovada"
-                          ? "sucesso"
-                          : c.estado === "nova"
-                            ? "destaque"
-                            : c.estado === "nao_seguiu" ||
-                                c.estado === "desistiu"
-                              ? "contorno"
-                              : "neutro"
-                      }
-                    >
-                      {ROTULO_ESTADO_CANDIDATA[c.estado]}
-                    </Selo>
-                  ),
-                  cidade: c.cidade ?? "",
-                  chegou: formatarData(c.criadoEm),
-                  avaliacoes: String(c.avaliacoes),
-                  media:
-                    c.mediaGeral === null
-                      ? "sem nota"
-                      : c.mediaGeral.toFixed(1).replace(".", ","),
-                },
-              }))}
-            />
-          )}
-          <FormularioCandidata />
-        </>
-      )}
-    </div>
+        ) : (
+          <>
+            <FaixaAlerta
+              variante="info"
+              titulo={
+                lista.paginaPublicaAtiva
+                  ? "Página de candidatura aberta"
+                  : "Página de candidatura desligada"
+              }
+            >
+              {lista.paginaPublicaAtiva
+                ? "Quem se candidatar pelo site entra aqui como Nova."
+                : "Por enquanto ninguém se candidata pelo site. Para abrir, a diretoria liga o parâmetro da página de candidatura em Configurações."}
+            </FaixaAlerta>
+            {/* Computador: as candidatas à esquerda, o cadastro ao lado. */}
+            <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[62fr_38fr]">
+              {lista.candidatas.length === 0 ? (
+                <EstadoVazio
+                  nivelTitulo="h2"
+                  ilustracao={<ChaveDeCasa tamanho={104} />}
+                  titulo="Nenhuma candidata ainda"
+                  texto="Cadastre a primeira abaixo. A entrevista e as notas ficam na ficha de cada uma."
+                />
+              ) : (
+                <SecaoBloco
+                  idTitulo="t-candidatas"
+                  titulo="Em seleção"
+                  icone={<Users />}
+                  tom="argila"
+                  contagem={lista.candidatas.length}
+                >
+                  <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
+                    <TabelaLista
+                      rotulo="Candidatas"
+                      colunas={[
+                        { chave: "nome", rotulo: "Candidata", principal: true },
+                        { chave: "estado", rotulo: "Etapa", canto: true },
+                        { chave: "cidade", rotulo: "Cidade" },
+                        { chave: "chegou", rotulo: "Chegou em" },
+                        {
+                          chave: "avaliacoes",
+                          rotulo: "Entrevistas",
+                          numerica: true,
+                        },
+                        { chave: "media", rotulo: "Média", numerica: true },
+                      ]}
+                      linhas={lista.candidatas.map((c) => ({
+                        id: c.id,
+                        valores: {
+                          nome: (
+                            <Link
+                              href={`/talentos/${c.id}`}
+                              className="text-texto underline underline-offset-4"
+                            >
+                              {c.nome}
+                            </Link>
+                          ),
+                          estado: (
+                            <Selo
+                              variante={
+                                c.estado === "aprovada"
+                                  ? "sucesso"
+                                  : c.estado === "nova"
+                                    ? "destaque"
+                                    : c.estado === "nao_seguiu" ||
+                                        c.estado === "desistiu"
+                                      ? "contorno"
+                                      : "neutro"
+                              }
+                            >
+                              {ROTULO_ESTADO_CANDIDATA[c.estado]}
+                            </Selo>
+                          ),
+                          cidade: c.cidade ?? "",
+                          chegou: formatarData(c.criadoEm),
+                          avaliacoes: String(c.avaliacoes),
+                          media:
+                            c.mediaGeral === null
+                              ? "sem nota"
+                              : c.mediaGeral.toFixed(1).replace(".", ","),
+                        },
+                      }))}
+                    />
+                  </div>
+                </SecaoBloco>
+              )}
+              <FormularioCandidata />
+            </div>
+          </>
+        )}
+      </div>
+    </>
   );
 }

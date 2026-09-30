@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { FiltroPilula } from "@/components/blocos/filtro-pilula";
 import { somarMeses } from "@/lib/gestao/financeiro";
 import { rotuloMes, mesParaBusca } from "@/lib/gestao/formato";
 
 /**
  * As quatro telas do financeiro da Fase 3 (P46): visão do mês, despesas,
  * pagamento da equipe e conferência do extrato. Mesmo desenho dos filtros de
- * cobranças (pílulas de 44 px).
+ * cobranças: trilha em pílula, a tela atual em branco [v4.4].
  */
 const TELAS = [
   { href: "/financeiro", rotulo: "Visão do mês" },
@@ -24,27 +25,17 @@ export function NavegacaoFinanceiro({
   mes?: string;
 }) {
   return (
-    <nav aria-label="Telas do financeiro" className="flex flex-wrap gap-2">
-      {TELAS.map((t) => {
-        const ativo = t.href === atual;
+    <FiltroPilula
+      rotulo="Telas do financeiro"
+      itens={TELAS.map((t) => {
         const comMes = mes && t.href !== "/financeiro/extrato";
-        return (
-          <Link
-            key={t.href}
-            href={comMes ? `${t.href}?mes=${mesParaBusca(mes)}` : t.href}
-            aria-current={ativo ? "page" : undefined}
-            className={cn(
-              "rounded-pilula min-h-toque text-apoio inline-flex items-center px-4 font-semibold no-underline",
-              ativo
-                ? "bg-marinho text-texto-inverso"
-                : "border-borda-campo bg-superficie text-texto hover:bg-marinho-08 border-[1.5px]",
-            )}
-          >
-            {t.rotulo}
-          </Link>
-        );
+        return {
+          rotulo: t.rotulo,
+          href: comMes ? `${t.href}?mes=${mesParaBusca(mes)}` : t.href,
+          ativo: t.href === atual,
+        };
       })}
-    </nav>
+    />
   );
 }
 
@@ -63,28 +54,36 @@ export function SeletorMes({
   const podeSeguir = seguinte <= `${hoje.slice(0, 7)}-01`;
   const link = (m: string) => `${caminho}?mes=${mesParaBusca(m)}`;
   return (
+    // O mês como um calendário de bolso (direção "Colo"): trilha lavanda
+    // (o tempo), o mês em vista numa pílula branca e os vizinhos com a seta.
     <nav
       aria-label="Escolher o mês"
-      className="flex flex-wrap items-center gap-2"
+      className="rounded-pilula bg-lavanda-clara flex w-fit max-w-full flex-wrap items-center gap-1 p-1"
     >
       <Link
         href={link(anterior)}
-        className="rounded-pilula border-borda-campo bg-superficie text-texto hover:bg-marinho-08 min-h-toque text-apoio inline-flex items-center border-[1.5px] px-4 font-semibold no-underline"
+        className="rounded-pilula text-texto hover:bg-lavanda-media min-h-toque text-apoio ease-estado inline-flex items-center gap-1.5 pr-4 pl-3 font-semibold no-underline transition-colors duration-140"
       >
+        <ChevronLeft aria-hidden="true" className="size-4" strokeWidth={1.75} />
         {rotuloMes(anterior)}
       </Link>
       <span
         aria-current="date"
-        className="rounded-pilula bg-marinho text-texto-inverso min-h-toque text-apoio inline-flex items-center px-4 font-semibold"
+        className="rounded-pilula bg-superficie text-texto shadow-1 min-h-toque text-apoio inline-flex items-center px-4 font-semibold"
       >
         {rotuloMes(mes)}
       </span>
       {podeSeguir ? (
         <Link
           href={link(seguinte)}
-          className="rounded-pilula border-borda-campo bg-superficie text-texto hover:bg-marinho-08 min-h-toque text-apoio inline-flex items-center border-[1.5px] px-4 font-semibold no-underline"
+          className="rounded-pilula text-texto hover:bg-lavanda-media min-h-toque text-apoio ease-estado inline-flex items-center gap-1.5 pr-3 pl-4 font-semibold no-underline transition-colors duration-140"
         >
           {rotuloMes(seguinte)}
+          <ChevronRight
+            aria-hidden="true"
+            className="size-4"
+            strokeWidth={1.75}
+          />
         </Link>
       ) : null}
     </nav>

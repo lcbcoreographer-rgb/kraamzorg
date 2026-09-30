@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { ListOrdered } from "lucide-react";
+import { SecaoBloco } from "@/components/blocos/secao-bloco";
+import { MantaDobrada } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { Selo } from "@/components/ui/selo";
 import { TabelaLista } from "@/components/ui/tabela-lista";
@@ -26,64 +29,75 @@ export function ListaDespesasTela({ lista }: { lista: ListaDespesas }) {
     return (
       <EstadoVazio
         nivelTitulo="h2"
+        ilustracao={<MantaDobrada tamanho={104} />}
         titulo="Nenhuma despesa neste mês"
         texto="Lance a primeira no formulário acima. O pagamento da equipe entra sozinho quando é registrado, na tela de pagamento da equipe."
       />
     );
   }
   return (
-    <TabelaLista
-      rotulo={`Despesas de ${rotuloMes(lista.mes)}`}
-      colunas={[
-        { chave: "descricao", rotulo: "O que foi pago", principal: true },
-        { chave: "categoria", rotulo: "Categoria", canto: true },
-        { chave: "data", rotulo: "Dia" },
-        { chave: "valor", rotulo: "Valor", numerica: true },
-        { chave: "acoes", rotulo: "Ações" },
-      ]}
-      linhas={lista.despesas.map((d) => ({
-        id: d.id,
-        valores: {
-          descricao: (
-            <span>
-              {d.descricao}
-              {d.fornecedor ? (
-                <span className="text-texto-2 text-mini block">
-                  {d.fornecedor}
+    <SecaoBloco
+      idTitulo="desp-lista"
+      titulo={`Lançadas em ${rotuloMes(lista.mes)}`}
+      icone={<ListOrdered />}
+      tom="areia"
+      contagem={lista.despesas.length}
+    >
+      <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
+        <TabelaLista
+          rotulo={`Despesas de ${rotuloMes(lista.mes)}`}
+          colunas={[
+            { chave: "descricao", rotulo: "O que foi pago", principal: true },
+            { chave: "categoria", rotulo: "Categoria", canto: true },
+            { chave: "data", rotulo: "Dia" },
+            { chave: "valor", rotulo: "Valor", numerica: true },
+            { chave: "acoes", rotulo: "Ações" },
+          ]}
+          linhas={lista.despesas.map((d) => ({
+            id: d.id,
+            valores: {
+              descricao: (
+                <span>
+                  {d.descricao}
+                  {d.fornecedor ? (
+                    <span className="text-texto-2 text-mini block">
+                      {d.fornecedor}
+                    </span>
+                  ) : null}
+                  {d.canal ? (
+                    <span className="text-texto-2 text-mini block">
+                      Canal: {ROTULO_ORIGEM[d.canal]}
+                    </span>
+                  ) : null}
                 </span>
-              ) : null}
-              {d.canal ? (
-                <span className="text-texto-2 text-mini block">
-                  Canal: {ROTULO_ORIGEM[d.canal]}
+              ),
+              categoria: (
+                <Selo variante={d.daEquipe ? "marinho" : "neutro"}>
+                  {ROTULO_CATEGORIA[d.categoria]}
+                </Selo>
+              ),
+              data: formatarData(d.data) ?? d.data,
+              valor: formatarMoeda(d.valorCentavos),
+              acoes: d.daEquipe ? (
+                <span className="text-mini text-texto-2">
+                  Vem do pagamento da equipe
                 </span>
-              ) : null}
-            </span>
-          ),
-          categoria: (
-            <Selo variante={d.daEquipe ? "marinho" : "neutro"}>
-              {ROTULO_CATEGORIA[d.categoria]}
-            </Selo>
-          ),
-          data: formatarData(d.data) ?? d.data,
-          valor: formatarMoeda(d.valorCentavos),
-          acoes: d.daEquipe ? (
-            <span className="text-mini text-texto-2">
-              Vem do pagamento da equipe
-            </span>
-          ) : (
-            <span className="flex flex-wrap items-center gap-x-4">
-              <Link
-                href={`/financeiro/despesas?mes=${mesParaBusca(lista.mes)}&editar=${d.id}`}
-                className="text-apoio text-texto min-h-toque inline-flex items-center font-semibold underline decoration-1 underline-offset-4"
-                aria-label={`Corrigir a despesa ${d.descricao}`}
-              >
-                Corrigir
-              </Link>
-              <RemoverDespesa despesaId={d.id} descricao={d.descricao} />
-            </span>
-          ),
-        },
-      }))}
-    />
+              ) : (
+                <span className="flex flex-wrap items-center gap-x-4">
+                  <Link
+                    href={`/financeiro/despesas?mes=${mesParaBusca(lista.mes)}&editar=${d.id}`}
+                    className="text-apoio text-texto min-h-toque inline-flex items-center font-semibold underline decoration-1 underline-offset-4"
+                    aria-label={`Corrigir a despesa ${d.descricao}`}
+                  >
+                    Corrigir
+                  </Link>
+                  <RemoverDespesa despesaId={d.id} descricao={d.descricao} />
+                </span>
+              ),
+            },
+          }))}
+        />
+      </div>
+    </SecaoBloco>
   );
 }

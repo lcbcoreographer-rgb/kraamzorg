@@ -2,8 +2,15 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { CircleCheck, Copy, MessageCircle } from "lucide-react";
+import {
+  CircleCheck,
+  Copy,
+  FileCheck,
+  FileText,
+  MessageCircle,
+} from "lucide-react";
 import { Botao } from "@/components/ui/botao";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import type { SituacaoFormulario } from "@/lib/dados/tipos-venda";
 import { formatarDataHora } from "@/lib/formatacao";
@@ -89,11 +96,14 @@ export function PainelFormulario({
 
   if (situacao === "recebido") {
     return (
-      <section className="rounded-3 bg-superficie shadow-1 flex flex-col gap-2 p-5">
-        <h2 className="text-3 text-texto font-semibold">
+      <section className="rounded-3 bg-salvia-clara flex flex-col gap-3 p-5">
+        <h2 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+          <TileIcone tom="salvia" forma="quadrado" tamanho="p">
+            <FileCheck />
+          </TileIcone>
           Formulário do contrato
         </h2>
-        <p className="text-corpo text-sucesso flex items-start gap-2 font-medium">
+        <p className="text-corpo text-texto flex items-start gap-2 font-medium">
           <CircleCheck
             className="mt-1 size-4 shrink-0"
             aria-hidden="true"
@@ -131,14 +141,17 @@ export function PainelFormulario({
 
   return (
     <section className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5">
-      <h2 className="text-3 text-texto font-semibold">
+      <h2 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+        <TileIcone tom="areia" forma="quadrado" tamanho="p">
+          <FileText />
+        </TileIcone>
         Formulário do contrato
       </h2>
       {bloqueio ? (
         <p className="text-corpo text-texto-2">{bloqueio}</p>
       ) : gerado ? (
         <div className="flex flex-col gap-4">
-          <div className="rounded-2 bg-superficie-2 flex flex-col gap-2 p-4">
+          <div className="rounded-3 bg-argila-clara rounded-tl-1 flex flex-col gap-2 p-4">
             <p className="text-apoio text-texto-2">Texto para a família</p>
             <p
               className="text-corpo text-texto break-words"

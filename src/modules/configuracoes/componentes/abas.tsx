@@ -2,8 +2,8 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * Abas de conteúdo da tela de Configurações (`abas`, DESIGN.md seção 6):
- * sublinhado dourado de 2 px na ativa, rolam de lado no celular. Links
+ * Abas de conteúdo da tela de Configurações (DESIGN.md, 2.9 [v4.4]): trilha
+ * areia em pílula, a ativa em pílula branca, rolam de lado no celular. Links
  * simples (`?aba=`), sem JavaScript: a tela funciona mesmo antes do
  * cliente carregar, e a aba fica compartilhável por link.
  */
@@ -22,7 +22,7 @@ export function AbasConfiguracoes({
   return (
     <nav
       aria-label="Seções de configurações"
-      className="border-linha -mx-4 flex gap-1 overflow-x-auto border-b px-4 lg:-mx-8 lg:px-8"
+      className="rounded-pilula bg-areia flex w-fit max-w-full [scrollbar-width:none] gap-1 overflow-x-auto p-1"
     >
       {abas.map((aba) => {
         const ehAtiva = aba.chave === ativa;
@@ -32,10 +32,10 @@ export function AbasConfiguracoes({
             href={`/configuracoes?aba=${aba.chave}`}
             aria-current={ehAtiva ? "page" : undefined}
             className={cn(
-              "text-apoio min-h-toque flex shrink-0 items-center border-b-2 px-3 font-semibold whitespace-nowrap transition-colors duration-140",
+              "text-apoio min-h-toque rounded-pilula ease-estado flex shrink-0 items-center px-4 font-semibold whitespace-nowrap no-underline transition-[background-color,box-shadow,color] duration-140",
               ehAtiva
-                ? "border-dourado text-texto"
-                : "text-texto-2 hover:text-texto border-transparent",
+                ? "bg-superficie text-texto shadow-1"
+                : "text-texto-2 hover:bg-areia-clara hover:text-texto",
             )}
           >
             {aba.rotulo}

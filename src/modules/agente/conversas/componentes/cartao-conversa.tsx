@@ -20,6 +20,8 @@ import { Cartao } from "@/components/ui/cartao";
 import { EscolhaUnica } from "@/components/ui/escolha-unica";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
+import { TileIcone } from "@/components/ui/tile-icone";
+import { cn } from "@/lib/utils";
 import { rotulo } from "@/lib/rotulos-a-confirmar";
 import {
   acaoMarcarNaoLead,
@@ -51,6 +53,13 @@ function autorPrevia(autor: string): string {
   if (autor === "sistema") return "Resposta automática";
   return "Família";
 }
+
+/** Fundo da bolha da última mensagem por quem escreveu. */
+const FUNDO_BOLHA: Record<string, string> = {
+  ia: "bg-areia-clara",
+  sistema: "bg-areia-clara",
+  humano: "bg-argila-clara",
+};
 
 const variantePorSituacao: Record<
   SituacaoConversa,
@@ -170,76 +179,86 @@ export function CartaoConversa({ conversa }: { conversa: ConversaComPausa }) {
 
   return (
     <Cartao
-      className="flex flex-col gap-2"
+      className="flex flex-col gap-3"
       aria-labelledby={`conversa-${conversa.id}`}
     >
       <div className="flex items-start gap-3">
-        <Link
-          id={`conversa-${conversa.id}`}
-          href={`/conversas/${conversa.id}`}
-          className="text-3 text-texto min-h-toque inline-flex flex-1 items-center font-semibold no-underline hover:underline"
-        >
-          {nome}
-        </Link>
-        {hora ? (
-          <span className="text-mini text-texto-2 min-h-toque inline-flex items-center font-mono whitespace-nowrap">
-            {hora}
-          </span>
-        ) : null}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <Selo
-          variante={variantePorSituacao[conversa.situacao]}
-          icone={
-            conversa.situacao === "isadora" ? (
-              <Bot />
-            ) : conversa.situacao === "equipe" ? (
-              <UserCheck />
-            ) : conversa.situacao === "pausada" ? (
-              <Hourglass />
-            ) : undefined
-          }
-        >
-          {rotuloDaSituacao(conversa.situacao, conversa.agenteEncerradoMotivo)}
-        </Selo>
-        {conversa.transferenciaAberta ? (
-          <Selo
-            variante={
-              conversa.transferenciaAberta.prioridade !== "maxima"
-                ? "neutro"
-                : // Perda gestacional e estado sensível nunca em vermelho
-                  // (DESIGN.md, seção 8): o selo vai para ameixa, e não
-                  // para alerta, nesses casos (crítica do CRM, P0 item 2).
-                  MOTIVOS_SENSIVEIS.includes(
-                      conversa.transferenciaAberta.motivo,
-                    )
-                  ? "sensivel"
-                  : "alerta"
-            }
-            icone={<ArrowRightLeft />}
-          >
-            {conversa.transferenciaAberta.motivoRotulo}
-            {conversa.transferenciaAberta.status === "assumido"
-              ? ", assumida"
-              : ""}
-          </Selo>
-        ) : null}
-        {conversa.situacao === "equipe" ? (
-          <span className="text-mini text-texto-2">
-            A Isadora não volta sozinha.
-          </span>
-        ) : null}
-        {conversa.situacao === "pausada" ? (
-          <span className="text-mini text-texto-2">
-            {[
-              conversa.pausaMotivo,
-              voltaDaPausa ? `A Isadora ${voltaDaPausa}.` : null,
-            ]
-              .filter(Boolean)
-              .join(" ")}
-          </span>
-        ) : null}
+        <TileIcone tom="argila" forma="quadrado">
+          <MessageCircle />
+        </TileIcone>
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <div className="flex items-start gap-2">
+            <Link
+              id={`conversa-${conversa.id}`}
+              href={`/conversas/${conversa.id}`}
+              className="text-3 text-texto inline-flex min-h-11 flex-1 items-center leading-snug font-semibold no-underline hover:underline"
+            >
+              {nome}
+            </Link>
+            {hora ? (
+              <span className="rounded-pilula bg-areia-clara text-mini text-texto mt-2.5 inline-flex items-center px-2.5 py-0.5 font-mono whitespace-nowrap">
+                {hora}
+              </span>
+            ) : null}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Selo
+              variante={variantePorSituacao[conversa.situacao]}
+              icone={
+                conversa.situacao === "isadora" ? (
+                  <Bot />
+                ) : conversa.situacao === "equipe" ? (
+                  <UserCheck />
+                ) : conversa.situacao === "pausada" ? (
+                  <Hourglass />
+                ) : undefined
+              }
+            >
+              {rotuloDaSituacao(
+                conversa.situacao,
+                conversa.agenteEncerradoMotivo,
+              )}
+            </Selo>
+            {conversa.transferenciaAberta ? (
+              <Selo
+                variante={
+                  conversa.transferenciaAberta.prioridade !== "maxima"
+                    ? "neutro"
+                    : // Perda gestacional e estado sensível nunca em
+                      // vermelho (DESIGN.md, seção 8): o selo vai para
+                      // ameixa, e não para alerta, nesses casos (crítica
+                      // do CRM, P0 item 2).
+                      MOTIVOS_SENSIVEIS.includes(
+                          conversa.transferenciaAberta.motivo,
+                        )
+                      ? "sensivel"
+                      : "alerta"
+                }
+                icone={<ArrowRightLeft />}
+              >
+                {conversa.transferenciaAberta.motivoRotulo}
+                {conversa.transferenciaAberta.status === "assumido"
+                  ? ", assumida"
+                  : ""}
+              </Selo>
+            ) : null}
+          </div>
+          {conversa.situacao === "equipe" ? (
+            <p className="text-mini text-texto-2">
+              A Isadora não volta sozinha.
+            </p>
+          ) : null}
+          {conversa.situacao === "pausada" ? (
+            <p className="text-mini text-texto-2">
+              {[
+                conversa.pausaMotivo,
+                voltaDaPausa ? `A Isadora ${voltaDaPausa}.` : null,
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            </p>
+          ) : null}
+        </div>
       </div>
 
       {pausaVenceu ? (
@@ -255,8 +274,18 @@ export function CartaoConversa({ conversa }: { conversa: ConversaComPausa }) {
       ) : null}
 
       {conversa.ultimaMensagem ? (
-        <p className="text-apoio text-texto-2 line-clamp-2">
-          <span className="text-texto font-semibold">
+        // A última mensagem como uma bolha da conversa (DESIGN.md, seção
+        // 6, "Conversa"): a Isadora e a resposta automática em areia, a
+        // equipe em argila, a família em creme com contorno. O canto de
+        // cima mais fechado aponta para quem escreveu.
+        <p
+          className={cn(
+            "rounded-2 text-apoio text-texto rounded-tl-1 line-clamp-3 px-4 py-3",
+            FUNDO_BOLHA[conversa.ultimaMensagem.enviadoPor] ??
+              "bg-fundo border-linha border",
+          )}
+        >
+          <span className="font-semibold">
             {autorPrevia(conversa.ultimaMensagem.enviadoPor)}:{" "}
           </span>
           {conversa.ultimaMensagem.conteudo ??

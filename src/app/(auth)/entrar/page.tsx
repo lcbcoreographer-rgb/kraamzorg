@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Lock, UserRound } from "lucide-react";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { descreverPapeis } from "@/lib/auth/papeis";
 import { obterAutenticacao } from "@/lib/auth/sessao";
 import { entrarPorSeletor } from "../acoes";
@@ -68,13 +69,11 @@ export default async function PaginaEntrar({
                   ) : null}
                   <button
                     type="submit"
-                    className="rounded-3 bg-superficie shadow-1 hover:shadow-2 ease-estado min-h-toque-campo flex w-full items-center gap-3 px-5 py-3 text-left transition-shadow duration-140"
+                    className="rounded-3 bg-superficie shadow-1 hover:shadow-2 ease-estado min-h-toque-campo flex w-full items-center gap-3 px-3 py-3 text-left transition-[box-shadow,transform] duration-140 active:scale-[0.99]"
                   >
-                    <UserRound
-                      aria-hidden="true"
-                      className="text-texto-2 size-5 shrink-0"
-                      strokeWidth={1.75}
-                    />
+                    <TileIcone tom="argila" forma="quadrado">
+                      <UserRound />
+                    </TileIcone>
                     <span className="flex flex-col">
                       <span className="text-corpo text-texto font-semibold">
                         {descreverPapeis(opcao.papeis)}

@@ -3,11 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, LockKeyhole } from "lucide-react";
 import { z } from "zod";
+import { MantaDobrada } from "@/components/ilustracoes";
 import { Botao } from "@/components/ui/botao";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
 import { exigirSessao } from "@/lib/auth/sessao";
+import { cn } from "@/lib/utils";
 import { formatarData } from "@/lib/formatacao";
 import {
   hojeBrasilia,
@@ -96,6 +98,7 @@ export default async function PaginaProposta({
           ) : tela.situacao === "sem_oportunidade" ? (
             <EstadoVazio
               nivelTitulo="h2"
+              ilustracao={<MantaDobrada tamanho={104} />}
               titulo="Esta família não tem oportunidade aberta"
               texto="A proposta parte da oportunidade no pipeline. Quando houver uma aberta, ela aparece aqui."
             />
@@ -171,7 +174,14 @@ export default async function PaginaProposta({
     <>
       {voltar}
       <div className="flex flex-col gap-6 pt-2">
-        <header className="bg-superficie-2 -mx-4 flex flex-col gap-3 px-4 pt-4 pb-5 lg:-mx-8 lg:px-8">
+        {/* A família num bloco macio de areia (direção "Colo"); com o
+            freio, branco e sem tom (DESIGN.md, 11.8). */}
+        <header
+          className={cn(
+            "rounded-3 flex flex-col gap-3 p-5 lg:px-8 lg:py-6",
+            sensivel ? "bg-superficie border-linha border" : "bg-superficie-2",
+          )}
+        >
           <h1 className="font-titulo text-1 text-texto font-normal">
             Proposta para a {familia.nome}
           </h1>

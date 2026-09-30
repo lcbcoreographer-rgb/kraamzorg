@@ -1,11 +1,22 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import {
+  CalendarDays,
+  Handshake,
+  Megaphone,
+  MessageCircleHeart,
+  Target,
+  Wallet,
+} from "lucide-react";
 import { BarrasHorizontais } from "@/components/graficos/barras-horizontais";
 import { Colunas } from "@/components/graficos/colunas";
 import { MedidorMeta } from "@/components/graficos/medidor-meta";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
+import { TileIcone } from "@/components/ui/tile-icone";
+import type { Tom } from "@/components/ui/tons";
 import { formatarMoeda } from "@/lib/formatacao";
 import { formatarPct } from "@/lib/gestao/formato";
+import { cn } from "@/lib/utils";
 import {
   INDICADORES,
   progressoDasMetas,
@@ -26,6 +37,48 @@ import {
   textoDoCongelamento,
 } from "../textos";
 
+/**
+ * Cada pergunta da diretoria mora num bloco branco com o assunto num tile
+ * (DESIGN.md, 6.1): a venda e a experiência são pessoas (argila), o
+ * marketing e o dinheiro são o que já foi guardado (areia), a operação é
+ * agenda (lavanda). Os números da seção ficam em blocos do mesmo tom.
+ */
+const TOM_SECAO: Record<SecaoPainel, { tom: Tom; icone: ReactNode }> = {
+  comercial: { tom: "argila", icone: <Handshake /> },
+  marketing: { tom: "areia", icone: <Megaphone /> },
+  operacao: { tom: "lavanda", icone: <CalendarDays /> },
+  experiencia: { tom: "argila", icone: <MessageCircleHeart /> },
+  financeiro: { tom: "areia", icone: <Wallet /> },
+};
+
+const FUNDO_NUMEROS: Record<Tom, string> = {
+  dourado: "[&>div]:bg-dourado-claro",
+  areia: "[&>div]:bg-areia-clara",
+  salvia: "[&>div]:bg-salvia-clara",
+  lavanda: "[&>div]:bg-lavanda-clara",
+  argila: "[&>div]:bg-argila-clara",
+};
+
+/** Os números da seção em blocos, no tom dela. */
+function GradeNumeros({
+  secao,
+  children,
+}: {
+  secao: SecaoPainel;
+  children: ReactNode;
+}) {
+  return (
+    <dl
+      className={cn(
+        "tablet:grid-cols-3 grid grid-cols-2 gap-2",
+        FUNDO_NUMEROS[TOM_SECAO[secao].tom],
+      )}
+    >
+      {children}
+    </dl>
+  );
+}
+
 function Secao({
   id,
   secao,
@@ -41,13 +94,18 @@ function Secao({
   return (
     <section
       aria-labelledby={id}
-      className="bg-superficie rounded-3 shadow-1 flex flex-col gap-4 p-5"
+      className="bg-superficie rounded-3 shadow-1 flex flex-col gap-5 p-5 lg:p-6"
     >
-      <div className="flex flex-col gap-1">
-        <h2 id={id} className="font-titulo text-2 text-texto font-medium">
-          {PERGUNTAS[secao]}
-        </h2>
-        <p className="text-corpo text-texto max-w-[68ch]">{frase}</p>
+      <div className="flex items-start gap-3">
+        <TileIcone tom={TOM_SECAO[secao].tom} forma="quadrado">
+          {TOM_SECAO[secao].icone}
+        </TileIcone>
+        <div className="flex flex-col gap-1">
+          <h2 id={id} className="font-titulo text-2 text-texto font-medium">
+            {PERGUNTAS[secao]}
+          </h2>
+          <p className="text-corpo text-texto max-w-[68ch]">{frase}</p>
+        </div>
       </div>
       {children}
       <details className="group">
@@ -92,20 +150,27 @@ function Numero({
   destaque?: boolean;
 }) {
   return (
-    <div className="border-linha flex flex-wrap items-baseline justify-between gap-x-4 border-b py-2 last:border-b-0">
-      <dt className="text-apoio text-texto-2">{rotulo}</dt>
-      <dd className="text-right">
+    // Rótulo pequeno em cima, número grande em Jost e a comparação em
+    // frase embaixo (DESIGN.md, 2.6; referência: a grade de check-in). O
+    // número de destaque da seção ocupa duas colunas e cresce.
+    <div
+      className={cn(
+        "rounded-2 flex flex-col gap-1 p-3.5",
+        destaque && "col-span-2",
+      )}
+    >
+      <dt className="text-mini text-texto-2 font-medium">{rotulo}</dt>
+      <dd className="flex flex-col gap-1">
         <span
-          className={
-            destaque
-              ? "text-1 text-texto font-mono"
-              : "text-dado-lg text-texto font-mono"
-          }
+          className={cn(
+            "font-titulo text-texto font-medium tabular-nums",
+            destaque ? "text-numero" : "text-numero-sm",
+          )}
         >
           {valor}
         </span>
         {comparacao ? (
-          <span className="text-mini text-texto-2 block">{comparacao}</span>
+          <span className="text-mini text-texto-2">{comparacao}</span>
         ) : null}
       </dd>
     </div>
@@ -135,33 +200,40 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
 
   return (
     <div className="flex flex-col gap-8">
+      {/* As metas são o agora do mês: o bloco de abertura em forma colo
+          (DESIGN.md, 2.4), dourado-claro, com cada medidor num bloco branco
+          que encaixa nele. */}
       <section
         aria-labelledby="painel-metas"
-        className="bg-superficie rounded-3 shadow-1 flex flex-col gap-4 p-5"
+        className="rounded-colo bg-dourado-claro flex flex-col gap-4 px-5 pt-5 pb-12 lg:px-8 lg:pt-7"
       >
         <h2
           id="painel-metas"
-          className="font-titulo text-2 text-texto font-medium"
+          className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
         >
+          <TileIcone tom="dourado" forma="quadrado">
+            <Target />
+          </TileIcone>
           As metas do mês
         </h2>
-        <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+        <div className="tablet:grid-cols-2 grid grid-cols-1 gap-2 lg:gap-3">
           {metas.map((meta) => {
             const t = textoDaMeta(meta);
             return (
-              <MedidorMeta
-                key={meta.chave}
-                rotulo={meta.rotulo}
-                atualTexto={t.atualTexto}
-                metaTexto={t.metaTexto}
-                fracao={meta.fracao}
-                aviso={avisoDaMeta(meta, e.amostraMinima)}
-              />
+              <div key={meta.chave} className="rounded-3 bg-superficie p-4">
+                <MedidorMeta
+                  rotulo={meta.rotulo}
+                  atualTexto={t.atualTexto}
+                  metaTexto={t.metaTexto}
+                  fracao={meta.fracao}
+                  aviso={avisoDaMeta(meta, e.amostraMinima)}
+                />
+              </div>
             );
           })}
         </div>
         {p.congelamento ? (
-          <p className="text-apoio text-texto-2">
+          <p className="text-apoio text-texto">
             {textoDoCongelamento(p.congelamento)}
           </p>
         ) : null}
@@ -194,7 +266,7 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
             : `${c.leads} ${c.leads === 1 ? "lead chegou" : "leads chegaram"}, ${c.sessoesRealizadas} ${c.sessoesRealizadas === 1 ? "sessão foi feita" : "sessões foram feitas"} e ${c.contratosAssinados} ${c.contratosAssinados === 1 ? "contrato foi assinado" : "contratos foram assinados"}.`
         }
       >
-        <dl>
+        <GradeNumeros secao="comercial">
           <Numero
             rotulo="Leads novos"
             valor={String(c.leads)}
@@ -247,7 +319,7 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
                 : formatarMoeda(c.ticketMedioCentavos)
             }
           />
-        </dl>
+        </GradeNumeros>
       </Secao>
 
       <Secao
@@ -352,7 +424,7 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
       </Secao>
 
       <Secao id="painel-operacao" secao="operacao" frase={frasesDeOperacao(p)}>
-        <dl>
+        <GradeNumeros secao="operacao">
           <Numero rotulo="Famílias ativas" valor={String(o.familiasAtivas)} />
           <Numero
             rotulo="Famílias que começaram no mês"
@@ -376,7 +448,7 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
             rotulo="Ocorrências abertas"
             valor={String(o.ocorrenciasAbertas)}
           />
-        </dl>
+        </GradeNumeros>
         <div className="flex flex-col gap-4">
           <h3 className="text-3 text-texto font-semibold">
             Capacidade das próximas {o.capacidadeSemanas} semanas
@@ -416,7 +488,7 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
         secao="experiencia"
         frase={fraseDeExperiencia(p)}
       >
-        <dl>
+        <GradeNumeros secao="experiencia">
           <Numero
             rotulo="NPS"
             valor={e.nps === null ? semDado : String(e.nps)}
@@ -449,7 +521,7 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
             rotulo="Depoimentos autorizados"
             valor={String(e.depoimentos)}
           />
-        </dl>
+        </GradeNumeros>
       </Secao>
 
       <Secao
@@ -457,7 +529,7 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
         secao="financeiro"
         frase={fraseDeFinanceiro(p)}
       >
-        <dl>
+        <GradeNumeros secao="financeiro">
           <Numero
             rotulo="Recebimentos"
             valor={formatarMoeda(f.recebimentosCentavos)}
@@ -525,7 +597,7 @@ export function PainelTela({ dados }: { dados: DadosPainel }) {
             valor={formatarMoeda(f.faturamentoCentavos)}
             comparacao="Contratos assinados no mês."
           />
-        </dl>
+        </GradeNumeros>
         <Link
           href="/financeiro"
           className="text-texto text-apoio min-h-toque inline-flex items-center self-start font-semibold underline decoration-1 underline-offset-4"

@@ -1,4 +1,11 @@
+import type * as React from "react";
+import { CircleCheck, Lock, UserRound, Wallet } from "lucide-react";
+import { SecaoBloco } from "@/components/blocos/secao-bloco";
+import { MantaDobrada } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
+import { TileIcone } from "@/components/ui/tile-icone";
+import type { Tom } from "@/components/ui/tons";
+import { cn } from "@/lib/utils";
 import { Selo } from "@/components/ui/selo";
 import type {
   PagamentoEquipe,
@@ -73,60 +80,115 @@ export function ListaEquipe({
     return (
       <EstadoVazio
         nivelTitulo="h2"
+        ilustracao={<MantaDobrada tamanho={104} />}
         titulo="Nenhum pagamento por enquanto"
         texto="Os pagamentos nascem das visitas realizadas. Quando a primeira visita for concluída, a profissional aparece aqui, bloqueada até o envio das evoluções aos médicos."
       />
     );
   }
+  // Três blocos pela situação (DESIGN.md, 6.1): o que dá para pagar agora
+  // vem primeiro (dourado, o agora), depois o que espera as evoluções e, no
+  // fim, o que já foi pago (sálvia, o feito). Cada pagamento é um cartão
+  // com a pessoa num tile e o valor em número grande.
   return (
-    <ul className="flex flex-col gap-4">
-      {dados.pagamentos.map((p) => (
-        <li
-          key={p.id}
-          className="bg-superficie rounded-3 shadow-1 flex flex-col gap-3 p-5"
-        >
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="flex flex-col gap-0.5">
-              <h2 className="font-titulo text-2 text-texto font-medium">
-                {p.profissionalNome}
-              </h2>
-              <p className="text-apoio text-texto-2">
-                {p.familiaNome ?? "Família"}
-              </p>
-            </div>
-            <div className="flex flex-col items-end gap-1">
-              <Selo variante={VARIANTE[p.status]}>
-                {ROTULO_STATUS_PAGAMENTO[p.status]}
-              </Selo>
-              <p className="text-dado-lg text-texto font-mono">
-                {formatarMoeda(p.totalCentavos)}
-              </p>
-            </div>
-          </div>
-          <Conta p={p} />
-          {p.status === "bloqueado" && p.motivoBloqueio ? (
-            <p className="text-corpo text-texto max-w-[62ch]">
-              {TEXTO_BLOQUEIO[p.motivoBloqueio]}
-            </p>
-          ) : null}
-          {p.status === "liberado" ? (
-            <PagarEquipe
-              pagamentoId={p.id}
-              profissionalNome={p.profissionalNome}
-              hoje={hoje}
-            />
-          ) : null}
-          {p.status === "pago" ? (
-            <p className="text-apoio text-texto-2">
-              Pago em{" "}
-              {p.pagoEm
-                ? (formatarData(p.pagoEm) ?? p.pagoEm)
-                : "data não registrada"}
-              .
-            </p>
-          ) : null}
-        </li>
-      ))}
-    </ul>
+    <div className="flex flex-col gap-10">
+      {GRUPOS.map((grupo) => {
+        const doGrupo = dados.pagamentos.filter(
+          (p) => p.status === grupo.status,
+        );
+        if (doGrupo.length === 0) return null;
+        return (
+          <SecaoBloco
+            key={grupo.status}
+            idTitulo={`equipe-${grupo.status}`}
+            titulo={grupo.titulo}
+            icone={grupo.icone}
+            tom={grupo.tom ?? "areia"}
+            semTom={!grupo.tom}
+            contagem={doGrupo.length}
+          >
+            <ul className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
+              {doGrupo.map((p) => (
+                <CartaoPagamento key={p.id} p={p} hoje={hoje} />
+              ))}
+            </ul>
+          </SecaoBloco>
+        );
+      })}
+    </div>
+  );
+}
+
+const GRUPOS: {
+  status: PagamentoEquipe["status"];
+  titulo: string;
+  icone: React.ReactNode;
+  tom?: Tom;
+}[] = [
+  {
+    status: "liberado",
+    titulo: "Liberados para pagar",
+    icone: <Wallet />,
+    tom: "dourado",
+  },
+  { status: "bloqueado", titulo: "Esperando as evoluções", icone: <Lock /> },
+  {
+    status: "pago",
+    titulo: "Pagos no mês",
+    icone: <CircleCheck />,
+    tom: "salvia",
+  },
+];
+
+function CartaoPagamento({ p, hoje }: { p: PagamentoEquipe; hoje: string }) {
+  return (
+    <li
+      className={cn(
+        "rounded-3 flex flex-col gap-3 p-5",
+        p.status === "pago" ? "bg-salvia-clara" : "bg-superficie shadow-1",
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <TileIcone tom="argila" forma="quadrado">
+          <UserRound />
+        </TileIcone>
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <h3 className="font-titulo text-2 text-texto font-medium">
+            {p.profissionalNome}
+          </h3>
+          <p className="text-apoio text-texto-2">
+            {p.familiaNome ?? "Família"}
+          </p>
+        </div>
+        <Selo variante={VARIANTE[p.status]}>
+          {ROTULO_STATUS_PAGAMENTO[p.status]}
+        </Selo>
+      </div>
+      <p className="font-titulo text-display text-texto font-medium tabular-nums">
+        {formatarMoeda(p.totalCentavos)}
+      </p>
+      <Conta p={p} />
+      {p.status === "bloqueado" && p.motivoBloqueio ? (
+        <p className="text-corpo text-texto max-w-[62ch]">
+          {TEXTO_BLOQUEIO[p.motivoBloqueio]}
+        </p>
+      ) : null}
+      {p.status === "liberado" ? (
+        <PagarEquipe
+          pagamentoId={p.id}
+          profissionalNome={p.profissionalNome}
+          hoje={hoje}
+        />
+      ) : null}
+      {p.status === "pago" ? (
+        <p className="text-apoio text-texto">
+          Pago em{" "}
+          {p.pagoEm
+            ? (formatarData(p.pagoEm) ?? p.pagoEm)
+            : "data não registrada"}
+          .
+        </p>
+      ) : null}
+    </li>
   );
 }

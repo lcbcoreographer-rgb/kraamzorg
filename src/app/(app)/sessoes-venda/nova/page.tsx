@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, OctagonPause } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarClock,
+  CalendarDays,
+  OctagonPause,
+} from "lucide-react";
 import { z } from "zod";
+import { FolhaLupa } from "@/components/ilustracoes";
 import { Botao } from "@/components/ui/botao";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { exigirSessao } from "@/lib/auth/sessao";
+import { cn } from "@/lib/utils";
 import { hojeBrasilia } from "@/modules/crm/pipeline/idade-gestacional";
 import { quandoEmFrase } from "@/modules/crm/sessao-venda/agenda";
 import { FormularioAgendar } from "@/modules/crm/sessao-venda/componentes/formulario-agendar";
@@ -80,6 +88,7 @@ export default async function PaginaNovaSessao({
           ) : (
             <EstadoVazio
               nivelTitulo="h2"
+              ilustracao={<FolhaLupa tamanho={104} />}
               titulo="Escolha a família primeiro"
               texto="A conversa é marcada a partir de um pedido de conversa da Isadora, na agenda, ou do botão Marcar conversa na ficha da família."
               acao={
@@ -104,7 +113,14 @@ export default async function PaginaNovaSessao({
     <>
       {voltar}
       <div className="flex flex-col gap-6 pt-2">
-        <header className="bg-superficie-2 -mx-4 flex flex-col gap-3 px-4 pt-4 pb-5 lg:-mx-8 lg:px-8">
+        {/* A família num bloco macio (direção "Colo"); com o freio, branco
+            e sem tom (DESIGN.md, 11.8). */}
+        <header
+          className={cn(
+            "rounded-3 flex flex-col gap-3 p-5 lg:px-8 lg:py-6",
+            sensivel ? "bg-superficie border-linha border" : "bg-superficie-2",
+          )}
+        >
           <h1 className="font-titulo text-1 text-texto font-normal">
             Conversa de orientação com a {familia.nome}
           </h1>
@@ -119,8 +135,13 @@ export default async function PaginaNovaSessao({
             ) : null}
           </div>
           {opcoes.length > 0 && !sensivel ? (
-            <p className="text-corpo text-texto max-w-leitura">
-              A família sugeriu à Isadora: {opcoes.join(" ou ")}.
+            <p className="rounded-2 bg-lavanda-clara text-corpo text-texto max-w-leitura flex items-start gap-3 p-3 pr-4">
+              <CalendarDays
+                aria-hidden="true"
+                className="mt-0.5 size-5 shrink-0"
+                strokeWidth={1.75}
+              />
+              <span>A família sugeriu à Isadora: {opcoes.join(" ou ")}.</span>
             </p>
           ) : null}
         </header>
@@ -157,12 +178,15 @@ export default async function PaginaNovaSessao({
         ) : (
           <section
             aria-labelledby="marcar"
-            className="flex max-w-[640px] flex-col gap-4"
+            className="rounded-3 bg-superficie shadow-1 flex max-w-[680px] flex-col gap-4 p-5 lg:p-6"
           >
             <h2
               id="marcar"
-              className="font-titulo text-2 text-texto font-medium"
+              className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
             >
+              <TileIcone tom="lavanda" forma="quadrado">
+                <CalendarClock />
+              </TileIcone>
               Quando e com quem
             </h2>
             {familia.pipeline === 1 && familia.estagioRotulo ? (

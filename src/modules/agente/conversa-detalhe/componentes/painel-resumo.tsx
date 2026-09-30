@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialogo";
 import { EscolhaUnica } from "@/components/ui/escolha-unica";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { Selo } from "@/components/ui/selo";
 import { formatarData, localidade } from "@/lib/formatacao";
 import { rotulo } from "@/lib/rotulos-a-confirmar";
@@ -254,7 +255,7 @@ function ResumoIsadora({ ficha }: { ficha: FichaTela }) {
 
   return (
     <>
-      <details className="bg-superficie-2 rounded-3 group px-4 lg:hidden">
+      <details className="bg-areia-clara rounded-3 group px-4 lg:hidden">
         <summary className="min-h-toque flex cursor-pointer list-none items-center gap-2 py-2 [&::-webkit-details-marker]:hidden">
           <Bot
             aria-hidden="true"
@@ -275,10 +276,12 @@ function ResumoIsadora({ ficha }: { ficha: FichaTela }) {
       </details>
       <section
         aria-label="Resumo da Isadora"
-        className="bg-superficie-2 rounded-3 hidden flex-col gap-3 p-4 lg:flex"
+        className="bg-areia-clara rounded-3 hidden flex-col gap-4 p-5 lg:flex"
       >
-        <h2 className="flex items-center gap-2 font-semibold">
-          <Bot aria-hidden="true" className="size-4" strokeWidth={1.75} />
+        <h2 className="font-titulo text-2 text-texto flex items-center gap-3 font-medium">
+          <TileIcone tom="areia" forma="quadrado" tamanho="p">
+            <Bot />
+          </TileIcone>
           Resumo da Isadora
         </h2>
         {lista}
@@ -298,40 +301,58 @@ function FaixaIsadoraAtiva({
     acaoPausarConversa,
     estadoInicialAgente,
   );
+  // Quem está com a conversa agora (DESIGN.md, 2.5: dourado-claro é o
+  // agora), com o robô num tile e a ação de assumir em marinho, o único
+  // bloco forte da tela. Não é alerta: é a mão em que a conversa está.
   return (
-    <FaixaAlerta
-      variante="info"
-      titulo="A Isadora está conduzindo esta conversa"
-      acoes={
-        <form action={acao}>
-          <input type="hidden" name="conversaId" value={conversaId} />
-          <input type="hidden" name="origem" value="assumir" />
-          <Botao
-            type="submit"
-            variante="primario"
-            tamanho="compacto"
-            carregando={enviando}
-            rotuloCarregando="Assumindo"
-            iconeEsquerda={
-              <UserCheck
-                aria-hidden="true"
-                className="size-4"
-                strokeWidth={1.75}
-              />
-            }
-          >
-            Assumir conversa
-          </Botao>
-        </form>
-      }
+    <section
+      aria-labelledby="t-isadora-conduz"
+      className="rounded-3 bg-dourado-claro flex flex-col gap-3 p-5"
     >
-      {horasPausa
-        ? `Se você assumir, ela fica pausada aqui por ${horasPausa} h ou até você devolver.`
-        : "Se você assumir, ela fica pausada aqui até a pausa vencer ou até você devolver."}
+      <div className="flex items-start gap-3">
+        <TileIcone tom="dourado" forma="quadrado">
+          <Bot />
+        </TileIcone>
+        <div className="flex flex-col gap-1">
+          <h2
+            id="t-isadora-conduz"
+            className="font-titulo text-2 text-texto font-medium"
+          >
+            A Isadora está conduzindo esta conversa
+          </h2>
+          <p className="text-apoio text-texto-2">
+            {horasPausa
+              ? `Se você assumir, ela fica pausada aqui por ${horasPausa} h ou até você devolver.`
+              : "Se você assumir, ela fica pausada aqui até a pausa vencer ou até você devolver."}
+          </p>
+        </div>
+      </div>
+      <form action={acao}>
+        <input type="hidden" name="conversaId" value={conversaId} />
+        <input type="hidden" name="origem" value="assumir" />
+        <Botao
+          type="submit"
+          variante="primario"
+          tamanho="compacto"
+          carregando={enviando}
+          rotuloCarregando="Assumindo"
+          iconeEsquerda={
+            <UserCheck
+              aria-hidden="true"
+              className="size-4"
+              strokeWidth={1.75}
+            />
+          }
+        >
+          Assumir conversa
+        </Botao>
+      </form>
       {estado.erro ? (
-        <span className="text-alerta block">{estado.erro}</span>
+        <p role="alert" className="text-apoio text-alerta">
+          {estado.erro}
+        </p>
       ) : null}
-    </FaixaAlerta>
+    </section>
   );
 }
 

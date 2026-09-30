@@ -4,8 +4,11 @@ import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   Bot,
+  CalendarClock,
+  ClipboardPen,
   ExternalLink,
   LockKeyhole,
+  Mic,
   OctagonPause,
   UserCheck,
 } from "lucide-react";
@@ -13,8 +16,10 @@ import { z } from "zod";
 import { Botao } from "@/components/ui/botao";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { formatarDataHora } from "@/lib/formatacao";
+import { cn } from "@/lib/utils";
 import {
   hojeBrasilia,
   textoIdadeGestacional,
@@ -115,7 +120,17 @@ export default async function PaginaSessaoVenda({
       </Link>
 
       <div className="flex flex-col gap-6 pt-2">
-        <header className="bg-superficie-2 -mx-4 flex flex-col gap-3 px-4 pt-4 pb-5 lg:-mx-8 lg:px-8">
+        {/* A família da conversa num bloco macio (direção "Colo", DESIGN.md
+            2.4): areia com a base em arco; com o freio, bloco branco sem
+            tom nem forma (seção 11.8). */}
+        <header
+          className={cn(
+            "flex flex-col gap-3 px-5 pt-5 lg:px-8 lg:pt-6",
+            sensivel
+              ? "rounded-3 bg-superficie border-linha border pb-5"
+              : "rounded-colo bg-superficie-2 pb-12",
+          )}
+        >
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="font-titulo text-1 text-texto font-normal">
               {sessao.nomeFamilia}
@@ -211,12 +226,15 @@ export default async function PaginaSessaoVenda({
         {!sensivel && (daIsadora || sessao.resultado) ? (
           <section
             aria-labelledby="detalhes-reuniao"
-            className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5"
+            className="rounded-3 bg-lavanda-clara flex flex-col gap-4 p-5 lg:p-6"
           >
             <h2
               id="detalhes-reuniao"
-              className="font-titulo text-2 text-texto font-medium"
+              className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
             >
+              <TileIcone tom="lavanda" forma="quadrado">
+                <CalendarClock />
+              </TileIcone>
               A reunião
             </h2>
             <dl className="text-corpo grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
@@ -264,12 +282,15 @@ export default async function PaginaSessaoVenda({
         {!sensivel && daIsadora && linhasDoResumo.length > 0 ? (
           <section
             aria-labelledby="resumo-isadora"
-            className="rounded-3 bg-superficie-2 flex flex-col gap-3 p-5"
+            className="rounded-3 bg-areia-clara flex flex-col gap-3 p-5 lg:p-6"
           >
             <h2
               id="resumo-isadora"
-              className="font-titulo text-2 text-texto font-medium"
+              className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
             >
+              <TileIcone tom="areia" forma="quadrado">
+                <Bot />
+              </TileIcone>
               Resumo da Isadora para o Leonardo
             </h2>
             <p className="text-apoio text-texto-2">
@@ -296,8 +317,11 @@ export default async function PaginaSessaoVenda({
               <div className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5">
                 <h2
                   id="como-foi"
-                  className="font-titulo text-2 text-texto font-medium"
+                  className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
                 >
+                  <TileIcone tom="dourado" forma="quadrado">
+                    <ClipboardPen />
+                  </TileIcone>
                   {jaPassou ? "Como foi" : "Antes da conversa"}
                 </h2>
                 <PainelDesfecho
@@ -335,8 +359,11 @@ export default async function PaginaSessaoVenda({
             >
               <h2
                 id="gravacao"
-                className="font-titulo text-2 text-texto font-medium"
+                className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
               >
+                <TileIcone tom="argila" forma="quadrado">
+                  <Mic />
+                </TileIcone>
                 Gravação e resumo
               </h2>
               {leitura === null ? (

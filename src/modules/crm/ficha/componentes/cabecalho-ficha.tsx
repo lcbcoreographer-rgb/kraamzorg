@@ -143,7 +143,15 @@ export function CabecalhoFicha({
         meta={meta}
         datas={datas}
         nivelTitulo="h1"
-        sangrar
+        // Direção "Colo" (DESIGN.md, 2.4): a família mora num bloco macio.
+        // Sem freio, o bloco de abertura da tela tem a base em arco, como
+        // o colo do símbolo; com o freio puxado fica o bloco ameixa de
+        // cantos redondos, sem forma nem tom de apoio (seção 11.8).
+        className={
+          freioAtivo
+            ? "rounded-3 lg:px-8"
+            : "rounded-colo pb-12 lg:px-8 lg:pb-14"
+        }
         freioAtivo={freioAtivo}
         modoSensivel={modoSensivel}
         linha={modoSensivel ? undefined : linha}

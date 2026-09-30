@@ -102,6 +102,9 @@ export default async function PaginaFicha({
   if (vePainelComercial) abas.push({ chave: "comercial", rotulo: "Comercial" });
   if (veConversas) abas.push({ chave: "conversas", rotulo: "Conversas" });
   const aba = abas.some((a) => a.chave === abaPedida) ? abaPedida! : "tempo";
+  // Freio puxado (qualquer estado sensível): a tela da família perde os
+  // tons de apoio e as ilustrações (PRD 20.2 [v4.4], regra 3).
+  const semTom = ficha.estadoSensivel !== "normal";
 
   // Sem título genérico "Ficha da família": o nome já é o h1 do cabeçalho
   // da família logo abaixo, e um segundo h1 confunde o leitor de tela
@@ -121,7 +124,7 @@ export default async function PaginaFicha({
         {backRotulo}
       </Link>
 
-      <div className="flex flex-col gap-4 pt-2">
+      <div className="flex flex-col gap-6 pt-2">
         <CabecalhoFicha
           familiaId={ficha.familiaId}
           nome={ficha.nome}
@@ -136,10 +139,10 @@ export default async function PaginaFicha({
           justificativaVenceEm={justificativa.venceEm}
         />
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-x-8">
           <div className="min-w-0">
             <AbasFicha familiaId={ficha.familiaId} abas={abas} ativa={aba} />
-            <div className="pt-5">
+            <div className="pt-6">
               {aba === "tempo" ? (
                 <LinhaDoTempo
                   eventos={eventos}
@@ -147,6 +150,7 @@ export default async function PaginaFicha({
                     ficha.estadoSensivel === "bloqueio_total" ||
                     ficha.estadoSensivel === "encerrado_sensivel"
                   }
+                  semTom={semTom}
                 />
               ) : null}
               {aba === "comercial" && vePainelComercial ? (
@@ -162,6 +166,7 @@ export default async function PaginaFicha({
                   dataAlta={ficha.datas[2]?.valor ?? null}
                   podeEditar={podeEditarComercial}
                   hoje={hojeBrasilia()}
+                  semTom={semTom}
                   acoesVenda={
                     podeEditarComercial &&
                     (ficha.estadoSensivel === "normal" ||
@@ -211,13 +216,13 @@ export default async function PaginaFicha({
                 />
               ) : null}
               {aba === "conversas" && veConversas ? (
-                <PainelConversas conversa={conversa} />
+                <PainelConversas conversa={conversa} semTom={semTom} />
               ) : null}
             </div>
           </div>
 
           <aside className="flex flex-col gap-4" aria-label="Pessoas">
-            <PainelPessoas pessoas={ficha.pessoas} />
+            <PainelPessoas pessoas={ficha.pessoas} semTom={semTom} />
           </aside>
         </div>
       </div>

@@ -44,7 +44,7 @@ function Bolha({ mensagem }: { mensagem: Mensagem }) {
   // 14:02."), `mensagem.tipo = 'sistema'` (0003).
   if (mensagem.tipo === "sistema") {
     return (
-      <span className="text-mini text-texto-2 max-w-[85%] self-center text-center">
+      <span className="rounded-2 bg-marinho-08 text-mini text-texto max-w-[85%] self-center px-3 py-1.5 text-center">
         {mensagem.conteudo}
       </span>
     );
@@ -109,7 +109,7 @@ function Bolha({ mensagem }: { mensagem: Mensagem }) {
 export function FioMensagens({ mensagens }: { mensagens: Mensagem[] }) {
   if (mensagens.length === 0) {
     return (
-      <p className="text-apoio text-texto-2">
+      <p className="rounded-3 bg-areia-clara text-apoio text-texto-2 p-5">
         Ainda não há mensagens registradas nesta conversa.
       </p>
     );
@@ -130,7 +130,7 @@ export function FioMensagens({ mensagens }: { mensagens: Mensagem[] }) {
         return (
           <div key={mensagem.id} className="flex flex-col gap-3">
             {mostrarDia ? (
-              <span className="text-mini text-texto-2 self-center font-mono">
+              <span className="rounded-pilula bg-areia-clara text-mini text-texto self-center px-3 py-1 font-mono">
                 {dia}
               </span>
             ) : null}

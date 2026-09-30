@@ -1,12 +1,29 @@
 "use client";
 
 import { useCallback, useState, type ReactNode } from "react";
-import { CircleCheck } from "lucide-react";
+import {
+  CalendarDays,
+  CircleCheck,
+  ClockAlert,
+  ListTodo,
+  Sun,
+} from "lucide-react";
 import { XicaraQuente } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { TileIcone } from "@/components/ui/tile-icone";
 import type { GrupoTarefasComFreio } from "../dados";
+import type { Tom } from "@/components/ui/tons";
 import { CartaoTarefa, type TarefaFeita } from "./cartao-tarefa";
+
+const TILE_BALDE: Record<
+  GrupoTarefasComFreio["balde"],
+  { tom: Tom | "branco"; icone: ReactNode }
+> = {
+  vencida: { tom: "branco", icone: <ClockAlert /> },
+  vence_hoje: { tom: "dourado", icone: <Sun /> },
+  a_vencer: { tom: "lavanda", icone: <CalendarDays /> },
+  sem_prazo: { tom: "areia", icone: <ListTodo /> },
+};
 
 /**
  * Tarefas agrupadas por vencimento (protótipo `comercial-inicio.html`,
@@ -20,6 +37,7 @@ export function ListaTarefas({
   titulo,
   idTitulo,
   icone,
+  colunas = false,
 }: {
   grupos: GrupoTarefasComFreio[];
   /**
@@ -32,6 +50,11 @@ export function ListaTarefas({
   idTitulo?: string;
   /** Ícone do assunto no tile ao lado do título (direção "Colo", DESIGN.md 2.7). */
   icone?: ReactNode;
+  /**
+   * Tela própria das tarefas: no computador, os cartões de cada grupo em
+   * duas colunas (no Início a lista mora numa coluna estreita).
+   */
+  colunas?: boolean;
 }) {
   const [feitas, setFeitas] = useState<TarefaFeita[]>([]);
   const aoFeita = useCallback((feita: TarefaFeita) => {
@@ -92,21 +115,42 @@ export function ListaTarefas({
             aria-labelledby={umGrupoSo ? idTitulo : `grupo-${grupo.balde}`}
           >
             {umGrupoSo ? null : (
-              <div className="mb-3 flex items-baseline gap-3">
+              // Cada grupo com o tile do tempo que ele é (DESIGN.md, 6.1):
+              // hoje é o agora, a vencer é agenda, sem prazo é o que já foi
+              // guardado; vencidas ficam num tile branco, sem tom, porque
+              // atraso é estado e o estado mora no prazo de cada cartão.
+              <div className="mb-3 flex items-center gap-3">
+                <TileIcone
+                  tom={TILE_BALDE[grupo.balde].tom}
+                  forma="quadrado"
+                  className={
+                    grupo.balde === "vencida"
+                      ? "border-linha border"
+                      : undefined
+                  }
+                >
+                  {TILE_BALDE[grupo.balde].icone}
+                </TileIcone>
                 <TituloGrupo
                   id={`grupo-${grupo.balde}`}
                   className="font-titulo text-2 text-texto"
                 >
                   {grupo.titulo}
                 </TituloGrupo>
-                <span className="text-apoio text-texto-2">
+                <span className="rounded-pilula bg-areia text-apoio text-texto inline-flex min-h-7 items-center px-2.5 font-medium">
                   {grupo.tarefas.length === 1
                     ? "1 tarefa"
                     : `${grupo.tarefas.length} tarefas`}
                 </span>
               </div>
             )}
-            <div className="flex flex-col gap-3">
+            <div
+              className={
+                colunas
+                  ? "grid grid-cols-1 items-start gap-3 lg:grid-cols-2"
+                  : "flex flex-col gap-3"
+              }
+            >
               {grupo.tarefas.map((tarefa) => (
                 <CartaoTarefa
                   key={tarefa.id}

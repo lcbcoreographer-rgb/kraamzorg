@@ -44,6 +44,7 @@ export default async function PaginaTransferencias() {
             usuarioId={sessao.usuarioId}
             destinoDoPapel={destinoDoPapel}
             telefonePlantao={telefonePlantao}
+            agrupar
           />
         ) : (
           <FaixaAlerta
