@@ -29,6 +29,7 @@ import {
   type TarefaDemonstracao,
   type UsuarioDemonstracao,
 } from "./fixtures";
+import { gerarVolume, volumeGrandeLigado } from "./volume";
 import { MENSAGENS_COBRANCA } from "./contrato-fixtures";
 import { MENSAGENS_VENDA } from "./venda-fixtures";
 
@@ -94,12 +95,16 @@ function isoDaqui(agora: number, minutos: number): string {
 
 export function criarLoja(agora = Date.now()): LojaDemonstracao {
   const clonar = <T>(valor: T): T => structuredClone(valor);
+  // Volume extra só com KZ_DEMO_VOLUME=grande (pnpm dev:demo); os testes rodam sem.
+  const extra = volumeGrandeLigado()
+    ? gerarVolume(agora)
+    : { familias: [], oportunidades: [], pessoas: [] };
   return {
     criadaEm: agora,
     usuarios: clonar(USUARIOS),
-    familias: clonar(FAMILIAS),
-    oportunidades: clonar(OPORTUNIDADES),
-    pessoas: clonar(PESSOAS),
+    familias: [...clonar(FAMILIAS), ...extra.familias],
+    oportunidades: [...clonar(OPORTUNIDADES), ...extra.oportunidades],
+    pessoas: [...clonar(PESSOAS), ...extra.pessoas],
     conversas: CONVERSAS.map((c) => {
       const mensagensDaConversa = MENSAGENS.filter(
         (m) => m.conversaId === c.id,
