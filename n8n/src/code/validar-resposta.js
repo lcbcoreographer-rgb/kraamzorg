@@ -36,8 +36,17 @@
 // vindo da ficha). Todo o resto de `pedido_dado` (CPF, RG, endereço, CEP, data
 // de nascimento, documento) continua barrado nesse passo. Sem a lista ou sem
 // o estado, o e-mail continua barrado (falha fechada).
+//
+// [v4.3] Itens 9 e 10 do 11.11 (`agenda-validador.js`): horário e confirmação
+// de reunião só com o retorno das ferramentas de agenda da execução, vaga
+// nunca reservada pela reunião, Leonardo nunca promete retorno antes da
+// reunião e anotação obrigatória quando o assunto vai para depois dela. O
+// contexto traz `agenda_horarios`, `agenda_estados`, `agenda_reuniao_marcada`
+// e `anotacao_registrada`. `links_permitidos` são os links que a mensagem pode
+// levar (o Meet do lembrete da véspera); qualquer outro link continua barrado.
 
 import { normalizarTexto, contemPalavra } from './normalizar-texto.js';
+import { conferirAgenda } from './agenda-validador.js';
 
 export const MARCA_APRESENTACAO = '[ENVIAR_APRESENTACAO]';
 
@@ -461,8 +470,12 @@ export function validarResposta(textoOriginal, contexto = {}) {
     violacoes.push({ regra: 'colchetes', detalhe: `texto entre colchetes não permitido: ${trecho}` });
   }
 
-  // Link: a Isadora só envia texto e a apresentação oficial (PRD 11.2).
-  if (/\bhttps?:\/\/|\bwww\./i.test(texto)) {
+  // Link: a Isadora só envia texto e a apresentação oficial (PRD 11.2). [v4.3]
+  // O link do Meet do lembrete da véspera é o único permitido.
+  const textoSemLinksPermitidos = (Array.isArray(contexto.links_permitidos) ? contexto.links_permitidos : [])
+    .filter((link) => typeof link === 'string' && link.trim())
+    .reduce((atual, link) => atual.split(link).join(''), texto);
+  if (/\bhttps?:\/\/|\bwww\./i.test(textoSemLinksPermitidos)) {
     violacoes.push({ regra: 'link', detalhe: 'link na resposta; só a apresentação oficial sai como arquivo' });
   }
 
@@ -500,6 +513,9 @@ export function validarResposta(textoOriginal, contexto = {}) {
       violacoes.push({ regra: 'pedido_de_dado', detalhe: `pedido de documento ou dado pessoal: "${termo}"` });
     }
   }
+
+  // [v4.3] Itens 9 e 10: horário, confirmação, vaga e Leonardo.
+  violacoes.push(...conferirAgenda(texto, contexto));
 
   // Perguntas (item 5a): mais de um "?" fora de citação, salvo no fechamento.
   const perguntas = (semCitacoes(texto).match(/\?/g) ?? []).length;

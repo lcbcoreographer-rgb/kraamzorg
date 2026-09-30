@@ -40,6 +40,7 @@ import {
   VARIAVEIS_PROMPT_ISADORA_EXPR,
 } from './src/fluxo-3-agente-isadora.mjs';
 import { NOS as NOS2 } from './src/fluxo-2-pausar-notificar.mjs';
+import { NOS as NOS4 } from './src/fluxo-4-agenda-isadora.mjs';
 
 import { extrairDadosMensagem, tipoDaMensagem, telefoneE164 } from './src/code/extrair-dados.js';
 import { agrupamento, lerBufferRedis } from './src/code/agrupamento.js';
@@ -195,6 +196,9 @@ function criarAmbiente(opcoes = {}) {
     registrar_marco: () => ({ ok: true }),
     followups_devidos: () => opcoes.followups ?? { ok: true, itens: [] },
     registrar_followup: () => ({ ok: true }),
+    proativos_agenda_devidos: () => opcoes.proativosAgenda ?? { ok: true, itens: [], validador: { listas: LISTAS } },
+    registrar_lembrete: () => ({ ok: true }),
+    fechar_consulta: () => ({ ok: true }),
   };
 
   const postgres = (parametros) => {
@@ -784,8 +788,18 @@ describe('fluxo 3 · saída do agente e reescrita (funções puras)', () => {
     const base = { validador: CONTEXTO_VALIDADOR, texto_resposta: 'x', violacoes: [] };
     assert.equal(lerReescrita(base, resposta({ texto: '[SEGURANCA]', transferir: null })).reescrita_aprovada, false);
     assert.equal(lerReescrita(base, resposta({ texto: 'O Essencial é R$ 3.000.', transferir: null })).reescrita_aprovada, false);
+    // [v4.3] Desconto, parcelamento e contrato viram anotação para o Leonardo, nunca transferência.
     const ok = lerReescrita(base, resposta({ texto: 'Essa condição quem confirma é o Leonardo.', transferir: 'condicao_comercial' }));
-    assert.deepEqual([ok.reescrita_aprovada, ok.reescrita_transferir, ok.tem_transferencia_reescrita], [true, 'condicao_comercial', true]);
+    assert.deepEqual(
+      [ok.reescrita_aprovada, ok.reescrita_transferir, ok.tem_transferencia_reescrita, ok.reescrita_anotar],
+      [true, null, false, true],
+    );
+    for (const motivo of ['reuniao', 'cobertura_taxa', 'reembolso_fiscal', 'duvida_sem_resposta']) {
+      const semTransferencia = lerReescrita(base, resposta({ texto: 'Vou conferir isso com a equipe.', transferir: motivo }));
+      assert.deepEqual([semTransferencia.reescrita_transferir, semTransferencia.reescrita_anotar], [null, false], motivo);
+    }
+    const excecao = lerReescrita(base, resposta({ texto: 'Vou chamar alguém da equipe.', transferir: 'pediu_humano' }));
+    assert.deepEqual([excecao.reescrita_transferir, excecao.tem_transferencia_reescrita], ['pediu_humano', true]);
     assert.equal(lerReescrita(base, resposta({ texto: 'Ok.', transferir: 'inventado' })).reescrita_transferir, null);
     assert.equal(lerReescrita(base, { error: 'x' }).reescrita_aprovada, false);
   });
@@ -1162,15 +1176,20 @@ describe('fluxo 3 · cenários do P25 (JSON gerado no simulador)', () => {
     assert.deepEqual(ambiente.estado.envios.map((e) => e.no), [NOS.enviarTexto, NOS.enviarApresentacao]);
   });
 
-  test('reescrita que tira desconto abre condicao_comercial antes do envio', async () => {
+  test('[v4.3] reescrita que tira desconto grava a anotação para o Leonardo e não abre transferência', async () => {
     const ambiente = criarAmbiente({
       agente: () => ({ output: 'No Pix tem 10% de desconto.' }),
-      reescrita: { texto: 'Essa condição quem confirma é o Leonardo, tá? Vou pedir para ele falar com você por aqui.', transferir: 'condicao_comercial' },
+      reescrita: { texto: 'As condições de pagamento o Leonardo apresenta depois da reunião com a Edilaine, tá? Já deixei anotado aqui.', transferir: 'condicao_comercial' },
     });
     const execucao = await rodar(ambiente, corpo({ texto: 'tem desconto no pix?' }));
-    assert.deepEqual(ambiente.estado.fluxo2.map((c) => [c.no, c.entrada.motivo]), [[NOS.transferirPelaReescrita, 'condicao_comercial']]);
-    assert.ok(execucao.ordem.indexOf(NOS.transferirPelaReescrita) < execucao.ordem.indexOf(NOS.enviarTexto));
-    assert.equal(ambiente.chamadas('pode_enviar')[0].argumentos[2], 'handoff-1');
+    assert.deepEqual(ambiente.estado.fluxo2, [], 'nenhuma transferência antes da reunião');
+    assert.ok(!execucao.rodou(NOS.transferirPelaReescrita));
+    // a query do nó já fixa o marco `anotacao_comercial`; os parâmetros são a conversa e o pedido da família
+    assert.ok(execucao.rodou(NOS.anotarCondicao));
+    assert.deepEqual(ambiente.chamadas('registrar_marco').map((c) => c.argumentos), [[CONVERSA, 'tem desconto no pix?']]);
+    assert.ok(execucao.ordem.indexOf(NOS.anotarCondicao) < execucao.ordem.indexOf(NOS.enviarTexto), 'anota antes de enviar');
+    assert.equal(ambiente.enviosDe(NOS.enviarTexto).length, 1);
+    assert.ok(!ambiente.chamadas('pode_enviar')[0].argumentos[2], 'sem handoff desta execução');
   });
 
   test('violação que persiste: fallback_confirmar e fluxo 2 com validacao_resposta', async () => {
@@ -1271,6 +1290,7 @@ describe('fluxo 3 · cenários do P25 (JSON gerado no simulador)', () => {
 
   test('duas conversas: as ferramentas resolvem o conversa_id de cada execução, nunca do modelo', async () => {
     const { fluxo3 } = await fluxos();
+    const config = await configExemplo();
     const execucoes = [];
     for (const [jid, conversa] of [['000000000001@s.whatsapp.net', 'conversa-a'], ['000000000002@s.whatsapp.net', 'conversa-b']]) {
       const ambiente = criarAmbiente({ conversaPorJid: { [jid]: conversa } });
@@ -1290,7 +1310,10 @@ describe('fluxo 3 · cenários do P25 (JSON gerado no simulador)', () => {
         }
         if (no.type === '@n8n/n8n-nodes-langchain.toolWorkflow') {
           const valores = avaliarParametro(no.parameters.workflowInputs.value, escopo);
-          assert.deepEqual([valores.conversa_id, valores.wa_jid], [conversa, jid], nome);
+          assert.equal(valores.conversa_id, conversa, nome);
+          // as ferramentas do fluxo 2 levam também o jid (só para enviar); as do fluxo 4 nunca
+          if (no.parameters.workflowId.value === config.fluxo.idFluxo2) assert.equal(valores.wa_jid, jid, nome);
+          else assert.ok(!('wa_jid' in valores), nome);
         }
       }
       const memoria = fluxo3.nodes.find((n) => n.name === NOS.memoria);
@@ -1468,9 +1491,9 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
     const podeEnviar = fluxo3.nodes
       .filter((no) => no.type === 'n8n-nodes-base.postgres' && /agente\.pode_enviar\(/.test(no.parameters.query))
       .map((no) => no.name);
-    assert.deepEqual(podeEnviar.sort(), [NOS.podeEnviarSistema, NOS.reconsultar, NOS.reconsultarEEnviar].sort());
+    assert.deepEqual(podeEnviar.sort(), [NOS.podeEnviarSistema, NOS.reconsultar, NOS.reconsultarEEnviar, NOS.reconsultarAgenda].sort());
     const semPodeEnviar = alcancaveis(fluxo3, [NOS.webhook, NOS.aCada30Min], new Set(podeEnviar));
-    for (const envio of [NOS.enviarTexto, NOS.enviarApresentacao, NOS.enviarTextoSistema, NOS.enviarFollowup]) {
+    for (const envio of [NOS.enviarTexto, NOS.enviarApresentacao, NOS.enviarTextoSistema, NOS.enviarFollowup, NOS.enviarAgenda]) {
       assert.ok(!semPodeEnviar.has(envio), `"${envio}" alcançável sem pode_enviar`);
     }
     assert.ok(semPodeEnviar.has(NOS.enviarTextoAudio), 'o texto de áudio sai nos modos do alerta, sem pode_enviar');
@@ -1479,6 +1502,8 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
     );
     assert.ok(tipos[NOS.reconsultar].includes("'resposta'") && tipos[NOS.reconsultar].includes('handoff_id_execucao'));
     assert.ok(tipos[NOS.reconsultarEEnviar].includes("'conteudo'"));
+    // [v4.3] nó 46: 'operacional' para o lembrete, 'conteudo' para os demais
+    assert.ok(tipos[NOS.reconsultarAgenda].includes("'operacional'") && tipos[NOS.reconsultarAgenda].includes("'conteudo'"));
   });
 
   test('a chave de toda chamada ao banco é o conversa_id do "Registrar Msg Família" (ou "Humana"); entrada B usa o de followups_devidos', async () => {
@@ -1491,12 +1516,25 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
     assert.ok(resultado.ok, resultado.problemas.join(' | '));
     const resultadoB = conversaIdSoDoRegistro(
       { ...fluxo3, nodes: fluxo3.nodes.filter((no) => entradaB.has(no.name)) },
-      { expressoesPermitidas: ['$json.conversa_id', `$(${JSON.stringify(NOS.fecharFollowup)}).item.json.conversa_id`] },
+      {
+        expressoesPermitidas: [
+          '$json.conversa_id',
+          `$(${JSON.stringify(NOS.fecharFollowup)}).item.json.conversa_id`,
+          `$(${JSON.stringify(NOS.fecharAgenda)}).item.json.conversa_id`,
+        ],
+      },
     );
     assert.ok(resultadoB.ok, resultadoB.problemas.join(' | '));
-    for (const no of fluxo3.nodes.filter((n) => n.type === 'n8n-nodes-base.executeWorkflow')) {
+    const config = await configExemplo();
+    for (const no of fluxo3.nodes.filter((n) => n.type === 'n8n-nodes-base.executeWorkflow' && !entradaB.has(n.name))) {
       assert.equal(no.parameters.workflowInputs.value.conversa_id, `={{ ${EXPR_CONVERSA} }}`, no.name);
-      assert.equal(no.parameters.workflowInputs.value.wa_jid, `={{ ${EXPR_JID} }}`, no.name);
+      if (no.parameters.workflowId.value === config.fluxo.idFluxo2) {
+        assert.equal(no.parameters.workflowInputs.value.wa_jid, `={{ ${EXPR_JID} }}`, no.name);
+      }
+    }
+    // entrada B: o fluxo 4 recebe o conversa_id do item devolvido pelo banco
+    for (const no of fluxo3.nodes.filter((n) => n.type === 'n8n-nodes-base.executeWorkflow' && entradaB.has(n.name))) {
+      assert.equal(no.parameters.workflowInputs.value.conversa_id, '={{ $json.conversa_id }}', no.name);
     }
   });
 
@@ -1507,7 +1545,7 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
     for (const nome of b) assert.ok(!a.has(nome), nome);
   });
 
-  test('as nove ferramentas da 11.9: conversa_id fixo por expressão, só campos de conteúdo por $fromAI', async () => {
+  test('as quinze ferramentas da 11.9: conversa_id fixo por expressão, só campos de conteúdo por $fromAI', async () => {
     const config = await configExemplo();
     const { fluxo3 } = await fluxos();
     const conteudo = {
@@ -1517,7 +1555,21 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
       registrar_retorno: ['quando'],
       transferir_para_equipe: ['motivo', 'resumo', 'solicitacao', 'dados'],
       acionar_equipe_saude: ['tipo', 'resumo'],
+      // [v4.3] agenda e anotação: só conteúdo; nenhum id de evento, de calendário, de sessão ou de conversa
+      anotar_para_leonardo: ['anotacao'],
+      consultar_horarios_edilaine: ['id_opcao', 'modo', 'preferencia'],
+      agendar_reuniao: ['email', 'email_parceiro', 'id_opcao'],
+      remarcar_reuniao: ['id_opcao'],
+      cancelar_reuniao: ['motivo'],
+      consultar_equipe: ['pergunta', 'tipo'],
     };
+    const nosDoFluxo4 = new Set([
+      FERRAMENTAS.consultarHorariosEdilaine,
+      FERRAMENTAS.agendarReuniao,
+      FERRAMENTAS.remarcarReuniao,
+      FERRAMENTAS.cancelarReuniao,
+      FERRAMENTAS.consultarEquipe,
+    ]);
     const conexoesAgente = [];
     for (const [origem, porTipo] of Object.entries(fluxo3.connections)) {
       for (const destino of porTipo.ai_tool?.[0] ?? []) if (destino.node === NOS.agente) conexoesAgente.push(origem);
@@ -1528,7 +1580,11 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
       const texto = JSON.stringify(no.parameters);
       const chaves = [...texto.matchAll(/\$fromAI\('([a-z_]+)'/g)].map((m) => m[1]);
       assert.deepEqual([...new Set(chaves)].sort(), [...(conteudo[nome] ?? [])].sort(), nome);
-      if (no.type === '@n8n/n8n-nodes-langchain.toolWorkflow') {
+      if (no.type === '@n8n/n8n-nodes-langchain.toolWorkflow' && nosDoFluxo4.has(nome)) {
+        assert.equal(no.parameters.workflowId.value, config.fluxo.idFluxo4);
+        assert.equal(no.parameters.workflowInputs.value.conversa_id, `={{ ${EXPR_CONVERSA} }}`);
+        assert.ok(!('wa_jid' in no.parameters.workflowInputs.value), 'o fluxo 4 não recebe o jid');
+      } else if (no.type === '@n8n/n8n-nodes-langchain.toolWorkflow') {
         assert.equal(no.parameters.workflowId.value, config.fluxo.idFluxo2);
         assert.equal(no.parameters.workflowInputs.value.conversa_id, `={{ ${EXPR_CONVERSA} }}`);
         assert.equal(no.parameters.workflowInputs.value.wa_jid, `={{ ${EXPR_JID} }}`);
@@ -1539,7 +1595,7 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
     assert.deepEqual([saude.enviar_texto, saude.acao], [true, 'alerta_saude']);
     const transferir = fluxo3.nodes.find((n) => n.name === FERRAMENTAS.transferirParaEquipe).parameters.workflowInputs.value;
     assert.equal(transferir.enviar_texto, false);
-    for (const nome of [FERRAMENTAS.atualizarFicha, FERRAMENTAS.registrarRetorno, FERRAMENTAS.marcarNaoContatar]) {
+    for (const nome of [FERRAMENTAS.atualizarFicha, FERRAMENTAS.registrarRetorno, FERRAMENTAS.marcarNaoContatar, FERRAMENTAS.anotarParaLeonardo]) {
       const lista = fluxo3.nodes.find((n) => n.name === nome).parameters.options.queryReplacement;
       assert.ok(lista.startsWith(`={{ [ ${EXPR_CONVERSA}`), nome);
     }
@@ -1669,11 +1725,22 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
     assert.doesNotThrow(() => conferirHomologacao(exemplo, 'hml'));
   });
 
-  test('ferramentas e sub-fluxos apontam para o id do fluxo 2 do config, que é o id do fluxo 2 gerado', async () => {
+  test('ferramentas e sub-fluxos apontam para o id do fluxo 2 (e, na agenda, do fluxo 4) do config, que é o id do fluxo gerado', async () => {
     const config = await configExemplo();
-    const { fluxo2, fluxo3 } = await fluxos();
+    const { fluxo2, fluxo3, fluxo4 } = await fluxos();
     assert.equal(fluxo2.id, config.fluxo.idFluxo2);
-    const chamadas = fluxo3.nodes.filter((no) => ['n8n-nodes-base.executeWorkflow', '@n8n/n8n-nodes-langchain.toolWorkflow'].includes(no.type));
+    assert.equal(fluxo4.id, config.fluxo.idFluxo4);
+    const todas = fluxo3.nodes.filter((no) => ['n8n-nodes-base.executeWorkflow', '@n8n/n8n-nodes-langchain.toolWorkflow'].includes(no.type));
+    const para4 = todas.filter((no) => no.parameters.workflowId.value === config.fluxo.idFluxo4);
+    assert.equal(para4.length, 5 + 3, 'cinco ferramentas de agenda e três chamadas (cadência, conferir a agenda, violação de agenda)');
+    for (const no of para4) {
+      assert.deepEqual(
+        no.parameters.workflowInputs.schema.map((s) => s.id),
+        fluxo4.nodes.find((n) => n.name === NOS4.quandoChamado).parameters.workflowInputs.values.map((v) => v.name),
+        no.name,
+      );
+    }
+    const chamadas = todas.filter((no) => no.parameters.workflowId.value === config.fluxo.idFluxo2);
     assert.equal(chamadas.length, 11);
     for (const no of chamadas) {
       assert.equal(no.parameters.workflowId.value, config.fluxo.idFluxo2, no.name);

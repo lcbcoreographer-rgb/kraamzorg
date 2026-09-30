@@ -46,6 +46,16 @@ export function separarFollowups(resposta) {
         nome: textoLimpo(item.nome),
         texto_base: textoLimpo(item.texto_base),
         tempo_sem_resposta: textoLimpo(item.tempo_sem_resposta),
+        // [v4.3] etapa da cadência de 1, 3 e 14 dias (D-21) e retomada das
+        // opções vencidas: com `precisa_agenda`, o fluxo 3 consulta a agenda
+        // pelo fluxo 4 e preenche {opcao_1} e {opcao_2} (agenda-proativos.js).
+        etapa: Number(item.etapa) || null,
+        motivo: textoLimpo(item.motivo),
+        precisa_agenda: item.precisa_agenda === true,
+        agenda_horarios: [],
+        links_permitidos: [],
+        agenda_estados: [],
+        agenda_reuniao_marcada: false,
         data_hora: textoLimpo(item.data_hora),
         ultimas_mensagens_texto: formatarUltimasMensagens(item.ultimas_mensagens),
         listas: validador.listas ?? null,

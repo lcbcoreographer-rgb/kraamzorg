@@ -34,6 +34,7 @@ const TIPO = {
   lote: 'n8n-nodes-base.splitInBatches',
   postgres: 'n8n-nodes-base.postgres',
   http: 'n8n-nodes-base.httpRequest',
+  googleCalendar: 'n8n-nodes-base.googleCalendar',
   redis: 'n8n-nodes-base.redis',
   subFluxo: 'n8n-nodes-base.executeWorkflow',
   agente: '@n8n/n8n-nodes-langchain.agent',
@@ -48,7 +49,9 @@ const GATILHOS = new Set([TIPO.gatilhoSubFluxo, TIPO.webhook, TIPO.agenda, TIPO.
 // às ferramentas do agente (limite conhecido, ver cabeçalho). Em modo
 // "retrieve-as-tool" (fluxo 3) o nó só é alcançado por conexão `ai_tool`,
 // que o simulador nunca percorre, então entrar aqui não muda esse caminho.
-const EXTERNOS = new Set([TIPO.postgres, TIPO.http, TIPO.redis, TIPO.subFluxo, TIPO.agente, TIPO.vectorStore]);
+// [v4.3] O nó do Google Calendar (só no fluxo 4) também é chamada externa: o
+// teste responde com o calendário simulado (`lib/calendario-simulado.mjs`).
+const EXTERNOS = new Set([TIPO.postgres, TIPO.http, TIPO.redis, TIPO.subFluxo, TIPO.agente, TIPO.vectorStore, TIPO.googleCalendar]);
 
 function copiar(valor) {
   return valor === undefined ? undefined : JSON.parse(JSON.stringify(valor));

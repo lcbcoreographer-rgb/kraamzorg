@@ -665,7 +665,7 @@ insert into t_id select 'fam_lia', (r ->> 'familia_id')::uuid from t_l;
 select results_eq(
   $$ select f.dpp, f.cidade_informada, f.bairro, f.cidade_id is not null, f.municipio_codigo_ibge, f.primeira_gestacao, f.historico_sensivel
      from familia f where f.id = (select id from t_id where chave = 'fam_lia') $$,
-  $$ values (current_date + (280 - (29 * 7 + 3)), 'São Paulo', 'Pinheiros', true, null::integer, true, true) $$,
+  $$ values ((now() at time zone 'America/Sao_Paulo')::date + (280 - (29 * 7 + 3)), 'São Paulo', 'Pinheiros', true, null::integer, true, true) $$,
   'atualizar_lead: semanas viram DPP pela data de hoje; cidade_informada e cidade_id; historico_sensivel só como verdadeiro');
 select is_empty(
   $$ select 1 from familia f where f.id = (select id from t_id where chave = 'fam_lia')

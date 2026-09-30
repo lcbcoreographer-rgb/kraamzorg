@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Gera os três JSON dos fluxos n8n do agente a partir do repositório (PRD 19,
-// P23). Lê o config do ambiente com `--env`, monta os fluxos a partir de
+// Gera os quatro JSON dos fluxos n8n do agente a partir do repositório (PRD 19,
+// P23; [v4.3] o fluxo 4, Agenda da Isadora). Lê o config do ambiente com `--env`, monta os fluxos a partir de
 // `n8n/src/fluxo-*.mjs`, aplica as configurações do 19.1 e grava
 // `n8n/dist/*.json`. Nunca monta fluxo pela interface (CLAUDE.md).
 //
@@ -26,6 +26,7 @@ import { carregarConfig } from './src/lib/config.mjs';
 import { montarFluxo as montarFluxo1 } from './src/fluxo-1-ingestao-rag.mjs';
 import { montarFluxo as montarFluxo2 } from './src/fluxo-2-pausar-notificar.mjs';
 import { montarFluxo as montarFluxo3 } from './src/fluxo-3-agente-isadora.mjs';
+import { montarFluxo as montarFluxo4 } from './src/fluxo-4-agenda-isadora.mjs';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 
@@ -35,6 +36,7 @@ export const ARQUIVOS_DIST = {
   fluxo1: 'kraamzorg-ingestao-rag',
   fluxo2: 'kraamzorg-pausar-ia-notificar-equipe',
   fluxo3: 'kraamzorg-agente-isadora',
+  fluxo4: 'kraamzorg-agenda-isadora',
 };
 
 // Em homologação o nome do arquivo (e o nome do fluxo dentro do n8n) leva
@@ -55,23 +57,30 @@ export function nomeFluxoComAmbiente(nomeFluxo, env) {
 // família para a rota de captura, e ninguém receberia nada.
 export function conferirHomologacao(config, env) {
   const homologacao = config?.homologacao ?? {};
-  if (env === 'prod' && (homologacao.envioSimulado === true || homologacao.transcricaoSimulada === true)) {
-    throw new Error('produção com homologacao.envioSimulado ou homologacao.transcricaoSimulada ligado: desligue os dois no config.prod.json');
+  if (
+    env === 'prod' &&
+    (homologacao.envioSimulado === true || homologacao.transcricaoSimulada === true || homologacao.agendaSimulada === true)
+  ) {
+    throw new Error(
+      'produção com homologacao.envioSimulado, homologacao.transcricaoSimulada ou homologacao.agendaSimulada ligado: desligue os três no config.prod.json',
+    );
   }
 }
 
-// Monta os três fluxos (objetos JS, sem gravar nada) a partir do config já
+// Monta os quatro fluxos (objetos JS, sem gravar nada) a partir do config já
 // carregado. É a função que os testes chamam diretamente.
 export function gerarFluxos(config, env) {
   conferirHomologacao(config, env);
   const fluxo1 = montarFluxo1(config);
   const fluxo2 = montarFluxo2(config);
   const fluxo3 = montarFluxo3(config);
+  const fluxo4 = montarFluxo4(config);
 
   return {
     fluxo1: { ...fluxo1, name: nomeFluxoComAmbiente(fluxo1.name, env) },
     fluxo2: { ...fluxo2, name: nomeFluxoComAmbiente(fluxo2.name, env) },
     fluxo3: { ...fluxo3, name: nomeFluxoComAmbiente(fluxo3.name, env) },
+    fluxo4: { ...fluxo4, name: nomeFluxoComAmbiente(fluxo4.name, env) },
   };
 }
 

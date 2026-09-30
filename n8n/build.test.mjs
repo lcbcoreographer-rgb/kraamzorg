@@ -81,13 +81,13 @@ async function lerConfigExample() {
 // Aceite do P23: build gera três JSON de esqueleto válidos.
 // ---------------------------------------------------------------------------
 
-describe('aceite do P23: build gera os três JSON de esqueleto', () => {
-  test('node n8n/build.mjs --env hml grava três arquivos JSON válidos em n8n/dist', async () => {
+describe('aceite do P23: build gera os quatro JSON ([v4.3] com o fluxo 4)', () => {
+  test('node n8n/build.mjs --env hml grava quatro arquivos JSON válidos em n8n/dist', async () => {
     const dirDist = path.join(RAIZ_N8N, 'dist');
     await rm(dirDist, { recursive: true, force: true });
 
     const gravados = await build({ env: 'hml', raizN8n: RAIZ_N8N, log: () => {}, logAviso: () => {} });
-    assert.equal(gravados.length, 3);
+    assert.equal(gravados.length, 4);
 
     for (const caminho of gravados) {
       assert.ok(caminho.includes('(HML)'), `nome do arquivo de homologação deveria ter "(HML)": ${caminho}`);
@@ -102,7 +102,7 @@ describe('aceite do P23: build gera os três JSON de esqueleto', () => {
     }
 
     const arquivos = await readdir(dirDist);
-    assert.equal(arquivos.length, 3);
+    assert.equal(arquivos.length, 4);
   });
 
   test('build é determinístico: rodar duas vezes gera o mesmo id de raiz e os mesmos ids de nó', async () => {
@@ -139,12 +139,12 @@ describe('aceite do P23: build gera os três JSON de esqueleto', () => {
   test('--config e --saida: lê o config de fora do repositório e grava fora de n8n/dist', async () => {
     const temporaria = await mkdtemp(path.join(os.tmpdir(), 'kz-build-'));
     try {
-      const configProd = { ...(await lerConfigExample()), homologacao: { envioSimulado: false, transcricaoSimulada: false } };
+      const configProd = { ...(await lerConfigExample()), homologacao: { envioSimulado: false, transcricaoSimulada: false, agendaSimulada: false } };
       const caminhoProd = path.join(temporaria, 'config.prod.json');
       await writeFile(caminhoProd, JSON.stringify(configProd));
       const saida = path.join(temporaria, 'dist');
       const gravados = await build({ env: 'prod', raizN8n: RAIZ_N8N, caminhoConfig: caminhoProd, dirSaida: saida, log: () => {}, logAviso: () => {} });
-      assert.equal(gravados.length, 3);
+      assert.equal(gravados.length, 4);
       for (const caminho of gravados) {
         assert.ok(caminho.startsWith(saida), caminho);
         assert.ok(!caminho.includes('(HML)'), caminho);
@@ -182,7 +182,7 @@ describe('aceite do P23: build gera os três JSON de esqueleto', () => {
 // ---------------------------------------------------------------------------
 
 describe('verificadores estruturais sobre os fluxos gerados de verdade', () => {
-  test('os três fluxos gerados passam por todos os verificadores estruturais', async () => {
+  test('os fluxos gerados passam por todos os verificadores estruturais', async () => {
     const config = await lerConfigExample();
     const fluxos = gerarFluxos(config, 'hml');
     for (const [chave, fluxo] of Object.entries(fluxos)) {

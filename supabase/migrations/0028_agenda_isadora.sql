@@ -1538,6 +1538,9 @@ begin
       'hora', privado.agenda_hora(v_s.agendada_para),
       'texto_horario', privado.agenda_texto(v_s.agendada_para),
       'link', v_s.link_reuniao,
+      -- o texto aprovado sem as variáveis trocadas: se a Edilaine moveu o evento, o fluxo 3
+      -- monta o lembrete de novo com a hora que o calendário devolveu
+      'texto_modelo', v_texto,
       'texto_base', privado.aplicar_texto(v_texto, v_nome,
                       pg_catalog.jsonb_build_object('hora', privado.agenda_hora(v_s.agendada_para), 'link', v_s.link_reuniao)),
       'data_hora', privado.formatar_data_hora(pg_catalog.now())));
@@ -1666,7 +1669,7 @@ exception
     return privado.agente_erro(sqlstate, sqlerrm);
 end;
 $$;
-comment on function agente.proativos_agenda_devidos() is '[v4.3] Apêndice A e PRD 19.4 nós 42 a 47: o que a Isadora escreve por iniciativa própria em torno da agenda: lembrete da véspera (operacional), remarcação depois de falta (conteúdo), devolutiva de consulta respondida pela equipe e consulta horario_edilaine à espera de horário (conteúdo). Reserva o que devolve; motivo definitivo (humano_comercial, cliente, não contatar, freio, teste fora da lista...) cancela, motivo passageiro (janela, pausa, transferência aberta, conteúdo já enviado hoje) espera. Devolve itens {tipo, execucao_id ou consulta_id, conversa_id, wa_jid, nome, texto_base, ...}; nunca o id do evento.';
+comment on function agente.proativos_agenda_devidos() is '[v4.3] Apêndice A e PRD 19.4 nós 42 a 47: o que a Isadora escreve por iniciativa própria em torno da agenda: lembrete da véspera (operacional), remarcação depois de falta (conteúdo), devolutiva de consulta respondida pela equipe e consulta horario_edilaine à espera de horário (conteúdo). Reserva o que devolve; motivo definitivo (humano_comercial, cliente, não contatar, freio, teste fora da lista...) cancela, motivo passageiro (janela, pausa, transferência aberta, conteúdo já enviado hoje) espera. Devolve itens {tipo, execucao_id ou consulta_id, conversa_id, wa_jid, nome, texto_base, ...} (o lembrete leva também texto_modelo, o texto aprovado com as variáveis por trocar); nunca o id do evento.';
 
 -- --- 7.11 agente.registrar_lembrete ------------------------------------------------------------------------------
 -- Fecha o lembrete da véspera. ok: registra que saiu (sessao_venda.lembrete_enviado_em),

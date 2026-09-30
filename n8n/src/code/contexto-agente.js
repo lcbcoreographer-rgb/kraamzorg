@@ -6,7 +6,8 @@
 //
 // Contrato esperado do banco (P21): ficha_para_agente(conversa_id) -> {ok,
 // ficha, data_hora, planos, valores_permitidos, pdf_status,
-// horarios_edilaine, valor: {essencial, imersao, continuado,
+// [v4.3] agenda_estado, agenda_opcoes: [{id_opcao, texto, conferida}],
+// agenda_reuniao: {dia_semana, data, hora, texto, ...}, valor: {essencial, imersao, continuado,
 // gemelar_essencial, gemelar_continuado, minimo}, parcela: {continuado},
 // pagina: {filho_unico, gemelar}, validador: {planos: [{nome, apelidos?,
 // valor_centavos, parcelas, parcela_centavos}], taxas_centavos,
@@ -26,7 +27,6 @@ export const VARIAVEIS_PROMPT_ISADORA = [
   'planos',
   'valores_permitidos',
   'pdf_status',
-  'horarios_edilaine',
   'valor.essencial',
   'valor.imersao',
   'valor.continuado',
@@ -110,6 +110,23 @@ export function resolverUrlPdf(url, urlPublicaMarketing) {
   return `${base}/${valor.replace(/^\/+/, '')}`;
 }
 
+// [v4.3] Situação da agenda que `agente.ficha_para_agente` devolve: estado
+// (sem_reuniao, horarios_enviados, aguardando_email, agendada, faltou), as
+// opções oferecidas hoje e a reunião marcada. O validador só deixa a Isadora
+// citar um horário que esteja aqui ou que uma ferramenta de agenda devolva na
+// execução (PRD 11.11 item 9).
+export function agendaDaFicha(ficha) {
+  const horarios = [];
+  for (const opcao of Array.isArray(ficha?.agenda_opcoes) ? ficha.agenda_opcoes : []) {
+    const texto = textoLimpo(opcao?.texto);
+    if (texto) horarios.push(texto);
+  }
+  const reuniao = textoLimpo(ficha?.agenda_reuniao?.texto);
+  if (reuniao) horarios.push(reuniao);
+  const estado = textoLimpo(ficha?.agenda_estado);
+  return { estado, horarios, reuniao_marcada: estado === 'agendada' };
+}
+
 export function prepararEntradaAgente(estado, respostaFicha, { linhaMidia, nomesMidia, urlPublicaMarketing } = {}) {
   const ficha = resultadoDoBanco(respostaFicha);
   const fichaOk = ficha?.ok === true && typeof ficha.ficha === 'string' && ficha.ficha.trim().length > 0;
@@ -125,6 +142,7 @@ export function prepararEntradaAgente(estado, respostaFicha, { linhaMidia, nomes
     falha_agente: fichaOk ? null : 'ficha_do_agente',
     prompt: fichaOk ? camposDoPrompt(ficha, estado.modo) : {},
     validador: fichaOk ? contextoDoValidador(ficha.validador) : { planos: [], listas: null },
+    agenda: fichaOk ? agendaDaFicha(ficha) : { estado: '', horarios: [], reuniao_marcada: false },
     pdf: {
       url: resolverUrlPdf(pdf.url, urlPublicaMarketing),
       nome_arquivo: textoLimpo(pdf.nome_arquivo),

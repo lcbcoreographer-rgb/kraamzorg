@@ -58,11 +58,17 @@ export function validarFollowup(estado, respostaOpenAi) {
   if (bruto === null) return reprovar('geracao_falhou');
   if (temSilencio(bruto)) return reprovar('silencio');
 
+  // [v4.3] Item 9: horário e link só os que o fluxo 4 (ou o banco) entregou a
+  // este envio; o link do Meet do lembrete é o único link permitido.
   const resultado = validarResposta(bruto, {
     listas: estado.listas,
     planos: [],
     permitir_valores: false,
     permitir_apresentacao: false,
+    agenda_horarios: estado.agenda_horarios ?? [],
+    agenda_estados: estado.agenda_estados ?? [],
+    agenda_reuniao_marcada: estado.agenda_reuniao_marcada === true,
+    links_permitidos: estado.links_permitidos ?? [],
   });
   if (!resultado.aprovada) return reprovar('validador', { violacoes: resultado.violacoes });
   if (!resultado.texto) return reprovar('geracao_falhou');

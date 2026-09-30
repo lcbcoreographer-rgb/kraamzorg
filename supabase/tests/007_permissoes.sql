@@ -769,7 +769,10 @@ select testes.autenticar_authenticated(testes.uid('coordenacao'), 'aal2');
 select is(
   (api.ficha_assistencial('c7000000-0000-4000-8000-000000000001') -> 'familia' ->> 'historico_sensivel'), 'true',
   'ficha_assistencial: coordenação vê historico_sensivel');
-select is((select count(*)::integer from api.familias_do_dia()), 2, 'familias_do_dia: coordenação vê todas as visitas do dia');
+-- a contagem vem da própria tabela no dia de São Paulo (o seed também tem visita perto de hoje; entre 21h e meia-noite o dia de São Paulo difere do UTC)
+select is((select count(*)::integer from api.familias_do_dia()),
+  (select count(*)::integer from visita where data = (now() at time zone 'America/Sao_Paulo')::date),
+  'familias_do_dia: coordenação vê todas as visitas do dia');
 select testes.encerrar();
 
 select testes.autenticar_authenticated(testes.uid('comercial'), 'aal2');
