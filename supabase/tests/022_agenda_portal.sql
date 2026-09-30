@@ -18,7 +18,10 @@
 --   8. Privilégios.
 --
 -- Só dado sintético, criado aqui e desfeito no rollback. Datas relativas a
--- hoje, no fuso da operação.
+-- hoje, no fuso da operação (America/Sao_Paulo), e horários informados pelo
+-- aparelho relativos ao mesmo instante e sempre dentro de hoje (testes.p37_atras),
+-- para o resultado não depender da hora em que a suíte roda, nem perto da
+-- meia-noite de São Paulo nem entre 00:00 e 03:00 UTC.
 -- =============================================================================
 
 begin;
@@ -182,6 +185,21 @@ insert into documento_profissional (id, profissional_id, tipo, numero, validade)
 create function testes.p37_nova_transacao() returns void language sql as $$
   select set_config('app.versao_incrementada', '', true)
 $$;
+-- Horário que o aparelho informa "há N minutos", sempre dentro do dia de hoje
+-- (fuso da operação). A visita do teste é de hoje, e registrar_chegada e
+-- registrar_saida recusam hora de outro dia (equipe:fora_do_dia_da_visita).
+-- Nos primeiros minutos depois da meia-noite de São Paulo, "há 20 minutos"
+-- cairia ontem e o teste falharia sem que o código estivesse errado. Por isso
+-- o recuo encolhe na mesma proporção do que já passou do dia (fator 1 a partir
+-- de 21 minutos depois da meia-noite): a ordem entre os horários se mantém e
+-- nenhum passa da meia-noite. O arquivo roda numa transação só, então now() é
+-- o mesmo instante em toda chamada e o resultado é o mesmo em toda chamada.
+create function testes.p37_atras(p_minutos numeric) returns timestamptz language sql stable as $$
+  select now() - (p_minutos::float8
+                  * least(1.0::float8,
+                          extract(epoch from now() - (date_trunc('day', now() at time zone 'America/Sao_Paulo') at time zone 'America/Sao_Paulo'))::float8 / 60.0 / 21.0))
+                 * interval '1 minute'
+$$;
 create function testes.p37_erro(p_sql text) returns text language plpgsql as $$
 begin
   execute p_sql;
@@ -201,7 +219,7 @@ $$;
 create function testes.p37_notificacoes(p_usuario uuid, p_titulo text) returns integer language sql security definer set search_path = '' as $$
   select count(*)::integer from public.notificacao n where n.usuario_id = p_usuario and n.titulo = p_titulo
 $$;
-grant execute on function testes.p37_nova_transacao(), testes.p37_erro(text), testes.p37_eventos_visita(uuid, text[]),
+grant execute on function testes.p37_nova_transacao(), testes.p37_atras(numeric), testes.p37_erro(text), testes.p37_eventos_visita(uuid, text[]),
   testes.p37_log_acoes(text), testes.p37_notificacoes(uuid, text) to public;
 
 -- -----------------------------------------------------------------------------
@@ -343,9 +361,9 @@ select throws_ok($$ select api.escala_semanal(null, null) $$, '42501', null, 'co
 -- -----------------------------------------------------------------------------
 
 select testes.autenticar_authenticated('a2200000-0000-4000-8000-000000000003', 'aal2');
-select throws_ok($$ select api.agenda(current_date, current_date + 3, null) $$, '42501', null, 'a enfermeira não abre a agenda geral');
+select throws_ok($$ select api.agenda((select hoje from t_h), (select hoje + 3 from t_h), null) $$, '42501', null, 'a enfermeira não abre a agenda geral');
 select testes.autenticar_authenticated('a2200000-0000-4000-8000-000000000001', 'aal2');
-select throws_ok($$ select api.agenda(current_date + 3, current_date, null) $$, 'P0001', null, 'período ao contrário é recusado');
+select throws_ok($$ select api.agenda((select hoje + 3 from t_h), (select hoje from t_h), null) $$, 'P0001', null, 'período ao contrário é recusado');
 select is(jsonb_array_length(api.agenda((select hoje from t_h), (select hoje from t_h), 'd2200000-0000-4000-8000-000000000101') -> 'visitas'), 2,
   'agenda do dia da profissional A: duas visitas');
 select is((select jsonb_array_length(v -> 'conflitos') from jsonb_array_elements(
@@ -492,9 +510,9 @@ insert into t_r select 'casc_forcada', api.reagendar_cascata('e2200000-0000-4000
 select is((select min(data) from visita where acompanhamento_id = 'e2200000-0000-4000-8000-000000000003'), (select hoje + 30 from t_h),
   'cascata com conflito confirmado e motivo grava');
 
-select matches(testes.p37_erro($$ select api.reagendar_cascata('e2200000-0000-4000-8000-000000000008', current_date + 3, null, false, false) $$),
+select matches(testes.p37_erro($$ select api.reagendar_cascata('e2200000-0000-4000-8000-000000000008', (select hoje + 3 from t_h), null, false, false) $$),
   '^equipe:nada_a_reagendar', 'acompanhamento sem visita a mover: nada a reagendar');
-select matches(testes.p37_erro(format($$ select api.reagendar_visita(%L, current_date + 3, null, null, null, true, false) $$,
+select matches(testes.p37_erro(format($$ select api.reagendar_visita(%L, (select hoje + 3 from t_h), null, null, null, true, false) $$,
     (select id from visita where acompanhamento_id = 'e2200000-0000-4000-8000-000000000008' and dia_numero = 1))),
   '^equipe:visita_nao_movivel', 'visita já encerrada não se reagenda');
 
@@ -542,9 +560,9 @@ select matches(testes.p37_erro($$ select api.salvar_documento_profissional(null,
 insert into t_r select 'bloq', api.salvar_bloqueio_agenda(null, 'd2200000-0000-4000-8000-000000000102', (select hoje + 32 from t_h), (select hoje + 32 from t_h), 'Consulta médica');
 select is((select jsonb_array_length(r -> 'visitas_afetadas') from t_r where chave = 'bloq'), 1,
   'o bloqueio devolve as visitas já marcadas nesses dias, para reagendar');
-select matches(testes.p37_erro($$ select api.salvar_bloqueio_agenda(null, 'd2200000-0000-4000-8000-000000000102', current_date + 5, current_date + 4, 'x') $$),
+select matches(testes.p37_erro($$ select api.salvar_bloqueio_agenda(null, 'd2200000-0000-4000-8000-000000000102', (select hoje + 5 from t_h), (select hoje + 4 from t_h), 'x') $$),
   '^equipe:periodo_invalido', 'bloqueio que termina antes de começar é recusado');
-select matches(testes.p37_erro($$ select api.salvar_bloqueio_agenda(null, 'd2200000-0000-4000-8000-000000000102', current_date + 4, current_date + 5, '  ') $$),
+select matches(testes.p37_erro($$ select api.salvar_bloqueio_agenda(null, 'd2200000-0000-4000-8000-000000000102', (select hoje + 4 from t_h), (select hoje + 5 from t_h), '  ') $$),
   '^equipe:motivo_obrigatorio', 'bloqueio sem motivo é recusado');
 insert into t_r select 'bloq_rem', api.remover_bloqueio_agenda((select (r ->> 'id')::uuid from t_r where chave = 'bloq'));
 select is((select count(*)::integer from bloqueio_agenda where id = (select (r ->> 'id')::uuid from t_r where chave = 'bloq')), 0, 'remove o bloqueio');
@@ -554,7 +572,7 @@ select matches(testes.p37_erro(format($$ select api.remover_bloqueio_agenda(%L) 
 select testes.autenticar_authenticated('a2200000-0000-4000-8000-000000000003', 'aal2');
 select throws_ok($$ select api.salvar_profissional(null, 'X', 'enfermeira_obstetrica', null, null, null, '{}', 'mei', 100, 0, true, null) $$,
   '42501', null, 'a enfermeira não cadastra profissional');
-select throws_ok($$ select api.salvar_bloqueio_agenda(null, 'd2200000-0000-4000-8000-000000000101', current_date + 4, current_date + 5, 'x') $$,
+select throws_ok($$ select api.salvar_bloqueio_agenda(null, 'd2200000-0000-4000-8000-000000000101', (select hoje + 4 from t_h), (select hoje + 5 from t_h), 'x') $$,
   '42501', null, 'a enfermeira não cria bloqueio de agenda');
 
 -- -----------------------------------------------------------------------------
@@ -650,9 +668,9 @@ select matches(testes.p37_erro(format($$ select api.registrar_chegada(%L, null, 
 
 select testes.p37_nova_transacao();
 insert into t_r select 'chegada', api.registrar_chegada(
-  (select id from visita where acompanhamento_id = 'e2200000-0000-4000-8000-000000000001' and dia_numero = 1), now() - interval '10 minutes', false);
+  (select id from visita where acompanhamento_id = 'e2200000-0000-4000-8000-000000000001' and dia_numero = 1), testes.p37_atras(10), false);
 select is((select r ->> 'estado' from t_r where chave = 'chegada'), 'iniciada', 'a chegada leva a visita a iniciada');
-select cmp_ok((select checkin_em from visita where acompanhamento_id = 'e2200000-0000-4000-8000-000000000001' and dia_numero = 1), '<', now() - interval '9 minutes',
+select is((select checkin_em from visita where acompanhamento_id = 'e2200000-0000-4000-8000-000000000001' and dia_numero = 1), testes.p37_atras(10),
   'a hora de chegada gravada é a informada (a do aparelho), não a do servidor');
 select is((select versao from visita where acompanhamento_id = 'e2200000-0000-4000-8000-000000000001' and dia_numero = 1), 2,
   'as três transições e a hora são uma gravação lógica só: versão 1 para 2');
@@ -670,12 +688,12 @@ select is((select r ->> 'ja_registrada' from t_r where chave = 'chegada2'), 'tru
 select is((select versao from visita where acompanhamento_id = 'e2200000-0000-4000-8000-000000000001' and dia_numero = 1), 2, 'e não mexe na versão');
 
 -- saída
-select matches(testes.p37_erro(format($$ select api.registrar_saida(%L, now() - interval '12 minutes', false) $$,
+select matches(testes.p37_erro(format($$ select api.registrar_saida(%L, testes.p37_atras(12), false) $$,
     (select id from visita where acompanhamento_id = 'e2200000-0000-4000-8000-000000000001' and dia_numero = 1))),
   '^equipe:saida_antes_da_chegada', 'saída antes da chegada é recusada');
 select testes.p37_nova_transacao();
 insert into t_r select 'saida', api.registrar_saida(
-  (select id from visita where acompanhamento_id = 'e2200000-0000-4000-8000-000000000001' and dia_numero = 1), now() - interval '1 minute', false);
+  (select id from visita where acompanhamento_id = 'e2200000-0000-4000-8000-000000000001' and dia_numero = 1), testes.p37_atras(1), false);
 select is((select r ->> 'estado' from t_r where chave = 'saida'), 'ficha_pendente', 'a saída deixa a ficha pendente');
 select is((select versao from visita where acompanhamento_id = 'e2200000-0000-4000-8000-000000000001' and dia_numero = 1), 3, 'a saída é uma gravação lógica: versão 2 para 3');
 select is((select status::text from api.status_equipe(null, null) where dia = (select hoje from t_h)), 'em_atendimento',
@@ -689,7 +707,7 @@ select is((select r ->> 'ja_registrada' from t_r where chave = 'saida2'), 'true'
 -- pelo motor offline: a hora vem do aparelho e a origem do log é sync
 select testes.p37_nova_transacao();
 insert into t_r select 'chegada_sync', api.registrar_chegada(
-  (select id from visita where acompanhamento_id = 'e2200000-0000-4000-8000-000000000002' and dia_numero = 1), now() - interval '20 minutes', true);
+  (select id from visita where acompanhamento_id = 'e2200000-0000-4000-8000-000000000002' and dia_numero = 1), testes.p37_atras(20), true);
 select testes.encerrar();
 select is((select origem from log_auditoria where entidade = 'visita'
              and entidade_id = (select id::text from visita where acompanhamento_id = 'e2200000-0000-4000-8000-000000000002' and dia_numero = 1)
