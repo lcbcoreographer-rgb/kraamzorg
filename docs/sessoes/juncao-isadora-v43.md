@@ -13,9 +13,11 @@ Data: 30/09/2026. Branch `isadora-v43` (PRD v4.3, prompt 4.3-rc1, agenda da Isad
 1. A 0028 refazia a trava `auditoria_coluna_sensivel_fonte_check` com uma lista fixa e apagava a fonte `sessao_p36` que a 0021 acrescentou. Agora a 0028 reconstrói a lista a partir das fontes que já existem mais a dela. A 0028 não foi aplicada em ambiente nenhum, então a correção foi feita nela mesma.
 2. `supabase/tests/019_contrato_cobranca.sql` comparava o vencimento da cobrança com `current_date` (UTC), mas a função usa a data de São Paulo. Entre 21h e meia-noite de São Paulo o teste falhava. Agora compara com `(now() at time zone 'America/Sao_Paulo')::date + 3`.
 
-## Fragilidade anotada para a revisão final (P53)
+## Fragilidade anotada (resolvida no commit 4b603a7)
 
 `supabase/tests/022_agenda_portal.sql` registra chegada e saída com horários de até 20 minutos atrás (`now() - interval '20 minutes'`). Nos primeiros 30 minutos depois da meia-noite de São Paulo, esse horário cai no dia anterior e a função recusa com `equipe:fora_do_dia_da_visita`, que é o comportamento certo. O código está correto; o teste precisa de um jeito de fixar o relógio ou de montar a visita no dia do horário usado. Outros testes com `now()` e cadência (028) também oscilaram exatamente na virada do dia.
+
+Resolvido em 4b603a7: o 022 passou a usar `testes.p37_atras(minutos)`, que devolve "há N minutos" sempre dentro do dia de São Paulo, e a data de São Paulo no lugar de `current_date`. Provado com o Postgres sob `faketime` em horários logo depois da meia-noite de São Paulo e com a data UTC diferente da de São Paulo. O 007, o 013 e o 028 passaram em todos os horários simulados sem mudança.
 
 ## Comandos rodados na junção
 
