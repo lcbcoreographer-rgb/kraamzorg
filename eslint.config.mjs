@@ -22,6 +22,10 @@ const eslintConfig = defineConfig([
     "test-results-offline/**",
     "playwright-report-evolucao-ocorrencia-nf/**",
     "test-results-evolucao-ocorrencia-nf/**",
+    "playwright-report-equipe-portal/**",
+    "test-results-equipe-portal/**",
+    "playwright-report-gestao/**",
+    "test-results-gestao/**",
     "coverage/**",
     "docs/prototipo/**",
     // Worktrees de outras sessões em paralelo (git ignora; o lint também).

@@ -35,6 +35,7 @@ import type {
   PesquisaPublicaRepositorio,
   PosVendaRepositorio,
 } from "./tipos-ocorrencia";
+import type { GestaoRepositorio } from "./tipos-gestao";
 import type {
   AgendaPeriodo,
   EquipeVisao,
@@ -401,6 +402,8 @@ export interface Repositorios {
   posVenda: PosVendaRepositorio;
   /** Nota fiscal de serviço: estados, tentativas, arquivos e emissão manual assistida (P43). */
   notas: NotaRepositorio;
+  /** Capacidade, financeiro e painel executivo da Fase 3 (P45, P46 e P52). */
+  gestao: GestaoRepositorio;
 }
 
 /** Pesquisa pública da família (P42): sem usuário logado, por isso fora de obterRepositorios(). */

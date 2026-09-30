@@ -1,0 +1,491 @@
+{
+    "mes": "2026-05-01",
+    "metas": {
+        "nps": 90,
+        "familias_mes": 18,
+        "contratos_mes": 18,
+        "faturamento_mes_centavos": 7560000
+    },
+    "operacao": {
+        "capacidade": [
+            {
+                "nivel": "folga",
+                "regiao": "Londrina",
+                "semana": "2026-09-28",
+                "cobertura": "ok",
+                "ocupacao_pct": 9.5,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Londrina",
+                "semana": "2026-10-05",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Londrina",
+                "semana": "2026-10-12",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Londrina",
+                "semana": "2026-10-19",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Londrina",
+                "semana": "2026-10-26",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Londrina",
+                "semana": "2026-11-02",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Londrina",
+                "semana": "2026-11-09",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Londrina",
+                "semana": "2026-11-16",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região A Teste P45",
+                "semana": "2026-09-28",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região A Teste P45",
+                "semana": "2026-10-05",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região A Teste P45",
+                "semana": "2026-10-12",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região A Teste P45",
+                "semana": "2026-10-19",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região A Teste P45",
+                "semana": "2026-10-26",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região A Teste P45",
+                "semana": "2026-11-02",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região A Teste P45",
+                "semana": "2026-11-09",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região A Teste P45",
+                "semana": "2026-11-16",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região B Teste P45",
+                "semana": "2026-09-28",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.8,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região B Teste P45",
+                "semana": "2026-10-05",
+                "cobertura": "ok",
+                "ocupacao_pct": 6.0,
+                "prob_excesso_pct": 0.6
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região B Teste P45",
+                "semana": "2026-10-12",
+                "cobertura": "ok",
+                "ocupacao_pct": 22.7,
+                "prob_excesso_pct": 6.0
+            },
+            {
+                "nivel": "sobrevenda",
+                "regiao": "Região B Teste P45",
+                "semana": "2026-10-19",
+                "cobertura": "ok",
+                "ocupacao_pct": 48.3,
+                "prob_excesso_pct": 23.1
+            },
+            {
+                "nivel": "sobrevenda",
+                "regiao": "Região B Teste P45",
+                "semana": "2026-10-26",
+                "cobertura": "ok",
+                "ocupacao_pct": 68.4,
+                "prob_excesso_pct": 40.8
+            },
+            {
+                "nivel": "sobrevenda",
+                "regiao": "Região B Teste P45",
+                "semana": "2026-11-02",
+                "cobertura": "ok",
+                "ocupacao_pct": 62.1,
+                "prob_excesso_pct": 36.6
+            },
+            {
+                "nivel": "sobrevenda",
+                "regiao": "Região B Teste P45",
+                "semana": "2026-11-09",
+                "cobertura": "ok",
+                "ocupacao_pct": 34.4,
+                "prob_excesso_pct": 14.8
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região B Teste P45",
+                "semana": "2026-11-16",
+                "cobertura": "ok",
+                "ocupacao_pct": 12.5,
+                "prob_excesso_pct": 2.4
+            },
+            {
+                "nivel": "atencao",
+                "regiao": "Região C Teste P45",
+                "semana": "2026-09-28",
+                "cobertura": "sem_reserva",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "atencao",
+                "regiao": "Região C Teste P45",
+                "semana": "2026-10-05",
+                "cobertura": "sem_reserva",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "atencao",
+                "regiao": "Região C Teste P45",
+                "semana": "2026-10-12",
+                "cobertura": "sem_reserva",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "atencao",
+                "regiao": "Região C Teste P45",
+                "semana": "2026-10-19",
+                "cobertura": "sem_reserva",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "atencao",
+                "regiao": "Região C Teste P45",
+                "semana": "2026-10-26",
+                "cobertura": "sem_reserva",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "atencao",
+                "regiao": "Região C Teste P45",
+                "semana": "2026-11-02",
+                "cobertura": "sem_reserva",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "atencao",
+                "regiao": "Região C Teste P45",
+                "semana": "2026-11-09",
+                "cobertura": "sem_reserva",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "atencao",
+                "regiao": "Região C Teste P45",
+                "semana": "2026-11-16",
+                "cobertura": "sem_reserva",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região D Teste P45",
+                "semana": "2026-09-28",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região D Teste P45",
+                "semana": "2026-10-05",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região D Teste P45",
+                "semana": "2026-10-12",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região D Teste P45",
+                "semana": "2026-10-19",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região D Teste P45",
+                "semana": "2026-10-26",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região D Teste P45",
+                "semana": "2026-11-02",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região D Teste P45",
+                "semana": "2026-11-09",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "Região D Teste P45",
+                "semana": "2026-11-16",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "São Paulo",
+                "semana": "2026-09-28",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "São Paulo",
+                "semana": "2026-10-05",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.2,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "São Paulo",
+                "semana": "2026-10-12",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.4,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "São Paulo",
+                "semana": "2026-10-19",
+                "cobertura": "ok",
+                "ocupacao_pct": 0.7,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "São Paulo",
+                "semana": "2026-10-26",
+                "cobertura": "ok",
+                "ocupacao_pct": 1.0,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "São Paulo",
+                "semana": "2026-11-02",
+                "cobertura": "ok",
+                "ocupacao_pct": 1.4,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "São Paulo",
+                "semana": "2026-11-09",
+                "cobertura": "ok",
+                "ocupacao_pct": 3.5,
+                "prob_excesso_pct": 0.0
+            },
+            {
+                "nivel": "folga",
+                "regiao": "São Paulo",
+                "semana": "2026-11-16",
+                "cobertura": "ok",
+                "ocupacao_pct": 7.5,
+                "prob_excesso_pct": 0.0
+            }
+        ],
+        "familias_ativas": 6,
+        "capacidade_semanas": 8,
+        "familias_iniciadas": 2,
+        "semanas_em_atencao": 8,
+        "visitas_realizadas": 7,
+        "ocorrencias_abertas": 2,
+        "semanas_em_sobrevenda": 4
+    },
+    "comercial": {
+        "leads": 5,
+        "conversao_pct": 60.0,
+        "sessoes_realizadas": 2,
+        "contratos_assinados": 3,
+        "faturamento_centavos": 1735000,
+        "ticket_medio_centavos": 578333
+    },
+    "gerado_em": "2026-09-30T03:32:51.225638+00:00",
+    "marketing": {
+        "custo_por_canal": [
+            {
+                "canal": "meta_ads",
+                "centavos": 150000
+            },
+            {
+                "canal": null,
+                "centavos": 20000
+            }
+        ],
+        "leads_por_origem": [
+            {
+                "leads": 2,
+                "origem": "instagram_organico"
+            },
+            {
+                "leads": 1,
+                "origem": "indicacao_amigo"
+            },
+            {
+                "leads": 1,
+                "origem": "indicacao_medica"
+            },
+            {
+                "leads": 1,
+                "origem": "meta_ads"
+            }
+        ],
+        "receita_por_origem": [
+            {
+                "origem": "instagram_organico",
+                "centavos": 780000
+            },
+            {
+                "origem": "meta_ads",
+                "centavos": 435000
+            }
+        ],
+        "custo_total_centavos": 170000,
+        "receita_por_campanha": [
+            {
+                "campanha": "wa-teste-01",
+                "centavos": 435000
+            }
+        ]
+    },
+    "progresso": {
+        "nps": 50,
+        "familias": 2,
+        "contratos": 3,
+        "faturamento_centavos": 1735000
+    },
+    "financeiro": {
+        "margem_pct": 68.9,
+        "custos_centavos": 377667,
+        "vencido_centavos": 400000,
+        "inadimplencia_pct": 10.8,
+        "resultado_centavos": 837333,
+        "faturamento_centavos": 1735000,
+        "recebimentos_centavos": 1215000,
+        "previsao_a_vencer_centavos": 1141000,
+        "previsao_atrasadas_centavos": 400000
+    },
+    "experiencia": {
+        "nps": 50,
+        "respostas": 6,
+        "detratores": 1,
+        "indicacoes": 2,
+        "promotores": 4,
+        "depoimentos": 2,
+        "amostra_minima": 5
+    },
+    "congelamento": {
+        "tag": "v1.0.0-rc.1",
+        "data": "2026-11-13",
+        "dias_restantes": 44
+    }
+}

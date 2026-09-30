@@ -205,8 +205,11 @@ select ok((select count(*)::integer from automacao where ativa) >= 12,
 select is((select count(*)::integer from automacao where id = 'retencao_diaria' and ativa), 1,
   'retencao_diaria ativa (proteção de LGPD, O-06, independente de fase)');
 select is((select count(*)::integer from automacao where id in
-    ('alerta_clinico','sobrevenda') and not ativa), 2,
-  'automações de Fase 3 (alertas clínicos, capacidade) inativas até o prompt correspondente');
+    ('alerta_clinico') and not ativa), 1,
+  'automações de Fase 3 (alertas clínicos) inativas até o prompt correspondente');
+-- [P45] a sobrevenda liga com gestao_seed.sql: avisa a diretoria
+select is((select count(*)::integer from automacao where id = 'sobrevenda' and ativa), 1,
+  'sobrevenda ligada pelo P45 (gestao_seed.sql): avisa a diretoria');
 -- [P41 e P42] o prazo do relatório, a pesquisa e a classificação do NPS ligam com a migration 0024
 select is((select count(*)::integer from automacao where id in
     ('prazo_relatorio','pesquisa','classificacao_nps') and ativa), 3,

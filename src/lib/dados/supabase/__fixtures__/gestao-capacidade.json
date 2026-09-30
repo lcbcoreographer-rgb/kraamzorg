@@ -1,0 +1,740 @@
+{
+    "alertas": [
+        {
+            "nivel": "sobrevenda",
+            "regiao": "Região B Teste P45",
+            "semana": "2026-10-19",
+            "cobertura": "ok",
+            "regiao_id": "b2600000-0000-4000-8000-000000000002",
+            "ocupacao_pct": 48.3,
+            "prob_excesso_pct": 23.1
+        },
+        {
+            "nivel": "sobrevenda",
+            "regiao": "Região B Teste P45",
+            "semana": "2026-10-26",
+            "cobertura": "ok",
+            "regiao_id": "b2600000-0000-4000-8000-000000000002",
+            "ocupacao_pct": 68.4,
+            "prob_excesso_pct": 40.8
+        },
+        {
+            "nivel": "sobrevenda",
+            "regiao": "Região B Teste P45",
+            "semana": "2026-11-02",
+            "cobertura": "ok",
+            "regiao_id": "b2600000-0000-4000-8000-000000000002",
+            "ocupacao_pct": 62.1,
+            "prob_excesso_pct": 36.6
+        },
+        {
+            "nivel": "sobrevenda",
+            "regiao": "Região B Teste P45",
+            "semana": "2026-11-09",
+            "cobertura": "ok",
+            "regiao_id": "b2600000-0000-4000-8000-000000000002",
+            "ocupacao_pct": 34.4,
+            "prob_excesso_pct": 14.8
+        },
+        {
+            "nivel": "atencao",
+            "regiao": "Região C Teste P45",
+            "semana": "2026-09-28",
+            "cobertura": "sem_reserva",
+            "regiao_id": "b2600000-0000-4000-8000-000000000003",
+            "ocupacao_pct": 0.0,
+            "prob_excesso_pct": 0.0
+        },
+        {
+            "nivel": "atencao",
+            "regiao": "Região C Teste P45",
+            "semana": "2026-10-05",
+            "cobertura": "sem_reserva",
+            "regiao_id": "b2600000-0000-4000-8000-000000000003",
+            "ocupacao_pct": 0.0,
+            "prob_excesso_pct": 0.0
+        },
+        {
+            "nivel": "atencao",
+            "regiao": "Região C Teste P45",
+            "semana": "2026-10-12",
+            "cobertura": "sem_reserva",
+            "regiao_id": "b2600000-0000-4000-8000-000000000003",
+            "ocupacao_pct": 0.0,
+            "prob_excesso_pct": 0.0
+        },
+        {
+            "nivel": "atencao",
+            "regiao": "Região C Teste P45",
+            "semana": "2026-10-19",
+            "cobertura": "sem_reserva",
+            "regiao_id": "b2600000-0000-4000-8000-000000000003",
+            "ocupacao_pct": 0.0,
+            "prob_excesso_pct": 0.0
+        },
+        {
+            "nivel": "atencao",
+            "regiao": "Região C Teste P45",
+            "semana": "2026-10-26",
+            "cobertura": "sem_reserva",
+            "regiao_id": "b2600000-0000-4000-8000-000000000003",
+            "ocupacao_pct": 0.0,
+            "prob_excesso_pct": 0.0
+        },
+        {
+            "nivel": "atencao",
+            "regiao": "Região C Teste P45",
+            "semana": "2026-11-02",
+            "cobertura": "sem_reserva",
+            "regiao_id": "b2600000-0000-4000-8000-000000000003",
+            "ocupacao_pct": 0.0,
+            "prob_excesso_pct": 0.0
+        },
+        {
+            "nivel": "atencao",
+            "regiao": "Região C Teste P45",
+            "semana": "2026-11-09",
+            "cobertura": "sem_reserva",
+            "regiao_id": "b2600000-0000-4000-8000-000000000003",
+            "ocupacao_pct": 0.0,
+            "prob_excesso_pct": 0.0
+        },
+        {
+            "nivel": "atencao",
+            "regiao": "Região C Teste P45",
+            "semana": "2026-11-16",
+            "cobertura": "sem_reserva",
+            "regiao_id": "b2600000-0000-4000-8000-000000000003",
+            "ocupacao_pct": 0.0,
+            "prob_excesso_pct": 0.0
+        }
+    ],
+    "limites": {
+        "alerta_pct": 85,
+        "sobrevenda_prob_pct": 10
+    },
+    "regioes": [
+        {
+            "regiao": "Londrina",
+            "semanas": [
+                {
+                    "nivel": "folga",
+                    "semana": "2026-09-28",
+                    "cobertura": "ok",
+                    "familias_p90": 1,
+                    "ocupacao_pct": 9.5,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 1.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-05",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-12",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-19",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-26",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-11-02",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-11-09",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-11-16",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                }
+            ],
+            "regiao_id": "21b6eb7e-e30c-4e0f-a805-9c42835abef6",
+            "limite_familias": 3
+        },
+        {
+            "regiao": "Região A Teste P45",
+            "semanas": [
+                {
+                    "nivel": "folga",
+                    "semana": "2026-09-28",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-05",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-12",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-19",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-26",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-11-02",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-11-09",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-11-16",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                }
+            ],
+            "regiao_id": "b2600000-0000-4000-8000-000000000001",
+            "limite_familias": 3
+        },
+        {
+            "regiao": "Região B Teste P45",
+            "semanas": [
+                {
+                    "nivel": "folga",
+                    "semana": "2026-09-28",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.8,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.03,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-05",
+                    "cobertura": "ok",
+                    "familias_p90": 1,
+                    "ocupacao_pct": 6.0,
+                    "prob_excesso_pct": 0.6,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.13,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-12",
+                    "cobertura": "ok",
+                    "familias_p90": 1,
+                    "ocupacao_pct": 22.7,
+                    "prob_excesso_pct": 6.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.45,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "sobrevenda",
+                    "semana": "2026-10-19",
+                    "cobertura": "ok",
+                    "familias_p90": 2,
+                    "ocupacao_pct": 48.3,
+                    "prob_excesso_pct": 23.1,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.94,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "sobrevenda",
+                    "semana": "2026-10-26",
+                    "cobertura": "ok",
+                    "familias_p90": 2,
+                    "ocupacao_pct": 68.4,
+                    "prob_excesso_pct": 40.8,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 1.32,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "sobrevenda",
+                    "semana": "2026-11-02",
+                    "cobertura": "ok",
+                    "familias_p90": 2,
+                    "ocupacao_pct": 62.1,
+                    "prob_excesso_pct": 36.6,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 1.23,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "sobrevenda",
+                    "semana": "2026-11-09",
+                    "cobertura": "ok",
+                    "familias_p90": 2,
+                    "ocupacao_pct": 34.4,
+                    "prob_excesso_pct": 14.8,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.73,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-11-16",
+                    "cobertura": "ok",
+                    "familias_p90": 1,
+                    "ocupacao_pct": 12.5,
+                    "prob_excesso_pct": 2.4,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.28,
+                    "profissionais_ativas": 2
+                }
+            ],
+            "regiao_id": "b2600000-0000-4000-8000-000000000002",
+            "limite_familias": 1
+        },
+        {
+            "regiao": "Região C Teste P45",
+            "semanas": [
+                {
+                    "nivel": "atencao",
+                    "semana": "2026-09-28",
+                    "cobertura": "sem_reserva",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 0,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 0
+                },
+                {
+                    "nivel": "atencao",
+                    "semana": "2026-10-05",
+                    "cobertura": "sem_reserva",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 0,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 0
+                },
+                {
+                    "nivel": "atencao",
+                    "semana": "2026-10-12",
+                    "cobertura": "sem_reserva",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 0,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 0
+                },
+                {
+                    "nivel": "atencao",
+                    "semana": "2026-10-19",
+                    "cobertura": "sem_reserva",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 0,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 0
+                },
+                {
+                    "nivel": "atencao",
+                    "semana": "2026-10-26",
+                    "cobertura": "sem_reserva",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 0,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 0
+                },
+                {
+                    "nivel": "atencao",
+                    "semana": "2026-11-02",
+                    "cobertura": "sem_reserva",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 0,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 0
+                },
+                {
+                    "nivel": "atencao",
+                    "semana": "2026-11-09",
+                    "cobertura": "sem_reserva",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 0,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 0
+                },
+                {
+                    "nivel": "atencao",
+                    "semana": "2026-11-16",
+                    "cobertura": "sem_reserva",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 0,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 0
+                }
+            ],
+            "regiao_id": "b2600000-0000-4000-8000-000000000003",
+            "limite_familias": 3
+        },
+        {
+            "regiao": "Região D Teste P45",
+            "semanas": [
+                {
+                    "nivel": "folga",
+                    "semana": "2026-09-28",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-05",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-12",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-19",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-26",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-11-02",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-11-09",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-11-16",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 4,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 2
+                }
+            ],
+            "regiao_id": "b2600000-0000-4000-8000-000000000004",
+            "limite_familias": 5
+        },
+        {
+            "regiao": "São Paulo",
+            "semanas": [
+                {
+                    "nivel": "folga",
+                    "semana": "2026-09-28",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 8,
+                    "familias_esperadas": 0.00,
+                    "profissionais_ativas": 4
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-05",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.2,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 8,
+                    "familias_esperadas": 0.02,
+                    "profissionais_ativas": 4
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-12",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.4,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 8,
+                    "familias_esperadas": 0.03,
+                    "profissionais_ativas": 4
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-19",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 0.7,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 8,
+                    "familias_esperadas": 0.07,
+                    "profissionais_ativas": 4
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-10-26",
+                    "cobertura": "ok",
+                    "familias_p90": 0,
+                    "ocupacao_pct": 1.0,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 8,
+                    "familias_esperadas": 0.08,
+                    "profissionais_ativas": 4
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-11-02",
+                    "cobertura": "ok",
+                    "familias_p90": 1,
+                    "ocupacao_pct": 1.4,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 8,
+                    "familias_esperadas": 0.14,
+                    "profissionais_ativas": 4
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-11-09",
+                    "cobertura": "ok",
+                    "familias_p90": 1,
+                    "ocupacao_pct": 3.5,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 8,
+                    "familias_esperadas": 0.34,
+                    "profissionais_ativas": 4
+                },
+                {
+                    "nivel": "folga",
+                    "semana": "2026-11-16",
+                    "cobertura": "ok",
+                    "familias_p90": 2,
+                    "ocupacao_pct": 7.5,
+                    "prob_excesso_pct": 0.0,
+                    "capacidade_equipe": 8,
+                    "familias_esperadas": 0.66,
+                    "profissionais_ativas": 4
+                }
+            ],
+            "regiao_id": "9d406085-1215-4433-905c-4ed20869111d",
+            "limite_familias": 5
+        }
+    ],
+    "semanas": 8,
+    "gerado_em": "2026-09-30T03:32:51.399081+00:00",
+    "distribuicao": {
+        "fonte": "referencia",
+        "faixas": [
+            {
+                "de": -56,
+                "ate": -43,
+                "peso": 1.5
+            },
+            {
+                "de": -42,
+                "ate": -22,
+                "peso": 6.5
+            },
+            {
+                "de": -21,
+                "ate": -15,
+                "peso": 10
+            },
+            {
+                "de": -14,
+                "ate": -8,
+                "peso": 20
+            },
+            {
+                "de": -7,
+                "ate": -1,
+                "peso": 27
+            },
+            {
+                "de": 0,
+                "ate": 6,
+                "peso": 22
+            },
+            {
+                "de": 7,
+                "ate": 13,
+                "peso": 10
+            },
+            {
+                "de": 14,
+                "ate": 20,
+                "peso": 3
+            }
+        ],
+        "modelo": "probabilistico",
+        "versao": "teste",
+        "descricao": null,
+        "historico_n": 34,
+        "historico_minimo": 1000
+    }
+}

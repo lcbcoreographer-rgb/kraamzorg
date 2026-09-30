@@ -1,0 +1,76 @@
+{
+    "mes": "2026-05-01",
+    "serie": [
+        {
+            "mes": "2025-12-01",
+            "receita_centavos": 0,
+            "despesas_centavos": 0,
+            "resultado_centavos": 0
+        },
+        {
+            "mes": "2026-01-01",
+            "receita_centavos": 0,
+            "despesas_centavos": 0,
+            "resultado_centavos": 0
+        },
+        {
+            "mes": "2026-02-01",
+            "receita_centavos": 0,
+            "despesas_centavos": 0,
+            "resultado_centavos": 0
+        },
+        {
+            "mes": "2026-03-01",
+            "receita_centavos": 0,
+            "despesas_centavos": 0,
+            "resultado_centavos": 0
+        },
+        {
+            "mes": "2026-04-01",
+            "receita_centavos": 0,
+            "despesas_centavos": 0,
+            "resultado_centavos": 0
+        },
+        {
+            "mes": "2026-05-01",
+            "receita_centavos": 1215000,
+            "despesas_centavos": 251000,
+            "resultado_centavos": 964000
+        }
+    ],
+    "regime": "caixa",
+    "margem_pct": 79.3,
+    "receita_centavos": 1215000,
+    "despesas_centavos": 251000,
+    "resultado_centavos": 964000,
+    "despesas_por_categoria": [
+        {
+            "centavos": 0,
+            "categoria": "equipe_assistencial"
+        },
+        {
+            "centavos": 170000,
+            "categoria": "marketing_anuncios"
+        },
+        {
+            "centavos": 0,
+            "categoria": "deslocamento"
+        },
+        {
+            "centavos": 50000,
+            "categoria": "contabilidade"
+        },
+        {
+            "centavos": 30000,
+            "categoria": "tecnologia"
+        },
+        {
+            "centavos": 0,
+            "categoria": "pro_labore"
+        },
+        {
+            "centavos": 1000,
+            "categoria": "outros"
+        }
+    ]
+}

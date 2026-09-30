@@ -34,6 +34,7 @@ import {
   criarOcorrenciaDemonstracao,
   criarPosVendaDemonstracao,
 } from "./ocorrencia";
+import { criarGestaoDemonstracao } from "./gestao";
 import { criarVendaDemonstracao, dadosContratoDemonstracao } from "./venda";
 
 /**
@@ -795,5 +796,6 @@ export function criarRepositoriosDemonstracao(
     ocorrencias: criarOcorrenciaDemonstracao(contexto),
     posVenda: criarPosVendaDemonstracao(contexto),
     notas: criarNotaDemonstracao(contexto),
+    gestao: criarGestaoDemonstracao(contexto),
   };
 }

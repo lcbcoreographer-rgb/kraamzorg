@@ -1,0 +1,59 @@
+{
+    "em": "2026-09-30",
+    "itens": [
+        {
+            "id": "c2600000-0000-4000-8000-000000000313",
+            "parcela": 3,
+            "familia_id": "c2600000-0000-4000-8000-000000000111",
+            "vencimento": "2026-08-16",
+            "contrato_id": "c2600000-0000-4000-8000-000000000211",
+            "dias_atraso": 45,
+            "familia_nome": "Família Teste Inadimplente P46",
+            "valor_centavos": 100000
+        },
+        {
+            "id": "c2600000-0000-4000-8000-000000000312",
+            "parcela": 2,
+            "familia_id": "c2600000-0000-4000-8000-000000000111",
+            "vencimento": "2026-09-10",
+            "contrato_id": "c2600000-0000-4000-8000-000000000211",
+            "dias_atraso": 20,
+            "familia_nome": "Família Teste Inadimplente P46",
+            "valor_centavos": 300000
+        },
+        {
+            "id": "c2600000-0000-4000-8000-000000000311",
+            "parcela": 1,
+            "familia_id": "c2600000-0000-4000-8000-000000000111",
+            "vencimento": "2026-09-25",
+            "contrato_id": "c2600000-0000-4000-8000-000000000211",
+            "dias_atraso": 5,
+            "familia_nome": "Família Teste Inadimplente P46",
+            "valor_centavos": 200000
+        }
+    ],
+    "faixas": [
+        {
+            "qtd": 1,
+            "de_dias": 1,
+            "ate_dias": 7,
+            "centavos": 200000
+        },
+        {
+            "qtd": 1,
+            "de_dias": 8,
+            "ate_dias": 30,
+            "centavos": 300000
+        },
+        {
+            "qtd": 1,
+            "de_dias": 31,
+            "ate_dias": null,
+            "centavos": 100000
+        }
+    ],
+    "taxa_pct": 16.2,
+    "vencidas_qtd": 3,
+    "vencido_centavos": 600000,
+    "emitido_ate_hoje_centavos": 3715000
+}

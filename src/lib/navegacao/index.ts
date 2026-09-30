@@ -53,6 +53,8 @@ export type NomeIcone =
   | "ocorrencias"
   | "posVenda"
   | "financeiro"
+  | "capacidade"
+  | "painel"
   | "alertas"
   | "perfil"
   | "mais";
@@ -209,6 +211,20 @@ export const ROTAS = {
     dono: "P46",
     casca: "app",
   },
+  capacidade: {
+    caminho: "/capacidade",
+    rotulo: "Capacidade",
+    icone: "capacidade",
+    dono: "P45",
+    casca: "app",
+  },
+  painel: {
+    caminho: "/painel",
+    rotulo: "Painel executivo",
+    icone: "painel",
+    dono: "P52",
+    casca: "app",
+  },
   mais: {
     caminho: "/mais",
     rotulo: "Mais",
@@ -322,6 +338,7 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
           "alertasClinicos",
           "evolucoes",
           "ocorrencias",
+          "capacidade",
         ],
       },
       {
@@ -336,7 +353,10 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
     abas: ["inicio", "cobrancas", "notas", "mais"],
     grupos: [
       { titulo: "Comercial", itens: ["familias"] },
-      { titulo: "Gestão", itens: ["inicio", "cobrancas", "notas", "tarefas"] },
+      {
+        titulo: "Gestão",
+        itens: ["inicio", "financeiro", "cobrancas", "notas", "tarefas"],
+      },
     ],
     inicio: "inicio",
   },
@@ -370,13 +390,17 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
           "alertasClinicos",
           "evolucoes",
           "ocorrencias",
+          "capacidade",
         ],
       },
       {
         titulo: "Experiência",
         itens: ["posVenda"],
       },
-      { titulo: "Gestão", itens: ["financeiro", "cobrancas", "notas"] },
+      {
+        titulo: "Gestão",
+        itens: ["painel", "financeiro", "cobrancas", "notas"],
+      },
       { titulo: "Sistema", itens: ["agente", "configuracoes", "sessoes"] },
     ],
     inicio: "inicio",

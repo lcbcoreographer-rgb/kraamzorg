@@ -1,0 +1,21 @@
+{
+    "meses": [
+        {
+            "mes": "2026-09-01",
+            "qtd": 0,
+            "centavos": 0
+        },
+        {
+            "mes": "2026-10-01",
+            "qtd": 2,
+            "centavos": 1141000
+        },
+        {
+            "mes": "2026-11-01",
+            "qtd": 0,
+            "centavos": 0
+        }
+    ],
+    "a_vencer_centavos": 1141000,
+    "atrasadas_centavos": 600000
+}

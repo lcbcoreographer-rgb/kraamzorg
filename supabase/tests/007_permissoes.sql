@@ -339,7 +339,13 @@ insert into matriz values
   ('privado.modelo_whatsapp',        '{}', 'nega'),
   ('privado.mensagem_status',        '{}', 'nega'),
   ('privado.inscricao_push',         '{}', 'nega'),
-  ('privado.saude_webhook',          '{}', 'nega');
+  ('privado.saude_webhook',          '{}', 'nega'),
+  -- P45, P46 (0026): capacidade e financeiro, lidos só por funções security definer
+  ('privado.capacidade_contratos',   '{}', 'nega'),
+  ('privado.despesa',                '{}', 'nega'),
+  ('privado.pagamento_equipe',       '{}', 'nega'),
+  ('privado.extrato_importacao',     '{}', 'nega'),
+  ('privado.extrato_linha',          '{}', 'nega');
 
 create temp table esperado on commit drop as
   select m.tabela, p.papel, a.aal,
@@ -1013,7 +1019,11 @@ select set_eq(
             ('api.status_entrega_conversa'), ('api.modelos_whatsapp'), ('api.modelo_whatsapp_aprovado'),
             ('api.whatsapp_janela_horas'), ('api.salvar_modelo_whatsapp'),
             ('api.atualizar_status_modelo_whatsapp'), ('api.registrar_inscricao_push'),
-            ('api.remover_inscricao_push') $$,
+            ('api.remover_inscricao_push'),
+            ('api.capacidade'), ('api.pagamentos_equipe'), ('api.pagar_equipe'), ('api.meus_pagamentos'),
+            ('api.dre'), ('api.lancamentos'), ('api.despesas'), ('api.salvar_despesa'), ('api.remover_despesa'),
+            ('api.inadimplencia'), ('api.previsao_recebimentos'), ('api.importar_extrato'),
+            ('api.reconciliar_extrato'), ('api.extrato'), ('api.painel_executivo') $$,
   'authenticated executa exatamente a lista do ADR 0002 seção 6');
 
 select is_empty(

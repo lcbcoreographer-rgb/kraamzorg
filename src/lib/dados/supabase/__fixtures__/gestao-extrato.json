@@ -1,0 +1,88 @@
+{
+    "linhas": [
+        {
+            "id": "a717ce7a-0113-4a6c-bda8-40c8932c608d",
+            "data": "2026-09-25",
+            "situacao": "sugerida",
+            "descricao": "PIX SINTETICO DOIS",
+            "despesa_id": null,
+            "cobranca_id": "c2600000-0000-4000-8000-000000000311",
+            "familia_nome": "Família Teste Inadimplente P46",
+            "importacao_id": "9193ae0a-a081-44be-b74e-7cfb0b04bbb6",
+            "valor_centavos": 200000,
+            "cobranca_parcela": 1,
+            "cobranca_situacao": "aberta",
+            "despesa_descricao": null
+        },
+        {
+            "id": "8794568e-4737-4e50-b672-267d400f5a1c",
+            "data": "2026-05-25",
+            "situacao": "conferida",
+            "descricao": "PAGAMENTO EQUIPE SINTETICO",
+            "despesa_id": "105f95c7-da8e-412c-bd0b-a49d38cd729f",
+            "cobranca_id": null,
+            "familia_nome": null,
+            "importacao_id": "9193ae0a-a081-44be-b74e-7cfb0b04bbb6",
+            "valor_centavos": -126667,
+            "cobranca_parcela": null,
+            "cobranca_situacao": null,
+            "despesa_descricao": "Pagamento da equipe assistencial"
+        },
+        {
+            "id": "4f087d14-9201-4429-84bf-2334f5020fd6",
+            "data": "2026-05-10",
+            "situacao": "conferida",
+            "descricao": "PIX RECEBIDO SINTETICO",
+            "despesa_id": null,
+            "cobranca_id": "c2600000-0000-4000-8000-000000000301",
+            "familia_nome": "Família Teste DRE1 P46",
+            "importacao_id": "9193ae0a-a081-44be-b74e-7cfb0b04bbb6",
+            "valor_centavos": 435000,
+            "cobranca_parcela": 1,
+            "cobranca_situacao": "paga",
+            "despesa_descricao": null
+        },
+        {
+            "id": "ee2cf20c-5203-442e-8b59-24e0d32179fe",
+            "data": "2026-05-07",
+            "situacao": "sem_correspondencia",
+            "descricao": "SEM PAR SINTETICO",
+            "despesa_id": null,
+            "cobranca_id": null,
+            "familia_nome": null,
+            "importacao_id": "9193ae0a-a081-44be-b74e-7cfb0b04bbb6",
+            "valor_centavos": 123,
+            "cobranca_parcela": null,
+            "cobranca_situacao": null,
+            "despesa_descricao": null
+        },
+        {
+            "id": "3365f870-0b0e-4a32-8da4-594477c1b983",
+            "data": "2026-05-05",
+            "situacao": "conferida",
+            "descricao": "ANUNCIOS SINTETICO",
+            "despesa_id": "797652e4-3916-495e-8e81-1ff053077aa9",
+            "cobranca_id": null,
+            "familia_nome": null,
+            "importacao_id": "9193ae0a-a081-44be-b74e-7cfb0b04bbb6",
+            "valor_centavos": -150000,
+            "cobranca_parcela": null,
+            "cobranca_situacao": null,
+            "despesa_descricao": "Anúncios de maio sintéticos"
+        }
+    ],
+    "importacoes": [
+        {
+            "id": "9193ae0a-a081-44be-b74e-7cfb0b04bbb6",
+            "linhas": 5,
+            "formato": "csv",
+            "sugeridas": 1,
+            "conferidas": 3,
+            "periodo_fim": "2026-09-25",
+            "importado_em": "2026-09-30T03:32:50.516599+00:00",
+            "linhas_novas": 5,
+            "periodo_inicio": "2026-05-05",
+            "sem_correspondencia": 1
+        }
+    ]
+}

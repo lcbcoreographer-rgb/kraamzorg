@@ -48,6 +48,8 @@ next-env.d.ts
 /test-results-evolucao-ocorrencia-nf/
 /playwright-report-infra/
 /test-results-infra/
+/playwright-report-gestao/
+/test-results-gestao/
 /blob-report/
 
 # n8n: configuração e fluxos gerados carregam segredo/caminho (CLAUDE.md)

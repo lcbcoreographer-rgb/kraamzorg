@@ -110,3 +110,9 @@ export function ehConflitoDeVersao(erro: unknown): boolean {
   const mensagem = erro instanceof Error ? erro.message : String(erro ?? "");
   return /versao_desatualizada/.test(mensagem);
 }
+/**
+ * Código da recusa de negócio das funções de gestão (0026_gestao.sql:
+ * capacidade, financeiro e painel): o banco manda "gestao:<código> <detalhe>"
+ * na mensagem. null quando o erro não é desse tipo.
+export function codigoGestao(erro: unknown): string | null {
+  const achado = /gestao:([a-z_0-9]+)/.exec(mensagem);
