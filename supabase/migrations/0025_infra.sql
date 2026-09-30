@@ -256,7 +256,7 @@ begin
   select e.* into v_rec
   from public.automacao_execucao e
   where e.id = janela_followup.execucao_id
-    and e.automacao_id = 'followup_d1'
+    and e.automacao_id in ('followup_d1', 'followup_d3_d14')
     and e.status = 'agendada'
     and coalesce(e.payload, '{}'::jsonb) ? 'reservada_em';
   if v_rec.id is null then
@@ -308,7 +308,7 @@ exception
     return privado.agente_erro(sqlstate, sqlerrm);
 end;
 $$;
-comment on function agente.janela_followup(uuid) is '[P18b] Fluxo 3, entrada B: para uma execução de followup_d1 já reservada, diz se a última mensagem da família está dentro da janela de parametro.whatsapp_janela_horas. Dentro: {ok, dentro_janela: true}. Fora: devolve o telefone (só dígitos, a Cloud API não usa jid) e o modelo aprovado (modelo_whatsapp da chave_texto da execução) com os parâmetros resolvidos e o texto renderizado; sem modelo aprovado ou com parâmetro sem valor, devolve modelo nulo e o motivo, e nada de texto livre sai. Chave é a execução reservada, não parâmetro do modelo.';
+comment on function agente.janela_followup(uuid) is '[P18b] Fluxo 3, entrada B: para uma execução da cadência (followup_d1 ou followup_d3_d14) já reservada, diz se a última mensagem da família está dentro da janela de parametro.whatsapp_janela_horas. Dentro: {ok, dentro_janela: true}. Fora: devolve o telefone (só dígitos, a Cloud API não usa jid) e o modelo aprovado (modelo_whatsapp da chave_texto da execução) com os parâmetros resolvidos e o texto renderizado; sem modelo aprovado ou com parâmetro sem valor, devolve modelo nulo e o motivo, e nada de texto livre sai. Chave é a execução reservada, não parâmetro do modelo.';
 
 revoke execute on function agente.janela_followup(uuid) from public, anon, authenticated, service_role;
 grant execute on function agente.janela_followup(uuid) to n8n_agente;

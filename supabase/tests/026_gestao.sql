@@ -577,12 +577,14 @@ select throws_like(format($$ select api.pagar_equipe(%L, '2026-05-25') $$, curre
 select testes.encerrar();
 
 -- só a evolução puerperal enviada: falta a neonatal do bebê, segue bloqueado
-insert into relatorio_medico (acompanhamento_id, tipo, conteudo, profissional_id, status, enviado_em) values
-  ('d2600000-0000-4000-8000-000000000101', 'puerperal', '{}', 'd2600000-0000-4000-8000-000000000001', 'enviado', '2026-05-18 12:00+00');
+-- (a 0024 exige aprovação e arquivo para o estado enviado)
+insert into relatorio_medico (id, acompanhamento_id, tipo, conteudo, profissional_id, status, aprovado_em, aprovado_por, enviado_em, pdf_path) values
+  ('e2600000-0000-4000-8000-000000000010', 'd2600000-0000-4000-8000-000000000101', 'puerperal', '{"dados":{},"conteudo":{}}', 'd2600000-0000-4000-8000-000000000001', 'enviado',
+   '2026-05-18 11:00+00', 'a2600000-0000-4000-8000-000000000001', '2026-05-18 12:00+00', 'evolucoes/e2600000-0000-4000-8000-000000000010.pdf');
 select ok(not privado.evolucoes_enviadas('d2600000-0000-4000-8000-000000000101'), 'só a puerperal enviada não basta: falta a do bebê');
 -- evolução neonatal em revisão também não conta
 insert into relatorio_medico (id, acompanhamento_id, tipo, bebe_id, conteudo, profissional_id, status) values
-  ('e2600000-0000-4000-8000-000000000011', 'd2600000-0000-4000-8000-000000000101', 'neonatal', 'e2600000-0000-4000-8000-000000000001', '{}',
+  ('e2600000-0000-4000-8000-000000000011', 'd2600000-0000-4000-8000-000000000101', 'neonatal', 'e2600000-0000-4000-8000-000000000001', '{"dados":{},"conteudo":{}}',
    'd2600000-0000-4000-8000-000000000001', 'em_revisao');
 select ok(not privado.evolucoes_enviadas('d2600000-0000-4000-8000-000000000101'), 'neonatal em revisão não conta como enviada');
 select testes.autenticar_authenticated('a2600000-0000-4000-8000-000000000001', 'aal2');
@@ -590,7 +592,8 @@ select is((select count(*)::integer from jsonb_array_elements(api.pagamentos_equ
             where x ->> 'acompanhamento_id' = 'd2600000-0000-4000-8000-000000000101' and x ->> 'status' = 'bloqueado'), 2,
   'as duas continuam bloqueadas até o envio da neonatal');
 select testes.encerrar();
-update relatorio_medico set status = 'enviado', enviado_em = '2026-05-19 12:00+00' where id = 'e2600000-0000-4000-8000-000000000011';
+update relatorio_medico set status = 'enviado', aprovado_em = '2026-05-19 11:00+00', aprovado_por = 'a2600000-0000-4000-8000-000000000001',
+  enviado_em = '2026-05-19 12:00+00', pdf_path = 'evolucoes/e2600000-0000-4000-8000-000000000011.pdf' where id = 'e2600000-0000-4000-8000-000000000011';
 select ok(privado.evolucoes_enviadas('d2600000-0000-4000-8000-000000000101'), 'puerperal e neonatal do bebê enviadas: as evoluções estão completas');
 
 select testes.autenticar_authenticated('a2600000-0000-4000-8000-000000000001', 'aal2');

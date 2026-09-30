@@ -756,12 +756,7 @@ end;
 $$;
 comment on function privado.gestao_recusar(text, text) is '[P45 a P52] Recusa de negócio da gestão: erro P0001 com a mensagem "gestao:<código> <detalhe>", que a tela troca por uma frase. O detalhe nunca leva dado pessoal. Sem grant.';
 
-create function privado.hoje_sp() returns date
-  language sql
-  stable
-  set search_path = ''
-  as $$ select (pg_catalog.clock_timestamp() at time zone 'America/Sao_Paulo')::date $$;
-comment on function privado.hoje_sp() is 'Hoje no fuso America/Sao_Paulo. Sem grant.';
+-- privado.hoje_sp() vem da 0024 (P41 a P43), que roda antes desta.
 
 create function privado.inicio_do_mes(dia date) returns date
   language sql

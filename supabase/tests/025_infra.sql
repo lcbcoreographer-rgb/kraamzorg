@@ -15,7 +15,7 @@
 
 begin;
 
-select plan(82);
+select plan(85);
 
 -- -----------------------------------------------------------------------------
 -- 0. Preparação
@@ -59,7 +59,7 @@ select is(
 select is(
   (select count(*)::integer from pg_type t join pg_namespace n on n.oid = t.typnamespace
     where n.nspname = 'public' and t.typtype = 'e'),
-  49, 'os enums novos ficam em privado: public segue com 49');
+  52, 'os enums novos ficam em privado: public segue com 52 (49 mais os três da agenda da Isadora, 0028)');
 select is(
   (select count(*)::integer from privado.modelo_whatsapp where status <> 'rascunho'),
   0, 'o seed traz todos os modelos em rascunho: nenhum foi submetido à Meta');
@@ -202,7 +202,10 @@ insert into automacao_execucao (id, automacao_id, familia_id, agendada_para, sta
   ('f2500000-0000-4000-8000-000000000003', 'followup_d1', 'c2500000-0000-4000-8000-000000000003', now(), 'agendada',
    jsonb_build_object('conversa_id', 'e2500000-0000-4000-8000-000000000003', 'reservada_em', now(), 'chave_texto', 'followup_d1_pos_abertura')),
   ('f2500000-0000-4000-8000-000000000004', 'followup_d1', 'c2500000-0000-4000-8000-000000000001', now(), 'agendada',
-   jsonb_build_object('conversa_id', 'e2500000-0000-4000-8000-000000000001', 'chave_texto', 'followup_d1_pos_pdf'));
+   jsonb_build_object('conversa_id', 'e2500000-0000-4000-8000-000000000001', 'chave_texto', 'followup_d1_pos_pdf')),
+  -- [junção com a 0028] etapa 2 da cadência: automacao_id followup_d3_d14
+  ('f2500000-0000-4000-8000-000000000005', 'followup_d3_d14', 'c2500000-0000-4000-8000-000000000002', now(), 'agendada',
+   jsonb_build_object('conversa_id', 'e2500000-0000-4000-8000-000000000002', 'reservada_em', now(), 'chave_texto', 'followup_d3', 'etapa', 2));
 
 create temp table t_j (chave text primary key, r jsonb);
 grant all on t_j to public;
@@ -234,6 +237,18 @@ select is((select r -> 'modelo' from t_j where chave = 'sem_modelo'), 'null'::js
   'fora da janela e sem modelo aprovado, não há texto nenhum para enviar');
 select is((select r ->> 'erro' from t_j where chave = 'nao_reservada'), 'execucao_invalida',
   'execução que o motor não reservou é recusada');
+
+-- A cadência de 1, 3 e 14 dias (0028) usa followup_d1 e followup_d3_d14: as duas
+-- funções do P18b (janela e registro com o wamid) valem para as duas.
+select testes.autenticar('n8n_agente');
+select is(agente.janela_followup('f2500000-0000-4000-8000-000000000005') ->> 'dentro_janela', 'true',
+  'janela_followup vale também para a etapa 2 e 3 da cadência (followup_d3_d14)');
+select is(agente.registrar_followup('f2500000-0000-4000-8000-000000000005', 'Texto sintético da etapa 2', true, 'wamid.CADENCIA2') ->> 'status', 'executada',
+  'registrar_followup com wamid fecha a etapa 2 da cadência (followup_d3_d14)');
+reset role;
+select set_config('request.jwt.claims', '', true);
+select is((select count(*)::integer from mensagem where wa_message_id = 'wamid.CADENCIA2'), 1,
+  'o wamid da Cloud API fica gravado na mensagem do retorno da etapa 2');
 
 -- sem o parâmetro, tudo conta como fora da janela (o caminho seguro)
 delete from parametro where chave = 'whatsapp_janela_horas';

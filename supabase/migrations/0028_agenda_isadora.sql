@@ -3339,7 +3339,11 @@ comment on function agente.followups_devidos() is 'Apêndice A [v4.3] e PRD 19.4
 -- --- 9.3 agente.registrar_followup -----------------------------------------------------------------------
 -- Vale para a cadência (followup_d1 e followup_d3_d14) e para a remarcação
 -- depois de uma falta (reuniao_falta_remarcar), que o n8n fecha do mesmo jeito.
-create or replace function agente.registrar_followup(execucao_id uuid, texto text, ok boolean) returns jsonb
+-- [Junção P18b + P25b] A versão de quatro argumentos nasceu na 0025 (id da mensagem na Meta, wamid,
+-- para o webhook de status de entrega) sobre o corpo antigo, só de followup_d1. Este é o corpo
+-- definitivo dos dois: a cadência, a remarcação depois de falta e o wamid. A versão de três
+-- argumentos volta a ser invólucro dela (uma implementação só).
+create or replace function agente.registrar_followup(execucao_id uuid, texto text, ok boolean, wa_message_id text) returns jsonb
   language plpgsql
   volatile
   security definer
@@ -3350,6 +3354,7 @@ declare
   v_e          public.automacao_execucao;
   v_conversa   uuid;
   v_texto      text := nullif(pg_catalog.btrim(privado.mascarar_documentos(registrar_followup.texto)), '');
+  v_wamid      text := nullif(pg_catalog.btrim(registrar_followup.wa_message_id), '');
   v_mensagem   uuid;
   v_tentativas integer;
   v_sugerido   text;
@@ -3370,8 +3375,8 @@ begin
   v_etapa := coalesce((v_e.payload ->> 'etapa')::integer, 1);
 
   if coalesce(registrar_followup.ok, false) and v_texto is not null then
-    insert into public.mensagem (conversa_id, direcao, enviado_por, tipo, conteudo)
-    values (v_conversa, 'saida', 'ia', 'texto', v_texto)
+    insert into public.mensagem (conversa_id, direcao, enviado_por, tipo, conteudo, wa_message_id)
+    values (v_conversa, 'saida', 'ia', 'texto', v_texto, v_wamid)
     returning id into v_mensagem;
     update public.conversa c set ultima_saida_em = pg_catalog.now() where c.id = v_conversa;
     update public.automacao_execucao e
@@ -3421,7 +3426,20 @@ exception
     return privado.agente_erro(sqlstate, sqlerrm);
 end;
 $$;
-comment on function agente.registrar_followup(uuid, text, boolean) is 'Apêndice A [v4.3] e PRD 19.4 nós 41 e 47: fecha a execução reservada da cadência (followup_d1, followup_d3_d14) ou da remarcação depois de falta (reuniao_falta_remarcar). Saiu: executada (conta como a mensagem de conteúdo do dia), grava a mensagem da Isadora e, na cadência, cadencia_etapa = etapa. Não saiu: volta uma vez na próxima janela; na segunda, falhou e vira tarefa do comercial com o texto aprovado sugerido.';
+comment on function agente.registrar_followup(uuid, text, boolean, text) is 'Apêndice A [v4.3] e [P18b] e PRD 19.4 nós 41 e 47: fecha a execução reservada da cadência (followup_d1, followup_d3_d14) ou da remarcação depois de falta (reuniao_falta_remarcar). Saiu: executada (conta como a mensagem de conteúdo do dia), grava a mensagem da Isadora e, na cadência, cadencia_etapa = etapa. Não saiu: volta uma vez na próxima janela; na segunda, falhou e vira tarefa do comercial com o texto aprovado sugerido. Com o id da mensagem na Meta (wamid) quando o retorno saiu pela Cloud API, gravado em mensagem.wa_message_id para o webhook de status de entrega achar a mensagem.';
+
+create or replace function agente.registrar_followup(execucao_id uuid, texto text, ok boolean) returns jsonb
+  language sql
+  volatile
+  security definer
+  set search_path = ''
+  as $$ select agente.registrar_followup(registrar_followup.execucao_id, registrar_followup.texto, registrar_followup.ok, null::text) $$;
+comment on function agente.registrar_followup(uuid, text, boolean) is 'Apêndice A e PRD 19.4 nós 41 e 47: fecha a execução reservada. Invólucro da versão de quatro argumentos (wa_message_id nulo); o corpo mora lá.';
+
+revoke execute on function agente.registrar_followup(uuid, text, boolean) from public, anon, authenticated, service_role;
+grant execute on function agente.registrar_followup(uuid, text, boolean) to n8n_agente;
+revoke execute on function agente.registrar_followup(uuid, text, boolean, text) from public, anon, authenticated, service_role;
+grant execute on function agente.registrar_followup(uuid, text, boolean, text) to n8n_agente;
 
 
 -- =============================================================================
