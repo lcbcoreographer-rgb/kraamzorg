@@ -92,3 +92,21 @@ export function codigoEquipe(erro: unknown): string | null {
   const achado = /equipe:([a-z_0-9]+)/.exec(mensagem);
   return achado?.[1] ?? null;
 }
+
+/**
+ * Código da recusa de negócio de um domínio das migrations 0024 em diante
+ * ("evolucao", "ocorrencia", "pesquisa", "nota"): o banco manda
+ * "<domínio>:<código> <detalhe>" na mensagem. null quando o erro não é desse
+ * domínio.
+ */
+export function codigoDominio(erro: unknown, dominio: string): string | null {
+  const mensagem = erro instanceof Error ? erro.message : String(erro ?? "");
+  const achado = new RegExp(`${dominio}:([a-z_0-9]+)`).exec(mensagem);
+  return achado?.[1] ?? null;
+}
+
+/** Conflito de versão: o registro mudou desde que a tela o leu (40001 no banco). */
+export function ehConflitoDeVersao(erro: unknown): boolean {
+  const mensagem = erro instanceof Error ? erro.message : String(erro ?? "");
+  return /versao_desatualizada/.test(mensagem);
+}

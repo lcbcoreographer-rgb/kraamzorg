@@ -43,6 +43,7 @@ describe("decidirAcesso: sem sessão", () => {
       "/design-system",
       "/formulario/um-token-qualquer",
       "/pagamento/recebido",
+      "/pesquisa/um-token-qualquer",
     ]) {
       expect(decidirAcesso(caminho, null)).toEqual(seguir);
     }

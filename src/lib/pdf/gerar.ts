@@ -60,9 +60,15 @@ function montarComSeguranca(montar: () => ConteudoEvolucao): ResultadoConteudo {
   } catch (erro) {
     // Falta de texto aprovado ou de variável: erro de configuração que a
     // coordenação resolve no cadastro de mensagens, não queda da rota.
+    // Erro de programação (TypeError) não vai para a tela com a mensagem do
+    // motor: quem preenche não tem o que fazer com "Cannot read properties".
     return {
       ok: false,
-      erros: [erro instanceof Error ? erro.message : String(erro)],
+      erros: [
+        erro instanceof Error && !(erro instanceof TypeError)
+          ? erro.message
+          : "Não foi possível montar o documento com estes dados. Confira os campos e salve de novo.",
+      ],
     };
   }
 }

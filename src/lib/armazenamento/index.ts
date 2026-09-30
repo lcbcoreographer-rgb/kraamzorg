@@ -8,10 +8,13 @@ export type { ArmazenamentoPrivado } from "./tipos";
 export {
   caminhoComprovante,
   caminhoContrato,
+  caminhoEvolucao,
+  caminhoNota,
   caminhoValido,
   codigoAleatorio,
   ehComprovante,
   tipoDoArquivo,
+  tipoDoArquivoNota,
 } from "./caminhos";
 
 /** Armazenamento do ambiente: Supabase Storage, ou memória na demonstração. */

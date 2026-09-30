@@ -230,7 +230,7 @@ select results_eq(
       where e.execucao_id = (select (r ->> 'execucao_id')::bigint from r1) order by e.ordem $$,
   $$ values (1, 'idade_gestacional'::text, 'ok'::text), (2, 'ocupacao', 'ok'), (3, 'score', 'erro'),
             (4, 'regua_nutricao', 'ok'), (5, 'alertas_dpp', 'ok'), (6, 'ficha_pendente', 'vazia'),
-            (7, 'prazo_relatorio', 'vazia'), (8, 'documentos_vencendo', 'ok'), (9, 'alerta_34s', 'ok') $$,
+            (7, 'prazo_relatorio', 'ok'), (8, 'documentos_vencendo', 'ok'), (9, 'alerta_34s', 'ok') $$,
   -- [P20] regua_nutricao passa a 'ok' (0012_automacoes.sql, privado.recalculo_regua_nutricao:
   -- roda contra as famílias do seed com conversa iniciada pela família, sem erro, mesmo sem
   -- nenhuma família nova nesta seção). alerta_34s também vira 'ok' (privado.recalculo_alerta_34s

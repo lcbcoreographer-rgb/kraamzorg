@@ -6,10 +6,13 @@ vi.mock("server-only", () => ({}));
 import {
   caminhoComprovante,
   caminhoContrato,
+  caminhoEvolucao,
+  caminhoNota,
   caminhoValido,
   codigoAleatorio,
   ehComprovante,
   tipoDoArquivo,
+  tipoDoArquivoNota,
 } from "./caminhos";
 import {
   criarArmazenamentoMemoria,
@@ -40,6 +43,45 @@ describe("caminhos do armazenamento privado", () => {
     ]) {
       expect(caminhoValido(ruim), ruim).toBe(false);
     }
+  });
+
+  it("aceita os caminhos da evolução e da nota, sempre por id", () => {
+    expect(caminhoEvolucao(ID)).toBe(`evolucoes/${ID}.pdf`);
+    expect(caminhoNota(ID, "xml")).toBe(`notas/${ID}.xml`);
+    for (const bom of [
+      caminhoEvolucao(ID),
+      caminhoNota(ID, "pdf"),
+      caminhoNota(ID, "xml"),
+    ]) {
+      expect(caminhoValido(bom), bom).toBe(true);
+    }
+    for (const ruim of [
+      "evolucoes/Marina-Teste.pdf",
+      `evolucoes/${ID}.png`,
+      `evolucoes/${ID}-maria.pdf`,
+      `notas/${ID}.docx`,
+      `notas/nota-da-maria.pdf`,
+      `notas/${ID}/../x.xml`,
+    ]) {
+      expect(caminhoValido(ruim), ruim).toBe(false);
+    }
+  });
+
+  it("reconhece PDF e XML da nota pelo conteúdo", () => {
+    const enc = new TextEncoder();
+    expect(tipoDoArquivoNota(enc.encode("%PDF-1.7 x"))?.extensao).toBe("pdf");
+    expect(
+      tipoDoArquivoNota(enc.encode('<?xml version="1.0"?><nfse/>'))?.extensao,
+    ).toBe("xml");
+    expect(tipoDoArquivoNota(enc.encode("<NFSe><a/></NFSe>"))?.extensao).toBe(
+      "xml",
+    );
+    expect(
+      tipoDoArquivoNota(
+        new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0, 0, 0, 0, 0]),
+      ),
+    ).toBeNull();
+    expect(tipoDoArquivoNota(enc.encode("texto solto"))).toBeNull();
   });
 
   it("o código aleatório tem 16 caracteres [a-z0-9] e não repete", () => {

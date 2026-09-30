@@ -3,9 +3,21 @@ import { randomUUID } from "node:crypto";
 import type { DadosLinkPagamento } from "@/lib/dados/tipos-contrato";
 import { modoDados } from "@/lib/dados/modo";
 import { criarDocumento, sandboxAutentiqueLigado } from "./autentique/cliente";
+import { enviarEmail } from "./email/cliente";
+import {
+  garantirAssuntoSemDadoPessoal,
+  garantirNomeArquivoSemDadoPessoal,
+} from "./email/guarda";
+import type { EnviarEmailEntrada, ResultadoEnvioEmail } from "./email/tipos";
 import { criarLinkPagamento } from "./infinitepay/cliente";
 import { validarParcelas } from "./infinitepay/limites";
 import type { SignatarioAutentiqueEntrada } from "./autentique/tipos";
+import { EmissorNacionalAdaptador } from "./nfse/emissor-nacional";
+import type {
+  AdaptadorNfse,
+  EmissaoNfseEntrada,
+  ResultadoNfse,
+} from "./nfse/tipos";
 
 /**
  * Integrações de terceiro que o contrato e a cobrança usam, escolhidas
@@ -16,9 +28,9 @@ import type { SignatarioAutentiqueEntrada } from "./autentique/tipos";
  */
 
 export class ErroIntegracaoNaoConfigurada extends Error {
-  readonly integracao: "autentique" | "infinitepay";
+  readonly integracao: "autentique" | "infinitepay" | "email" | "nfse";
 
-  constructor(integracao: "autentique" | "infinitepay") {
+  constructor(integracao: "autentique" | "infinitepay" | "email" | "nfse") {
     super(`Integração ${integracao} sem credencial neste ambiente`);
     this.name = "ErroIntegracaoNaoConfigurada";
     this.integracao = integracao;
@@ -128,5 +140,143 @@ export function obterCobrador(origemDaRequisicao?: string): Cobrador {
       );
       return { url: link.url, slug: link.slug ?? null };
     },
+  };
+}
+
+// --- E-mail transacional (P41) -----------------------------------------------------------
+
+/** E-mail sem o remetente: quem envia é o ambiente (RESEND_FROM_EMAIL). */
+export type EntradaEmail = Omit<EnviarEmailEntrada, "de">;
+
+export interface Emailer {
+  /** Falso quando o e-mail sai de verdade; verdadeiro na demonstração, que só guarda na caixa de saída local. */
+  readonly ambienteDeTeste: boolean;
+  enviar(entrada: EntradaEmail): Promise<ResultadoEnvioEmail>;
+}
+
+/** E-mail guardado na caixa de saída da demonstração (nada sai para a rede). */
+export interface EmailDemonstracao {
+  id: string;
+  para: string[];
+  assunto: string;
+  anexos: { nomeArquivo: string; tipoConteudo: string; bytes: number }[];
+  enviadoEm: string;
+}
+
+const CHAVE_CAIXA_EMAIL = "__kraamzorgCaixaEmailDemo";
+
+export function caixaDeSaidaEmailDemo(): EmailDemonstracao[] {
+  const g = globalThis as unknown as Record<string, EmailDemonstracao[]>;
+  g[CHAVE_CAIXA_EMAIL] ??= [];
+  return g[CHAVE_CAIXA_EMAIL]!;
+}
+
+export function limparCaixaDeSaidaEmailDemo(): void {
+  caixaDeSaidaEmailDemo().length = 0;
+}
+
+export function obterEmail(): Emailer {
+  if (modoDados() === "demonstracao") {
+    return {
+      ambienteDeTeste: true,
+      async enviar(entrada) {
+        // Mesma trava do adaptador de verdade: assunto e nome de anexo sem dado pessoal.
+        garantirAssuntoSemDadoPessoal(
+          entrada.assunto,
+          entrada.nomesProibidosNoAssunto,
+        );
+        for (const anexo of entrada.anexos ?? []) {
+          garantirNomeArquivoSemDadoPessoal(
+            anexo.nomeArquivo,
+            entrada.nomesProibidosNoAssunto,
+          );
+        }
+        const id = `demo-${randomUUID()}`;
+        caixaDeSaidaEmailDemo().push({
+          id,
+          para: [...entrada.para],
+          assunto: entrada.assunto,
+          anexos: (entrada.anexos ?? []).map((a) => ({
+            nomeArquivo: a.nomeArquivo,
+            tipoConteudo: a.tipoConteudo,
+            bytes: a.conteudo.byteLength,
+          })),
+          enviadoEm: new Date().toISOString(),
+        });
+        return { id };
+      },
+    };
+  }
+  const apiKey = process.env.RESEND_API_KEY;
+  const de = process.env.RESEND_FROM_EMAIL;
+  if (!apiKey || !de) throw new ErroIntegracaoNaoConfigurada("email");
+  return {
+    ambienteDeTeste: false,
+    enviar: (entrada) => enviarEmail({ apiKey }, { ...entrada, de }),
+  };
+}
+
+// --- NFS-e (P43) ----------------------------------------------------------------------------
+
+export interface EmissorNfse extends AdaptadorNfse {
+  /** Verdadeiro na demonstração: a nota não existe fora do sistema. */
+  readonly ambienteDeTeste: boolean;
+}
+
+/**
+ * Emissor da nota. Sem provedor configurado fora da demonstração, a chamada
+ * falha com `ErroIntegracaoNaoConfigurada` e a nota segue pela emissão manual
+ * assistida (PRD 14, T-05).
+ */
+export function obterEmissorNfse(): EmissorNfse {
+  if (modoDados() === "demonstracao") {
+    return {
+      ambienteDeTeste: true,
+      async emitir(entrada: EmissaoNfseEntrada): Promise<ResultadoNfse> {
+        const { consumirFalhaProvedorDemo } =
+          await import("@/lib/dados/demonstracao/nota");
+        if (consumirFalhaProvedorDemo()) {
+          return {
+            estado: "erro",
+            erro: "O provedor recusou a nota: o endereço de quem paga está incompleto. Confira o cadastro e envie de novo.",
+            tentativas: 1,
+          };
+        }
+        const sufixo = entrada.cobrancaId.replace(/-/g, "").slice(0, 8);
+        return {
+          estado: "emitida",
+          providerRef: `demo-${sufixo}`,
+          numero: `D${sufixo.toUpperCase()}`,
+          tentativas: 1,
+        };
+      },
+      async consultar(providerRef: string): Promise<ResultadoNfse> {
+        return {
+          estado: "emitida",
+          providerRef,
+          numero: `D${providerRef
+            .replace(/[^0-9a-f]/gi, "")
+            .slice(0, 8)
+            .toUpperCase()}`,
+          tentativas: 1,
+        };
+      },
+      async cancelar(providerRef: string): Promise<ResultadoNfse> {
+        return { estado: "cancelada", providerRef, tentativas: 1 };
+      },
+    };
+  }
+  const baseUrl = process.env.NFSE_PROVEDOR_BASE_URL?.trim();
+  const apiKey = process.env.NFSE_PROVEDOR_API_KEY?.trim();
+  if (!baseUrl || !apiKey) throw new ErroIntegracaoNaoConfigurada("nfse");
+  const real = new EmissorNacionalAdaptador({
+    baseUrl: baseUrl.replace(/\/+$/, ""),
+    apiKey,
+  });
+  return {
+    ambienteDeTeste: false,
+    emitir: (e) => real.emitir(e),
+    consultar: (r) => real.consultar(r),
+    cancelar: (r, m) => real.cancelar(r, m),
   };
 }

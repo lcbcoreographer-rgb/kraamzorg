@@ -30,6 +30,13 @@ import type { Database } from "./types";
  *   único e o limite de tentativas por dentro; é o único papel com execute
  *   nas duas (src/lib/dados/supabase/formulario.ts).
  *
+ * - "pesquisa_publica": a pesquisa pública `/pesquisa/[token]` (P42) abre e
+ *   recebe as respostas sem usuário logado. O servidor confere o limite de
+ *   tentativas e chama só public.pesquisa_abrir e public.pesquisa_enviar
+ *   (0024), que validam o token de uso único, a validade e o freio por
+ *   dentro; é o único papel com execute nelas
+ *   (src/lib/dados/supabase/pesquisa.ts).
+ *
  * - "armazenamento_privado": grava e lê o PDF do contrato e o comprovante da
  *   baixa manual no bucket privado `documentos` (P31 e P32,
  *   src/lib/armazenamento/supabase.ts), sempre depois de a rota ou a ação
@@ -46,6 +53,7 @@ export type MotivoClienteServico =
   | "webhook_autentique"
   | "webhook_infinitepay"
   | "formulario_contrato"
+  | "pesquisa_publica"
   | "armazenamento_privado";
 
 export function criarClienteServico(motivo: MotivoClienteServico) {

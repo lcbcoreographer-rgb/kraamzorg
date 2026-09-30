@@ -17,6 +17,9 @@ const RE_COMPROVANTE = new RegExp(
   `^comprovantes/${UUID}-[a-z0-9]{8,32}\\.(pdf|png|jpg|jpeg)$`,
 );
 
+const RE_EVOLUCAO = new RegExp(`^evolucoes/${UUID}\\.pdf$`);
+const RE_NOTA = new RegExp(`^notas/${UUID}\\.(pdf|xml)$`);
+
 export type ExtensaoComprovante = "pdf" | "png" | "jpg";
 
 export function caminhoContrato(contratoId: string, assinado: boolean): string {
@@ -31,6 +34,14 @@ export function caminhoComprovante(
   return `comprovantes/${cobrancaId}-${codigo}.${extensao}`;
 }
 
+export function caminhoEvolucao(relatorioId: string): string {
+  return `evolucoes/${relatorioId}.pdf`;
+}
+
+export function caminhoNota(notaId: string, extensao: "pdf" | "xml"): string {
+  return `notas/${notaId}.${extensao}`;
+}
+
 /** Código aleatório de 16 caracteres [a-z0-9] para o nome do comprovante. */
 export function codigoAleatorio(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
@@ -38,7 +49,12 @@ export function codigoAleatorio(): string {
 }
 
 export function caminhoValido(caminho: string): boolean {
-  return RE_CONTRATO.test(caminho) || RE_COMPROVANTE.test(caminho);
+  return (
+    RE_CONTRATO.test(caminho) ||
+    RE_COMPROVANTE.test(caminho) ||
+    RE_EVOLUCAO.test(caminho) ||
+    RE_NOTA.test(caminho)
+  );
 }
 
 export function ehComprovante(caminho: string): boolean {
@@ -74,6 +90,23 @@ export function tipoDoArquivo(
     bytes[2] === 0xff
   ) {
     return { extensao: "jpg", contentType: "image/jpeg" };
+  }
+  return null;
+}
+
+/** Arquivo de nota fiscal (PDF ou XML), reconhecido pelo começo do conteúdo. */
+export function tipoDoArquivoNota(
+  bytes: Uint8Array,
+): { extensao: "pdf" | "xml"; contentType: string } | null {
+  const pdf = tipoDoArquivo(bytes);
+  if (pdf?.extensao === "pdf")
+    return { extensao: "pdf", contentType: pdf.contentType };
+  const inicio = new TextDecoder("utf-8", { fatal: false })
+    .decode(bytes.subarray(0, 64))
+    .replace(/^\uFEFF/, "")
+    .trimStart();
+  if (inicio.startsWith("<?xml") || /^<[A-Za-z]/.test(inicio)) {
+    return { extensao: "xml", contentType: "application/xml" };
   }
   return null;
 }

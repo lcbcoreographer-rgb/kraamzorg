@@ -1,12 +1,47 @@
 import "server-only";
+import { after } from "next/server";
+import { obterArmazenamento } from "@/lib/armazenamento";
+import { obterEmissorNfse } from "@/lib/integracoes/fabrica";
 import { paymentCheck } from "@/lib/integracoes/infinitepay/cliente";
 import { processarWebhookInfinitePay } from "@/lib/integracoes/infinitepay/webhook";
 import { criarClienteServico } from "@/lib/db/cliente-servico";
 import {
   baixarCobranca,
   cobrancaDoPedido,
+  emitirNotaAutomatica,
   type ClienteRpc,
 } from "@/lib/integracoes/servico-webhooks";
+
+/**
+ * Nota fiscal automática (P43): só depois de a baixa mudar a cobrança, e só
+ * com `parametro.nfse_emissao.automatica` ligado (o banco decide). Melhor
+ * esforço: nunca muda a resposta do webhook, porque o pagamento já está
+ * confirmado e a nota, se falhar, fica com o erro visível em /notas.
+ */
+async function tentarNotaAutomatica(
+  supabase: ClienteRpc,
+  cobrancaId: string,
+): Promise<void> {
+  try {
+    await emitirNotaAutomatica(
+      supabase,
+      cobrancaId,
+      obterEmissorNfse(),
+      obterArmazenamento(),
+    );
+  } catch {
+    // sem provedor configurado, ou o provedor caiu: a nota segue pendente ou com erro
+  }
+}
+
+/** Roda depois de responder; fora de uma requisição (teste), roda na hora. */
+async function depoisDaResposta(tarefa: () => Promise<void>): Promise<void> {
+  try {
+    after(tarefa);
+  } catch {
+    await tarefa();
+  }
+}
 
 /**
  * Webhook de pagamento da InfinitePay (PRD 14, P32 item 2). Não é
@@ -16,7 +51,7 @@ import {
  * cobrança já paga).
  *
  * A baixa move o P2 para `pagamento_confirmado`, deixa a nota fiscal
- * pendente (P43) e cria as tarefas de mensagem e, com 34 semanas ou mais,
+ * pendente (P43; com a emissão automática ligada, a nota sai logo depois) e cria as tarefas de mensagem e, com 34 semanas ou mais,
  * o aviso de `prenatal_urgente`, tudo dentro da função do banco.
  *
  * Falha de rede no `payment_check` ou de banco responde 500 sem detalhe,
@@ -53,15 +88,22 @@ export async function POST(request: Request): Promise<Response> {
               invoiceSlug: entrada.invoiceSlug,
             },
           ),
-        marcarCobrancaPaga: (_cobrancaId, dados) =>
-          baixarCobranca(supabase, orderNsu, {
+        marcarCobrancaPaga: async (cobrancaId, dados) => {
+          const mudou = await baixarCobranca(supabase, orderNsu, {
             valorPagoCentavos: dados.valorPagoCentavos,
             parcelas: dados.parcelas,
             metodoCaptura: dados.metodoCaptura,
             transactionNsu: dados.transactionNsu,
             invoiceSlug: dados.invoiceSlug,
             reciboUrl: dados.reciboUrl,
-          }),
+          });
+          if (mudou) {
+            await depoisDaResposta(() =>
+              tentarNotaAutomatica(supabase, cobrancaId),
+            );
+          }
+          return mudou;
+        },
       },
     );
 

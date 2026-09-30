@@ -106,6 +106,34 @@ describe("barra lateral agrupada (PRD 20.4)", () => {
     expect(ids).toContain("sessoes");
   });
 
+  it("P41 a P43: evoluções, ocorrências e pós-venda são da coordenação e da diretoria; notas, do financeiro e da diretoria", () => {
+    for (const papel of ["coordenacao", "diretoria"] as const) {
+      expect(podeAbrir([papel], "/evolucoes/abc/puerperal")).toBe(true);
+      expect(podeAbrir([papel], "/ocorrencias/nova")).toBe(true);
+      expect(podeAbrir([papel], "/pos-venda")).toBe(true);
+    }
+    for (const papel of ["comercial", "financeiro", "marketing"] as const) {
+      expect(podeAbrir([papel], "/evolucoes")).toBe(false);
+      expect(podeAbrir([papel], "/ocorrencias")).toBe(false);
+      expect(podeAbrir([papel], "/pos-venda")).toBe(false);
+    }
+    expect(podeAbrir(["financeiro"], "/notas/abc")).toBe(true);
+    expect(podeAbrir(["diretoria"], "/notas")).toBe(true);
+    expect(podeAbrir(["coordenacao"], "/notas")).toBe(false);
+    expect(podeAbrir(["comercial"], "/notas")).toBe(false);
+  });
+
+  it("a enfermeira abre as próprias evoluções, sem aba nem barra lateral", () => {
+    expect(podeAbrir(["enfermeira"], "/minhas-evolucoes/abc/puerperal")).toBe(
+      true,
+    );
+    expect(podeAbrir(["enfermeira"], "/evolucoes")).toBe(false);
+    expect(podeAbrir(["enfermeira"], "/ocorrencias")).toBe(false);
+    expect(abasDe(["enfermeira"]).map((a) => a.id)).not.toContain(
+      "minhasEvolucoes",
+    );
+  });
+
   it("a enfermeira não tem barra lateral e usa o portal", () => {
     expect(gruposDe(["enfermeira"])).toEqual([]);
     expect(cascaDoUsuario(["enfermeira"])).toBe("enfermeira");

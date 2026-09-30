@@ -28,6 +28,13 @@ import type {
   UsuarioSistema,
 } from "./tipos";
 import type { AssistencialRepositorio } from "./tipos-assistencial";
+import type { EvolucaoRepositorio } from "./tipos-evolucao";
+import type { NotaRepositorio } from "./tipos-nota";
+import type {
+  OcorrenciaRepositorio,
+  PesquisaPublicaRepositorio,
+  PosVendaRepositorio,
+} from "./tipos-ocorrencia";
 import type {
   AgendaPeriodo,
   EquipeVisao,
@@ -386,7 +393,18 @@ export interface Repositorios {
   portal: PortalRepositorio;
   /** Checklist diário, registro assinado e alertas clínicos (P39 e P40). */
   assistencial: AssistencialRepositorio;
+  /** Evolução de enfermagem aos médicos: rascunho, revisão, aprovação e envio (P41). */
+  evolucoes: EvolucaoRepositorio;
+  /** Ocorrências com SLA, privada e histórico (P42). */
+  ocorrencias: OcorrenciaRepositorio;
+  /** Pipeline 4: pesquisa, NPS e as ações do pós-venda (P42). */
+  posVenda: PosVendaRepositorio;
+  /** Nota fiscal de serviço: estados, tentativas, arquivos e emissão manual assistida (P43). */
+  notas: NotaRepositorio;
 }
+
+/** Pesquisa pública da família (P42): sem usuário logado, por isso fora de obterRepositorios(). */
+export type { PesquisaPublicaRepositorio };
 
 /**
  * Formulário seguro público (P30 item 2): sem usuário logado. Na real, o
