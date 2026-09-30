@@ -77,11 +77,16 @@ for (const papel of PAPEIS) {
     const celular = info.project.name === "celular";
     if (celular || papel.portal) {
       // O comercial pode ter o contador de transferências pedindo atenção
-      // na aba Início (crítica do CRM, P0 item 1): o texto some por baixo
-      // do rótulo, então aceita "Início" com ou sem o resto.
+      // na aba Início (crítica do CRM, P0 item 1) e o de conversas
+      // esperando alguém na aba Conversas (30/09): o texto some por baixo
+      // do rótulo, então aceita o rótulo com ou sem o resto.
       const esperado =
         papel.rotulo === "Comercial"
-          ? papel.abas.map((rotulo, i) => (i === 0 ? /^Início/ : rotulo))
+          ? papel.abas.map((rotulo) =>
+              rotulo === "Início" || rotulo === "Conversas"
+                ? new RegExp(`^${rotulo}`)
+                : rotulo,
+            )
           : papel.abas;
       await expect(navegacao.getByRole("link")).toHaveText(esperado);
       await expect(
@@ -129,7 +134,6 @@ test("todas as rotas do comercial abrem com o estado vazio", async ({
     // como no protótipo (crítica do CRM, P1 item 12).
     ["/familias/00000000-0000-4000-8006-000000000001", "Família Teste Aurora"],
     ["/conversas", "Conversas"],
-    ["/transferencias", "Transferências"],
     ["/agente", "Isadora"],
     ["/tarefas", "Tarefas"],
     ["/mais", "Mais"],
@@ -140,6 +144,13 @@ test("todas as rotas do comercial abrem com o estado vazio", async ({
       page.getByRole("heading", { level: 1, name: titulo }),
     ).toBeVisible();
   }
+  // A fila de transferências mora nas conversas desde 30/09: a rota antiga
+  // continua abrindo, direto no filtro "Esperando alguém".
+  await page.goto("/transferencias");
+  await expect(page).toHaveURL(/\/conversas\?filtro=esperando$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Conversas" }),
+  ).toBeVisible();
 });
 
 test("Mais mostra o resto da navegação e sai do sistema", async ({ page }) => {
@@ -147,7 +158,7 @@ test("Mais mostra o resto da navegação e sai do sistema", async ({ page }) => 
   await page.goto("/mais");
   const conteudo = page.locator("#conteudo");
   await expect(
-    conteudo.getByRole("link", { name: "Transferências" }),
+    conteudo.getByRole("link", { name: "Sessões de venda" }),
   ).toBeVisible();
   await expect(conteudo.getByRole("link", { name: "Isadora" })).toBeVisible();
   await semViolacaoGrave(page);

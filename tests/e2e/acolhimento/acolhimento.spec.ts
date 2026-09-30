@@ -19,10 +19,17 @@ test("conversa de uma família em luto: Isadora desligada, sem triagem, sem praz
 }) => {
   await entrarComo(page, "Comercial");
   await page.goto("/conversas");
-  await page.getByRole("link", { name: "Abrir com cuidado" }).first().click();
+  // A linha da família com freio abre a conversa; a prévia fica fechada.
+  const linha = page.getByRole("link", { name: /Família Teste Bruma/ });
+  await expect(linha.getByText(/Prévia fechada|recebida às/i)).toBeVisible();
+  await linha.click();
   await page.waitForURL(/\/conversas\/[0-9a-f-]+$/);
 
-  const conteudo = page.locator("#conteudo");
+  // A conversa aberta (ao lado da lista no computador, em tela cheia no
+  // celular) é a tela da família: nela nada pode ser vermelho.
+  const conteudo = page.getByRole("region", {
+    name: "Conversa com Família Teste Bruma",
+  });
   await expect(
     conteudo.getByText("A Isadora está desligada para esta família"),
   ).toBeVisible();
@@ -51,16 +58,19 @@ test("fila: a perda mostra a hora do relato, em ameixa, e o destino em frase", a
   page,
 }) => {
   await entrarComo(page, "Comercial");
+  // A fila mora em "Esperando alguém", na lista das conversas (30/09).
   await page.goto("/transferencias");
+  await expect(page).toHaveURL(/\/conversas\?filtro=esperando$/);
 
-  const perda = page
-    .getByRole("heading", { level: 3, name: "Perda gestacional" })
-    .locator("xpath=ancestor::*[contains(@class,'rounded-3')][1]");
-  await expect(perda.getByText(/recebida às/)).toBeVisible();
+  const perda = page.getByRole("link").filter({
+    has: page.getByText("Perda gestacional", { exact: true }),
+  });
+  await expect(perda.getByText("Família Teste Bruma")).toBeVisible();
+  await expect(perda.getByText(/recebida às/i)).toBeVisible();
   await expect(perda.getByText(/venceu há|vence em/)).toHaveCount(0);
   await expect(perda.locator(".text-alerta, .bg-alerta-lavado")).toHaveCount(0);
   await expect(
-    perda.getByText(/Família Teste Bruma, com a coordenação clínica/),
+    perda.getByText(/recebida às \d{2}:\d{2}, com a coordenação clínica/i),
   ).toBeVisible();
 });
 

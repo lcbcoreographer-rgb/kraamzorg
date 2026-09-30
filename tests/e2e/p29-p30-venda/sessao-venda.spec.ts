@@ -23,7 +23,18 @@ test("marcar a partir do pedido de conversa move o P1 para Sessão agendada", as
   const errosDaPagina: string[] = [];
   page.on("pageerror", (erro) => errosDaPagina.push(String(erro)));
   await entrarEmAal2(page, "Comercial");
+  // O pedido de conversa mora em "Esperando alguém" (a antiga fila, dentro
+  // das conversas desde 30/09); a faixa dele traz "Marcar na agenda".
   await page.goto("/transferencias");
+  await page
+    .getByRole("link")
+    .filter({
+      has: page.getByText("Quer a conversa com a coordenação", {
+        exact: true,
+      }),
+    })
+    .first()
+    .click();
   await page.getByRole("link", { name: "Marcar na agenda" }).first().click();
   await page.waitForURL(/\/sessoes-venda\/nova\?transferencia=/);
 

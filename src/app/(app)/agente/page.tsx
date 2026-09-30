@@ -77,8 +77,9 @@ function Secao({
 /**
  * Painel da Isadora no CRM (P27 itens 1, 3, 4 e 5; PRD 11.3, 11.4, 11.12 e
  * 20.5): regras de retomada, modo do agente, base de conhecimento e
- * métricas. Conversas e transferências ficam em `/conversas` e
- * `/transferencias`, rotas próprias (item 1 e 2). Dono: P27.
+ * métricas. Conversas e transferências ficam juntas em `/conversas`
+ * (item 1 e 2; a fila é o filtro "Esperando alguém", e `/transferencias`
+ * leva para lá). Dono: P27.
  */
 export default async function PaginaAgente() {
   const sessao = await exigirSessao("/agente");

@@ -364,6 +364,17 @@ export interface NavegacaoPapel {
   inicio: IdRota;
 }
 
+/**
+ * A fila de transferências mora dentro das conversas desde 30/09 (filtro
+ * "Esperando alguém"; pedido do dono). O item saiu da barra lateral e o
+ * número foi para o contador de Conversas, mas a rota `/transferencias`
+ * continua aberta para quem já podia abri-la: ela leva para a lista com o
+ * filtro, e as ações de transferência seguem checando esse acesso.
+ */
+const TRANSFERENCIAS_DENTRO_DAS_CONVERSAS: readonly IdRota[] = [
+  "transferencias",
+];
+
 export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
   comercial: {
     abas: ["inicio", "pipeline", "conversas", "familias", "mais"],
@@ -374,7 +385,6 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
           "inicio",
           "pipeline",
           "conversas",
-          "transferencias",
           "sessoesVenda",
           "familias",
           "tarefas",
@@ -385,6 +395,7 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
       },
       { titulo: "Sistema", itens: ["agente", "manuais"] },
     ],
+    ocultas: TRANSFERENCIAS_DENTRO_DAS_CONVERSAS,
     inicio: "inicio",
   },
   coordenacao: {
@@ -412,16 +423,11 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
       },
       {
         titulo: "Experiência",
-        itens: [
-          "familias",
-          "conversas",
-          "transferencias",
-          "posVenda",
-          "portalFamilia",
-        ],
+        itens: ["familias", "conversas", "posVenda", "portalFamilia"],
       },
       { titulo: "Sistema", itens: ["configuracoes", "manuais"] },
     ],
+    ocultas: TRANSFERENCIAS_DENTRO_DAS_CONVERSAS,
     inicio: "inicio",
   },
   financeiro: {
@@ -460,7 +466,6 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
           "inicio",
           "pipeline",
           "conversas",
-          "transferencias",
           "sessoesVenda",
           "familias",
           "tarefas",
@@ -497,6 +502,7 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
         itens: ["agente", "configuracoes", "sessoes", "manuais"],
       },
     ],
+    ocultas: TRANSFERENCIAS_DENTRO_DAS_CONVERSAS,
     inicio: "inicio",
   },
   enfermeira: {

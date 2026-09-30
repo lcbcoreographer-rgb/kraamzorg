@@ -6,15 +6,7 @@ import { paraConversaComPausa } from "../formatacao";
 import { pausaMotivoDemonstracao, resumoConversasReais } from "../repositorio";
 import { ROTULO_MOTIVO_HANDOFF } from "../tipos";
 import type { ConversaComPausa } from "../tipos";
-
-/** Transferências cuja última mensagem não vira prévia na lista. */
-const MOTIVOS_SEM_PREVIA: readonly string[] = [
-  "saude",
-  "perda",
-  "estado_sensivel_escreveu",
-  "midia_recebida",
-  "audio_nao_transcrito",
-];
+import { MOTIVOS_SEM_PREVIA } from "./lista";
 
 /**
  * Lista de conversas (P27 item 1, protótipo `comercial-conversas.html`,

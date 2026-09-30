@@ -8,9 +8,10 @@ import { porProjeto } from "../p13-configuracoes/apoio";
 
 /**
  * P27 item 1 · Conversas (`/conversas`), modo demonstração
- * (`KZ_DADOS=demonstracao`, `playwright.config.ts`). Lista com modo, pausa,
- * última mensagem e transferência aberta (protótipo `comercial-conversas.html`,
- * C5), mais a conversa individual (`comercial-conversa.html`, C2).
+ * (`KZ_DADOS=demonstracao`, `playwright.config.ts`). Desde 30/09, em duas
+ * colunas como o WhatsApp Web: a lista com quem conduz, a última mensagem
+ * e a transferência aberta; a conversa ao lado (computador) ou em tela
+ * cheia (celular), com as ações que antes ficavam no cartão da lista.
  *
  * `porProjeto`: celular e computador rodam contra o mesmo servidor de
  * demonstração, com a mesma loja em memória (`tests/e2e/p13-configuracoes/apoio.ts`).
@@ -47,15 +48,59 @@ test("Assumir conversa pausa a Isadora e mostra 'Devolver agora'", async ({
   await entrarComo(page, "Comercial");
   await page.goto("/conversas");
 
-  const cartao = page
-    .getByText(familia, { exact: true })
-    .locator("xpath=ancestor::*[contains(@class,'rounded-3')][1]");
-  await cartao.getByRole("button", { name: "Assumir conversa" }).click();
+  // A linha inteira abre a conversa; as ações moram nela.
+  await page.getByRole("link", { name: new RegExp(familia) }).click();
+  await page.waitForURL(/\/conversas\/[0-9a-f-]+$/);
+  const conversa = page.getByRole("region", {
+    name: `Conversa com ${familia}`,
+  });
+  await conversa.getByRole("button", { name: "Assumir conversa" }).click();
 
-  await expect(cartao.getByText("Pausada")).toBeVisible();
   await expect(
-    cartao.getByRole("button", { name: "Devolver agora" }),
+    conversa.getByText("Isadora pausada nesta conversa"),
   ).toBeVisible();
+  await expect(
+    conversa.getByRole("button", { name: "Devolver agora" }),
+  ).toBeVisible();
+});
+
+test("lista e conversa lado a lado no computador; no celular, a conversa em tela cheia com voltar", async ({
+  page,
+}, info) => {
+  await entrarComo(page, "Comercial");
+  await page.goto("/conversas");
+  await page.getByRole("link", { name: /Família Teste Horizonte/ }).click();
+  await page.waitForURL(/\/conversas\/[0-9a-f-]+$/);
+  const conversa = page.getByRole("region", {
+    name: "Conversa com Família Teste Horizonte",
+  });
+  await expect(conversa).toBeVisible();
+  // Mensagens em balões: a família à esquerda, a equipe à direita.
+  await expect(
+    conversa.getByText("Fechado, pode preparar o contrato"),
+  ).toBeVisible();
+
+  const lista = page.getByRole("heading", { level: 1, name: "Conversas" });
+  if (info.project.name === "computador") {
+    await expect(lista).toBeVisible();
+    // A linha da conversa aberta fica marcada na lista ao lado.
+    await expect(
+      page
+        .getByRole("list", { name: "Todas" })
+        .getByRole("link", { name: /Família Teste Horizonte/ }),
+    ).toHaveAttribute("aria-current", "page");
+  } else {
+    await expect(
+      page.getByRole("link", { name: /Família Teste Aurora/ }),
+    ).toBeHidden();
+    await conversa
+      .getByRole("link", { name: "Voltar para as conversas" })
+      .click();
+    await page.waitForURL(/\/conversas$/);
+    await expect(lista).toBeVisible();
+  }
+  await semRolagemLateral(page);
+  await semViolacaoGrave(page);
 });
 
 test("filtro 'Não lead' mostra só quem não é lead", async ({ page }) => {
@@ -83,10 +128,7 @@ test("humano_comercial: resolver não reativa a Isadora; só 'Devolver à Isador
   await entrarComo(page, "Comercial");
   await page.goto("/conversas");
 
-  const cartao = page
-    .getByText("Família Teste Horizonte")
-    .locator("xpath=ancestor::*[contains(@class,'rounded-3')][1]");
-  await cartao.getByRole("link", { name: "Abrir conversa" }).click();
+  await page.getByRole("link", { name: /Família Teste Horizonte/ }).click();
   await page.waitForURL(/\/conversas\//);
   await expect(page.getByText(/A Isadora saiu desta conversa/)).toBeVisible();
 
@@ -126,6 +168,8 @@ test("humano_comercial: resolver não reativa a Isadora; só 'Devolver à Isador
     page.getByText("A Isadora está conduzindo esta conversa"),
   ).toBeVisible();
   await expect(
-    page.getByText(/devolveu a conversa à Isadora às/),
+    page
+      .getByRole("region", { name: "Conversa com Família Teste Horizonte" })
+      .getByText(/devolveu a conversa à Isadora às/),
   ).toBeVisible();
 });

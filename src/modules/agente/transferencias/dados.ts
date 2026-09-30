@@ -1,7 +1,7 @@
 import "server-only";
 import { obterRepositorios } from "@/lib/dados/fabrica";
 import { modoDados } from "@/lib/dados/modo";
-import { estadoPrazo, pausaVenceuComTransferenciaAberta } from "../formatacao";
+import { pausaVenceuComTransferenciaAberta } from "../formatacao";
 import {
   estadoAgentePorConversa,
   notificacaoOkDemonstracao,
@@ -69,23 +69,4 @@ export async function listarFilaTela(
         : false,
     };
   });
-}
-
-/**
- * Quantas transferências pedem atenção agora: prazo vencido ou prioridade
- * máxima (crítica do CRM, P0 item 1). Vira o contador em alerta da aba
- * Início do comercial (`abas-inferiores.tsx`, `barra-lateral.tsx`); um
- * número maior não é mais chamativo por si, então a casca só precisa
- * saber se há alguma.
- */
-export async function contarTransferenciasCriticas(
-  agora: Date = new Date(),
-): Promise<number> {
-  const fila = await listarFilaTela(agora);
-  return fila.filter(
-    (t) =>
-      t.status !== "assumido" &&
-      (t.prioridade === "maxima" ||
-        estadoPrazo(t.criadoEm, t.slaVenceEm, agora) === "vencido"),
-  ).length;
 }

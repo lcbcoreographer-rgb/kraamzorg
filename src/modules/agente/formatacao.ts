@@ -104,6 +104,29 @@ export function estadoPrazo(
   return (vence - agora.getTime()) / janela < 0.25 ? "perto" : "normal";
 }
 
+/**
+ * Quantas transferências pedem atenção agora: prazo vencido ou prioridade
+ * máxima, ainda sem ninguém (crítica do CRM, P0 item 1). Vira o contador
+ * em alerta da aba Início do comercial; um número maior não é mais
+ * chamativo por si, então a casca só precisa saber se há alguma.
+ */
+export function contarTransferenciasCriticas(
+  fila: readonly {
+    status: string;
+    prioridade: string;
+    criadoEm: string;
+    slaVenceEm: string | null;
+  }[],
+  agora: Date = new Date(),
+): number {
+  return fila.filter(
+    (t) =>
+      t.status !== "assumido" &&
+      (t.prioridade === "maxima" ||
+        estadoPrazo(t.criadoEm, t.slaVenceEm, agora) === "vencido"),
+  ).length;
+}
+
 /** "18:00" no fuso de Brasília; vazio para data inválida. */
 export function horaBrasilia(iso: string | null): string {
   if (!iso) return "";

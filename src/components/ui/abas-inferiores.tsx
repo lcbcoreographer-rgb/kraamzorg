@@ -27,6 +27,12 @@ export interface ItemAbaInferior {
   ativo?: boolean;
   /** Contador em destaque (alerta clínico, transferência vencendo). */
   contador?: number;
+  /**
+   * `false`: contador neutro (creme com texto marinho), para uma contagem
+   * que não é urgência (conversas esperando alguém, dentro do prazo). O
+   * padrão continua em alerta.
+   */
+  contadorAlerta?: boolean;
   /** Rótulo completo do contador para o leitor de tela (ex: "2 alertas"). Sem isto, "Alertas" e "2" viram um nome acessível só "Alertas2". */
   rotuloContador?: string;
 }
@@ -82,7 +88,12 @@ export function AbasInferiores({
           {item.contador ? (
             <span
               aria-hidden="true"
-              className="rounded-pilula bg-alerta text-texto-inverso text-mini ring-marinho absolute top-0.5 left-[calc(50%+4px)] flex h-5 min-w-5 items-center justify-center px-1.5 font-mono leading-5 ring-2"
+              className={cn(
+                "rounded-pilula text-mini ring-marinho absolute top-0.5 left-[calc(50%+4px)] flex h-5 min-w-5 items-center justify-center px-1.5 font-mono leading-5 ring-2",
+                item.contadorAlerta === false
+                  ? "bg-areia text-marinho"
+                  : "bg-alerta text-texto-inverso",
+              )}
             >
               {item.contador}
             </span>

@@ -18,7 +18,8 @@ import type {
   ConversaComPausa,
   TransferenciaTela,
 } from "../tipos";
-import { CHAVE_MENSAGEM_NAO_LEAD, ROTULO_MOTIVO_HANDOFF } from "../tipos";
+import { CHAVE_MENSAGEM_NAO_LEAD } from "../tipos";
+import { listarFilaTela } from "../transferencias/dados";
 
 export interface ConversaDetalheTela {
   conversa: ConversaComPausa;
@@ -100,7 +101,9 @@ export async function obterConversaTela(
   ] = await Promise.all([
     obterConversaPorId(conversaId),
     agente.mensagensDaConversa(conversaId),
-    agente.listarTransferencias({ status: ["aberto", "assumido"] }),
+    // A fila traz o que a faixa da transferência mostra (prazo, aviso ao
+    // grupo, pausa vencida), igual à antiga tela de transferências.
+    listarFilaTela(),
     configuracoes.obterMensagemModelo("formulario_contrato"),
     configuracoes.lerParametro("comercial_resposta_no_app"),
     obterHorasPausaHumano(),
@@ -130,12 +133,7 @@ export async function obterConversaTela(
     ? await obterFichaTela(conversaBase.familiaId)
     : null;
 
-  const aberta = transferenciaAberta
-    ? {
-        ...transferenciaAberta,
-        motivoRotulo: ROTULO_MOTIVO_HANDOFF[transferenciaAberta.motivo],
-      }
-    : null;
+  const aberta: TransferenciaTela | null = transferenciaAberta;
 
   return {
     conversa: paraConversaComPausa(

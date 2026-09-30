@@ -1,46 +1,24 @@
 import type { Metadata } from "next";
-import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
-import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
-import { listarConversasTela } from "@/modules/agente/conversas/dados";
-import { ListaConversas } from "@/modules/agente/conversas/componentes/lista-conversas";
-import type { ConversaComPausa } from "@/modules/agente/tipos";
+import { PainelSemConversa } from "@/modules/agente/conversas/componentes/painel-sem-conversa";
+import { listarFilaTela } from "@/modules/agente/transferencias/dados";
+import type { TransferenciaTela } from "@/modules/agente/tipos";
 
 export const metadata: Metadata = { title: "Conversas · Kraamzorg OS" };
 
 /**
- * Conversas com a Isadora, filtráveis por situação (P27 item 1, PRD 11.3 e
- * 11.4; protótipo `comercial-conversas.html`, C5). Dono: P27.
+ * Conversas sem nenhuma aberta (P27 item 1; pedido do dono em 30/09,
+ * "estilo WhatsApp Web"). A lista mora no layout; aqui fica só o lado
+ * direito, que no computador diz quem espera alguém e no celular não
+ * aparece (a lista ocupa a tela). Dono: P27.
  */
 export default async function PaginaConversas() {
   await exigirSessao("/conversas");
-
-  let conversas: ConversaComPausa[] | null = null;
+  let fila: TransferenciaTela[] | null = null;
   try {
-    conversas = await listarConversasTela();
+    fila = await listarFilaTela();
   } catch {
-    conversas = null;
+    fila = null;
   }
-
-  return (
-    <>
-      <CabecalhoTela
-        titulo="Conversas"
-        subtitulo="Em que mão está cada conversa: com a Isadora, com a equipe, pausada, com o freio ou fora do comercial."
-      />
-      <div className="pt-6">
-        {conversas ? (
-          <ListaConversas conversas={conversas} />
-        ) : (
-          <FaixaAlerta
-            variante="erro"
-            titulo="Não foi possível carregar as conversas agora"
-          >
-            Confira a conexão e recarregue a página. Se continuar, avise a
-            equipe técnica.
-          </FaixaAlerta>
-        )}
-      </div>
-    </>
-  );
+  return <PainelSemConversa fila={fila} />;
 }

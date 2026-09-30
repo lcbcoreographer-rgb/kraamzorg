@@ -8,14 +8,18 @@ import { ativo, type GrupoLateral, type ItemNavegacao } from "@/lib/navegacao";
 import { IconeNavegacao } from "./icones-navegacao";
 
 /**
- * Item de navegação com o contador opcional da aba Início (P0 item 1):
- * transferências vencendo ou de prioridade máxima, só para o comercial.
- * `ItemNavegacao` (src/lib/navegacao) fica sem o campo porque o proxy lê
- * esse tipo sem montar o contador.
+ * Item de navegação com o contador opcional: na aba Início do comercial,
+ * transferências vencendo ou de prioridade máxima (P0 item 1); no item
+ * Conversas, quantas conversas esperam alguém (a antiga fila, 30/09), em
+ * alerta só quando alguma pede atenção agora. `ItemNavegacao`
+ * (src/lib/navegacao) fica sem o campo porque o proxy lê esse tipo sem
+ * montar o contador.
  */
 export type ItemNavegacaoComContador = ItemNavegacao & {
   contador?: number;
   rotuloContador?: string;
+  /** Padrão: em alerta sempre que houver contador. */
+  contadorAlerta?: boolean;
 };
 
 /**
@@ -51,7 +55,8 @@ export function NavegacaoLateral({
           icone: <IconeNavegacao nome={item.icone} />,
           ativo: ativo(item, caminho),
           contador: item.contador,
-          contadorAlerta: Boolean(item.contador),
+          contadorAlerta:
+            Boolean(item.contador) && item.contadorAlerta !== false,
           rotuloContador: item.rotuloContador,
         })),
       }))}
@@ -99,6 +104,7 @@ export function NavegacaoInferior({
         icone: <IconeNavegacao nome={item.icone} />,
         ativo: ativo(item, caminho),
         contador: item.contador,
+        contadorAlerta: item.contadorAlerta,
         rotuloContador: item.rotuloContador,
       }))}
     />

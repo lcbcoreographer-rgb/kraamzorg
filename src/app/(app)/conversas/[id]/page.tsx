@@ -1,31 +1,34 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { ArrowLeft } from "lucide-react";
-import { Botao } from "@/components/ui/botao";
 import { exigirSessao } from "@/lib/auth/sessao";
-import { CabecalhoFicha } from "@/modules/crm/ficha/componentes/cabecalho-ficha";
-import {
-  datasDoCabecalho,
-  MetaFicha,
-} from "@/modules/crm/ficha/componentes/meta-ficha";
+import { localidade } from "@/lib/formatacao";
+import { papelPrincipal } from "@/lib/navegacao";
 import { obterFreioDesfazerSegundos } from "@/modules/crm/ficha/dados";
 import { obterConversaTela } from "@/modules/agente/conversa-detalhe/dados";
+import { CabecalhoConversa } from "@/modules/agente/conversa-detalhe/componentes/cabecalho-conversa";
 import { Compositor } from "@/modules/agente/conversa-detalhe/componentes/compositor";
 import { FioMensagens } from "@/modules/agente/conversa-detalhe/componentes/fio-mensagens";
 import {
   FaixaEstadoConversa,
-  PainelResumo,
+  LinhaPausa,
+  ResumoIsadora,
 } from "@/modules/agente/conversa-detalhe/componentes/painel-resumo";
+import { CorpoConversa } from "@/modules/agente/conversa-detalhe/componentes/corpo-conversa";
+import { FaixaTransferencia } from "@/modules/agente/transferencias/componentes/faixa-transferencia";
+import { obterTelefonePlantao } from "@/modules/agente/transferencias/dados";
+import { DESTINO_DO_PAPEL } from "@/modules/agente/tipos";
 
 // Título sem nome de família (DESIGN.md, microcopy 11).
 export const metadata: Metadata = { title: "Conversa · Kraamzorg OS" };
 
 /**
- * Conversa com a família (P27 item 1, protótipo `comercial-conversa.html`,
- * C2): mensagens, painel de resumo, pausar e retomar a Isadora, assumir e
- * resolver a transferência, marcar como não lead, abrir a ficha. Dono: P27.
+ * Conversa aberta, ao lado da lista (pedido do dono em 30/09: "estilo
+ * WhatsApp Web"). De cima para baixo: o cabeçalho da família (com o freio),
+ * a transferência aberta e quem conduz a conversa, o resumo da Isadora,
+ * as mensagens (rolagem própria, abrindo no fim) e o campo de resposta.
+ * As ações são as de sempre: assumir, pausar, devolver, resolver, reenviar
+ * o aviso, marcar como não lead. Dono: P27.
  */
 export default async function PaginaConversa({
   params,
@@ -57,79 +60,97 @@ export default async function PaginaConversa({
   const podeReverterFreio =
     sessao.papeis.includes("coordenacao") ||
     sessao.papeis.includes("diretoria");
+  const principal = papelPrincipal(sessao.papeis);
+  const [freioDesfazerSegundos, telefonePlantao] = await Promise.all([
+    ficha ? obterFreioDesfazerSegundos() : Promise.resolve(0),
+    transferenciaAberta ? obterTelefonePlantao() : Promise.resolve(null),
+  ]);
+  const comFreio = conversa.situacao === "freio";
 
   return (
-    <>
-      <header className="flex items-center gap-2 pb-2">
-        <Botao asChild variante="icone" aria-label="Voltar para as conversas">
-          <Link href="/conversas">
-            <ArrowLeft
-              aria-hidden="true"
-              className="size-5"
-              strokeWidth={1.75}
+    <section
+      aria-label={`Conversa com ${nome}`}
+      className="lg:rounded-3 lg:shadow-1 flex h-full min-h-0 flex-col overflow-hidden"
+    >
+      <CabecalhoConversa
+        nome={nome}
+        familiaId={conversa.familiaId}
+        estadoSensivel={ficha?.estadoSensivel ?? "normal"}
+        podeReverter={podeReverterFreio}
+        freioDesfazerSegundos={freioDesfazerSegundos}
+        ig={ficha?.idadeGestacional ?? null}
+        lugar={ficha ? localidade(ficha.bairro, ficha.cidade) : null}
+        situacao={conversa.situacao}
+        motivoEncerramento={conversa.agenteEncerradoMotivo}
+        conversa={{
+          id: conversa.id,
+          nomeContato: conversa.nomeContato ?? nome,
+          podePausar: conversa.situacao === "isadora",
+          podeTriar:
+            conversa.situacao === "isadora" || conversa.situacao === "pausada",
+        }}
+      />
+
+      {/* O que pede a equipe vem no topo: a transferência aberta (faixa)
+          e quem conduz a conversa. No computador fica preso embaixo do
+          cabeçalho; no celular rola junto com as mensagens (CorpoConversa). */}
+      <CorpoConversa
+        quantidade={mensagens.length}
+        comecarNoTopo={Boolean(transferenciaAberta)}
+        topo={
+          <>
+            {transferenciaAberta ? (
+              <FaixaTransferencia
+                transferencia={transferenciaAberta}
+                conversaId={conversa.id}
+                usuarioId={sessao.usuarioId}
+                destinoDoPapel={
+                  principal ? DESTINO_DO_PAPEL[principal] : undefined
+                }
+                telefonePlantao={telefonePlantao}
+                rodape={
+                  conversa.situacao === "pausada" ? (
+                    <LinhaPausa
+                      pausaMotivo={conversa.pausaMotivo}
+                      pausadoAte={conversa.agentePausadoAte}
+                    />
+                  ) : null
+                }
+              />
+            ) : null}
+            <FaixaEstadoConversa
+              conversa={conversa}
+              comTransferencia={Boolean(transferenciaAberta)}
+              horasPausaHumano={horasPausaHumano}
+              textoNaoLead={textoNaoLead}
+              ficha={ficha}
             />
-          </Link>
-        </Botao>
-        {!ficha ? (
-          <h1 className="font-titulo text-2 text-texto">{nome}</h1>
+          </>
+        }
+      >
+        {/* O resumo da Isadora abre o histórico, como o cartão de
+            apresentação no começo de uma conversa do WhatsApp. Com o
+            freio, o resumo comercial sai da tela (DESIGN.md, 11.8). */}
+        {ficha && !comFreio ? (
+          <div className="mx-auto mb-3 w-full max-w-xl">
+            <ResumoIsadora ficha={ficha} />
+          </div>
         ) : null}
-      </header>
+        <FioMensagens mensagens={mensagens} />
+      </CorpoConversa>
 
-      {ficha ? (
-        <CabecalhoFicha
-          familiaId={ficha.familiaId}
-          nome={ficha.nome}
-          meta={<MetaFicha ficha={ficha} />}
-          datas={datasDoCabecalho(ficha)}
-          estadoSensivelInicial={ficha.estadoSensivel}
-          estadoSensivelEmInicial={ficha.estadoSensivelEm}
-          podeReverter={podeReverterFreio}
-          freioDesfazerSegundos={await obterFreioDesfazerSegundos()}
-        />
-      ) : null}
-
-      {/* Ordem humana (DESIGN.md, 11.5). Celular: a faixa de estado logo
-          abaixo do cabeçalho, depois o que a família disse, e o resumo com
-          as ações por último. Computador: mensagens à esquerda; faixa,
-          resumo e ações na coluna da direita. A ordem no DOM é a do
-          celular, para o foco do teclado bater com o que se vê. */}
-      <div className="grid grid-cols-1 gap-4 pt-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-x-6">
-        <div className="lg:col-start-2 lg:row-start-1">
-          <FaixaEstadoConversa
-            conversa={conversa}
-            transferenciaAberta={transferenciaAberta}
-            horasPausaHumano={horasPausaHumano}
-            textoNaoLead={textoNaoLead}
-          />
-        </div>
-
-        <section
-          aria-label={`Conversa no WhatsApp com ${nome}`}
-          className="flex flex-col gap-4 lg:col-start-1 lg:row-span-2 lg:row-start-1"
-        >
-          <FioMensagens mensagens={mensagens} />
-          <Compositor
-            conversaId={conversa.id}
-            familiaId={conversa.familiaId}
-            telefoneE164={conversa.telefoneE164}
-            nomeContato={conversa.nomeContato ?? nome}
-            formularioContrato={formularioContrato}
-            comercialRespondeNoApp={comercialRespondeNoApp}
-            freioAtivo={Boolean(ficha && ficha.estadoSensivel !== "normal")}
-            ofereceTextoComercial={
-              conversa.situacao !== "nao_lead" && conversa.situacao !== "freio"
-            }
-          />
-        </section>
-
-        <div className="lg:col-start-2 lg:row-start-2">
-          <PainelResumo
-            conversa={conversa}
-            ficha={ficha}
-            transferenciaAberta={transferenciaAberta}
-          />
-        </div>
-      </div>
-    </>
+      <Compositor
+        conversaId={conversa.id}
+        familiaId={conversa.familiaId}
+        telefoneE164={conversa.telefoneE164}
+        nomeContato={conversa.nomeContato ?? nome}
+        formularioContrato={formularioContrato}
+        comercialRespondeNoApp={comercialRespondeNoApp}
+        freioAtivo={Boolean(ficha && ficha.estadoSensivel !== "normal")}
+        ofereceTextoComercial={
+          conversa.situacao !== "nao_lead" && conversa.situacao !== "freio"
+        }
+      />
+    </section>
   );
 }

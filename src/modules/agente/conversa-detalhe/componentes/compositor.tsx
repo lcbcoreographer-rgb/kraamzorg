@@ -3,9 +3,8 @@
 import { estadoInicialEnvioConversa } from "../../estado-acoes";
 import * as React from "react";
 import { useActionState, useMemo, useState } from "react";
-import { ArrowRight, FileText, MessageCircle } from "lucide-react";
+import { FileText, MessageCircle, SendHorizontal } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
-import { CampoTexto } from "@/components/ui/campo-texto";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { montarLinkWhatsApp } from "@/lib/messaging";
 import { primeiroNome } from "../../formatacao";
@@ -63,19 +62,22 @@ export function Compositor({
 
   if (!telefoneE164) {
     return (
-      <p className="text-apoio text-texto-2">
+      <p className="bg-superficie text-apoio text-texto-2 shrink-0 px-4 py-4">
         Esta conversa não tem telefone cadastrado; não é possível responder por
         aqui.
       </p>
     );
   }
 
+  const idCampo = `mensagem-${conversaId}`;
+
   return (
-    // A resposta é o trabalho que falta nesta tela (DESIGN.md, 2.5): mora
-    // num bloco branco com sombra leve, logo abaixo das mensagens.
+    // O campo de resposta embaixo, como no WhatsApp: a barra branca que
+    // fecha a conversa, com o atalho do formulário por cima e as duas
+    // saídas (app e WhatsApp do aparelho) ao lado do campo.
     <form
       action={acaoEnviar}
-      className="rounded-3 bg-superficie shadow-1 flex flex-col gap-3 p-4 lg:p-5"
+      className="bg-superficie flex shrink-0 flex-col gap-2 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:px-4 lg:pb-4"
     >
       <input type="hidden" name="conversaId" value={conversaId} />
       <input type="hidden" name="familiaId" value={familiaId ?? ""} />
@@ -108,30 +110,77 @@ export function Compositor({
               )
             }
           >
-            Formulário do contrato
+            {formularioContrato.aprovado
+              ? "Formulário do contrato"
+              : "Formulário do contrato (rascunho)"}
           </Botao>
-          {!formularioContrato.aprovado ? (
-            <span className="text-mini text-texto-2">
-              Texto em rascunho, ainda sem aprovação.
-            </span>
-          ) : null}
         </div>
       ) : null}
 
-      <CampoTexto
-        id={`mensagem-${conversaId}`}
-        name="texto"
-        rotulo={`Mensagem para ${primeiroNome(nomeContato)}`}
-        multilinha
-        linhas={3}
-        value={texto}
-        onChange={(evento) => definirTexto(evento.target.value)}
-        placeholder={
-          freioAtivo
-            ? "Escreva você, pelo nome"
-            : `Escreva para ${primeiroNome(nomeContato)}`
-        }
-      />
+      <label htmlFor={idCampo} className="text-mini text-texto-2 font-semibold">
+        Mensagem para {primeiroNome(nomeContato)}
+      </label>
+      <div className="flex items-end gap-2">
+        <textarea
+          id={idCampo}
+          name="texto"
+          rows={1}
+          value={texto}
+          onChange={(evento) => definirTexto(evento.target.value)}
+          placeholder={
+            freioAtivo
+              ? "Escreva você, pelo nome"
+              : `Escreva para ${primeiroNome(nomeContato)}`
+          }
+          className="rounded-3 border-borda-campo bg-superficie text-corpo text-texto placeholder:text-texto-3 min-h-toque hover:border-marinho-72 field-sizing-content max-h-40 w-full flex-1 resize-none border-[1.5px] px-4 py-2.5"
+        />
+        <div className="flex shrink-0 items-center gap-2">
+          {linkWhatsApp ? (
+            <Botao
+              asChild
+              tamanho="compacto"
+              variante="secundario"
+              iconeEsquerda={
+                <MessageCircle
+                  aria-hidden="true"
+                  className="size-4"
+                  strokeWidth={1.75}
+                />
+              }
+            >
+              <a href={linkWhatsApp} target="_blank" rel="noopener">
+                {/* No celular, só "WhatsApp" aparece; o nome acessível
+                    continua "Abrir no WhatsApp". */}
+                <span>
+                  <span className="max-tablet:sr-only">Abrir no </span>
+                  WhatsApp
+                </span>
+              </a>
+            </Botao>
+          ) : null}
+          {podeEnviarPeloApp ? (
+            <Botao
+              type="submit"
+              tamanho="compacto"
+              disabled={texto.trim().length === 0 || pendentes.length > 0}
+              carregando={enviando}
+              rotuloCarregando="Enviando"
+              iconeEsquerda={
+                <SendHorizontal
+                  aria-hidden="true"
+                  className="size-4"
+                  strokeWidth={1.75}
+                />
+              }
+            >
+              <span>
+                Enviar
+                <span className="max-tablet:sr-only"> pelo app</span>
+              </span>
+            </Botao>
+          ) : null}
+        </div>
+      </div>
 
       {pendentes.length > 0 ? (
         <p className="text-apoio text-aviso-texto" role="status">
@@ -160,55 +209,11 @@ export function Compositor({
         </p>
       ) : null}
 
-      <div className="flex flex-wrap gap-2">
-        {linkWhatsApp ? (
-          <Botao
-            asChild
-            tamanho="compacto"
-            variante="secundario"
-            iconeEsquerda={
-              <MessageCircle
-                aria-hidden="true"
-                className="size-4"
-                strokeWidth={1.75}
-              />
-            }
-          >
-            <a href={linkWhatsApp} target="_blank" rel="noopener">
-              Abrir no WhatsApp
-            </a>
-          </Botao>
-        ) : null}
-        {podeEnviarPeloApp ? (
-          <Botao
-            type="submit"
-            tamanho="compacto"
-            disabled={texto.trim().length === 0 || pendentes.length > 0}
-            carregando={enviando}
-            rotuloCarregando="Enviando"
-            iconeEsquerda={
-              <ArrowRight
-                aria-hidden="true"
-                className="size-4"
-                strokeWidth={1.75}
-              />
-            }
-          >
-            Enviar pelo app
-          </Botao>
-        ) : null}
-      </div>
-      {!podeEnviarPeloApp ? (
-        <p className="text-mini text-texto-2">
-          A conversa segue no seu celular. As mensagens voltam para cá pelo
-          número da Kraamzorg.
-        </p>
-      ) : (
-        <p className="text-mini text-texto-2">
-          Sai pelo número da Kraamzorg. O botão ao lado abre no WhatsApp do seu
-          celular.
-        </p>
-      )}
+      <p className="text-mini text-texto-2 max-tablet:hidden">
+        {podeEnviarPeloApp
+          ? "Sai pelo número da Kraamzorg. O botão ao lado abre no WhatsApp do seu celular."
+          : "A conversa segue no seu celular. As mensagens voltam para cá pelo número da Kraamzorg."}
+      </p>
     </form>
   );
 }

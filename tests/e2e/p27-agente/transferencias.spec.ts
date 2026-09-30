@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import {
   entrarComo,
   semRolagemLateral,
@@ -7,9 +7,12 @@ import {
 import { porProjeto } from "../p13-configuracoes/apoio";
 
 /**
- * P27 item 2 · Fila de transferências (`/transferencias`), modo
- * demonstração. Por prioridade e prazo, com faixa vermelha quando o aviso
- * ao grupo falhou (protótipo `comercial-inicio.html`).
+ * P27 item 2 · Fila de transferências, modo demonstração. Desde 30/09 a
+ * fila mora dentro das conversas (pedido do dono): `/transferencias` leva
+ * para `/conversas?filtro=esperando`, a lista mostra quem espera alguém
+ * por prioridade e prazo, e a transferência aberta aparece numa faixa no
+ * topo da conversa, com as ações da antiga fila (assumir, reenviar o
+ * aviso, marcar como resolvida).
  *
  * A Família Teste Cedro nasce com o handoff `condicao_comercial` aberto e
  * o aviso ao grupo marcado como falho (`src/modules/agente/loja-extra.ts`,
@@ -17,8 +20,9 @@ import { porProjeto } from "../p13-configuracoes/apoio";
  *
  * `porProjeto`: o teste que assume e resolve usa um motivo diferente por
  * projeto (condição comercial da Cedro e a perda da Bruma, os dois únicos
- * handoffs "aberto" do seed) para celular e computador não brigarem pela
- * mesma linha (mesmo padrão de `tests/e2e/p18-tarefas/tarefas.spec.ts`).
+ * handoffs "aberto" com conversa no seed) para celular e computador não
+ * brigarem pela mesma linha (mesmo padrão de
+ * `tests/e2e/p18-tarefas/tarefas.spec.ts`).
  *
  * `serial`: dentro do projeto, a lista confere a faixa vermelha antes de o
  * "Reenviar aviso" tirá-la, e o "Assumir" resolve a transferência da Cedro
@@ -26,29 +30,49 @@ import { porProjeto } from "../p13-configuracoes/apoio";
  */
 test.describe.configure({ mode: "serial" });
 
-test("lista por prioridade e prazo, com a faixa vermelha do aviso que falhou, e é acessível", async ({
+/** A linha da lista que tem este motivo de transferência. */
+function linhaDoMotivo(page: Page, motivo: string) {
+  return page.getByRole("link").filter({
+    has: page.getByText(motivo, { exact: true }),
+  });
+}
+
+test("/transferencias leva à lista 'Esperando alguém', por prioridade e prazo, com o aviso que falhou, e é acessível", async ({
   page,
 }) => {
   await entrarComo(page, "Comercial");
   await page.goto("/transferencias");
 
+  await expect(page).toHaveURL(/\/conversas\?filtro=esperando$/);
   await expect(
-    page.getByRole("heading", { level: 1, name: "Transferências" }),
+    page.getByRole("heading", { level: 1, name: "Conversas" }),
   ).toBeVisible();
-  const cedro = page
-    .getByText("Pediu condição especial", { exact: true })
-    .locator("xpath=ancestor::*[contains(@class,'rounded-3')][1]");
+  await expect(
+    page.getByRole("button", { name: /^Esperando alguém/ }),
+  ).toHaveAttribute("aria-pressed", "true");
+
+  const cedro = linhaDoMotivo(page, "Pediu condição especial");
   await expect(cedro).toBeVisible();
   // Aceite do P27: a transferência aparece com o prazo, em frase.
   await expect(cedro.getByText(/vence em|venceu há/)).toBeVisible();
-  await expect(page.getByText("O aviso ao grupo não saiu")).toBeVisible();
+  await expect(cedro.getByText("Aviso não saiu")).toBeVisible();
   // Prioridade máxima (perda) vem antes da normal (condição comercial).
-  const motivos = await page
-    .getByRole("heading", { level: 3 })
-    .allTextContents();
-  const perda = motivos.indexOf("Perda gestacional");
-  if (perda >= 0)
-    expect(perda).toBeLessThan(motivos.indexOf("Pediu condição especial"));
+  const linhas = await page.getByRole("link").allTextContents();
+  const perda = linhas.findIndex((texto) =>
+    texto.includes("Perda gestacional"),
+  );
+  const condicao = linhas.findIndex((texto) =>
+    texto.includes("Pediu condição especial"),
+  );
+  expect(perda).toBeGreaterThanOrEqual(0);
+  expect(perda).toBeLessThan(condicao);
+
+  // Na conversa, a faixa da transferência traz a falha com "Reenviar aviso".
+  await cedro.click();
+  await page.waitForURL(/\/conversas\/[0-9a-f-]+\?filtro=esperando$/);
+  const faixa = page.getByRole("region", { name: "Transferência aberta" });
+  await expect(faixa.getByText("Pediu condição especial")).toBeVisible();
+  await expect(faixa.getByText("O aviso ao grupo não saiu")).toBeVisible();
 
   await semRolagemLateral(page);
   await semViolacaoGrave(page);
@@ -59,16 +83,16 @@ test("Reenviar aviso tira a faixa vermelha (ação idempotente, sem risco de col
 }) => {
   await entrarComo(page, "Comercial");
   await page.goto("/transferencias");
+  await linhaDoMotivo(page, "Pediu condição especial").click();
+  await page.waitForURL(/\/conversas\/[0-9a-f-]+/);
 
-  const cartao = page
-    .getByText("Pediu condição especial")
-    .locator("xpath=ancestor::*[contains(@class,'rounded-3')][1]");
-  await cartao.getByRole("button", { name: "Reenviar aviso" }).click();
+  const faixa = page.getByRole("region", { name: "Transferência aberta" });
+  await faixa.getByRole("button", { name: "Reenviar aviso" }).click();
 
-  await expect(cartao.getByText("O aviso ao grupo não saiu")).toHaveCount(0);
+  await expect(faixa.getByText("O aviso ao grupo não saiu")).toHaveCount(0);
 });
 
-test("Assumir conversa pausa a Isadora, abre a conversa, e Marcar como resolvida fecha com o desfecho", async ({
+test("Assumir conversa pausa a Isadora, fica na conversa, e Marcar como resolvida fecha com o desfecho", async ({
   page,
 }, info) => {
   const motivo = porProjeto(
@@ -78,16 +102,19 @@ test("Assumir conversa pausa a Isadora, abre a conversa, e Marcar como resolvida
   );
   await entrarComo(page, porProjeto(info, "Comercial", "Coordenação"));
   await page.goto("/transferencias");
+  await linhaDoMotivo(page, motivo).click();
+  await page.waitForURL(/\/conversas\/[0-9a-f-]+/);
 
-  const cartao = page
-    .getByText(motivo, { exact: true })
-    .locator("xpath=ancestor::*[contains(@class,'rounded-3')][1]");
-  await cartao.getByRole("button", { name: "Assumir conversa" }).click();
+  const transferencia = page.getByRole("region", {
+    name: "Transferência aberta",
+  });
+  await transferencia.getByRole("button", { name: "Assumir conversa" }).click();
 
-  // Fluxo E, item 3: assumir mantém a IA sem responder e abre a conversa.
-  // Na perda, a família está com o freio em bloqueio total: a Isadora está
-  // desligada, não só pausada (DESIGN.md, 11.8; camada de acolhimento).
-  await page.waitForURL(/\/conversas\//);
+  // Fluxo E, item 3: assumir mantém a IA sem responder, na própria
+  // conversa. Na perda, a família está com o freio em bloqueio total: a
+  // Isadora está desligada, não só pausada (DESIGN.md, 11.8; camada de
+  // acolhimento).
+  await expect(transferencia.getByText(/Assumida/)).toBeVisible();
   await expect(
     page.getByText(
       porProjeto(
@@ -97,10 +124,6 @@ test("Assumir conversa pausa a Isadora, abre a conversa, e Marcar como resolvida
       ),
     ),
   ).toBeVisible();
-  const transferencia = page.getByRole("region", {
-    name: "Transferência aberta",
-  });
-  await expect(transferencia.getByText(/Assumida/)).toBeVisible();
 
   await transferencia
     .getByRole("button", { name: "Marcar como resolvida" })

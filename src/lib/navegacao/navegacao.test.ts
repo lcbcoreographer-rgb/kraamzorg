@@ -62,8 +62,9 @@ describe("barra lateral agrupada (PRD 20.4)", () => {
     expect(rotulos(grupos[0]!.itens)).toEqual([
       "Início",
       "Pipeline",
+      // 30/09: as transferências moram dentro das conversas (filtro
+      // "Esperando alguém"), com o contador no item Conversas.
       "Conversas",
-      "Transferências",
       // P29: a agenda das conversas de orientação, logo depois dos pedidos.
       "Sessões de venda",
       "Famílias",
@@ -152,7 +153,6 @@ describe("Mais, início e acesso", () => {
       g.itens.map((i) => i.id),
     );
     expect(ids).toEqual([
-      "transferencias",
       "sessoesVenda",
       "tarefas",
       "copiloto",
@@ -161,6 +161,19 @@ describe("Mais, início e acesso", () => {
       "agente",
       "manuais",
     ]);
+  });
+
+  it("Transferências saiu da navegação, mas a rota continua aberta para quem já abria (leva às conversas)", () => {
+    for (const papel of ["comercial", "coordenacao", "diretoria"] as const) {
+      const ids = gruposDe([papel]).flatMap((g) => g.itens.map((i) => i.id));
+      expect(ids).toContain("conversas");
+      expect(ids).not.toContain("transferencias");
+      expect(abasDe([papel]).map((a) => a.id)).not.toContain("transferencias");
+      expect(podeAbrir([papel], "/transferencias")).toBe(true);
+    }
+    for (const papel of ["financeiro", "marketing", "enfermeira"] as const) {
+      expect(podeAbrir([papel], "/transferencias")).toBe(false);
+    }
   });
 
   it("tela de entrada por papel", () => {

@@ -168,7 +168,7 @@ async function InicioComercial({
               valor={contagem!.transferenciasComEquipe}
               rotulo={numeros.comEquipe.rotulo}
               contexto={numeros.comEquipe.contexto}
-              href="/transferencias"
+              href="/conversas?filtro=equipe"
             />
             <CartaoResumo
               fundo="medio"

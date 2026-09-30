@@ -1,30 +1,39 @@
 "use client";
 
 import * as React from "react";
-import { useMemo, useState } from "react";
-import { SinoCalmo } from "@/components/ilustracoes";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Search } from "lucide-react";
+import { FolhaLupa, SinoCalmo } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { cn } from "@/lib/utils";
 import { TITULO_FILTRO } from "../../formatacao";
-import type { ConversaComPausa, SituacaoConversa } from "../../tipos";
-import { CartaoConversa } from "./cartao-conversa";
+import type { ConversaComPausa, TransferenciaTela } from "../../tipos";
+import {
+  filtrarLinhas,
+  FILTROS_LISTA,
+  linhaDoFiltro,
+  montarLinhas,
+  type FiltroLista,
+  type LinhaLista as Linha,
+} from "../lista";
+import { LinhaLista } from "./linha-lista";
 
-type Filtro = "todas" | SituacaoConversa;
+const ROTULO_FILTRO: Record<FiltroLista, string> = {
+  ...TITULO_FILTRO,
+  esperando: "Esperando alguém",
+  isadora: "Com a Isadora",
+};
 
-const FILTROS: Filtro[] = [
-  "todas",
-  "isadora",
-  "equipe",
-  "pausada",
-  "freio",
-  "nao_lead",
-];
-
-const VAZIO: Record<Filtro, { titulo: string; texto: string }> = {
+const VAZIO: Record<FiltroLista, { titulo: string; texto: string }> = {
   todas: {
     titulo: "Nenhuma conversa agora",
     texto:
       "Quando uma família nova escrever, a Isadora abre a conversa e ela aparece aqui.",
+  },
+  esperando: {
+    titulo: "Ninguém esperando agora",
+    texto:
+      "A Isadora continua a triagem e avisa aqui quando alguém quiser contratar, marcar a conversa ou falar com uma pessoa.",
   },
   isadora: {
     titulo: "Nenhuma conversa com a Isadora agora",
@@ -53,115 +62,229 @@ const VAZIO: Record<Filtro, { titulo: string; texto: string }> = {
   },
 };
 
-/**
- * Tom de cada filtro pelo que ele é (DESIGN.md, 2.5): a Isadora conduzindo
- * é o agora, a equipe são pessoas, a pausa é tempo. Freio e não lead ficam
- * em branco com contorno.
- */
-const FUNDO_FILTRO: Record<Filtro, string> = {
-  todas: "bg-areia-clara",
-  isadora: "bg-dourado-claro",
-  equipe: "bg-argila-clara",
-  pausada: "bg-lavanda-clara",
-  freio: "bg-superficie border border-linha",
-  nao_lead: "bg-superficie border border-linha",
-};
+function hrefDaLinha(linha: Linha, filtro: FiltroLista): string {
+  const base =
+    linha.tipo === "conversa"
+      ? `/conversas/${linha.conversa.id}`
+      : `/conversas/transferencia/${linha.pedido.id}`;
+  return filtro === "todas" ? base : `${base}?filtro=${filtro}`;
+}
+
+function chaveSelecionada(selecionada: string | null | undefined) {
+  if (!selecionada) return null;
+  return selecionada.startsWith("transferencia/")
+    ? `p:${selecionada.slice("transferencia/".length)}`
+    : `c:${selecionada}`;
+}
+
+export interface ListaConversasProps {
+  conversas: ConversaComPausa[];
+  /** A fila de transferências (prazo, aviso ao grupo, pedido sem conversa). */
+  fila?: TransferenciaTela[];
+  /**
+   * Filtro vindo da URL (`?filtro=`). Com ele, a lista é controlada pela
+   * URL e `aoTrocarFiltro` atualiza o endereço; sem ele, o filtro mora no
+   * estado local (teste, uso isolado).
+   */
+  filtro?: FiltroLista;
+  aoTrocarFiltro?: (filtro: FiltroLista) => void;
+  /**
+   * O que está aberto ao lado: o id da conversa, ou
+   * `transferencia/<id>` para um pedido sem conversa.
+   */
+  selecionada?: string | null;
+}
 
 /**
- * Lista de conversas com filtro por situação (P27 item 1, protótipo
- * `comercial-conversas.html`, C5). O filtro é local: a lista completa já
- * chegou do servidor, e trocar de aba só troca o que aparece, sem recarregar
- * a tela (mesmo comportamento do protótipo).
+ * Lista de conversas em duas colunas, como o WhatsApp Web (pedido do dono
+ * em 30/09). Busca por nome ou telefone, filtros em pílula com a contagem
+ * e uma linha por conversa. "Esperando alguém" é a antiga fila de
+ * transferências, na ordem da fila; prioridade máxima esperando alguém
+ * fica sempre no topo e nunca some por filtro (fluxos.md, fluxo E).
  */
 export function ListaConversas({
   conversas,
-}: {
-  conversas: ConversaComPausa[];
-}) {
-  const [filtro, definirFiltro] = useState<Filtro>("todas");
+  fila = [],
+  filtro: filtroControlado,
+  aoTrocarFiltro,
+  selecionada,
+}: ListaConversasProps) {
+  const [filtroLocal, definirFiltroLocal] = useState<FiltroLista>("todas");
+  const [busca, definirBusca] = useState("");
+  const filtro = filtroControlado ?? filtroLocal;
+  // A hora de agora fica presa na montagem, para a prévia não mudar entre
+  // o servidor e o navegador.
+  const [agora] = useState(() => new Date());
 
-  const contagem = useMemo(() => {
-    const n: Record<Filtro, number> = {
-      todas: 0,
-      isadora: 0,
-      equipe: 0,
-      pausada: 0,
-      nao_lead: 0,
-      freio: 0,
-    };
-    for (const c of conversas) {
-      n.todas++;
-      n[c.situacao]++;
-    }
-    return n;
-  }, [conversas]);
-
-  const visiveis = useMemo(
-    () =>
-      filtro === "todas"
-        ? conversas
-        : conversas.filter((c) => c.situacao === filtro),
-    [conversas, filtro],
+  const { linhas: todas, ordemFila } = useMemo(
+    () => montarLinhas(conversas, fila),
+    [conversas, fila],
   );
+  const { fixadas, linhas, contagem } = useMemo(
+    () => filtrarLinhas(todas, filtro, busca, ordemFila),
+    [todas, filtro, busca, ordemFila],
+  );
+  const chaveAberta = chaveSelecionada(selecionada);
+
+  // O filtro ativo sempre à vista: a fileira de pílulas rola de lado, e
+  // quem chega por um link ("Com a equipe", "Esperando alguém") precisa
+  // ver qual está marcado.
+  const pilulas = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const grupo = pilulas.current;
+    const ativo = grupo?.querySelector<HTMLElement>('[aria-pressed="true"]');
+    if (!grupo || !ativo) return;
+    const fora =
+      ativo.offsetLeft < grupo.scrollLeft ||
+      ativo.offsetLeft + ativo.offsetWidth >
+        grupo.scrollLeft + grupo.clientWidth;
+    if (fora) {
+      grupo.scrollLeft =
+        ativo.offsetLeft - (grupo.clientWidth - ativo.offsetWidth) / 2;
+    }
+  }, [filtro]);
+
+  function escolher(proximo: FiltroLista) {
+    if (aoTrocarFiltro) aoTrocarFiltro(proximo);
+    if (filtroControlado === undefined) definirFiltroLocal(proximo);
+  }
+
+  const buscando = busca.trim().length > 0;
+  // As fixadas contam como do filtro quando são dele ("Esperando alguém",
+  // "Todas"): aí o vazio não aparece embaixo delas.
+  const vazio =
+    linhas.length === 0 &&
+    !fixadas.some((linha) => linhaDoFiltro(linha, filtro));
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Números que filtram (direção "Colo", DESIGN.md 2.3 e 2.5): cada
-          situação é um bloco com o número grande e o tom de quem está com a
-          conversa. Botões de alternância (aria-pressed), não abas: o filtro
-          só troca o que a lista mostra, sem painéis separados. O rótulo vem
-          antes do número no DOM, para o nome acessível começar por ele
-          ("Pausadas 1"); o número aparece em cima por `flex-col-reverse`.
-          Freio e não lead ficam sem tom (momento sensível e fora do
-          comercial). */}
-      <div
-        role="group"
-        aria-label="Mostrar conversas"
-        className="tablet:grid-cols-6 grid grid-cols-3 gap-2"
-      >
-        {FILTROS.map((item) => {
-          const ativo = filtro === item;
-          return (
-            <button
-              key={item}
-              type="button"
-              aria-pressed={ativo}
-              onClick={() => definirFiltro(item)}
-              className={cn(
-                "rounded-3 ease-estado flex min-h-20 flex-col-reverse items-start justify-end gap-1 px-3.5 py-3 text-left transition-[background-color,box-shadow,transform] duration-140 active:scale-[0.98]",
-                ativo
-                  ? "bg-acao text-acao-texto shadow-1"
-                  : cn(FUNDO_FILTRO[item], "text-texto hover:shadow-1"),
-              )}
-            >
-              <span className="text-mini leading-tight font-semibold">
-                {TITULO_FILTRO[item]}
-              </span>
-              <span className="font-titulo text-numero-sm font-medium tabular-nums">
-                {contagem[item]}
-              </span>
-            </button>
-          );
-        })}
+    <div className="lg:bg-superficie lg:rounded-3 lg:shadow-1 flex flex-col lg:h-full lg:min-h-0 lg:overflow-hidden">
+      <div className="flex shrink-0 flex-col gap-3 pt-3 pb-4 lg:px-4 lg:pt-5 lg:pb-3">
+        <h1 className="font-titulo text-display text-texto font-normal">
+          Conversas
+        </h1>
+        <div className="relative">
+          <label htmlFor="busca-conversas" className="sr-only">
+            Buscar conversa por nome ou telefone
+          </label>
+          <Search
+            aria-hidden="true"
+            className="text-texto-2 pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2"
+            strokeWidth={1.75}
+          />
+          <input
+            id="busca-conversas"
+            type="search"
+            value={busca}
+            onChange={(evento) => definirBusca(evento.target.value)}
+            placeholder="Buscar por nome ou telefone"
+            autoComplete="off"
+            className="rounded-pilula border-borda-campo bg-superficie text-corpo text-texto placeholder:text-texto-3 min-h-toque hover:border-marinho-72 w-full border-[1.5px] pr-4 pl-11"
+          />
+        </div>
+        {/* Filtros em pílula que rolam de lado (DESIGN.md, 3: só listas de
+            abas e chips rolam de lado). Botões de alternância
+            (aria-pressed), não abas: o filtro só troca o que a lista
+            mostra. O rótulo vem antes do número, para o nome acessível
+            começar por ele ("Pausadas 1"). */}
+        <div
+          ref={pilulas}
+          role="group"
+          aria-label="Mostrar conversas"
+          className="relative -mx-4 flex [scrollbar-width:thin] gap-2 overflow-x-auto px-4 pb-1"
+        >
+          {FILTROS_LISTA.map((item) => {
+            const ativo = item === filtro;
+            return (
+              <button
+                key={item}
+                type="button"
+                aria-pressed={ativo}
+                onClick={() => escolher(item)}
+                className={cn(
+                  "rounded-pilula text-apoio ease-estado min-h-toque inline-flex shrink-0 items-center gap-2 px-4 font-semibold whitespace-nowrap transition-colors duration-140",
+                  ativo
+                    ? "bg-acao text-acao-texto"
+                    : "bg-areia-clara text-texto hover:bg-areia",
+                )}
+              >
+                {ROTULO_FILTRO[item]}
+                <span className="text-mini font-mono font-medium tabular-nums">
+                  {contagem[item]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {visiveis.length === 0 ? (
-        <EstadoVazio
-          nivelTitulo="h2"
-          ilustracao={
-            filtro === "freio" ? undefined : <SinoCalmo tamanho={104} />
-          }
-          semTom={filtro === "freio"}
-          titulo={VAZIO[filtro].titulo}
-          texto={VAZIO[filtro].texto}
-        />
-      ) : (
-        <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
-          {visiveis.map((conversa) => (
-            <CartaoConversa key={conversa.id} conversa={conversa} />
-          ))}
-        </div>
-      )}
+      <div className="bg-superficie rounded-3 flex flex-col p-1.5 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:rounded-none lg:bg-transparent lg:px-2 lg:pt-0 lg:pb-2">
+        {fixadas.length > 0 ? (
+          <ul
+            aria-label="Prioridade máxima esperando alguém"
+            className="flex flex-col gap-1"
+          >
+            {fixadas.map((linha) => (
+              <LinhaLista
+                key={linha.chave}
+                linha={linha}
+                href={hrefDaLinha(linha, filtro)}
+                selecionada={linha.chave === chaveAberta}
+                agora={agora}
+                motivoFixada={
+                  filtro !== "todas" && !linhaDoFiltro(linha, filtro)
+                    ? "Prioridade máxima: fica no topo em qualquer filtro."
+                    : undefined
+                }
+              />
+            ))}
+          </ul>
+        ) : null}
+
+        {linhas.length > 0 ? (
+          <ul
+            aria-label={ROTULO_FILTRO[filtro]}
+            className={cn("flex flex-col gap-1", fixadas.length > 0 && "mt-1")}
+          >
+            {linhas.map((linha) => (
+              <LinhaLista
+                key={linha.chave}
+                linha={linha}
+                href={hrefDaLinha(linha, filtro)}
+                selecionada={linha.chave === chaveAberta}
+                agora={agora}
+              />
+            ))}
+          </ul>
+        ) : null}
+
+        {vazio ? (
+          <EstadoVazio
+            nivelTitulo="h2"
+            className={cn(
+              "lg:flex-col lg:items-start lg:gap-4",
+              fixadas.length > 0 && "mt-2",
+            )}
+            ilustracao={
+              filtro === "freio" ? undefined : buscando ? (
+                <FolhaLupa tamanho={96} />
+              ) : (
+                <SinoCalmo tamanho={96} />
+              )
+            }
+            semTom={filtro === "freio"}
+            titulo={
+              buscando
+                ? "Nenhuma conversa com esse nome ou telefone"
+                : VAZIO[filtro].titulo
+            }
+            texto={
+              buscando
+                ? "Confira a grafia ou busque pelos últimos números do telefone."
+                : VAZIO[filtro].texto
+            }
+          />
+        ) : null}
+      </div>
     </div>
   );
 }

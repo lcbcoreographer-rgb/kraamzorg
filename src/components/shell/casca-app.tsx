@@ -1,35 +1,79 @@
 import type { ReactNode } from "react";
 import { descreverPapeis } from "@/lib/auth/papeis";
 import type { SessaoUsuario } from "@/lib/auth/tipos";
-import { abasDe, gruposDe, papelPrincipal } from "@/lib/navegacao";
-import type { ItemNavegacao } from "@/lib/navegacao";
-import { contarTransferenciasCriticas } from "@/modules/agente/transferencias/dados";
+import {
+  abasDe,
+  gruposDe,
+  papelPrincipal,
+  rotasPermitidas,
+} from "@/lib/navegacao";
+import type { IdRota, ItemNavegacao } from "@/lib/navegacao";
+import { contagemParaNavegacao } from "@/modules/agente/conversas/lista";
+import { listarFilaTela } from "@/modules/agente/transferencias/dados";
+import { contarTransferenciasCriticas } from "@/modules/agente/formatacao";
 import {
   NavegacaoInferior,
   NavegacaoLateral,
   type ItemNavegacaoComContador,
 } from "./navegacao-app";
 
+type Contador = Pick<
+  ItemNavegacaoComContador,
+  "contador" | "rotuloContador" | "contadorAlerta"
+>;
+
 /**
- * Acrescenta o contador da aba Início ("N transferências vencendo ou de
- * prioridade máxima"), só para o comercial (crítica do CRM, P0 item 1).
- * Falha de leitura não derruba a navegação: a aba fica sem contador.
+ * Contadores da navegação, lidos uma vez só por tela:
+ * - Início do comercial: transferências vencendo ou de prioridade máxima,
+ *   em alerta (crítica do CRM, P0 item 1).
+ * - Conversas: quantas conversas esperam alguém (a antiga fila, que mora
+ *   no filtro "Esperando alguém" desde 30/09). Neutro no prazo; em alerta
+ *   só com prazo vencido ou relato de saúde (DESIGN.md, 2.9: contador em
+ *   alerta só para alerta clínico ou transferência vencendo; perda nunca
+ *   em vermelho).
+ * Falha de leitura não derruba a navegação: o item fica sem contador.
  */
-async function comContadorInicio(
-  itens: ItemNavegacao[],
+async function contadoresDaNavegacao(
   papeis: SessaoUsuario["papeis"],
-): Promise<ItemNavegacaoComContador[]> {
-  if (papelPrincipal(papeis) !== "comercial") return itens;
-  const contador = await contarTransferenciasCriticas().catch(() => 0);
-  if (!contador) return itens;
+): Promise<Partial<Record<IdRota, Contador>>> {
+  const doComercial = papelPrincipal(papeis) === "comercial";
+  const veConversas = rotasPermitidas(papeis).has("conversas");
+  if (!doComercial && !veConversas) return {};
+
+  const fila = await listarFilaTela().catch(() => null);
+  if (!fila) return {};
+  const agora = new Date();
+  const contadores: Partial<Record<IdRota, Contador>> = {};
+
+  if (doComercial) {
+    const criticas = contarTransferenciasCriticas(fila, agora);
+    if (criticas) {
+      contadores.inicio = {
+        contador: criticas,
+        rotuloContador: `${criticas} ${criticas === 1 ? "transferência" : "transferências"} pedindo atenção`,
+      };
+    }
+  }
+
+  if (veConversas) {
+    const { esperando, urgente } = contagemParaNavegacao(fila, agora);
+    if (esperando) {
+      contadores.conversas = {
+        contador: esperando,
+        contadorAlerta: urgente,
+        rotuloContador: `${esperando} ${esperando === 1 ? "conversa esperando alguém" : "conversas esperando alguém"}`,
+      };
+    }
+  }
+  return contadores;
+}
+
+function comContadores(
+  itens: ItemNavegacao[],
+  contadores: Partial<Record<IdRota, Contador>>,
+): ItemNavegacaoComContador[] {
   return itens.map((item) =>
-    item.id === "inicio"
-      ? {
-          ...item,
-          contador,
-          rotuloContador: `${contador} ${contador === 1 ? "transferência" : "transferências"} pedindo atenção`,
-        }
-      : item,
+    contadores[item.id] ? { ...item, ...contadores[item.id] } : item,
   );
 }
 
@@ -49,13 +93,12 @@ export async function CascaApp({
   sessao: SessaoUsuario;
   children: ReactNode;
 }) {
-  const grupos = await Promise.all(
-    gruposDe(sessao.papeis).map(async (grupo) => ({
-      titulo: grupo.titulo,
-      itens: await comContadorInicio(grupo.itens, sessao.papeis),
-    })),
-  );
-  const abas = await comContadorInicio(abasDe(sessao.papeis), sessao.papeis);
+  const contadores = await contadoresDaNavegacao(sessao.papeis);
+  const grupos = gruposDe(sessao.papeis).map((grupo) => ({
+    titulo: grupo.titulo,
+    itens: comContadores(grupo.itens, contadores),
+  }));
+  const abas = comContadores(abasDe(sessao.papeis), contadores);
 
   return (
     <>
