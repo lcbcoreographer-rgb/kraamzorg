@@ -162,7 +162,11 @@ function ItemPasso({ passo }: { passo: Passo }) {
               className={
                 passo.estado === "feito"
                   ? "sr-only"
-                  : "text-corpo text-texto-2 font-normal"
+                  : passo.estado === "agora"
+                    ? // Sobre tom médio (dourado-medio), só marinho
+                      // (DESIGN.md 2.5): o cinza de apoio fica em 4,0:1.
+                      "text-corpo text-texto font-normal"
+                    : "text-corpo text-texto-2 font-normal"
               }
             >
               {" "}

@@ -30,7 +30,7 @@ import {
   acaoResolverTransferencia,
 } from "../../acoes";
 import { estadoInicialAgente } from "../../estado-acoes";
-import { estadoPrazo, horaBrasilia } from "../../formatacao";
+import { estadoPrazo, horaBrasilia, quandoRecebida } from "../../formatacao";
 import {
   FRASE_DESTINO_HANDOFF,
   MOTIVOS_SENSIVEIS,
@@ -109,7 +109,9 @@ export function FaixaTransferencia({
     agora,
   );
   const prazoTexto = textoPrazo(transferencia.slaVenceEm, agora);
-  const horaRecebida = horaBrasilia(transferencia.criadoEm);
+  const horaRecebida = quandoRecebida(transferencia.criadoEm, agora);
+  // "desde as 11:48", "desde ontem às 11:48", "desde 28/09 às 11:48".
+  const desde = horaRecebida.replace(/^às /, "as ").replace(/^em /, "");
   const horaAssumida = horaBrasilia(transferencia.assumidoEm);
   const porVoce = Boolean(usuarioId && transferencia.assumidoPor === usuarioId);
   const naoEDoPapel = Boolean(
@@ -174,16 +176,7 @@ export function FaixaTransferencia({
               // Em momento sensível, o prazo vira a hora do acontecimento
               // (DESIGN.md, 11.8, regra 1).
               <span className="text-apoio text-texto-2 inline-flex items-center gap-1 whitespace-nowrap">
-                {horaRecebida ? (
-                  <>
-                    recebida às{" "}
-                    <span className="font-mono tabular-nums">
-                      {horaRecebida}
-                    </span>
-                  </>
-                ) : (
-                  "recebida hoje"
-                )}
+                {horaRecebida ? `recebida ${horaRecebida}` : "recebida hoje"}
               </span>
             ) : !assumida && prazoTexto ? (
               <span
@@ -213,7 +206,7 @@ export function FaixaTransferencia({
           </div>
           <p className="text-apoio text-texto-2">
             {comMaiuscula(FRASE_DESTINO_HANDOFF[transferencia.destino])}
-            {!sensivel && horaRecebida ? `, desde as ${horaRecebida}` : ""}.
+            {!sensivel && desde ? `, desde ${desde}` : ""}.
           </p>
           <p className="text-apoio text-texto mt-0.5">{transferencia.resumo}</p>
           {rodape ? <div className="mt-1.5">{rodape}</div> : null}

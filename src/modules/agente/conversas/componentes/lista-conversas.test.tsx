@@ -259,7 +259,14 @@ describe("ListaConversas com as transferências juntas (pedido do dono em 30/09)
   });
 
   it("a perda mostra a hora do relato e com quem está, sem prazo e sem vermelho (DESIGN.md 11.8)", () => {
-    render(<ListaConversas conversas={COM_FILA} fila={FILA} />);
+    // O relato é de 24/09: no mesmo dia a linha diz só a hora.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-09-24T17:00:00.000Z"));
+    try {
+      render(<ListaConversas conversas={COM_FILA} fila={FILA} />);
+    } finally {
+      vi.useRealTimers();
+    }
     const linha = screen.getByRole("link", { name: /Família Teste Bruma/ });
     expect(linha).toHaveTextContent(
       /recebida às 11:13, com a coordenação clínica/i,
@@ -351,5 +358,21 @@ describe("ListaConversas com as transferências juntas (pedido do dono em 30/09)
     expect(
       screen.getByText("Nenhuma conversa com esse nome ou telefone"),
     ).toBeInTheDocument();
+  });
+});
+
+describe("ListaConversas: relato de outro dia", () => {
+  it("a perda relatada dias antes leva a data junto da hora", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-09-26T17:00:00.000Z"));
+    try {
+      render(<ListaConversas conversas={COM_FILA} fila={FILA} />);
+    } finally {
+      vi.useRealTimers();
+    }
+    const linha = screen.getByRole("link", { name: /Família Teste Bruma/ });
+    expect(linha).toHaveTextContent(
+      /recebida em 24\/09 às 11:13, com a coordenação clínica/i,
+    );
   });
 });

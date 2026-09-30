@@ -241,7 +241,14 @@ export function CartaoTarefa({
                 {estadoConcluir.erro}
               </FaixaAlerta>
             ) : null}
-            <div className="flex flex-wrap gap-2">
+            {/* No computador, só botões: ficam na borda direita do cartão,
+              em vez de soltos no meio da coluna. */}
+            <div
+              className={cn(
+                "flex flex-wrap gap-2",
+                explicada && "lg:justify-end",
+              )}
+            >
               <Botao
                 tamanho="compacto"
                 variante="secundario"

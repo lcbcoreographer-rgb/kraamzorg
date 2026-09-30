@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   pausaVenceuComTransferenciaAberta,
   primeiroNome,
+  quandoRecebida,
   quemConduzAConversa,
   rotuloDaSituacao,
   situacaoDaConversa,
@@ -253,5 +254,37 @@ describe("quem conduz a conversa (v4.3, D-20)", () => {
     expect(
       quemConduzAConversa({ ...base, classificacao: "fornecedor" }, AGORA),
     ).toBeNull();
+  });
+});
+
+describe("quandoRecebida (hora do relato com o dia quando não é hoje)", () => {
+  const agora = new Date("2026-09-30T15:25:00-03:00");
+
+  it("no mesmo dia, só a hora", () => {
+    expect(quandoRecebida("2026-09-30T11:48:00-03:00", agora)).toBe("às 11:48");
+  });
+
+  it("no dia anterior, diz ontem", () => {
+    expect(quandoRecebida("2026-09-29T23:10:00-03:00", agora)).toBe(
+      "ontem às 23:10",
+    );
+  });
+
+  it("antes disso, leva a data curta", () => {
+    expect(quandoRecebida("2026-09-28T14:48:00-03:00", agora)).toBe(
+      "em 28/09 às 14:48",
+    );
+  });
+
+  it("usa o dia de Brasília, não o do UTC", () => {
+    // 01:30 UTC de 30/09 ainda é 22:30 de 29/09 em Brasília.
+    expect(quandoRecebida("2026-09-30T01:30:00.000Z", agora)).toBe(
+      "ontem às 22:30",
+    );
+  });
+
+  it("vazio para data ausente ou inválida", () => {
+    expect(quandoRecebida(null, agora)).toBe("");
+    expect(quandoRecebida("não é data", agora)).toBe("");
   });
 });

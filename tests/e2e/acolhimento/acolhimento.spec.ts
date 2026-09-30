@@ -21,7 +21,9 @@ test("conversa de uma família em luto: Isadora desligada, sem triagem, sem praz
   await page.goto("/conversas");
   // A linha da família com freio abre a conversa; a prévia fica fechada.
   const linha = page.getByRole("link", { name: /Família Teste Bruma/ });
-  await expect(linha.getByText(/Prévia fechada|recebida às/i)).toBeVisible();
+  await expect(
+    linha.getByText(/Prévia fechada|recebida (ontem )?às/i),
+  ).toBeVisible();
   await linha.click();
   await page.waitForURL(/\/conversas\/[0-9a-f-]+$/);
 
@@ -44,7 +46,9 @@ test("conversa de uma família em luto: Isadora desligada, sem triagem, sem praz
   ).toHaveCount(0);
   await expect(conteudo.getByText(/venceu há|vira fato/)).toHaveCount(0);
   await expect(conteudo.getByText("sem registro").first()).toBeVisible();
-  await expect(conteudo.getByText(/recebida às/).first()).toBeVisible();
+  await expect(
+    conteudo.getByText(/recebida (ontem )?às/).first(),
+  ).toBeVisible();
   // Nada em `alerta` na tela de uma família em luto.
   await expect(conteudo.locator(".text-alerta, .bg-alerta-lavado")).toHaveCount(
     0,
@@ -66,11 +70,13 @@ test("fila: a perda mostra a hora do relato, em ameixa, e o destino em frase", a
     has: page.getByText("Perda gestacional", { exact: true }),
   });
   await expect(perda.getByText("Família Teste Bruma")).toBeVisible();
-  await expect(perda.getByText(/recebida às/i)).toBeVisible();
+  await expect(perda.getByText(/recebida (ontem )?às/i)).toBeVisible();
   await expect(perda.getByText(/venceu há|vence em/)).toHaveCount(0);
   await expect(perda.locator(".text-alerta, .bg-alerta-lavado")).toHaveCount(0);
   await expect(
-    perda.getByText(/recebida às \d{2}:\d{2}, com a coordenação clínica/i),
+    perda.getByText(
+      /recebida (ontem )?às \d{2}:\d{2}, com a coordenação clínica/i,
+    ),
   ).toBeVisible();
 });
 

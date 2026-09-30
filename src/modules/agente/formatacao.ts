@@ -141,6 +141,32 @@ export function horaBrasilia(iso: string | null): string {
 }
 
 /**
+ * Quando algo chegou, em frase curta para ir depois de "recebida" ou
+ * "desde": "às 11:48" no mesmo dia, "ontem às 11:48" no dia anterior e
+ * "em 28/09 às 11:48" antes disso. Só a hora, sem o dia, fazia um relato
+ * de dois dias atrás parecer de hoje. Vazio para data inválida.
+ */
+export function quandoRecebida(
+  iso: string | null,
+  agora: Date = new Date(),
+): string {
+  if (!iso) return "";
+  const data = new Date(iso);
+  if (Number.isNaN(data.getTime())) return "";
+  const dia = (d: Date) =>
+    new Intl.DateTimeFormat("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      day: "2-digit",
+      month: "2-digit",
+    }).format(d);
+  const hora = horaBrasilia(iso);
+  if (dia(data) === dia(agora)) return `às ${hora}`;
+  const ontem = new Date(agora.getTime() - 24 * 60 * 60 * 1000);
+  if (dia(data) === dia(ontem)) return `ontem às ${hora}`;
+  return `em ${dia(data)} às ${hora}`;
+}
+
+/**
  * Quando a pausa termina, em frase: "volta às 18:00" no mesmo dia,
  * "volta em 26/09 às 09:00" em outro dia (telas.md C5, "volta às 18:00").
  */

@@ -13,7 +13,7 @@ import { Selo } from "@/components/ui/selo";
 import { cn } from "@/lib/utils";
 import {
   estadoPrazo,
-  horaBrasilia,
+  quandoRecebida,
   rotuloDaSituacao,
   textoVoltaDaPausa,
 } from "../../formatacao";
@@ -198,12 +198,12 @@ export function LinhaLista({
           ? "neutro"
           : "pessoa";
 
-    const horaRelato = t?.criadoEm ? horaBrasilia(t.criadoEm) : "";
+    const horaRelato = t?.criadoEm ? quandoRecebida(t.criadoEm, agora) : "";
     if (t && sensivelT) {
       // Perda ou estado sensível: a hora do relato e com quem está, sem
       // prazo, sem relógio e sem a mensagem dela na lista (DESIGN.md, 11.8).
       const partes = [
-        horaRelato ? `Recebida às ${horaRelato}` : null,
+        horaRelato ? `Recebida ${horaRelato}` : null,
         t.destino ? FRASE_DESTINO_HANDOFF[t.destino] : null,
       ].filter(Boolean);
       previa = partes.length

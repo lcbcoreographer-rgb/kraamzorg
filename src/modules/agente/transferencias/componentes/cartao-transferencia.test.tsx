@@ -180,8 +180,7 @@ describe("CartaoTransferencia (P27 item 2)", () => {
         agora={AGORA}
       />,
     );
-    expect(screen.getByText(/recebida às/)).toBeInTheDocument();
-    expect(screen.getByText("13:18")).toBeInTheDocument();
+    expect(screen.getByText(/recebida às 13:18/)).toBeInTheDocument();
     expect(
       screen.getByText("Ainda sem contato da equipe."),
     ).toBeInTheDocument();

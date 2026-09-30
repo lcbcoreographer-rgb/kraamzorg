@@ -20,7 +20,7 @@ import type { DestinoHandoff } from "@/lib/dados/tipos";
 import { cn } from "@/lib/utils";
 import { textoPrazo } from "@/modules/mensageria/tarefas/agrupar";
 import { acaoAssumirTransferencia, acaoReenviarNotificacao } from "../../acoes";
-import { estadoPrazo, horaBrasilia } from "../../formatacao";
+import { estadoPrazo, horaBrasilia, quandoRecebida } from "../../formatacao";
 import { FRASE_DESTINO_HANDOFF, MOTIVOS_SENSIVEIS } from "../../tipos";
 import type { TransferenciaTela } from "../../tipos";
 
@@ -71,7 +71,7 @@ export function CartaoTransferencia({
   const sensivel = MOTIVOS_SENSIVEIS.includes(transferencia.motivo);
   const assumida = transferencia.status === "assumido";
   const horaAssumida = horaBrasilia(transferencia.assumidoEm);
-  const horaRecebida = horaBrasilia(transferencia.criadoEm);
+  const horaRecebida = quandoRecebida(transferencia.criadoEm, agora);
   const quemAssumiu =
     usuarioId && transferencia.assumidoPor === usuarioId
       ? "Você assumiu"
@@ -118,14 +118,7 @@ export function CartaoTransferencia({
               className="text-sensivel size-4"
               strokeWidth={1.75}
             />
-            {horaRecebida ? (
-              <>
-                recebida às{" "}
-                <span className="font-mono tabular-nums">{horaRecebida}</span>
-              </>
-            ) : (
-              "recebida hoje"
-            )}
+            {horaRecebida ? `recebida ${horaRecebida}` : "recebida hoje"}
           </span>
         ) : (
           // O prazo numa pílula (DESIGN.md, 2.3): lavado do estado quando
