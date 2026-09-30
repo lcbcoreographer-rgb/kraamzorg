@@ -34,6 +34,26 @@ test.describe("ocorrências", () => {
     await semViolacaoGrave(page);
   });
 
+  test("agrupa pela situação, com o prazo em frase e quem cuida", async ({
+    page,
+  }) => {
+    await entrarComo(page, "Coordenação");
+    await page.goto("/ocorrencias?situacao=todas");
+    const vencidas = page.getByRole("region", { name: /Passaram do prazo/ });
+    await expect(vencidas).toBeVisible();
+    await expect(vencidas.getByText(/^Venceu há/).first()).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: /Dentro do prazo/ }),
+    ).toBeVisible();
+    await expect(page.getByRole("region", { name: /Fechadas/ })).toBeVisible();
+    // A privada diz quem pode ver; quem cuida aparece em cada ocorrência.
+    await expect(
+      page.getByText("Privada, só coordenação e diretoria").first(),
+    ).toBeVisible();
+    await expect(page.getByText("Quem cuida").first()).toBeVisible();
+    await semRolagemLateral(page);
+  });
+
   test("a ocorrência privada diz que o contato é pessoal; resolver pede nota", async ({
     page,
   }) => {

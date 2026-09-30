@@ -43,6 +43,18 @@ test.describe.serial("Tarefas do comercial", () => {
       page.getByText("Agendar a consulta pré-natal da Família Teste Íris"),
     ).toHaveCount(0);
 
+    // Cada tarefa diz por que existe (pergunta do dono em 30/09), e a tela
+    // explica como as tarefas funcionam.
+    const cedro = page
+      .getByRole("heading", {
+        name: "Retomar a conversa com a Família Teste Cedro",
+      })
+      .locator("xpath=ancestor::*[contains(@class,'rounded-3')][1]");
+    await expect(cedro).toContainText("Por que existe");
+    await expect(cedro).toContainText("O que fazer");
+    await page.getByText("Como as tarefas funcionam").click();
+    await expect(page.getByText("De onde vêm")).toBeVisible();
+
     await semRolagemLateral(page);
     await semViolacaoGrave(page);
   });

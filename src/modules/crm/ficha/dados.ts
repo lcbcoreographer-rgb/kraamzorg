@@ -5,12 +5,13 @@ import { ErroRepositorio, traduzirErroBanco } from "@/lib/dados/erros";
 import { obterRepositorios } from "@/lib/dados/fabrica";
 import { quemConduzAConversa } from "@/modules/agente/formatacao";
 import { modoDados } from "@/lib/dados/modo";
-import type { Ficha } from "@/lib/dados/tipos";
+import type { CartaoOportunidade, Ficha } from "@/lib/dados/tipos";
 import {
   hojeBrasilia,
   textoIdadeGestacional,
 } from "../pipeline/idade-gestacional";
 import { rotuloEstagio } from "../pipeline/estagios";
+import { linhaDaFamilia, oportunidadeDaFamilia } from "./linha-familia";
 import { tituloEvento } from "./rotulos";
 import type {
   ConversaResumoTela,
@@ -205,21 +206,34 @@ export async function obterConversaDaFamilia(
 export async function listarFamiliasTela(
   filtro: FiltroFamiliasTela = {},
 ): Promise<FamiliaListaTela[]> {
-  const { familias } = await obterRepositorios();
+  const [{ familias }, sessao] = await Promise.all([
+    obterRepositorios(),
+    obterSessao(),
+  ]);
   const hoje = hojeBrasilia();
-  const resumo = await familias.listarFamilias({ busca: filtro.busca });
-  return resumo.map((f) => ({
-    id: f.id,
-    nome: f.nome,
-    bairro: f.bairro,
-    cidade: f.cidade,
-    uf: f.uf,
-    dpp: f.dpp,
-    dataNascimento: f.dataNascimento,
-    estadoSensivel: f.estadoSensivel,
-    naoContatar: f.naoContatar,
-    idadeGestacional: textoIdadeGestacional(f.dpp, hoje, f.dataNascimento),
-  }));
+  // O estágio e o próximo passo vêm do pipeline, que nem todo papel lê (o
+  // financeiro, por exemplo): sem ele, a lista mostra só a família.
+  const [resumo, cartoes] = await Promise.all([
+    familias.listarFamilias({ busca: filtro.busca }),
+    Promise.all([
+      familias.listarPipeline({ pipeline: 1 }),
+      familias.listarPipeline({ pipeline: 2 }),
+    ])
+      .then(([p1, p2]) => [...p1, ...p2])
+      .catch(() => []),
+  ]);
+  const porFamilia = new Map<string, CartaoOportunidade[]>();
+  for (const cartao of cartoes) {
+    const lista = porFamilia.get(cartao.familiaId) ?? [];
+    lista.push(cartao);
+    porFamilia.set(cartao.familiaId, lista);
+  }
+  return resumo.map((f) =>
+    linhaDaFamilia(f, oportunidadeDaFamilia(porFamilia.get(f.id) ?? []), {
+      hoje,
+      usuarioId: sessao?.usuarioId ?? null,
+    }),
+  );
 }
 
 function exigirComercialOuDiretoria(papeis: readonly string[]): void {

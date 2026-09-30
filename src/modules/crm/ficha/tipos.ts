@@ -7,6 +7,7 @@ import type {
   PapelPessoa,
   PessoaFicha,
 } from "@/lib/dados/tipos";
+import type { FaseFamilia } from "./lista-familias";
 
 /**
  * Tipos da tela da ficha 360 (P16). `FichaRepositorio` (fundação) já
@@ -71,6 +72,26 @@ export interface FiltroFamiliasTela {
   busca?: string;
 }
 
+/**
+ * O ponto da família no tempo, para a coluna da lista: a medida em mono
+ * ("37s2d", "16/08") e, quando há, a frase antes dela ("Nasceu em").
+ */
+export interface TempoFamiliaTela {
+  frase: string | null;
+  medida: string;
+}
+
+/**
+ * O que vem a seguir com a família, pelo que a oportunidade já registra:
+ * transferência esperando, retorno combinado ou quem está com ela.
+ */
+export interface ProximoPassoTela {
+  tipo: "transferencia" | "retorno" | "voce" | "sem_responsavel" | "equipe";
+  frase: string;
+  /** Data do retorno, em mono ao lado da frase ("02/10"). */
+  data?: string;
+}
+
 export interface FamiliaListaTela {
   id: string;
   nome: string;
@@ -79,9 +100,16 @@ export interface FamiliaListaTela {
   uf: string | null;
   dpp: string | null;
   dataNascimento: string | null;
+  dataAlta: string | null;
+  dataInicioEfetivo: string | null;
   estadoSensivel: EstadoSensivel;
   naoContatar: boolean;
   idadeGestacional: string | null;
+  fase: FaseFamilia;
+  tempo: TempoFamiliaTela | null;
+  /** Estágio da oportunidade mais recente; null quando o papel não vê o pipeline. */
+  estagio: string | null;
+  proximoPasso: ProximoPassoTela | null;
 }
 
 export type { PapelPessoa, EventoLinhaDoTempo };
