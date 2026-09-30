@@ -94,6 +94,18 @@ Tokens só em `src/app/globals.css` (`@theme` do Tailwind v4). Nenhuma tela inve
 | `alerta` | #9E4438 | Urgente, erro, alerta clínico imediato |
 | `sensivel` | #63557A | Estado sensível (perda, intercorrência). Nunca use vermelho para luto |
 
+**[v4.4]** Tons de apoio (PRD 20.2), misturados das cores acima, sem matiz novo. A paleta base não muda. Tom de apoio é superfície (bloco, tile, trilha), nunca estado, e nunca aparece em momento sensível (freio, perda, intercorrência, alerta clínico).
+
+| Token | Valor | Uso |
+| :-- | :-- | :-- |
+| `dourado-claro` / `dourado-medio` | #E9DCC2 / #D9C59E | Bloco e tile do "agora" (cumprimento, visita em curso, etapa atual) |
+| `areia-clara` | #F1E8D7 | Bloco da família, pergunta respondida, coluna do pipeline, lista em blocos |
+| `salvia-clara` / `salvia-media` | #DCE0D2 / #B5C3B1 | Bloco e tile de "feito" (checklist completo, tarefa concluída) |
+| `lavanda-clara` / `lavanda-media` | #E3E0E7 / #C7C2CF | Bloco e tile de tempo e agenda |
+| `argila-clara` / `argila-media` | #EFDFD4 / #E0C2B7 | Bloco e tile de pessoas e conversa |
+
+Sobre tom claro, texto marinho ou `marinho-72`; sobre tom médio, só marinho. Ilustração só as de `src/components/ilustracoes`, só em estado vazio e na comemoração do checklist completo.
+
 Fontes: títulos em Jost (Codec Pro quando a licença web for confirmada), interface em Inter, dados em IBM Plex Mono. Logo só como arquivo de `/public/brand`. Mobile primeiro (D-02): área de toque de 44 px, contraste AA, formulário longo em etapas com salvamento por campo, botão de freio em um toque no cabeçalho da família.
 
 ## Comandos

@@ -1,16 +1,16 @@
-# Kraamzorg OS · PRD v4.3
+# Kraamzorg OS · PRD v4.4
 
 Cliente: Kraamzorg Brasil LTDA · Contratada: Drop Agency (C P Empreendimentos Digitais LTDA)
 Documento de construção. Consolida o Escopo Técnico v4.0 (23/09/2026), o contrato de 03/09/2026, o Guia de Onboarding preenchido, o Prompt de Sistema da Isadora v4.0, o Treinamento da Isadora (24/09/2026), o Treinamento da Isadora v3 e o Prompt de Sistema da Isadora v6.0 (29/09/2026), os quatro instrumentos clínicos, os modelos de evolução, a apresentação comercial 2026, o brand guidelines, o mockup inicial e o cronograma invertido. Define também a stack escolhida (Supabase, Vercel, Cloudflare, n8n) e os três fluxos n8n do agente.
 
-Consolidado em 25/09/2026 (v4.2) e revisado em 29/09/2026 (v4.3). Em 30/09/2026 o texto foi sincronizado com o que as sessões P11, P14, P18b e P31 a P54 construíram (2.1, linha 14). Este arquivo substitui o PRD.md da v4.2 no repositório.
+Consolidado em 25/09/2026 (v4.2) e revisado em 29/09/2026 (v4.3). Em 30/09/2026 o texto foi sincronizado com o que as sessões P11, P14, P18b e P31 a P54 construíram (2.1, linha 14). Este arquivo substitui o PRD.md da v4.2 no repositório. [v4.4] Ainda em 30/09/2026, o capítulo 20 ganhou os tons de apoio da paleta e a direção visual "Colo" (2.0).
 
 ---
 
 ## Sumário
 
 - [1. Como usar este documento](#1-como-usar-este-documento)
-- [2. O que mudou na v4.3, na v4.2 e na v4.1](#2-o-que-mudou-na-v43-na-v42-e-na-v41)
+- [2. O que mudou na v4.4, na v4.3, na v4.2 e na v4.1](#2-o-que-mudou-na-v44-na-v43-na-v42-e-na-v41)
 - [3. Contexto de negócio](#3-contexto-de-negócio)
 - [4. Decisões travadas](#4-decisões-travadas)
 - [5. Stack e convenções](#5-stack-e-convenções-v41)
@@ -70,12 +70,23 @@ Se a conversa com o assistente divergir deste documento, pare, atualize o docume
 - **[v4.1]** conteúdo novo ou alterado nesta versão.
 - **[v4.2]** conteúdo novo ou alterado pela revisão de 25/09/2026 (correções da revisão da entrega, decisões da reunião de 24/09 e do onboarding, direção de arte em `docs/design/DESIGN.md`).
 - **[v4.3]** conteúdo novo ou alterado pela revisão de 29/09/2026 (Treinamento da Isadora v3 e Prompt de Sistema v6.0: a Isadora agenda a reunião inicial com a Edilaine e o Leonardo entra depois da reunião realizada) e pelo registro de 30/09/2026 do que as sessões P11, P14, P18b e P31 a P54 construíram (2.1, linha 14).
+- **[v4.4]** conteúdo novo ou alterado pela revisão visual de 30/09/2026 (tons de apoio da paleta, direção "Colo" e conjunto de ilustrações, todos no capítulo 20; nenhuma regra de negócio muda).
 - **[confirmar]** valor ou regra que depende de confirmação do cliente. Entra parametrizado, com o valor padrão indicado, e aparece no capítulo 22.
 - **[clínico]** item que só a coordenação de enfermagem (Edilaine) pode aprovar.
 
 ---
 
-## 2. O que mudou na v4.3, na v4.2 e na v4.1
+## 2. O que mudou na v4.4, na v4.3, na v4.2 e na v4.1
+
+### 2.0 O que mudou na v4.4 [v4.4]
+
+A v4.4 é só visual. O dono do projeto achou o visual genérico e burocrático e pediu um app mais vivo e acolhedor, sem sair da identidade da Kraamzorg. A paleta base não muda: entram tons de apoio derivados das cores da marca, a direção de arte passa de "Caderneta de visita" para "Colo" e entra um conjunto pequeno de ilustrações próprias em traço. Nenhuma regra de negócio, permissão, enum ou contrato de dados muda.
+
+| # | Mudança | Onde | Origem |
+| :-: | :-- | :-- | :-- |
+| 1 | Tons de apoio da paleta (dourado, areia, sálvia, lavanda e argila, em versão clara e média), com receita, valor, uso e contraste medido. Nunca aparecem em momento sensível nem carregam estado. | 20.2 | Pedido do dono do projeto (30/09) |
+| 2 | Direção "Colo" em `docs/design/DESIGN.md`: cartões em blocos de tom, cantos generosos, números grandes, ícone em tile, progresso em anel e barra, navegação inferior em pílula. A régua de dias, as quatro datas, o freio e as regras de acolhimento continuam. | 20.1, 20.6 | idem |
+| 3 | Conjunto de ilustrações próprias em traço, só em estado vazio e na comemoração do checklist completo; nunca em alerta clínico, perda, freio ou intercorrência. | 20.2, 20.6 | Decisão do dono do projeto (30/09) |
 
 ### 2.1 O que mudou na v4.3 [v4.3]
 
@@ -2500,6 +2511,8 @@ Ajustes no fluxo 3 (19.4): as ferramentas `consultar_horarios_edilaine`, `agenda
 
 [v4.2] Direção visual e de experiência: `docs/design/DESIGN.md`, direção "Caderneta de visita" (a tela é a caderneta da visita de hoje, não um painel), com fluxos em `docs/design/fluxos.md` e inventário de telas em `docs/design/telas.md`. O DESIGN.md diz o que entra no `globals.css`; quando ele e este capítulo divergirem, vale este capítulo, e a divergência é corrigida aqui antes da sessão seguinte. As decisões dele que dependem do cliente estão em 20.6.
 
+[v4.4] A direção passa a se chamar "Colo" (DESIGN.md, seção 2): a informação se divide em blocos de tom com cantos generosos, como o traço dourado do símbolo que segura as duas figuras. Continuam valendo a régua de dias, as quatro datas com "estimativa" e "fato", o freio em um toque, o tom de voz do 20.3 e as regras de momento sensível do DESIGN.md (seção 11). Os tons novos estão no 20.2 e as ilustrações, na regra de ilustração do 20.2.
+
 O mockup inicial da Drop (Kraamzorg-OS-Mockup.html) é referência de estrutura de telas, densidade e linguagem visual. Ele tem itens superados pela v4.0 e por esta versão: janela de 24 h da API oficial, pesquisa 48 h depois da última visita, régua com envio automático, "Imersão 12 dias" (o Imersão tem 6 dias) e campos clínicos "a definir". Vale este documento.
 
 ### 20.2 Tokens
@@ -2535,6 +2548,31 @@ O mockup inicial da Drop (Kraamzorg-OS-Mockup.html) é referência de estrutura 
 | `*-borda` | token 40 a 45% + branco | Contorno de faixa em estado | decorativa, sempre com ícone e texto |
 
 Regras: um acento dourado por tela; cor semântica só com texto e ícone ao lado, nunca sozinha; `aviso` puro (3,2:1 no creme) só como elemento gráfico, e texto de pendente usa `aviso-texto`; um tema claro só nesta fase (`color-scheme: light`), sem modo escuro.
+
+[v4.4] **Tons de apoio.** A paleta base não muda: os nove tokens da marca e os derivados da v4.2 continuam os mesmos. Para o visual ter blocos de cor, e não tudo branco, entram tons de apoio misturados a partir das cores da marca, sem matiz de fora (nenhum roxo, rosa ou laranja de outra marca). Cada tom tem uma versão clara, para fundo de bloco, e uma média, para tile de ícone, trilha e preenchimento. O marinho continua sendo a cor forte de contraste (bloco invertido, ação primária, navegação). Contraste pela fórmula WCAG 2.x, medido com o texto que vai sobre o tom.
+
+| Token | Receita | Valor | Uso | Contraste do texto sobre ele |
+| :-- | :-- | :-- | :-- | :-- |
+| `dourado-claro` | dourado 30% + creme | #E9DCC2 | Bloco do "agora": cumprimento do dia, visita em curso, etapa atual do checklist | marinho 12,2:1 · `marinho-72` 5,0:1 |
+| `dourado-medio` | dourado 55% + creme | #D9C59E | Tile de ícone do "agora", trilha da barra dentro do bloco dourado | marinho 9,8:1 · `marinho-72` reprova (4,0:1) |
+| `areia-clara` | areia 55% + creme | #F1E8D7 | Bloco da família, pergunta já respondida, coluna do pipeline, lista em blocos | marinho 13,6:1 · `marinho-72` 5,6:1 |
+| `salvia-clara` | sucesso 18% + creme | #DCE0D2 | Bloco de "feito": checklist completo, tarefa concluída, dia em dia | marinho 12,3:1 · `marinho-72` 5,1:1 |
+| `salvia-media` | sucesso 40% + creme | #B5C3B1 | Tile de ícone de "feito", preenchimento de barra de concluído | marinho 9,0:1 · `marinho-72` reprova (3,7:1) |
+| `lavanda-clara` | sensivel 18% + branco | #E3E0E7 | Bloco de tempo e agenda: amanhã, semana, próximo contato | marinho 12,7:1 · `marinho-72` 5,2:1 |
+| `lavanda-media` | sensivel 36% + branco | #C7C2CF | Tile de ícone de agenda | marinho 9,5:1 · `marinho-72` reprova (3,9:1) |
+| `argila-clara` | alerta 14% + creme | #EFDFD4 | Bloco de pessoas e conversa: conversas, equipe, contato | marinho 12,7:1 · `marinho-72` 5,2:1 |
+| `argila-media` | alerta 30% + creme | #E0C2B7 | Tile de ícone de conversa e de pessoas | marinho 9,9:1 · `marinho-72` reprova (4,1:1) |
+
+Regras dos tons de apoio:
+
+1. Tom de apoio é superfície (bloco, tile, trilha, preenchimento de ilustração), nunca estado. Estado continua com o `*-lavado`, a `*-borda`, o ícone e a palavra do 20.2 [v4.2].
+2. Sobre tom claro, texto em marinho ou `marinho-72`; sobre tom médio, só marinho. `marinho-62` nunca vai sobre tom de apoio (3,6 a 4,1:1).
+3. Tom de apoio nunca aparece em momento sensível. Família em freio, perda ou intercorrência, alerta clínico e o próprio freio ficam em creme, branco, `sensivel` e `alerta`, sem tom alegre e sem ilustração. Numa tela com estado sensível, os blocos de tom daquela família voltam a branco.
+4. Lavanda e argila vêm de `sensivel` e `alerta`, então nunca dividem o bloco com um estado sensível ou com um alerta, e nunca são a única pista de nada: bloco de tom leva sempre título ou ícone que diga o que é.
+5. `dourado` puro continua sendo o acento, uma vez por tela. `dourado-claro` e `dourado-medio` são superfície e não contam como acento.
+6. Nenhum tom de apoio em texto. Nenhum gradiente entre tons.
+
+[v4.4] **Ilustrações.** Decisão do dono do projeto: um conjunto pequeno de ilustrações próprias, desenhadas à mão em SVG no repositório (`src/components/ilustracoes`), em traço contínuo e arredondado, com a espessura dos ícones, traço em marinho e preenchimento em dourado e tons de apoio. Temas da casa e do cuidado (xícara, manta, janela com sol, chave, lua e nuvem, folha, caderno de visita, sino). Nunca imagem gerada por IA, banco de imagem, rosto de bebê, coração ou mãe desenhada. Entram só em estado vazio e na comemoração do checklist completo (com movimento curto que respeita `prefers-reduced-motion`). Nunca em alerta clínico, perda, freio ou intercorrência. Esta regra substitui, só neste ponto, a recusa de ilustração da v4.2 (DESIGN.md, 11.6 e 11.12).
 
 Cores e fontes da marca vêm do brand guidelines (paleta #0F1F36, #E8DAC5, #BC9C5D, #FFFFFF, #FCF8ED; logotipo em TT Drugs e Codec Pro). O logotipo entra como arquivo (`/public/brand`), nunca redesenhado. As fontes TT Drugs e Codec Pro são comerciais: usar na web só com licença de webfont.
 
@@ -2577,6 +2615,7 @@ Vêm do `docs/design/DESIGN.md` e do `docs/design/fluxos.md`. Cada uma entra com
 | 3 | Onde o comercial responde depois de assumir a conversa: no app, pelo adaptador de mensageria (freio e janela checados), ou no WhatsApp do aparelho. Liga com o T-01: com a API oficial sem coexistência, o número sai do app do celular e a resposta só pode ser no app; com coexistência ou no número comum, as duas saídas funcionam. Depois de assumir uma lead qualificada, a Isadora não volta sozinha (modo `humano_comercial`, 11.7). | `comercial_resposta_no_app` falso: botão "Abrir no WhatsApp" do aparelho, como o adaptador `manual` do 4.1; a pausa por digitação no celular (11.7) continua valendo. A tela já é desenhada para as duas saídas. C-19. | Leonardo |
 | 4 | Cores derivadas por mistura dos tokens (texto secundário, borda de campo, fundos e bordas de estado). | Tabela do 20.2, valores do DESIGN.md seção 4. Decidido pela direção de arte, sem matiz novo. | Drop |
 | 5 | Status das enfermeiras no CRM (reunião de 24/09, 11:31), calculado a partir de designação, visita e bloqueio de agenda, nunca marcado à mão: em visita, em atendimento, reservada, backup, oferta pendente, folga e livre (enum `status_profissional`, 6.0; regra no 6.5). Tela Equipe da coordenação: selo de hoje por enfermeira e semana em 7 dias por 2 turnos com legenda sempre visível; Início da coordenação e da diretoria com a síntese ("3 em visita agora, 1 livre, 2 reservadas"). A enfermeira vê só o próprio estado e as próprias ofertas. | Regra do 6.5. O-08. | Edilaine (regra de "em atendimento") |
+| 6 | [v4.4] Direção "Colo", tons de apoio e conjunto de ilustrações próprias (2.0). | Ligados como no 20.2: tons só como superfície, nunca em momento sensível; ilustração só em estado vazio e na comemoração do checklist completo. | Drop (direção de arte), com o dono do projeto |
 
 Critérios de aceite de experiência que vêm da reunião de 24/09: checklist rápido de responder, uma mão, um bloco por tela (11:12, P35); entrevista pré-natal em sequência lógica dentro do CRM (11:14, P39).
 
