@@ -14,8 +14,14 @@ export default async function PaginaConfirmarEntrada({
   const { token_hash: tokenHash, demo } = await searchParams;
   const valido = Boolean(tokenHash || demo);
   return (
-    <section className="flex flex-col gap-6">
-      <h1 className="font-titulo text-1 text-texto font-normal">
+    <section
+      className={
+        valido
+          ? "rounded-colo bg-dourado-claro flex flex-col gap-4 px-5 pt-6 pb-14"
+          : "rounded-3 bg-superficie border-linha flex flex-col gap-4 border p-5"
+      }
+    >
+      <h1 className="font-titulo text-display text-texto font-normal">
         {valido ? "Tudo certo para entrar" : "Este link não está completo"}
       </h1>
       <p className="text-3 text-texto max-w-[60ch]">
@@ -31,7 +37,7 @@ export default async function PaginaConfirmarEntrada({
         />
       ) : (
         <a
-          className="text-corpo text-texto underline underline-offset-4"
+          className="rounded-pilula bg-acao text-acao-texto text-corpo inline-flex min-h-12 items-center justify-center self-start px-6 font-semibold no-underline"
           href="/familia/entrar"
         >
           Pedir um novo link

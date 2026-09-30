@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { LockKeyhole, MessageCircle } from "lucide-react";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { obterRelacaoPublica } from "@/lib/dados/publico-relacao";
 import type { PaginaCaptacao } from "@/lib/dados/tipos-relacao";
 import { configuracaoTurnstile } from "@/lib/integracoes/turnstile/cliente";
@@ -38,7 +40,7 @@ export default async function PaginaCaptacao({
 
   if (!pagina || pagina.situacao !== "ok") {
     return (
-      <section className="flex flex-col gap-4">
+      <section className="rounded-3 bg-superficie border-linha flex flex-col gap-4 border p-5">
         <h1 className="font-titulo text-1 text-texto font-normal">
           {textos.titulo ?? "Kraamzorg Brasil"}
         </h1>
@@ -52,20 +54,34 @@ export default async function PaginaCaptacao({
 
   return (
     <article className="flex flex-col gap-6">
-      <h1 className="font-titulo text-1 text-texto font-normal">
-        {textos.titulo}
-      </h1>
-      <p className="text-3 text-texto max-w-[60ch]">{textos.abertura}</p>
-      <p className="text-corpo text-texto max-w-[60ch]">
-        {textos.como_funciona}
-      </p>
-      <BotaoWhatsApp
-        canal={canal}
-        utm={utm}
-        siteKey={configuracaoTurnstile().siteKey}
-        textos={textos}
-      />
-      <p className="text-corpo text-texto-2 max-w-[60ch]">
+      <header className="rounded-colo bg-dourado-claro flex flex-col gap-3 px-5 pt-6 pb-12">
+        <h1 className="font-titulo text-display text-texto font-normal">
+          {textos.titulo}
+        </h1>
+        <p className="text-3 text-texto max-w-[60ch]">{textos.abertura}</p>
+      </header>
+      <section className="rounded-3 bg-argila-clara flex flex-col gap-5 p-5">
+        <div className="flex items-start gap-3">
+          <TileIcone tom="argila" forma="quadrado">
+            <MessageCircle />
+          </TileIcone>
+          <p className="text-corpo text-texto max-w-[60ch] pt-2">
+            {textos.como_funciona}
+          </p>
+        </div>
+        <BotaoWhatsApp
+          canal={canal}
+          utm={utm}
+          siteKey={configuracaoTurnstile().siteKey}
+          textos={textos}
+        />
+      </section>
+      <p className="text-corpo text-texto-2 flex max-w-[60ch] items-start gap-3 px-1">
+        <LockKeyhole
+          className="mt-1 size-5 shrink-0"
+          aria-hidden="true"
+          strokeWidth={1.75}
+        />
         {textos.privacidade}
       </p>
     </article>

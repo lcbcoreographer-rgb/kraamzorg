@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CircleCheck, ClipboardPen, PhoneCall } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
+import { SinoCalmo } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
@@ -201,10 +202,10 @@ function ItemDoAlerta({
   return (
     <article
       aria-label={`${alerta.regraId}, ${alerta.nomeFamilia}`}
-      className="flex flex-col gap-2"
+      className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-4 lg:p-5"
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <h2 className="text-3 text-texto font-semibold">
+        <h2 className="font-titulo text-2 text-texto font-medium">
           {alerta.nomeFamilia}
         </h2>
         {alerta.diaNumero ? (
@@ -225,7 +226,7 @@ function ItemDoAlerta({
         {alerta.visitaId ? (
           <Link
             href={`/visita/${alerta.visitaId}`}
-            className="text-apoio text-texto ml-auto font-semibold underline underline-offset-4"
+            className="text-apoio text-texto min-h-toque ml-auto inline-flex items-center font-semibold underline underline-offset-4"
           >
             {textosAlertas.abrirVisita}
           </Link>
@@ -312,7 +313,7 @@ function RegistroDoAcionamento({ alerta }: { alerta: AlertaClinicoResumo }) {
   return (
     <section
       aria-label={textosAlertas.registro.titulo}
-      className="rounded-2 bg-superficie border-linha border p-4"
+      className="rounded-2 bg-fundo p-4"
     >
       <h3 className="text-apoio text-texto-2 mb-2 font-semibold">
         {textosAlertas.registro.titulo}
@@ -353,5 +354,15 @@ export function VazioDosAlertas({
     situacao === "abertos"
       ? textosAlertas.vazioAbertos
       : textosAlertas.vazioFechados;
-  return <EstadoVazio titulo={v.titulo} texto={v.texto} />;
+  // Nenhum alerta aberto é o dia tranquilo: o sino calmo do catálogo
+  // (DESIGN.md 5.1). A lista de fechados vazia fica sem ilustração.
+  return (
+    <EstadoVazio
+      titulo={v.titulo}
+      texto={v.texto}
+      ilustracao={
+        situacao === "abertos" ? <SinoCalmo tamanho={112} /> : undefined
+      }
+    />
+  );
 }

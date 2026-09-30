@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { exigirSessao } from "@/lib/auth/sessao";
 import {
   ConteudoListaEvolucoes,
@@ -20,15 +21,18 @@ export default async function PaginaEvolucoes({
   const { situacao } = await searchParams;
   await exigirSessao("/evolucoes");
   return (
-    <div className="flex flex-col gap-6 pt-2">
-      <h1 className="font-titulo text-display lg:text-display-lg text-texto font-normal">
-        Evoluções
-      </h1>
-      <ConteudoListaEvolucoes
-        filtro={situacaoDaBusca(situacao)}
-        base="/evolucoes"
-        baseFamilia="/familias"
+    <>
+      <CabecalhoTela
+        titulo="Evoluções"
+        subtitulo="O documento que sai para os médicos depois do último dia de cada família. A coordenação revisa, aprova e envia."
       />
-    </div>
+      <div className="pt-6">
+        <ConteudoListaEvolucoes
+          filtro={situacaoDaBusca(situacao)}
+          base="/evolucoes"
+          baseFamilia="/familias"
+        />
+      </div>
+    </>
   );
 }

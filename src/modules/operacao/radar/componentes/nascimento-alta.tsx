@@ -50,9 +50,9 @@ function CamposBebe({
   campos: Record<string, string>;
 }) {
   return (
-    <fieldset className="border-linha rounded-3 flex flex-col gap-4 border p-4">
+    <fieldset className="rounded-2 bg-areia-clara flex flex-col gap-4 p-4">
       {titulo ? (
-        <legend className="text-apoio text-texto px-1 font-semibold">
+        <legend className="text-apoio text-texto float-left mb-1 w-full font-semibold">
           {titulo}
         </legend>
       ) : null}

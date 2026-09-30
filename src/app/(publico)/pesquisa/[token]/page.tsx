@@ -74,7 +74,7 @@ export default async function PaginaPesquisa({
 function Aviso({ texto }: { texto: string }) {
   const { primeira, resto } = dividirPrimeiraFrase(texto);
   return (
-    <section className="flex flex-col gap-4">
+    <section className="rounded-3 bg-superficie border-linha flex flex-col gap-4 border p-5">
       <h1 className="font-titulo text-1 text-texto font-normal">{primeira}</h1>
       {resto ? <p className="text-3 text-texto">{resto}</p> : null}
     </section>

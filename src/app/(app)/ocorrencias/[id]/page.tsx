@@ -73,11 +73,9 @@ export default async function PaginaOcorrencia({
     <>
       {voltar}
       <div className="flex flex-col gap-6 pt-2">
-        <header className="bg-superficie-2 -mx-4 flex flex-col gap-1 px-4 pt-4 pb-5 lg:-mx-8 lg:px-8">
-          <h1 className="font-titulo text-1 text-texto font-normal">
-            {ocorrencia.titulo}
-          </h1>
-        </header>
+        <h1 className="font-titulo text-1 lg:text-display text-texto max-w-[32ch] font-normal">
+          {ocorrencia.titulo}
+        </h1>
         <PainelOcorrencia ocorrencia={ocorrencia} responsaveis={responsaveis} />
       </div>
     </>

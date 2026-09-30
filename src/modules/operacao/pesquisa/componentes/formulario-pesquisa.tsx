@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CircleAlert, WifiOff } from "lucide-react";
+import { Check, CircleAlert, WifiOff } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
 import { CampoTexto } from "@/components/ui/campo-texto";
 import { Escala0a10 } from "@/components/ui/escala-0-a-10";
@@ -260,9 +260,22 @@ export function FormularioPesquisa({
     return (
       <section
         aria-labelledby="pesquisa-fim"
-        className="flex flex-col gap-4"
+        className={cn(
+          "flex flex-col gap-4",
+          fase.tipo === "recebido"
+            ? "rounded-colo bg-salvia-clara px-5 pt-6 pb-12"
+            : "rounded-3 bg-superficie border-linha border p-5",
+        )}
         data-fase={fase.tipo}
       >
+        {fase.tipo === "recebido" ? (
+          <span
+            aria-hidden="true"
+            className="rounded-pilula bg-salvia-media inline-flex size-12 items-center justify-center"
+          >
+            <Check className="size-6" strokeWidth={2} />
+          </span>
+        ) : null}
         <h1
           id="pesquisa-fim"
           ref={tituloFinal}
@@ -283,9 +296,9 @@ export function FormularioPesquisa({
     .trim();
 
   return (
-    <div className="flex flex-col gap-8">
-      <header className="flex flex-col gap-3">
-        <h1 className="font-titulo text-1 text-texto font-normal">
+    <div className="flex flex-col gap-6">
+      <header className="rounded-colo bg-dourado-claro flex flex-col gap-3 px-5 pt-6 pb-12">
+        <h1 className="font-titulo text-display text-texto font-normal">
           {textos.titulo ?? PESQUISA_SEM_TEXTOS}
         </h1>
         {abertura ? (
@@ -296,7 +309,7 @@ export function FormularioPesquisa({
       <form
         noValidate
         aria-label={textos.titulo ?? "Pesquisa"}
-        className="flex flex-col gap-8"
+        className="flex flex-col gap-4"
         onSubmit={(evento) => {
           evento.preventDefault();
           if (!enviando) void enviar();
@@ -305,7 +318,19 @@ export function FormularioPesquisa({
         {aviso ? <AvisoPesquisa aviso={aviso} /> : null}
 
         {perguntas.map((pergunta) => (
-          <div key={pergunta.id} data-pergunta={pergunta.id}>
+          // Uma pergunta por cartão, como no checklist (direção "Colo"):
+          // sem resposta, branco com sombra; respondida, assenta em areia.
+          <div
+            key={pergunta.id}
+            data-pergunta={pergunta.id}
+            className={cn(
+              "rounded-3 ease-estado p-5 transition-[background-color,box-shadow] duration-220",
+              (valores[pergunta.id] ?? "") !== ""
+                ? "bg-areia-clara"
+                : "bg-superficie shadow-1",
+              erros[pergunta.id] && "outline-alerta-borda outline outline-2",
+            )}
+          >
             <Pergunta
               pergunta={pergunta}
               valor={valores[pergunta.id] ?? ""}
@@ -326,7 +351,7 @@ export function FormularioPesquisa({
           />
         ) : null}
 
-        <div>
+        <div className="pt-2">
           <Botao
             type="submit"
             largaTotal
@@ -375,6 +400,7 @@ function Pergunta({
           onMudar={onMudar}
           rotuloSim={ROTULO_SIM}
           rotuloNao={ROTULO_NAO}
+          arranjo="cartao"
         />
       ) : pergunta.tipo === "opcao" ? (
         <EscolhaUnica

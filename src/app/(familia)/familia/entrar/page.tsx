@@ -24,19 +24,26 @@ export default async function PaginaEntrarNoPortal({
 
   return (
     <section className="flex flex-col gap-6">
-      <h1 className="font-titulo text-1 text-texto font-normal">
-        {textos.titulo ?? "Entrar no portal da família"}
-      </h1>
+      <header className="rounded-colo bg-dourado-claro flex flex-col gap-3 px-5 pt-6 pb-12">
+        <h1 className="font-titulo text-display text-texto font-normal">
+          {textos.titulo ?? "Entrar no portal da família"}
+        </h1>
+        <p className="text-3 text-texto max-w-[60ch]">{textos.apoio}</p>
+      </header>
       {aviso === "link" && link.invalido ? (
-        <p role="status" className="text-3 text-texto">
+        <p
+          role="status"
+          className="rounded-2 bg-superficie border-linha text-3 text-texto border px-4 py-3"
+        >
           {link.invalido}
         </p>
       ) : null}
-      <p className="text-3 text-texto max-w-[60ch]">{textos.apoio}</p>
-      <FormularioEntrar
-        siteKey={configuracaoTurnstile().siteKey}
-        textos={textos}
-      />
+      <div className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5">
+        <FormularioEntrar
+          siteKey={configuracaoTurnstile().siteKey}
+          textos={textos}
+        />
+      </div>
     </section>
   );
 }

@@ -1,14 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Phone } from "lucide-react";
+import type { ReactNode } from "react";
+import {
+  ArrowLeft,
+  Baby,
+  CalendarDays,
+  House,
+  MapPin,
+  OctagonPause,
+  Phone,
+  Stethoscope,
+} from "lucide-react";
 import { z } from "zod";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
+import { ReguaDias, type DiaRegua } from "@/components/ui/regua-dias";
 import { Selo } from "@/components/ui/selo";
+import { TileIcone } from "@/components/ui/tile-icone";
+import type { Tom } from "@/components/ui/tons";
 import { hojeEmBrasilia } from "@/lib/agenda/datas";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { obterRepositorios } from "@/lib/dados/fabrica";
 import { formatarData, formatarTelefone } from "@/lib/formatacao";
+import { cn } from "@/lib/utils";
+import { TituloSecao } from "@/modules/operacao/comum/titulo-secao";
 import { ROTULO_PAPEL_PESSOA } from "@/modules/crm/ficha/rotulos";
 import { ROTULO_ESPECIALIDADE } from "@/modules/relacao/rotulos";
 import { ROTULO_ESTADO_VISITA } from "@/modules/operacao/equipe/textos";
@@ -25,25 +40,70 @@ import {
 
 export const metadata: Metadata = { title: "Família · Kraamzorg OS" };
 
+/**
+ * Um assunto da ficha (direção "Colo"): o título com o tile e um bloco no
+ * tom do assunto. Família em pausa perde o tom (DESIGN.md 11.8).
+ */
+const FUNDO_SECAO: Record<Tom, string> = {
+  dourado: "bg-dourado-claro",
+  areia: "bg-areia-clara",
+  salvia: "bg-salvia-clara",
+  lavanda: "bg-lavanda-clara",
+  argila: "bg-argila-clara",
+};
+
 function Secao({
   id,
   titulo,
+  icone,
+  tom,
+  semTom,
   children,
 }: {
   id: string;
   titulo: string;
-  children: React.ReactNode;
+  icone: ReactNode;
+  tom: Tom;
+  semTom: boolean;
+  children: ReactNode;
 }) {
   return (
-    <section
-      aria-labelledby={id}
-      className="rounded-3 bg-superficie shadow-1 flex flex-col gap-3 p-5"
-    >
-      <h2 id={id} className="font-titulo text-2 text-texto font-medium">
-        {titulo}
-      </h2>
-      {children}
+    <section aria-labelledby={id} className="flex flex-col gap-3">
+      <TituloSecao
+        id={id}
+        icone={icone}
+        tom={semTom ? "neutro" : tom}
+        titulo={titulo}
+      />
+      <div
+        className={cn(
+          "rounded-3 flex flex-col gap-2 p-3",
+          semTom ? "bg-superficie border-linha border" : FUNDO_SECAO[tom],
+        )}
+      >
+        {children}
+      </div>
     </section>
+  );
+}
+
+/** Uma linha branca dentro do bloco do assunto. */
+function Linha({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <li
+      className={cn(
+        "rounded-2 bg-superficie flex min-h-14 flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5",
+        className,
+      )}
+    >
+      {children}
+    </li>
   );
 }
 
@@ -76,182 +136,315 @@ export default async function PaginaFamiliaDaEnfermeira({
     ? proximaVisitaDaFamilia(familia, hojeEmBrasilia())
     : null;
 
+  const pausa =
+    f.estadoSensivel === "bloqueio_total" ||
+    f.estadoSensivel === "encerrado_sensivel";
+  const hoje = hojeEmBrasilia();
+  const total = familia?.acompanhamento?.diasContratados ?? null;
+  const regua: DiaRegua[] | null =
+    familia && total
+      ? Array.from({ length: total }, (_, i): DiaRegua => {
+          const numero = i + 1;
+          const v = familia.visitas.find((x) => x.diaNumero === numero);
+          if (v?.estado === "concluida")
+            return { numero, estado: "feito", rotuloEstado: "feito" };
+          if (v?.estado === "ficha_pendente")
+            return {
+              numero,
+              estado: "pendente",
+              rotuloEstado: "ficha pendente",
+            };
+          if (v?.data === hoje && proxima?.diaNumero === numero)
+            return { numero, estado: "hoje", rotuloEstado: "hoje" };
+          return { numero, estado: "futuro" };
+        })
+      : null;
+
+  const datas: { rotulo: string; marca: string; valor: string }[] = [];
+  if (f.dataNascimento)
+    datas.push({
+      rotulo: "Nascimento",
+      marca: "fato",
+      valor: formatarData(f.dataNascimento) ?? f.dataNascimento,
+    });
+  else if (f.dpp)
+    datas.push({
+      rotulo: "Data provável do parto",
+      marca: "estimativa",
+      valor: `${formatarData(f.dpp) ?? f.dpp}${f.idadeGestacional ? ` (${f.idadeGestacional})` : ""}`,
+    });
+  if (f.dataAlta)
+    datas.push({
+      rotulo: "Alta",
+      marca: "fato",
+      valor: formatarData(f.dataAlta) ?? f.dataAlta,
+    });
+  if (f.dataInicioEfetivo)
+    datas.push({
+      rotulo: "Início do acompanhamento",
+      marca: "fato",
+      valor: formatarData(f.dataInicioEfetivo) ?? f.dataInicioEfetivo,
+    });
+  const proximaHoje = proxima?.data === hoje;
+
   return (
     <>
       <CabecalhoTela titulo={f.nomeExibicao} lateral={<IndicadorPortal />} />
-      <div className="flex flex-col gap-5 pt-4">
+      <div className="flex flex-col gap-8 pt-4">
         <Link
           href="/minhas-familias"
-          className="text-apoio text-texto min-h-toque inline-flex items-center gap-2 self-start underline underline-offset-4"
+          className="text-apoio text-texto min-h-toque -mb-4 inline-flex items-center gap-2 self-start underline underline-offset-4"
         >
           <ArrowLeft className="size-4" aria-hidden="true" />
           Voltar às famílias
         </Link>
 
         {sensivel ? (
-          <p className="text-corpo text-sensivel border-sensivel rounded-2 border-l-4 py-2 pl-4">
+          <p className="text-corpo text-sensivel bg-sensivel-lavado border-sensivel-borda rounded-2 flex items-start gap-3 border px-4 py-3">
+            <OctagonPause className="mt-1 size-5 shrink-0" aria-hidden="true" />
             {sensivel}
           </p>
         ) : null}
 
-        <p className="text-corpo text-texto">
-          {rotuloAcompanhamento(familia?.acompanhamento?.estado)}.{" "}
-          {fraseProximaVisita(proxima)}
-        </p>
-
-        <Secao id="f-casa" titulo="Casa e contato">
-          {endereco ? (
-            <a
-              href={ligacaoDeMapa(endereco)}
-              className="text-corpo text-texto min-h-toque inline-flex items-start gap-2 underline underline-offset-4"
-            >
-              {endereco}
-              <span className="sr-only">. Abre o mapa.</span>
-            </a>
-          ) : (
-            <p className="text-corpo text-texto-2">
-              Endereço ainda não cadastrado.
-            </p>
+        <section
+          aria-label="Onde a família está"
+          className={cn(
+            "rounded-3 flex flex-col gap-4 p-5",
+            pausa ? "bg-superficie border-linha border" : "bg-areia-clara",
           )}
-          {f.endereco?.referencia ? (
-            <p className="text-apoio text-texto-2">
-              Referência: {f.endereco.referencia}
-            </p>
+        >
+          <p className="text-3 text-texto">
+            {rotuloAcompanhamento(familia?.acompanhamento?.estado)}.
+          </p>
+          {regua && !pausa ? (
+            <ReguaDias
+              dias={regua}
+              rotulo={`Acompanhamento de ${total} dias`}
+            />
           ) : null}
+          <p
+            className={cn(
+              "rounded-2 text-corpo text-texto flex items-center gap-3 px-3 py-2",
+              pausa
+                ? "border-linha border"
+                : proximaHoje
+                  ? "bg-dourado-claro"
+                  : "bg-superficie",
+            )}
+          >
+            {pausa ? null : (
+              <TileIcone tom={proximaHoje ? "dourado" : "lavanda"} tamanho="p">
+                <CalendarDays />
+              </TileIcone>
+            )}
+            <span>{fraseProximaVisita(proxima)}</span>
+          </p>
+        </section>
+
+        <Secao
+          id="f-casa"
+          titulo="Casa e contato"
+          icone={<House />}
+          tom="areia"
+          semTom={pausa}
+        >
           <ul className="flex flex-col gap-2">
-            {ficha.pessoas.map((p) => (
-              <li
-                key={p.id}
-                className="flex flex-wrap items-center justify-between gap-2"
-              >
-                <span className="text-corpo text-texto">
-                  {p.nome}{" "}
+            <Linha>
+              {pausa ? null : (
+                <TileIcone tom="areia" tamanho="p">
+                  <MapPin />
+                </TileIcone>
+              )}
+              <span className="flex min-w-0 flex-1 flex-col">
+                {endereco ? (
+                  <a
+                    href={ligacaoDeMapa(endereco)}
+                    className="text-corpo text-texto min-h-toque inline-flex items-center underline underline-offset-4"
+                  >
+                    {endereco}
+                    <span className="sr-only">. Abre o mapa.</span>
+                  </a>
+                ) : (
+                  <span className="text-corpo text-texto-2">
+                    Endereço ainda não cadastrado.
+                  </span>
+                )}
+                {f.endereco?.referencia ? (
                   <span className="text-apoio text-texto-2">
-                    (
+                    Referência: {f.endereco.referencia}
+                  </span>
+                ) : null}
+              </span>
+            </Linha>
+            {ficha.pessoas.map((p) => (
+              <Linha key={p.id}>
+                {pausa ? null : (
+                  <TileIcone tom="argila" tamanho="p">
+                    <Phone />
+                  </TileIcone>
+                )}
+                <span className="flex min-w-[12rem] flex-1 flex-col">
+                  <span className="text-corpo text-texto font-semibold">
+                    {p.nome}
+                  </span>
+                  <span className="text-apoio text-texto-2">
                     {(
                       ROTULO_PAPEL_PESSOA[
                         p.papel as keyof typeof ROTULO_PAPEL_PESSOA
                       ] ?? p.papel.replaceAll("_", " ")
                     ).toLowerCase()}
-                    {p.contatoPrincipal ? ", contato principal" : ""})
+                    {p.contatoPrincipal ? ", contato principal" : ""}
                   </span>
                 </span>
                 {p.telefoneE164 ? (
                   <a
                     href={`tel:${p.telefoneE164}`}
-                    className="text-corpo text-texto min-h-toque inline-flex items-center gap-2 underline underline-offset-4"
+                    className={cn(
+                      "text-corpo text-texto min-h-toque tablet:pl-0 inline-flex items-center gap-2 underline underline-offset-4",
+                      pausa ? null : "pl-12",
+                    )}
                     aria-label={`Ligar para ${p.nome.split(" ")[0]}, ${formatarTelefone(p.telefoneE164)}`}
                   >
-                    <Phone className="size-4" aria-hidden="true" />
                     <span className="font-mono">
                       {formatarTelefone(p.telefoneE164)}
                     </span>
                   </a>
                 ) : null}
-              </li>
+              </Linha>
             ))}
           </ul>
         </Secao>
 
-        <Secao id="f-datas" titulo="Datas">
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
-            {f.dataNascimento ? (
-              <>
-                <dt className="text-apoio text-texto-2">Nascimento</dt>
-                <dd className="text-corpo text-texto font-mono">
-                  {formatarData(f.dataNascimento)}
-                </dd>
-              </>
-            ) : f.dpp ? (
-              <>
-                <dt className="text-apoio text-texto-2">
-                  Data provável do parto
-                </dt>
-                <dd className="text-corpo text-texto font-mono">
-                  {formatarData(f.dpp)}
-                  {f.idadeGestacional ? ` (${f.idadeGestacional})` : ""}
-                </dd>
-              </>
-            ) : null}
-            {f.dataAlta ? (
-              <>
-                <dt className="text-apoio text-texto-2">Alta</dt>
-                <dd className="text-corpo text-texto font-mono">
-                  {formatarData(f.dataAlta)}
-                </dd>
-              </>
-            ) : null}
-            {f.dataInicioEfetivo ? (
-              <>
-                <dt className="text-apoio text-texto-2">
-                  Início do acompanhamento
-                </dt>
-                <dd className="text-corpo text-texto font-mono">
-                  {formatarData(f.dataInicioEfetivo)}
-                </dd>
-              </>
-            ) : null}
-          </dl>
-        </Secao>
+        {datas.length > 0 ? (
+          <Secao
+            id="f-datas"
+            titulo="Datas"
+            icone={<CalendarDays />}
+            tom="lavanda"
+            semTom={pausa}
+          >
+            <dl className="tablet:grid-cols-3 grid grid-cols-1 gap-2">
+              {datas.map((d) => (
+                <div
+                  key={d.rotulo}
+                  className="rounded-2 bg-superficie flex flex-col gap-0.5 px-4 py-2.5"
+                >
+                  <dt className="text-apoio text-texto-2">
+                    {d.rotulo} <em>({d.marca})</em>
+                  </dt>
+                  <dd className="text-corpo text-texto font-mono font-medium">
+                    {d.valor}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </Secao>
+        ) : null}
 
         {ficha.bebes.length > 0 ? (
           <Secao
             id="f-bebes"
             titulo={ficha.bebes.length > 1 ? "Bebês" : "Bebê"}
+            icone={<Baby />}
+            tom="areia"
+            semTom={pausa}
           >
             <ul className="flex flex-col gap-2">
               {ficha.bebes.map((b) => (
-                <li key={b.id} className="text-corpo text-texto">
-                  {b.nome ?? `Bebê ${b.ordem}`}
-                  {b.dataNascimento
-                    ? `, nascido em ${formatarData(b.dataNascimento)}`
-                    : ""}
-                  {b.pesoNascimentoG
-                    ? `, ao nascer ${b.pesoNascimentoG.toLocaleString("pt-BR")} g`
-                    : ""}
-                </li>
+                <Linha key={b.id}>
+                  <span className="text-corpo text-texto font-semibold">
+                    {b.nome ?? `Bebê ${b.ordem}`}
+                  </span>
+                  <span className="text-apoio text-texto-2">
+                    {b.dataNascimento ? (
+                      <>
+                        nascido em{" "}
+                        <span className="font-mono">
+                          {formatarData(b.dataNascimento)}
+                        </span>
+                      </>
+                    ) : null}
+                    {b.pesoNascimentoG ? (
+                      <>
+                        {b.dataNascimento ? ", " : ""}ao nascer{" "}
+                        <span className="font-mono">
+                          {b.pesoNascimentoG.toLocaleString("pt-BR")} g
+                        </span>
+                      </>
+                    ) : null}
+                  </span>
+                </Linha>
               ))}
             </ul>
           </Secao>
         ) : null}
 
         {ficha.medicos.length > 0 ? (
-          <Secao id="f-medicos" titulo="Médicos">
+          <Secao
+            id="f-medicos"
+            titulo="Médicos"
+            icone={<Stethoscope />}
+            tom="argila"
+            semTom={pausa}
+          >
             <ul className="flex flex-col gap-2">
               {ficha.medicos.map((m) => (
-                <li key={m.id} className="text-corpo text-texto">
-                  {m.nome}{" "}
+                <Linha key={m.id}>
+                  <span className="text-corpo text-texto font-semibold">
+                    {m.nome}
+                  </span>
                   <span className="text-apoio text-texto-2">
-                    (
                     {(
                       ROTULO_ESPECIALIDADE[
                         m.especialidade as keyof typeof ROTULO_ESPECIALIDADE
                       ] ?? m.especialidade.replaceAll("_", " ")
                     ).toLowerCase()}
-                    {m.hospital ? `, ${m.hospital}` : ""})
+                    {m.hospital ? `, ${m.hospital}` : ""}
                   </span>
-                </li>
+                </Linha>
               ))}
             </ul>
           </Secao>
         ) : null}
 
         {familia && familia.visitas.length > 0 ? (
-          <Secao id="f-visitas" titulo="Visitas">
+          <Secao
+            id="f-visitas"
+            titulo="Visitas"
+            icone={<CalendarDays />}
+            tom="lavanda"
+            semTom={pausa}
+          >
             <ul className="flex flex-col gap-2">
               {familia.visitas.map((v) => (
-                <li
+                <Linha
                   key={v.visitaId}
-                  className="border-linha grid grid-cols-[1fr_auto] items-center gap-3 border-b pb-2 last:border-b-0 last:pb-0"
+                  className="grid grid-cols-[auto_1fr_auto] items-center"
                 >
-                  <span className="text-corpo text-texto">
-                    Dia {v.diaNumero}, {diaEmFrase(v.data)}
-                    {v.horaPrevista ? ` às ${v.horaPrevista}` : ""}
+                  <span className="text-dado text-texto font-mono font-semibold">
+                    D{v.diaNumero}
                   </span>
-                  <Selo variante="neutro">
+                  <span className="text-corpo text-texto">
+                    {diaEmFrase(v.data)}
+                    {v.horaPrevista ? (
+                      <>
+                        {" "}
+                        às <span className="font-mono">{v.horaPrevista}</span>
+                      </>
+                    ) : null}
+                  </span>
+                  <Selo
+                    variante={
+                      v.estado === "concluida"
+                        ? "sucesso"
+                        : v.estado === "ficha_pendente"
+                          ? "aviso"
+                          : "neutro"
+                    }
+                  >
                     {ROTULO_ESTADO_VISITA[v.estado] ?? v.estado}
                   </Selo>
-                </li>
+                </Linha>
               ))}
             </ul>
           </Secao>

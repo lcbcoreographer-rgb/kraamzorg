@@ -1,13 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import type { ReactNode } from "react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  CalendarOff,
+  FileCheck,
+  House,
+  IdCard,
+} from "lucide-react";
 import { z } from "zod";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
+import type { Tom } from "@/components/ui/tons";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { formatarData } from "@/lib/formatacao";
+import { cn } from "@/lib/utils";
+import { TituloSecao } from "@/modules/operacao/comum/titulo-secao";
 import { FormularioProfissional } from "@/modules/operacao/equipe/componentes/formulario-profissional";
 import { SecaoBloqueios } from "@/modules/operacao/equipe/componentes/secao-bloqueios";
 import { SecaoDocumentos } from "@/modules/operacao/equipe/componentes/secao-documentos";
@@ -31,24 +42,41 @@ const FEITO: Record<string, string> = {
   salva: "Cadastro salvo.",
 };
 
+/**
+ * Um assunto do cadastro (direção "Colo"): título com o tile e o bloco.
+ * Leitura no tom do assunto (a semana em lavanda, as famílias em areia);
+ * formulário em branco com sombra, o trabalho a fazer.
+ */
 function Secao({
   id,
   titulo,
+  icone,
+  tom,
+  fundo = "branco",
   children,
 }: {
   id: string;
   titulo: string;
-  children: React.ReactNode;
+  icone: ReactNode;
+  tom: Tom;
+  fundo?: "branco" | "lavanda" | "areia";
+  children: ReactNode;
 }) {
   return (
-    <section
-      aria-labelledby={id}
-      className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5"
-    >
-      <h2 id={id} className="font-titulo text-2 text-texto font-medium">
-        {titulo}
-      </h2>
-      {children}
+    <section aria-labelledby={id} className="flex flex-col gap-3">
+      <TituloSecao id={id} icone={icone} tom={tom} titulo={titulo} />
+      <div
+        className={cn(
+          "rounded-3 flex flex-col gap-4 p-5",
+          fundo === "lavanda"
+            ? "bg-lavanda-clara"
+            : fundo === "areia"
+              ? "bg-areia-clara"
+              : "bg-superficie shadow-1",
+        )}
+      >
+        {children}
+      </div>
     </section>
   );
 }
@@ -119,53 +147,72 @@ export default async function PaginaProfissional({
         Voltar para a equipe
       </Link>
 
-      <div className="flex flex-col gap-6 pt-4">
+      <div className="flex flex-col gap-8 pt-4">
         {feito ? <FaixaAlerta variante="sucesso" titulo={feito} /> : null}
 
-        {p.atendeVisitas && linhaEscala ? (
-          <Secao id="semana" titulo="Semana">
-            <SemanaEquipe
-              dias={linhaEscala.dias}
-              hoje={visao.hoje}
-              nome={p.nome}
-            />
-            <LegendaSemana />
-            <p className="text-apoio text-texto-2">
-              O estado vem das ofertas, das visitas e dos bloqueios. Ninguém
-              precisa marcar nada à mão.
-            </p>
-          </Secao>
-        ) : null}
+        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,62fr)_minmax(0,38fr)]">
+          {p.atendeVisitas && linhaEscala ? (
+            <Secao
+              id="semana"
+              titulo="Semana"
+              icone={<CalendarDays />}
+              tom="lavanda"
+              fundo="lavanda"
+            >
+              <SemanaEquipe
+                dias={linhaEscala.dias}
+                hoje={visao.hoje}
+                nome={p.nome}
+              />
+              <LegendaSemana />
+              <p className="text-apoio text-texto-2">
+                O estado vem das ofertas, das visitas e dos bloqueios. Ninguém
+                precisa marcar nada à mão.
+              </p>
+            </Secao>
+          ) : null}
 
-        {p.familias.length > 0 ? (
-          <Secao id="familias" titulo="Famílias em curso">
-            <ul className="flex flex-col gap-2">
-              {p.familias.map((f) => (
-                <li
-                  key={f.acompanhamentoId}
-                  className="flex flex-wrap items-baseline justify-between gap-x-3"
-                >
-                  <Link
-                    href={`/familias/${f.familiaId}`}
-                    className="text-corpo text-texto min-h-toque inline-flex items-center font-medium underline underline-offset-4"
+          {p.familias.length > 0 ? (
+            <Secao
+              id="familias"
+              titulo="Famílias em curso"
+              icone={<House />}
+              tom="areia"
+              fundo="areia"
+            >
+              <ul className="flex flex-col gap-2">
+                {p.familias.map((f) => (
+                  <li
+                    key={f.acompanhamentoId}
+                    className="rounded-2 bg-superficie flex flex-wrap items-center justify-between gap-x-3 px-4 py-1"
                   >
-                    {f.nomeExibicao}
-                  </Link>
-                  <span className="text-apoio text-texto-2 font-mono">
-                    {f.papel === "backup" ? "backup · " : ""}
-                    {f.diaAtual !== null
-                      ? `D${f.diaAtual} de ${f.diasContratados}`
-                      : f.dpp
-                        ? `DPP ${formatarData(f.dpp)} (estimativa)`
-                        : "aguardando"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </Secao>
-        ) : null}
+                    <Link
+                      href={`/familias/${f.familiaId}`}
+                      className="text-corpo text-texto min-h-toque inline-flex items-center font-semibold underline underline-offset-4"
+                    >
+                      {f.nomeExibicao}
+                    </Link>
+                    <span className="text-apoio text-texto-2 font-mono">
+                      {f.papel === "backup" ? "backup · " : ""}
+                      {f.diaAtual !== null
+                        ? `D${f.diaAtual} de ${f.diasContratados}`
+                        : f.dpp
+                          ? `DPP ${formatarData(f.dpp)} (estimativa)`
+                          : "aguardando"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Secao>
+          ) : null}
+        </div>
 
-        <Secao id="documentos" titulo="Documentos">
+        <Secao
+          id="documentos"
+          titulo="Documentos"
+          icone={<FileCheck />}
+          tom="areia"
+        >
           <SecaoDocumentos
             profissionalId={p.id}
             documentos={p.documentos}
@@ -173,15 +220,19 @@ export default async function PaginaProfissional({
           />
         </Secao>
 
-        <Secao id="bloqueios" titulo="Bloqueios de agenda">
+        <Secao
+          id="bloqueios"
+          titulo="Bloqueios de agenda"
+          icone={<CalendarOff />}
+          tom="lavanda"
+        >
           <SecaoBloqueios
             profissionalId={p.id}
             bloqueios={p.bloqueios}
             hoje={visao.hoje}
           />
         </Secao>
-
-        <Secao id="cadastro" titulo="Cadastro">
+        <Secao id="cadastro" titulo="Cadastro" icone={<IdCard />} tom="argila">
           <FormularioProfissional profissional={p} regioes={regioes} />
         </Secao>
       </div>

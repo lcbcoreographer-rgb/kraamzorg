@@ -71,6 +71,10 @@ test.describe("agenda da coordenação", () => {
   }) => {
     const novoDia = hojeEmBrasilia(12);
     await page.goto(`/agenda/visitas/${ID_VISITA_MARE_D4}`);
+    // Espera a tela ficar interativa (a primeira conferência da agenda, feita
+    // depois da hidratação): digitado antes disso, o dia novo se perdia e o
+    // botão ficava desligado com a máquina carregada.
+    await expect(page.getByText("Sem conflito na agenda")).toBeVisible();
     await page.getByLabel("Novo dia").fill(novoDia);
     await expect(page.getByText("Sem conflito na agenda")).toBeVisible();
     await page.getByRole("button", { name: "Reagendar a visita" }).click();

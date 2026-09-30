@@ -48,7 +48,10 @@ export function FormularioCandidatura({
 
   if (estado.situacao === "recebido") {
     return (
-      <p role="status" className="text-3 text-texto max-w-[60ch]">
+      <p
+        role="status"
+        className="rounded-2 bg-salvia-clara text-3 text-texto max-w-[60ch] px-4 py-3"
+      >
         {textos.recebido}
       </p>
     );

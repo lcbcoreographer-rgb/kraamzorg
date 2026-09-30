@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { TriangleAlert } from "lucide-react";
+import { TriangleAlert, UserRound } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
 import { Cartao } from "@/components/ui/cartao";
 import { ReguaDias, type DiaRegua } from "@/components/ui/regua-dias";
 import { Selo } from "@/components/ui/selo";
+import { TileIcone } from "@/components/ui/tile-icone";
 import type { LinhaEscala, ProfissionalEquipe } from "@/lib/dados/tipos-equipe";
 import { formatarData } from "@/lib/formatacao";
 import { ROTULO_FUNCAO, ROTULO_VINCULO } from "../textos";
@@ -42,19 +43,27 @@ export function CartaoProfissional({
   return (
     <Cartao data-profissional={p.id} className="flex flex-col gap-4">
       <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
-        <div className="min-w-0">
-          <h3 id={`prof-${p.id}`} className="text-3 text-texto font-semibold">
-            {p.nome}
-          </h3>
-          <p className="text-apoio text-texto-2">
-            {[
-              ROTULO_FUNCAO[p.funcao] ?? p.funcao,
-              ROTULO_VINCULO[p.vinculo],
-              pracas.join(" e "),
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
+        <div className="flex min-w-0 items-center gap-3">
+          <TileIcone tom="argila">
+            <UserRound />
+          </TileIcone>
+          <div className="min-w-0">
+            <h3
+              id={`prof-${p.id}`}
+              className="font-titulo text-2 text-texto font-medium"
+            >
+              {p.nome}
+            </h3>
+            <p className="text-apoio text-texto-2">
+              {[
+                ROTULO_FUNCAO[p.funcao] ?? p.funcao,
+                ROTULO_VINCULO[p.vinculo],
+                pracas.join(" e "),
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+          </div>
         </div>
         {p.status ? (
           <SeloEstadoProfissional estado={p.status} />
@@ -64,7 +73,10 @@ export function CartaoProfissional({
       </div>
 
       {p.familias.length > 0 ? (
-        <ul className="flex flex-col gap-3" aria-label="Famílias em curso">
+        <ul
+          className="rounded-2 bg-areia-clara flex flex-col gap-3 p-3"
+          aria-label="Famílias em curso"
+        >
           {p.familias.map((f) => (
             <li key={f.acompanhamentoId} className="flex flex-col gap-1.5">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3">

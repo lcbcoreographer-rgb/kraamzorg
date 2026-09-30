@@ -1,7 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import type { ReactNode } from "react";
+import {
+  ArrowLeft,
+  CalendarCheck,
+  CalendarDays,
+  Hospital,
+  ListTodo,
+  UserRound,
+  UsersRound,
+} from "lucide-react";
 import { z } from "zod";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { Botao } from "@/components/ui/botao";
@@ -9,6 +18,8 @@ import { Cartao } from "@/components/ui/cartao";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
 import { TabelaLista } from "@/components/ui/tabela-lista";
+import { TileIcone } from "@/components/ui/tile-icone";
+import type { Tom } from "@/components/ui/tons";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { obterRepositorios } from "@/lib/dados/fabrica";
 import type {
@@ -17,6 +28,7 @@ import type {
   PapelDesignacao,
 } from "@/lib/dados/tipos-operacao";
 import { formatarData, formatarDataHora } from "@/lib/formatacao";
+import { cn } from "@/lib/utils";
 import { hojeBrasilia } from "@/modules/crm/pipeline/idade-gestacional";
 import { ROTULO_ESTAGIO_P2 } from "@/modules/crm/pipeline/estagios";
 import {
@@ -26,6 +38,7 @@ import {
   ROTULO_STATUS_DESIGNACAO,
 } from "@/modules/operacao/comum/rotulos";
 import { fraseErroOperacao } from "@/modules/operacao/comum/mensagens";
+import { TituloSecao } from "@/modules/operacao/comum/titulo-secao";
 import { FormularioDesignar } from "@/modules/operacao/radar/componentes/designar";
 import {
   FormularioAlta,
@@ -38,29 +51,71 @@ export const metadata: Metadata = { title: "Alocação · Kraamzorg OS" };
 
 const VIVAS = new Set(["oferecida", "aceita"]);
 
+/**
+ * Um assunto da alocação (direção "Colo"): título com o tile do assunto e,
+ * embaixo, o bloco. Branco com sombra quando é trabalho a fazer (um
+ * formulário); no tom do assunto quando é leitura (as visitas marcadas).
+ */
 function Secao({
   id,
   titulo,
   texto,
+  icone,
+  tom,
+  variante = "padrao",
   children,
 }: {
   id: string;
   titulo: string;
   texto?: string;
-  children: React.ReactNode;
+  icone: ReactNode;
+  tom: Tom | "neutro";
+  variante?: "padrao" | "lavanda" | "plano";
+  children: ReactNode;
 }) {
   return (
-    <section aria-labelledby={id}>
-      <Cartao className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <h2 id={id} className="font-titulo text-2 text-texto font-medium">
-            {titulo}
-          </h2>
-          {texto ? <p className="text-apoio text-texto-2">{texto}</p> : null}
-        </div>
+    <section aria-labelledby={id} className="flex flex-col gap-3">
+      <TituloSecao
+        id={id}
+        icone={icone}
+        tom={tom}
+        titulo={titulo}
+        texto={texto}
+      />
+      <Cartao variante={variante} className="flex flex-col gap-4">
         {children}
       </Cartao>
     </section>
+  );
+}
+
+/** Uma das datas da família, num bloco pequeno: rótulo em cima, valor em mono. */
+function Data({
+  rotulo,
+  marca,
+  children,
+  vazia,
+}: {
+  rotulo: string;
+  marca?: "estimativa" | "fato";
+  children: ReactNode;
+  vazia?: boolean;
+}) {
+  return (
+    <div className="rounded-2 bg-superficie flex flex-col gap-1 px-3 py-2.5">
+      <dt className="text-mini text-texto-2">
+        {rotulo}
+        {marca ? <em className="ml-1">({marca})</em> : null}
+      </dt>
+      <dd
+        className={cn(
+          "text-dado font-mono",
+          vazia ? "text-texto-2" : "text-texto font-medium",
+        )}
+      >
+        {children}
+      </dd>
+    </div>
   );
 }
 
@@ -109,11 +164,22 @@ function BlocoPapel({
 }) {
   const doPapel = alocacao.designacoes.filter((d) => d.papel === papel);
   const viva = doPapel.find((d) => VIVAS.has(d.status));
+  // Com alguém vivo no papel, o bloco é das pessoas (argila); sem ninguém,
+  // é trabalho a fazer (branco com sombra, com o formulário da oferta).
   return (
-    <Cartao variante="plano" className="flex flex-col gap-4" data-papel={papel}>
-      <h3 className="font-titulo text-2 text-texto font-medium">
-        {ROTULO_PAPEL_DESIGNACAO[papel]}
-      </h3>
+    <Cartao
+      variante={viva ? "argila" : "padrao"}
+      className="flex flex-col gap-4"
+      data-papel={papel}
+    >
+      <div className="flex items-center gap-3">
+        <TileIcone tom="argila" tamanho="p">
+          {papel === "titular" ? <UserRound /> : <UsersRound />}
+        </TileIcone>
+        <h3 className="font-titulo text-2 text-texto font-medium">
+          {ROTULO_PAPEL_DESIGNACAO[papel]}
+        </h3>
+      </div>
       {doPapel.length > 0 ? (
         <ul className="flex flex-col gap-3">
           {doPapel.map((d) => (
@@ -199,7 +265,7 @@ export default async function PaginaAlocacao({
         subtitulo="Quem acompanha esta família, o nascimento e a alta."
         lateral={voltar}
       />
-      <div className="flex flex-col gap-6 pt-6">
+      <div className="flex flex-col gap-8 pt-6">
         {sensivel ? (
           <FaixaAlerta
             variante="sensivel"
@@ -219,9 +285,15 @@ export default async function PaginaAlocacao({
           </FaixaAlerta>
         ) : null}
 
-        <Cartao variante="plano" className="flex flex-col gap-3">
+        <section
+          aria-label={`Datas da ${f.nome}`}
+          className={cn(
+            "rounded-3 flex flex-col gap-4 p-5 lg:p-6",
+            sensivel ? "border-linha border" : "bg-areia-clara",
+          )}
+        >
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-titulo text-2 text-texto font-medium">
+            <h2 className="font-titulo text-1 text-texto font-medium">
               {f.nome}
             </h2>
             {f.estagioP2 ? (
@@ -229,54 +301,51 @@ export default async function PaginaAlocacao({
             ) : null}
             {f.gemelar ? <Selo variante="neutro">Gemelar</Selo> : null}
           </div>
-          <dl className="text-corpo grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
-            <dt className="text-texto-2">Idade gestacional</dt>
-            <dd className="text-texto font-mono">
+          <dl className="tablet:grid-cols-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
+            <Data rotulo="Idade gestacional" vazia={!f.ig}>
               {f.ig ?? "sem data provável"}
-            </dd>
-            <dt className="text-texto-2">
-              Data provável do parto (estimativa)
-            </dt>
-            <dd className="text-texto font-mono">
+            </Data>
+            <Data
+              rotulo="Data provável do parto"
+              marca="estimativa"
+              vazia={!f.dpp}
+            >
               {f.dpp ? (formatarData(f.dpp) ?? f.dpp) : "não informada"}
-            </dd>
-            <dt className="text-texto-2">Nascimento</dt>
-            <dd className="text-texto font-mono">
+            </Data>
+            <Data rotulo="Nascimento" vazia={!f.dataNascimento}>
               {f.dataNascimento
                 ? (formatarData(f.dataNascimento) ?? f.dataNascimento)
                 : "ainda não registrado"}
-            </dd>
-            <dt className="text-texto-2">Alta</dt>
-            <dd className="text-texto font-mono">
+            </Data>
+            <Data rotulo="Alta" vazia={!f.dataAlta}>
               {f.dataAlta
                 ? (formatarData(f.dataAlta) ?? f.dataAlta)
                 : "ainda não registrada"}
-            </dd>
-            <dt className="text-texto-2">Início do acompanhamento (D1)</dt>
-            <dd className="text-texto font-mono">
+            </Data>
+            <Data
+              rotulo="Início do acompanhamento (D1)"
+              vazia={!f.dataInicioEfetivo}
+            >
               {f.dataInicioEfetivo
                 ? (formatarData(f.dataInicioEfetivo) ?? f.dataInicioEfetivo)
                 : "depois da alta"}
-            </dd>
+            </Data>
             {f.janelaInicio && f.janelaFim ? (
-              <>
-                <dt className="text-texto-2">Janela do parto</dt>
-                <dd className="text-texto font-mono">
-                  {formatarData(f.janelaInicio) ?? f.janelaInicio} a{" "}
-                  {formatarData(f.janelaFim) ?? f.janelaFim}
-                </dd>
-              </>
+              <Data rotulo="Janela do parto">
+                {formatarData(f.janelaInicio)?.slice(0, 5) ?? f.janelaInicio} a{" "}
+                {formatarData(f.janelaFim) ?? f.janelaFim}
+              </Data>
             ) : null}
             {f.periodoPreferido.length > 0 ? (
-              <>
-                <dt className="text-texto-2">Período preferido</dt>
-                <dd className="text-texto">
+              <div className="rounded-2 bg-superficie flex flex-col gap-1 px-3 py-2.5">
+                <dt className="text-mini text-texto-2">Período preferido</dt>
+                <dd className="text-corpo text-texto font-medium">
                   {f.periodoPreferido.map((p) => ROTULO_PERIODO[p]).join(", ")}
                 </dd>
-              </>
+              </div>
             ) : null}
           </dl>
-        </Cartao>
+        </section>
 
         {f.dataNascimento ? (
           <FaixaAlerta
@@ -299,10 +368,18 @@ export default async function PaginaAlocacao({
         ) : null}
 
         {alocacao.tarefas.length > 0 ? (
-          <Secao id="pendencias" titulo="O que está pendente">
+          <Secao
+            id="pendencias"
+            titulo="O que está pendente"
+            icone={<ListTodo />}
+            tom="areia"
+          >
             <ul className="flex flex-col gap-2">
               {alocacao.tarefas.map((t, i) => (
-                <li key={`${t.tipo}-${i}`} className="text-corpo text-texto">
+                <li
+                  key={`${t.tipo}-${i}`}
+                  className="text-corpo text-texto rounded-2 bg-areia-clara px-4 py-3"
+                >
                   {t.titulo}
                 </li>
               ))}
@@ -311,12 +388,15 @@ export default async function PaginaAlocacao({
         ) : null}
 
         {!sensivel && !semContrato ? (
-          <Secao
-            id="designacao"
-            titulo="Titular e backup"
-            texto="A oferta dá à enfermeira o prazo configurado para responder. Se a titular recusar, o backup assume e a coordenação é avisada."
-          >
-            <div className="tablet:grid-cols-2 grid grid-cols-1 gap-4">
+          <section aria-labelledby="designacao" className="flex flex-col gap-3">
+            <TituloSecao
+              id="designacao"
+              icone={<UsersRound />}
+              tom="argila"
+              titulo="Titular e backup"
+              texto="A oferta dá à enfermeira o prazo configurado para responder. Se a titular recusar, o backup assume e a coordenação é avisada."
+            />
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:items-start">
               <BlocoPapel
                 papel="titular"
                 familiaId={familiaId}
@@ -328,13 +408,15 @@ export default async function PaginaAlocacao({
                 alocacao={alocacao}
               />
             </div>
-          </Secao>
+          </section>
         ) : null}
 
         {!semContrato && !sensivel && !f.dataNascimento ? (
           <Secao
             id="nascimento"
             titulo="Registrar o nascimento"
+            icone={<CalendarCheck />}
+            tom="dourado"
             texto="Depois do registro, a agenda é recalculada e a operação é avisada. A data provável do parto continua guardada como estimativa."
           >
             <FormularioNascimento
@@ -350,6 +432,8 @@ export default async function PaginaAlocacao({
             <Secao
               id="previsao-alta"
               titulo="Previsão de alta"
+              icone={<CalendarDays />}
+              tom="lavanda"
               texto="Ajuda a operação a se preparar. Não gera visitas."
             >
               <FormularioPrevisaoAlta
@@ -361,6 +445,8 @@ export default async function PaginaAlocacao({
             <Secao
               id="alta"
               titulo="Registrar a alta"
+              icone={<Hospital />}
+              tom="dourado"
               texto="A alta ativa o acompanhamento, marca as visitas de D1 até o último dia do pacote, cria a tarefa do guia e avisa a profissional."
             >
               <FormularioAlta
@@ -378,6 +464,9 @@ export default async function PaginaAlocacao({
           <Secao
             id="visitas"
             titulo={`Visitas de D1 a D${a.dias}`}
+            icone={<CalendarDays />}
+            tom="lavanda"
+            variante="lavanda"
             texto={`${a.visitas} visitas${a.periodo ? `, todas de ${ROTULO_PERIODO[a.periodo].toLowerCase()}` : ""}.`}
           >
             <TabelaLista

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ArrowLeft, CircleAlert, WifiOff } from "lucide-react";
+import { ArrowLeft, Check, CircleAlert, WifiOff } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
 import type { TextosFormulario } from "@/lib/dados/tipos-venda";
 import { cn } from "@/lib/utils";
@@ -317,9 +317,22 @@ export function FormularioContrato({
     return (
       <section
         aria-labelledby="formulario-fim"
-        className="flex flex-col gap-4"
+        className={cn(
+          "flex flex-col gap-4",
+          fase.tipo === "recebido"
+            ? "rounded-colo bg-salvia-clara px-5 pt-6 pb-12"
+            : "rounded-3 bg-superficie border-linha border p-5",
+        )}
         data-fase={fase.tipo}
       >
+        {fase.tipo === "recebido" ? (
+          <span
+            aria-hidden="true"
+            className="rounded-pilula bg-salvia-media inline-flex size-12 items-center justify-center"
+          >
+            <Check className="size-6" strokeWidth={2} />
+          </span>
+        ) : null}
         <h1
           id="formulario-fim"
           ref={tituloFinal}
@@ -401,9 +414,21 @@ export function FormularioContrato({
   );
 
   return (
-    <div className="flex flex-col gap-8">
-      <header className="flex flex-col gap-3">
-        <h1 className="font-titulo text-1 text-texto font-normal">
+    <div className="flex flex-col gap-6">
+      <header
+        className={cn(
+          "flex flex-col gap-3",
+          indice === 0
+            ? "rounded-colo bg-dourado-claro px-5 pt-6 pb-12"
+            : "px-1",
+        )}
+      >
+        <h1
+          className={cn(
+            "font-titulo text-texto font-normal",
+            indice === 0 ? "text-display" : "text-1",
+          )}
+        >
           {abertura.primeira || FORMULARIO_SEM_TEXTOS}
         </h1>
         {indice === 0 && abertura.resto ? (
@@ -419,7 +444,7 @@ export function FormularioContrato({
       <form
         noValidate
         aria-labelledby="formulario-etapa"
-        className="flex flex-col gap-6"
+        className="rounded-3 bg-superficie shadow-1 flex flex-col gap-6 p-5"
         onSubmit={(evento) => {
           evento.preventDefault();
           if (enviando) return;
@@ -692,7 +717,7 @@ function AvisoFormulario({ aviso }: { aviso: Aviso }) {
   return (
     <div
       role="alert"
-      className="rounded-2 border-linha bg-superficie flex items-start gap-3 border p-4"
+      className="rounded-2 border-linha bg-fundo flex items-start gap-3 border p-4"
     >
       <Icone
         className={cn(
