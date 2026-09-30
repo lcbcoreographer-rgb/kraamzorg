@@ -7,6 +7,19 @@ const obterSessao = vi.hoisted(() =>
 );
 vi.mock("@/lib/auth/sessao", () => ({ obterSessao }));
 
+// O portal (P38) que o repositório real da visita usa. O banco de verdade é
+// coberto por supabase/tests/022_agenda_portal.sql; aqui só a rota.
+const portalFalso = vi.hoisted(() => ({
+  estadoDaVisita: vi.fn(),
+  registrarChegadaSincronizada: vi.fn(),
+  registrarSaidaSincronizada: vi.fn(),
+  resultadoProcessado: vi.fn(),
+  guardarProcessado: vi.fn(),
+}));
+vi.mock("@/lib/dados/fabrica", () => ({
+  obterRepositorios: async () => ({ portal: portalFalso }),
+}));
+
 import { POST } from "./route";
 
 function sessao(extra: Partial<SessaoUsuario> = {}): SessaoUsuario {
@@ -34,7 +47,7 @@ function item(sobrescreve: Record<string, unknown> = {}) {
   return {
     id: "11111111-1111-4111-8111-111111111111",
     usuarioId: "usuario-1",
-    entidade: "visita",
+    entidade: "consulta_prenatal",
     entidadeId: null,
     campo: null,
     payload: { observacoes: "primeira visita" },
@@ -182,34 +195,85 @@ describe("POST /api/sync, sessão do CRM (P07)", () => {
   });
 });
 
-describe("POST /api/sync em produção (repositório ainda em memória)", () => {
+describe("POST /api/sync em produção (P38: só a visita tem repositório real)", () => {
+  const visitaId = "77777777-7777-4777-8777-777777777777";
+
+  beforeEach(() => {
+    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "producao");
+    vi.stubEnv("VERCEL_ENV", "");
+    obterSessao.mockResolvedValue(sessao());
+    portalFalso.resultadoProcessado.mockResolvedValue(null);
+    portalFalso.estadoDaVisita.mockResolvedValue({
+      visitaId,
+      versao: 3,
+      estado: "confirmada",
+      checkinEm: null,
+      checkoutEm: null,
+    });
+    portalFalso.registrarChegadaSincronizada.mockResolvedValue({ versao: 4 });
+    portalFalso.guardarProcessado.mockResolvedValue(undefined);
+  });
+
   afterEach(() => {
     vi.unstubAllEnvs();
     obterSessao.mockReset();
+    Object.values(portalFalso).forEach((f) => f.mockReset());
   });
 
-  it("não lê a sessão em produção", async () => {
-    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "producao");
-    await POST(requisicao({ itens: [item()] }));
-    expect(obterSessao).not.toHaveBeenCalled();
-  });
-
-  it("responde 404 com NEXT_PUBLIC_APP_ENV de produção", async () => {
-    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "producao");
+  it("exige sessão também em produção", async () => {
+    obterSessao.mockResolvedValue(null);
     const resposta = await POST(requisicao({ itens: [item()] }));
-    expect(resposta.status).toBe(404);
+    expect(resposta.status).toBe(401);
   });
 
-  it("responde 404 sem NEXT_PUBLIC_APP_ENV definido (recusa por omissão)", async () => {
-    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "");
+  it("recusa, no próprio item, entidade que ainda não tem repositório real", async () => {
     const resposta = await POST(requisicao({ itens: [item()] }));
-    expect(resposta.status).toBe(404);
+    expect(resposta.status).toBe(200);
+    const corpo = (await resposta.json()) as RespostaSincronizacao;
+    expect(corpo.resultados[0]?.status).toBe("erro");
   });
 
-  it("responde 404 num deploy de produção do Vercel, mesmo com o ambiente liberado", async () => {
-    vi.stubEnv("NEXT_PUBLIC_APP_ENV", "homologacao");
-    vi.stubEnv("VERCEL_ENV", "production");
-    const resposta = await POST(requisicao({ itens: [item()] }));
-    expect(resposta.status).toBe(404);
+  it("a chegada da visita sobe pelas funções do banco, com a sessão da enfermeira", async () => {
+    const chegada = item({
+      id: "88888888-8888-4888-8888-888888888888",
+      entidade: "visita",
+      entidadeId: visitaId,
+      campo: "checkin_em",
+      payload: "2026-09-29T12:05:00.000Z",
+      versaoBase: 3,
+    });
+    const resposta = await POST(requisicao({ itens: [chegada] }));
+    expect(resposta.status).toBe(200);
+    const corpo = (await resposta.json()) as RespostaSincronizacao;
+    expect(corpo.resultados[0]).toMatchObject({
+      id: chegada.id,
+      status: "processado",
+    });
+    expect(portalFalso.registrarChegadaSincronizada).toHaveBeenCalledWith(
+      visitaId,
+      "2026-09-29T12:05:00.000Z",
+    );
+    expect(portalFalso.guardarProcessado).toHaveBeenCalledTimes(1);
+  });
+
+  it("o mesmo item reenviado não grava de novo", async () => {
+    const id = "99999999-9999-4999-8999-999999999999";
+    portalFalso.resultadoProcessado.mockResolvedValue({
+      id,
+      status: "processado",
+      versao: 4,
+    });
+    const reenviado = item({
+      id,
+      entidade: "visita",
+      entidadeId: visitaId,
+      campo: "checkin_em",
+      payload: "2026-09-29T12:05:00.000Z",
+      versaoBase: 3,
+    });
+    const resposta = await POST(requisicao({ itens: [reenviado] }));
+    const corpo = (await resposta.json()) as RespostaSincronizacao;
+    expect(corpo.resultados[0]).toMatchObject({ id, status: "processado" });
+    expect(portalFalso.registrarChegadaSincronizada).not.toHaveBeenCalled();
   });
 });

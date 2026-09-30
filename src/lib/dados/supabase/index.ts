@@ -8,6 +8,10 @@ import { criarContratoSupabase } from "./contrato";
 import { criarFamiliasSupabase } from "./familias";
 import { criarFichaSupabase } from "./ficha";
 import { criarOperacaoSupabase } from "./operacao";
+import { criarEquipeSupabase } from "./equipe";
+import { criarFamiliasSupabase } from "./familias";
+import { criarFichaSupabase } from "./ficha";
+import { criarPortalSupabase } from "./portal";
 import { criarTarefasSupabase } from "./tarefas";
 import { criarUsuariosSupabase } from "./usuarios";
 import { criarVendaSupabase } from "./venda";
@@ -29,5 +33,7 @@ export function criarRepositoriosSupabase(
     contratos: criarContratoSupabase(contexto),
     cobrancas: criarCobrancaSupabase(contexto),
     operacao: criarOperacaoSupabase(contexto),
+    equipe: criarEquipeSupabase(contexto),
+    portal: criarPortalSupabase(contexto),
   };
 }

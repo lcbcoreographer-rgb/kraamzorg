@@ -972,7 +972,12 @@ select set_eq(
             ('api.prenatal_abrir'), ('api.prenatal_salvar_campo'), ('api.prenatal_concluir'),
             ('api.alocacao_familia'), ('api.oferecer_designacao'), ('api.atribuir_designacao'),
             ('api.minhas_ofertas'), ('api.responder_designacao'), ('api.radar_nascimentos'),
-            ('api.registrar_nascimento'), ('api.registrar_previsao_alta'), ('api.registrar_alta') $$,
+            ('api.registrar_nascimento'), ('api.registrar_previsao_alta'), ('api.registrar_alta'),
+            ('api.equipe'), ('api.escala_semanal'), ('api.agenda'), ('api.reagendar_visita'),
+            ('api.reagendar_cascata'), ('api.salvar_profissional'), ('api.salvar_documento_profissional'),
+            ('api.salvar_bloqueio_agenda'), ('api.remover_bloqueio_agenda'), ('api.portal_hoje'),
+            ('api.portal_familias'), ('api.portal_perfil'), ('api.registrar_chegada'), ('api.registrar_saida'),
+            ('api.sincronizacao_item'), ('api.sincronizacao_registrar') $$,
   'authenticated executa exatamente a lista do ADR 0002 seção 6');
 
 select is_empty(

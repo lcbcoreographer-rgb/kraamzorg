@@ -27,6 +27,9 @@ const PUBLICAS = [
   // Página de retorno do link de pagamento da InfinitePay (P32): a família
   // volta para cá depois de pagar; não mostra dado de ninguém.
   "/pagamento",
+  // Casco do portal da enfermeira sem sinal (P38): página sem dado nenhum,
+  // que o service worker guarda para abrir quando não há conexão.
+  "/portal-offline",
 ];
 
 /** Exigem sessão, mas não o AAL2 nem papel (o caminho até o MFA). */

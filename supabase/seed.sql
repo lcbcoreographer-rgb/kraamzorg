@@ -362,7 +362,21 @@ insert into parametro (chave, valor, descricao) values
   ('contrato_kraamzorg', '{"signatario_nome": "Representante Kraamzorg de Teste", "signatario_email": "assinatura.kraamzorg@exemplo.invalid", "razao_social": "Kraamzorg Brasil", "documento": "CNPJ a confirmar no cadastro da empresa", "endereco": "Endereço a confirmar no cadastro da empresa"}',
    'P31 item 2: quem assina pela Kraamzorg na Autentique e os dados da contratada que o contrato imprime. Fictício no seed; a diretoria preenche com os dados reais [confirmar: Leonardo].'),
   ('cobranca', '{"vencimento_dias": 3, "descricao_item": "Cuidado domiciliar pós-parto", "prenatal_urgente_semanas": 34, "comprovante_max_bytes": 3145728}',
-   'P32: dias até o vencimento da cobrança depois da assinatura, descrição do item enviada à InfinitePay (C-16: cuidado domiciliar pós-parto), semanas a partir das quais o pagamento confirmado vira pré-natal urgente (PRD 7.2) e tamanho máximo do comprovante da baixa manual, em bytes [confirmar: Leonardo, vencimento].')
+   'P32: dias até o vencimento da cobrança depois da assinatura, descrição do item enviada à InfinitePay (C-16: cuidado domiciliar pós-parto), semanas a partir das quais o pagamento confirmado vira pré-natal urgente (PRD 7.2) e tamanho máximo do comprovante da baixa manual, em bytes [confirmar: Leonardo, vencimento].');
+
+
+-- --- P37 e P38 (0022_agenda_portal): agenda, equipe e portal da enfermeira ---
+insert into parametro (chave, valor, descricao) values
+  ('agenda_visitas_por_dia', '2',
+   'P37, PRD 3.4: máximo de visitas por profissional por dia. A agenda avisa antes de salvar o que passar disso.'),
+  ('periodos_visita',
+   '{"manha":{"inicio":"05:00","fim":"12:00"},"tarde":{"inicio":"12:00","fim":"20:00"}}',
+   'P37, PRD 3.4: faixas de hora que separam manhã e tarde. Visita sem hora usa o período do acompanhamento; conflito de "período diferente do D1" e de sobreposição saem daqui [confirmar: Edilaine, horários].'),
+  ('visita_registro_horario', '{"tolerancia_futuro_minutos":5,"max_atraso_horas":48}',
+   'P38, PRD 15: a hora de chegada e de saída vem do aparelho quando não há sinal. Aceita até tantos minutos à frente do relógio do servidor (diferença entre relógios) e até tantas horas de atraso do envio [confirmar: Edilaine, prazo].'),
+  ('documento_profissional_tipos',
+   '["Carteira do conselho","Contrato de prestação de serviço","Comprovante de vacinação"]',
+   'P37, PRD 6.5 O-02: sugestões de tipo no cadastro de documentos com validade da profissional. Lista provisória, o campo aceita outro tipo [confirmar: Edilaine, lista].')
 on conflict (chave) do update set valor = excluded.valor, descricao = excluded.descricao;
 
 
@@ -887,7 +901,7 @@ insert into automacao (id, nome, categoria, executor, gatilho, condicoes, acoes,
   ('documento_vencendo', 'Documento vencendo', 'interna', 'sistema',
    '{"tipo":"dias_do_vencimento","dias":30}', '[]',
    '[{"tipo":"notificar","destino":"coordenacao"}]',
-   false, 'PRD 10.1, O-02: gestão de equipe e documentos, Fase 2.'),
+   true, 'PRD 10.1, O-02: gestão de equipe e documentos. Ligada no P37 (0022): a etapa documentos_vencendo do recálculo diário agenda a execução 30 dias antes da validade.'),
   ('sobrevenda', 'Sobrevenda', 'interna', 'sistema',
    '{"tipo":"recalculo_diario_acima_limite"}', '[]',
    '[{"tipo":"alerta_diretoria"}]',

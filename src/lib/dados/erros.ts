@@ -81,3 +81,14 @@ export function codigoOperacao(erro: unknown): string | null {
   const achado = /operacao:([a-z_0-9]+)/.exec(mensagem);
   return achado?.[1] ?? null;
 }
+
+/**
+ * Código da recusa de negócio das funções da agenda, da equipe e do portal
+ * (0022_agenda_portal.sql): o banco manda "equipe:<código> <detalhe>" na
+ * mensagem. null quando o erro não é desse tipo.
+ */
+export function codigoEquipe(erro: unknown): string | null {
+  const mensagem = erro instanceof Error ? erro.message : String(erro ?? "");
+  const achado = /equipe:([a-z_0-9]+)/.exec(mensagem);
+  return achado?.[1] ?? null;
+}

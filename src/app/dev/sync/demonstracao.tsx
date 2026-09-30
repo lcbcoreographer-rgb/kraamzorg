@@ -21,9 +21,11 @@ import {
 import { encerrarSessaoOffline, limparCacheDoDia } from "@/lib/sync/cache";
 import type { Entidade, EstadoItemFila, ItemFila } from "@/lib/sync/tipos";
 
+// A visita sobe de verdade pelas funções do banco (chegada e saída, P38):
+// a demonstração escolhe outra entidade por padrão, que usa a memória.
 const ENTIDADES: Entidade[] = [
-  "visita",
   "consulta_prenatal",
+  "visita",
   "anexo_audio",
   "alerta_clinico",
   "registro_atendimento",
@@ -75,7 +77,8 @@ export function DemonstracaoSync({ usuarioId }: { usuarioId: string }) {
   );
   const [online, definirOnline] = React.useState(true);
 
-  const [entidade, definirEntidade] = React.useState<Entidade>("visita");
+  const [entidade, definirEntidade] =
+    React.useState<Entidade>("consulta_prenatal");
   const [entidadeId, definirEntidadeId] = React.useState("");
   const [campo, definirCampo] = React.useState("observacoes");
   const [valor, definirValor] = React.useState("");

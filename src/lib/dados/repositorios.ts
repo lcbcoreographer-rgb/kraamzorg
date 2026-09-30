@@ -28,6 +28,31 @@ import type {
   UsuarioSistema,
 } from "./tipos";
 import type {
+  AgendaPeriodo,
+  EquipeVisao,
+  EscalaSemana,
+  EstadoVisitaSync,
+  FamiliaPortal,
+  FichaAssistencialPortal,
+  FiltroAgenda,
+  FiltroEquipe,
+  FiltroEscala,
+  PedidoBloqueio,
+  PedidoCascata,
+  PedidoDocumento,
+  PedidoProfissional,
+  PedidoReagendarVisita,
+  PerfilPortal,
+  PortalHoje,
+  ResultadoBloqueio,
+  ResultadoCascata,
+  ResultadoReagendarVisita,
+} from "./tipos-equipe";
+import type {
+  ItemSincronizacaoEntrada,
+  ResultadoItemSincronizacao,
+} from "@/lib/sync/tipos";
+import type {
   AberturaFormulario,
   Condutor,
   DadosFormularioContrato,
@@ -276,6 +301,68 @@ export interface OperacaoRepositorio {
   registrarAlta(pedido: PedidoAlta): Promise<ResultadoAlta>;
 }
 
+/**
+ * Equipe, agenda e escalas (P37). Toda leitura e escrita vai pelas funções
+ * do schema api da 0022_agenda_portal.sql (coordenação e diretoria, AAL2).
+ * O estado da profissional é sempre calculado pelo banco, nunca gravado.
+ * Recusa de negócio vira ErroRepositorio "recusado" com "equipe:<código>"
+ * no detalhe (codigoEquipe em erros.ts).
+ */
+export interface EquipeRepositorio {
+  /** Profissionais com o estado do dia e da semana, famílias, documentos e bloqueios. */
+  obterEquipe(filtro?: FiltroEquipe): Promise<EquipeVisao>;
+  /** Sete dias por dois turnos por profissional. */
+  obterEscala(filtro?: FiltroEscala): Promise<EscalaSemana>;
+  obterAgenda(filtro: FiltroAgenda): Promise<AgendaPeriodo>;
+  /** Com `simular`, só devolve os conflitos (a tela mostra antes de salvar). */
+  reagendarVisita(
+    pedido: PedidoReagendarVisita,
+  ): Promise<ResultadoReagendarVisita>;
+  reagendarCascata(pedido: PedidoCascata): Promise<ResultadoCascata>;
+  salvarProfissional(
+    pedido: PedidoProfissional,
+  ): Promise<{ id: string; nova: boolean }>;
+  salvarDocumento(pedido: PedidoDocumento): Promise<{ id: string }>;
+  salvarBloqueio(pedido: PedidoBloqueio): Promise<ResultadoBloqueio>;
+  removerBloqueio(bloqueioId: string): Promise<void>;
+}
+
+/**
+ * Portal da enfermeira (P38): só as famílias atribuídas, sem dado comercial,
+ * lidas por funções que gravam a leitura no log. Chegada e saída sobem pelo
+ * motor offline do P12 (POST /api/sync): os métodos `sync*` e
+ * `registrar*Sincronizada` são a porta que o servidor de sincronização usa,
+ * com a sessão da própria enfermeira.
+ */
+export interface PortalRepositorio {
+  obterHoje(dia?: string | null): Promise<PortalHoje>;
+  listarFamilias(): Promise<FamiliaPortal[]>;
+  /** null quando a família não está atribuída à enfermeira. */
+  obterFichaAssistencial(
+    familiaId: string,
+  ): Promise<FichaAssistencialPortal | null>;
+  obterPerfil(): Promise<PerfilPortal>;
+
+  /** Estado da visita para o protocolo de sincronização (versão e horas). */
+  estadoDaVisita(visitaId: string): Promise<EstadoVisitaSync | null>;
+  registrarChegadaSincronizada(
+    visitaId: string,
+    quando: string,
+  ): Promise<{ versao: number }>;
+  registrarSaidaSincronizada(
+    visitaId: string,
+    quando: string,
+  ): Promise<{ versao: number }>;
+  /** Idempotência do item da fila do aparelho (fila_sincronizacao). */
+  resultadoProcessado(
+    itemId: string,
+  ): Promise<ResultadoItemSincronizacao | null>;
+  guardarProcessado(
+    item: ItemSincronizacaoEntrada,
+    resultado: ResultadoItemSincronizacao,
+  ): Promise<void>;
+}
+
 export interface Repositorios {
   familias: FamiliasRepositorio;
   ficha: FichaRepositorio;
@@ -287,6 +374,8 @@ export interface Repositorios {
   contratos: ContratoRepositorio;
   cobrancas: CobrancaRepositorio;
   operacao: OperacaoRepositorio;
+  equipe: EquipeRepositorio;
+  portal: PortalRepositorio;
 }
 
 /**

@@ -66,15 +66,30 @@ async function processarItem(
 
   let resultado: ResultadoItemSincronizacao;
 
-  if (item.entidade === ENTIDADE_ASSISTENCIAL_APPEND_ONLY) {
-    resultado = await processarAssistencialAppendOnly(item, repo);
-  } else if (entidadeEVersionada(item.entidade)) {
-    resultado = await processarVersionada(item, repo);
-  } else {
-    resultado = {
+  try {
+    if (item.entidade === ENTIDADE_ASSISTENCIAL_APPEND_ONLY) {
+      resultado = await processarAssistencialAppendOnly(item, repo);
+    } else if (entidadeEVersionada(item.entidade)) {
+      resultado = await processarVersionada(item, repo);
+    } else {
+      resultado = {
+        id: item.id,
+        status: "erro",
+        erro: `entidade não sincronizável: ${item.entidade}`,
+      };
+    }
+  } catch (erro) {
+    // Recusa do banco (ex.: a chegada é de outro dia) ou queda do
+    // repositório: vira "erro" só deste item. Se subisse, derrubaria o lote
+    // inteiro e os itens válidos atrás dele ficariam presos no aparelho.
+    // Não é guardado como processado: o aparelho tenta de novo (PRD 15).
+    return {
       id: item.id,
       status: "erro",
-      erro: `entidade não sincronizável: ${item.entidade}`,
+      erro:
+        erro instanceof Error
+          ? erro.message
+          : "não foi possível aplicar o item",
     };
   }
 

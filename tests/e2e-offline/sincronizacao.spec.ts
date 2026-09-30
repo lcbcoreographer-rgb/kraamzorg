@@ -32,7 +32,7 @@ test.describe("motor offline (rede desligada)", () => {
     await context.setOffline(true);
 
     // Primeiro campo, salvo sem rede.
-    await page.selectOption("#campo-entidade", "visita");
+    await page.selectOption("#campo-entidade", "consulta_prenatal");
     await page.fill("#campo-nome-campo", "observacoes");
     await page.fill("#campo-valor", "Sem febre, mamada tranquila");
     await page.getByTestId("botao-salvar-campo").click();
@@ -125,7 +125,7 @@ test.describe("motor offline (rede desligada)", () => {
 
     // Cria a visita sem sinal e sobe, para ter um registro no servidor.
     await context.setOffline(true);
-    await page.selectOption("#campo-entidade", "visita");
+    await page.selectOption("#campo-entidade", "consulta_prenatal");
     await page.fill("#campo-nome-campo", "observacoes");
     await page.fill("#campo-valor", "Primeira anotação");
     await page.getByTestId("botao-salvar-campo").click();

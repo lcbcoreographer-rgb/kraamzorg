@@ -28,7 +28,8 @@ type CamposComuns =
   | "inputMode"
   | "pattern"
   | "spellCheck"
-  | "autoCapitalize";
+  | "autoCapitalize"
+  | "list";
 
 export interface CampoTextoProps extends Pick<
   React.InputHTMLAttributes<HTMLInputElement>,

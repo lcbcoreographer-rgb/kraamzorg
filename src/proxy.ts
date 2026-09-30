@@ -25,6 +25,8 @@ export const config = {
     // extensão (.png, .svg): com ela, /familias/qualquer.png abria a rota
     // dinâmica /familias/[id] sem passar pelo proxy. Arquivo novo em
     // public/ que precise abrir sem sessão entra aqui pelo caminho exato.
-    "/((?!_next/|__nextjs|favicon\\.ico$|brand/|api/).*)",
+    // O app instalável da enfermeira (P38) abre sem sessão o manifesto, o
+    // service worker e os ícones, que não têm dado nenhum.
+    "/((?!_next/|__nextjs|favicon\\.ico$|sw\\.js$|manifest\\.webmanifest$|icones/|brand/|api/).*)",
   ],
 };

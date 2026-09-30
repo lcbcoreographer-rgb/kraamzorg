@@ -10,6 +10,22 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Service worker do app instalável da enfermeira (P38): nunca fica
+        // em cache do navegador, para a versão nova valer na próxima abertura.
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+          { key: "Service-Worker-Allowed", value: "/" },
+          {
+            key: "Content-Type",
+            value: "application/javascript; charset=utf-8",
+          },
+        ],
+      },
+      {
         // Formulário seguro do contrato (P30): o token de uso único está no
         // caminho. Sem Referer, o link nunca vaza para o script do
         // Turnstile nem para outro site; sem cache e sem indexação.
