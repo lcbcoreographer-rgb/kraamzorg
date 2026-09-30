@@ -9,6 +9,7 @@ import {
   baixarCobranca,
   cobrancaDoPedido,
   emitirNotaAutomatica,
+  registrarSaudeWebhook,
   type ClienteRpc,
 } from "@/lib/integracoes/servico-webhooks";
 
@@ -67,10 +68,12 @@ export async function POST(request: Request): Promise<Response> {
 
   const corpo: unknown = await request.json().catch(() => null);
 
+  let saude: ClienteRpc | null = null;
   try {
     const supabase = criarClienteServico(
       "webhook_infinitepay",
     ) as unknown as ClienteRpc;
+    saude = supabase;
     let orderNsu = "";
     const resultado = await processarWebhookInfinitePay(
       { corpo },
@@ -107,11 +110,16 @@ export async function POST(request: Request): Promise<Response> {
       },
     );
 
+    // Saúde (P14): só a chamada processada de verdade conta como acerto.
+    if (resultado.status === 200) {
+      await registrarSaudeWebhook(supabase, "infinitepay", true);
+    }
     return Response.json(
       { ok: resultado.mudouEstado },
       { status: resultado.status },
     );
   } catch {
+    if (saude) await registrarSaudeWebhook(saude, "infinitepay", false);
     return Response.json({ ok: false }, { status: 500 });
   }
 }

@@ -13,6 +13,7 @@ import {
   ROTULO_FUNCAO,
   ROTULO_SITUACAO_DOCUMENTO,
 } from "@/modules/operacao/equipe/textos";
+import { AvisosNoAparelho } from "@/modules/operacao/instalacao/avisos-no-aparelho";
 import { BotaoSairPortal } from "@/modules/operacao/portal/componentes/botao-sair-portal";
 import { IndicadorPortal } from "@/modules/operacao/portal/componentes/indicador-portal";
 import { diaEmFrase } from "@/modules/operacao/portal/textos";
@@ -202,11 +203,16 @@ export default async function PaginaPerfil() {
 
         <Secao id="p-app" titulo="Usar como aplicativo">
           <p className="text-corpo text-texto-2">
-            No celular, abra o menu do navegador e escolha Adicionar à tela
-            inicial. O aplicativo abre o Hoje mesmo sem sinal e guarda o que
-            você registrar até a conexão voltar.
+            Instalado, o aplicativo abre o Hoje mesmo sem sinal e guarda o que
+            você registrar até a conexão voltar. O passo a passo é curto e muda
+            conforme o seu celular.
           </p>
+          <Botao asChild variante="secundario" className="self-start">
+            <Link href="/instalar">Ver como instalar</Link>
+          </Botao>
         </Secao>
+
+        <AvisosNoAparelho />
 
         <BotaoSairPortal />
       </div>

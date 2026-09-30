@@ -30,6 +30,7 @@ export default defineConfig({
       "tests/e2e-offline/**",
       "tests/e2e-equipe-portal/**",
       "tests/e2e-evolucao-ocorrencia-nf/**",
+      "tests/e2e-infra/**",
       // Roteiro de homologação da Isadora (P28): é do Playwright
       // (pnpm e2e:homologacao). A parte de Vitest fica em tests/agente/local.
       "tests/agente/roteiro.spec.ts",

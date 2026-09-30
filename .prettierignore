@@ -9,6 +9,8 @@ playwright-report-equipe-portal/
 test-results-equipe-portal/
 playwright-report-evolucao-ocorrencia-nf/
 test-results-evolucao-ocorrencia-nf/
+playwright-report-infra/
+test-results-infra/
 coverage/
 n8n/dist/
 supabase/.temp/

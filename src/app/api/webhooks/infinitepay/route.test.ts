@@ -78,7 +78,16 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const funcoes = () => estado.chamadas.map((c) => c.funcao);
+// A saúde do webhook (P14) é observação, não parte do trabalho: fica fora da
+// lista do que o webhook faz no banco e tem asserção própria.
+const funcoes = () =>
+  estado.chamadas
+    .map((c) => c.funcao)
+    .filter((f) => f !== "saude_registrar_webhook");
+const saude = () =>
+  estado.chamadas
+    .filter((c) => c.funcao === "saude_registrar_webhook")
+    .map((c) => c.args);
 
 describe("webhook da InfinitePay", () => {
   it("corpo sem order_nsu: 400 e nada consultado", async () => {
@@ -128,6 +137,8 @@ describe("webhook da InfinitePay", () => {
     expect(r.status).toBe(200);
     expect(await r.json()).toEqual({ ok: true });
     expect(funcoes()).toEqual(["cobranca_do_pedido", "cobranca_baixar"]);
+    // só a chamada processada de verdade conta como acerto na saúde (P14)
+    expect(saude()).toEqual([{ p_origem: "infinitepay", p_ok: true }]);
     expect(estado.chamadas[1]?.args).toEqual({
       p_order_nsu: COBRANCA,
       p_valor_pago: 455000,

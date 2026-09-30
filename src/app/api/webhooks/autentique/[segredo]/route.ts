@@ -12,6 +12,7 @@ import {
   contratoDoDocumento,
   gerarLinksDoContrato,
   registrarAssinatura,
+  registrarSaudeWebhook,
   type ClienteRpc,
 } from "@/lib/integracoes/servico-webhooks";
 
@@ -49,10 +50,12 @@ export async function POST(
 
   const corpo: unknown = await request.json().catch(() => null);
 
+  let saude: ClienteRpc | null = null;
   try {
     const supabase = criarClienteServico(
       "webhook_autentique",
     ) as unknown as ClienteRpc;
+    saude = supabase;
     const armazenamento = criarArmazenamentoSupabase();
     let contratoId: string | null = null;
 
@@ -100,6 +103,11 @@ export async function POST(
       }
     }
 
+    // Saúde (P14): só a chamada válida conta como acerto; 401 de segredo
+    // errado não pode esconder um webhook parado.
+    if (resultado.status === 200) {
+      await registrarSaudeWebhook(supabase, "autentique", true);
+    }
     return Response.json(
       { ok: resultado.mudouEstado },
       { status: resultado.status },
@@ -107,6 +115,7 @@ export async function POST(
   } catch {
     // Sem detalhe na resposta nem no log: o erro pode citar dado do
     // contrato (CLAUDE.md, nada de dado pessoal em log).
+    if (saude) await registrarSaudeWebhook(saude, "autentique", false);
     return Response.json({ ok: false }, { status: 500 });
   }
 }

@@ -37,6 +37,7 @@ import { idEstavel } from './lib/id-estavel.mjs';
 import { carregarPromptSync, trocarVariaveisPorExpressoes, variaveisDoPrompt } from './lib/prompts.mjs';
 import { criarConstrutor, credencialDoConfig } from './lib/construtor.mjs';
 import { destinoUazapi, corpoEnvioTexto, corpoEnvioDocumento, CAMINHOS_UAZAPI } from './lib/uazapi.mjs';
+import { destinoCloudApi, CORPO_CLOUD_API } from './lib/cloud-api.mjs';
 import { URL_OPENAI_CHAT, corpoChatJson } from './lib/openai.mjs';
 import { ENTRADAS as ENTRADAS_FLUXO2 } from './fluxo-2-pausar-notificar.mjs';
 import { ENTRADAS as ENTRADAS_FLUXO4 } from './fluxo-4-agenda-isadora.mjs';
@@ -199,6 +200,9 @@ export const NOS = {
   aCada30Min: 'A Cada 30 Min',
   buscarFollowups: 'Buscar Follow-ups Devidos',
   separarFollowups: 'Separar Follow-ups',
+  consultarJanelaFollowup: 'Consultar Janela do Follow-up',
+  lerJanelaFollowup: 'Ler Janela do Follow-up',
+  dentroJanelaFollowup: 'Dentro da Janela?',
   montarPromptFollowup: 'Montar Prompt do Follow-up',
   gerarMensagem: 'Gerar Mensagem',
   validarFollowup: 'Validar',
@@ -206,7 +210,9 @@ export const NOS = {
   reconsultarEEnviar: 'Reconsultar e Enviar',
   lerReconsultaFollowup: 'Ler Reconsulta do Follow-up',
   podeEnviarFollowup: 'Pode Enviar Follow-up?',
+  viaModeloFollowup: 'Sai por Modelo Aprovado?',
   enviarFollowup: 'Enviar Follow-up',
+  enviarModeloFollowup: 'Enviar Modelo Aprovado (Cloud API)',
   conferirFollowup: 'Conferir Envio do Follow-up',
   fecharFollowup: 'Fechar Follow-up',
   registrarFollowup: 'Registrar Follow-up',
@@ -416,6 +422,7 @@ export function montarFluxo(config) {
   const destinoTexto = destinoUazapi(config, CAMINHOS_UAZAPI.texto);
   const destinoMidia = destinoUazapi(config, CAMINHOS_UAZAPI.midia);
   const destinoDownload = destinoUazapi(config, CAMINHOS_UAZAPI.download);
+  const destinoCloud = destinoCloudApi(config);
   const prefixo = config.redis.prefixo;
   const textos = config.textosSistema ?? {};
   const envio = config.envio ?? {};
@@ -1324,6 +1331,18 @@ export function montarFluxo(config) {
     [-1560, 2200],
     { modo: 'runOnceForAllItems' },
   );
+  // [P18b] Janela de 24 horas: a Cloud API só aceita texto livre dentro dela.
+  // Fora dela o primeiro retorno sai por modelo aprovado pela Meta, com o texto
+  // fixo do cadastro (`modelo_whatsapp`), sem modelo de linguagem e sem
+  // validador; sem modelo aprovado nada sai.
+  postgres(NOS.consultarJanelaFollowup, 'select agente.janela_followup($1) as resultado', ['$json.execucao_id'], [-1340, 2440]);
+  code(
+    NOS.lerJanelaFollowup,
+    'followup.js',
+    `return { json: lerJanelaFollowup($(${JSON.stringify(NOS.separarFollowups)}).item.json, $json) };`,
+    [-1120, 2440],
+  );
+  se(NOS.dentroJanelaFollowup, '$json.dentro_janela === true', [-900, 2440]);
   montarPrompt(NOS.montarPromptFollowup, 'prompt_followup', promptComExpressoes('isadora-followup.md', VARIAVEIS_PROMPT_FOLLOWUP), [-1340, 2200]);
   chatOpenAi(NOS.gerarMensagem, config.modelos.followup, '$json.prompt_followup', [-1120, 2200]);
   code(
@@ -1341,18 +1360,22 @@ export function montarFluxo(config) {
     [-240, 2100],
   );
   se(NOS.podeEnviarFollowup, '$json.pode_enviar === true', [-20, 2100]);
-  envioUazapi(NOS.enviarFollowup, destinoTexto, corpoEnvioTexto('$json.wa_jid', '$json.texto_followup'), [200, 2000]);
+  se(NOS.viaModeloFollowup, '$json.via_modelo === true', [200, 2100]);
+  envioUazapi(NOS.enviarFollowup, destinoTexto, corpoEnvioTexto('$json.wa_jid', '$json.texto_followup'), [420, 2000]);
+  envioUazapi(NOS.enviarModeloFollowup, destinoCloud, CORPO_CLOUD_API, [420, 2200]);
   code(
     NOS.conferirFollowup,
     'envio-sistema.js',
     `return { json: conferirEnvio($(${JSON.stringify(NOS.podeEnviarFollowup)}).item.json, $json) };`,
-    [420, 2000],
+    [640, 2000],
   );
   code(NOS.fecharFollowup, 'followup.js', 'return { json: fecharFollowup($json) };', [640, 2200]);
   postgres(
     NOS.registrarFollowup,
-    'select agente.registrar_followup($1, $2, $3) as resultado',
-    ['$json.execucao_id', '$json.texto_enviado', '$json.followup_ok'],
+    'select agente.registrar_followup($1, $2, $3, $4) as resultado',
+    // O wamid só vai quando o follow-up saiu pela Cloud API (P18b): é por ele
+    // que o webhook de status de entrega acha a mensagem.
+    ['$json.execucao_id', '$json.texto_enviado', '$json.followup_ok', '($json.via_modelo === true ? ($json.envio_message_id ?? null) : null)'],
     [860, 2200],
   );
   se(NOS.followupSaiu, `$(${JSON.stringify(NOS.fecharFollowup)}).item.json.followup_ok === true`, [1080, 2200]);
@@ -1642,7 +1665,14 @@ export function montarFluxo(config) {
 
   ligar(NOS.aCada30Min, NOS.buscarFollowups);
   ligar(NOS.buscarFollowups, NOS.separarFollowups);
-  ligar(NOS.separarFollowups, NOS.precisaAgendaFollowup);
+  // [P18b + v4.3] Primeiro a janela de 24 horas: fora dela o retorno sai pelo modelo
+  // aprovado (sem modelo de linguagem e sem consulta de agenda); dentro dela segue
+  // o caminho da cadência, com a consulta de agenda quando o banco pediu.
+  ligar(NOS.separarFollowups, NOS.consultarJanelaFollowup);
+  ligar(NOS.consultarJanelaFollowup, NOS.lerJanelaFollowup);
+  ligar(NOS.lerJanelaFollowup, NOS.dentroJanelaFollowup);
+  ligar(NOS.dentroJanelaFollowup, NOS.precisaAgendaFollowup, 0);
+  ligar(NOS.dentroJanelaFollowup, NOS.followupAprovado, 1);
   ligar(NOS.precisaAgendaFollowup, NOS.consultarAgendaFollowup, 0);
   ligar(NOS.precisaAgendaFollowup, NOS.montarPromptFollowup, 1);
   ligar(NOS.consultarAgendaFollowup, NOS.aplicarAgendaFollowup);
@@ -1656,9 +1686,12 @@ export function montarFluxo(config) {
   ligar(NOS.followupAprovado, NOS.fecharFollowup, 1);
   ligar(NOS.reconsultarEEnviar, NOS.lerReconsultaFollowup);
   ligar(NOS.lerReconsultaFollowup, NOS.podeEnviarFollowup);
-  ligar(NOS.podeEnviarFollowup, NOS.enviarFollowup, 0);
+  ligar(NOS.podeEnviarFollowup, NOS.viaModeloFollowup, 0);
   ligar(NOS.podeEnviarFollowup, NOS.fecharFollowup, 1);
+  ligar(NOS.viaModeloFollowup, NOS.enviarModeloFollowup, 0);
+  ligar(NOS.viaModeloFollowup, NOS.enviarFollowup, 1);
   ligar(NOS.enviarFollowup, NOS.conferirFollowup);
+  ligar(NOS.enviarModeloFollowup, NOS.conferirFollowup);
   ligar(NOS.conferirFollowup, NOS.fecharFollowup);
   ligar(NOS.fecharFollowup, NOS.registrarFollowup);
   ligar(NOS.registrarFollowup, NOS.followupSaiu);

@@ -13,3 +13,7 @@ O roteiro do Apêndice C do PRD (28 casos do treinamento v3, com nomes fictício
 O calendário de teste substitui o Google Calendar nos dois executores: em memória no simulador local (`n8n/src/lib/calendario-simulado.mjs`) e, no ambiente real, pela rota `/api/teste/uazapi/agenda` do app de homologação (`homologacao.agendaSimulada` no config do build). Nenhum evento nem e-mail de verdade nasce no roteiro; o teste cria e apaga eventos de outra pessoa para provar que a Isadora não os toca.
 
 Como rodar, o que cada caso confere e como ler o relatório: `docs/homologacao/isadora-MODELO.md`.
+
+## tests/e2e-infra: instalação, cabeçalhos de segurança e saúde (P11, P14)
+
+Roda no build de produção (`pnpm e2e:infra`, `playwright.infra.config.ts`), em celular (390 px) e computador: CSP com nonce novo por requisição e sem nenhuma violação nas telas principais, cabeçalhos fixos, `/api/saude`, a instalação guiada para cada aparelho (Android com Chrome, iPhone no Safari, iPhone em outro navegador, computador), o critério de instalável do Chrome (`Page.getInstallabilityErrors`), o armazenamento persistente depois do login da enfermeira e a inscrição de push. O segredo das rotas internas do teste é sorteado a cada execução.

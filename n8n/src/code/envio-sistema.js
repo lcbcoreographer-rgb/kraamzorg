@@ -41,13 +41,16 @@ export function lerPodeEnviar(estado, resposta) {
   });
 }
 
-// Depois de um envio pela UAZAPI.
+// Depois de um envio pela UAZAPI (`messageid`, `id`) ou pela Cloud API do
+// WhatsApp (`messages[0].id`, o wamid; P18b). Sem o id da Cloud API, a Meta
+// não confirmou o envio e ele não conta como saído.
 export function conferirEnvio(estado, resposta) {
-  const saiu = !falhouChamada(resposta);
+  const idCloudApi = Array.isArray(resposta?.messages) ? resposta.messages[0]?.id : undefined;
+  const saiu = !falhouChamada(resposta) && !(Array.isArray(resposta?.messages) && !idCloudApi);
   return comMarca({
     ...estado,
     envio_saiu: saiu,
-    envio_message_id: saiu ? textoLimpo(resposta.messageid ?? resposta.id ?? resposta.key?.id) || null : null,
+    envio_message_id: saiu ? textoLimpo(resposta.messageid ?? resposta.id ?? resposta.key?.id ?? idCloudApi) || null : null,
     envio_erro: saiu ? null : descreverErro(resposta),
   });
 }

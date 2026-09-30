@@ -44,6 +44,7 @@ describe("decidirAcesso: sem sessão", () => {
       "/formulario/um-token-qualquer",
       "/pagamento/recebido",
       "/pesquisa/um-token-qualquer",
+      "/instalar",
     ]) {
       expect(decidirAcesso(caminho, null)).toEqual(seguir);
     }

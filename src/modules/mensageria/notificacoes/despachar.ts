@@ -1,5 +1,6 @@
 import "server-only";
 import { criarMensageiro, type VerificadorFreio } from "@/lib/messaging";
+import { enviarPushParaUsuarios } from "../push/servidor";
 import { enviarEmail } from "./email";
 import type { CanalNotificacao, PreferenciasNotificacao } from "./tipos";
 
@@ -37,6 +38,8 @@ export interface PedidoDespacho {
    * sem preferências e sai por todos os canais pedidos.
    */
   preferencias?: PreferenciasNotificacao;
+  /** Quem recebe o aviso no celular (canal "push"): a pessoa da notificação. */
+  usuarioId?: string;
 }
 
 export interface ResultadoCanal {
@@ -49,9 +52,9 @@ export interface ResultadoCanal {
 /**
  * Despacha uma notificação pelos canais além de "app" (que já está
  * gravado na tabela `notificacao` por quem chamou esta rota, PRD 6.7).
- * "push" ainda não tem para onde mandar (inscrição do navegador é do P11):
- * aparece aqui como pendente, sem tentar nada, para a resposta da rota
- * mostrar exatamente o que falta.
+ * "push" (P11) manda o aviso genérico, sem nome nem conteúdo, para os
+ * aparelhos que a pessoa ligou (`../push/servidor.ts`); sem `usuarioId`, sem
+ * VAPID ou sem aparelho inscrito, aparece como não enviado, com o motivo.
  */
 export async function despacharNotificacao(
   pedido: PedidoDespacho,
@@ -70,12 +73,22 @@ export async function despacharNotificacao(
   };
 
   if (ligado("push")) {
-    resultados.push({
-      canal: "push",
-      destino: "-",
-      ok: false,
-      motivo: "Push ainda não está disponível (aguarda a inscrição do P11).",
-    });
+    if (!pedido.usuarioId) {
+      resultados.push({
+        canal: "push",
+        destino: "-",
+        ok: false,
+        motivo: "O aviso no celular precisa de uma pessoa como destino.",
+      });
+    } else {
+      const push = await enviarPushParaUsuarios([pedido.usuarioId]);
+      resultados.push({
+        canal: "push",
+        destino: "-",
+        ok: push.ok,
+        motivo: push.motivo,
+      });
+    }
   }
 
   if (ligado("whatsapp_interno")) {

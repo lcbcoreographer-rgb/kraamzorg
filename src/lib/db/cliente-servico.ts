@@ -43,6 +43,15 @@ import type { Database } from "./types";
  *   conferir papel e AAL2 do usuário. Quem abre o arquivo recebe URL
  *   assinada de 60 segundos.
  *
+ * - "webhook_whatsapp": a rota `/api/webhooks/whatsapp` grava o estado de
+ *   entrega (enviada, entregue, lida, falhou) que a Cloud API devolve
+ *   (P18b), só depois de conferir a assinatura X-Hub-Signature-256. Chama
+ *   só public.mensagem_registrar_status e public.saude_registrar_webhook.
+ * - "saude_sistema": a rota `/api/saude` lê datas e contagens do recálculo,
+ *   do cron, dos webhooks e das falhas por public.saude_sistema (P14).
+ * - "push_servidor": o envio de Web Push lê as inscrições dos aparelhos por
+ *   public.inscricoes_push e apaga as expiradas (P11).
+ *
  * Rotas de webhook e jobs futuros (P18) acrescentam o próprio motivo aqui
  * quando chegarem. O teste src/lib/db/cliente-servico.test.ts falha se um
  * arquivo fora da lista de autorizados importar este módulo.
@@ -54,7 +63,10 @@ export type MotivoClienteServico =
   | "webhook_infinitepay"
   | "formulario_contrato"
   | "pesquisa_publica"
-  | "armazenamento_privado";
+  | "armazenamento_privado"
+  | "webhook_whatsapp"
+  | "saude_sistema"
+  | "push_servidor";
 
 export function criarClienteServico(motivo: MotivoClienteServico) {
   const chave = process.env.SUPABASE_SERVICE_ROLE_KEY;

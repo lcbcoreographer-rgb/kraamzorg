@@ -14,7 +14,7 @@ export const runtime = "nodejs";
  * notificacoes/central.ts`). Esta rota só cuida dos canais que só o
  * servidor do app alcança: "whatsapp_interno" (grupos e plantão pela
  * UAZAPI, categoria "interna", nunca passa pelo freio), "email" (Resend,
- * reserva) e "push" (ainda pendente do P11). Quem decide o texto e os
+ * reserva) e "push" (Web Push do P11, aviso genérico sem nome). Quem decide o texto e os
  * destinos resolvidos (telefone do grupo, e-mail da pessoa) é quem chama;
  * a rota não lê o banco de novo, só despacha o que já veio pronto.
  *
@@ -72,6 +72,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     whatsappInterno: corpo.data.whatsappInterno,
     emails: corpo.data.emails,
     preferencias,
+    usuarioId: corpo.data.usuarioId,
   });
 
   return NextResponse.json({ resultados });

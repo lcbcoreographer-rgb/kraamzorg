@@ -38,8 +38,9 @@ enabled = true
 # Só dado sintético (PRD 16.3, CLAUDE.md). Ordem importa: seed.sql cria os
 # parâmetros, textos, famílias e conversas; o segundo arquivo traz a base de
 # conhecimento inicial do agente (P26), toda em rascunho, sem repetir nada do
-# primeiro.
-sql_paths = ["./seed.sql", "./dados/base_conhecimento_seed.sql"]
+# primeiro. O terceiro traz os parâmetros e os modelos de rascunho da Cloud API
+# do WhatsApp e da saúde do sistema (P14 e P18b).
+sql_paths = ["./seed.sql", "./dados/base_conhecimento_seed.sql", "./dados/infra_seed.sql"]
 
 [realtime]
 enabled = false

@@ -24,6 +24,19 @@ export interface PedidoEnvio {
   texto: string;
   /** Contexto para log e depuração (nunca entra no texto enviado). */
   contexto?: string;
+  /**
+   * Só o canal `cloud_api` lê os dois campos abaixo (P18b, PRD 4.1 D-08).
+   * Quando a família escreveu pela última vez (`conversa.ultima_entrada_em`):
+   * dentro de `whatsapp_janela_horas`, o texto livre sai; fora dela (ou sem
+   * data), só sai modelo aprovado pela Meta e `texto` é ignorado.
+   */
+  ultimaMensagemFamiliaEm?: string | Date | null;
+  /**
+   * Fora da janela: a chave de `mensagem_modelo` cujo modelo aprovado deve
+   * sair e os valores das variáveis do modelo, por nome. Variável sem valor
+   * aqui usa o `valores_padrao` do cadastro.
+   */
+  modelo?: { mensagemChave: string; variaveis?: Record<string, string> };
 }
 
 export interface VerificacaoFreio {
@@ -65,10 +78,22 @@ export type ResultadoEnvio =
       link?: string;
       /** Id da mensagem na API externa, quando houver (uazapi, cloud_api). */
       idExterno?: string;
+      /** cloud_api: "texto_livre" dentro da janela, "modelo" fora dela. */
+      via?: "texto_livre" | "modelo";
+      /** cloud_api, quando `via` é "modelo": o nome do modelo aprovado na Meta. */
+      modelo?: string;
+      /** cloud_api em homologação sem credencial: a mensagem foi só capturada. */
+      capturado?: boolean;
     }
   | {
       ok: false;
       motivo: string;
+      /**
+       * Código curto e estável para a tela e os testes escolherem o que
+       * fazer ("fora_da_janela_sem_modelo", "grupo_nao_suportado", ...).
+       * Nunca texto da API externa.
+       */
+      codigo?: string;
     };
 
 export interface Mensageiro {

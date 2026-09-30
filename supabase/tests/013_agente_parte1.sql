@@ -128,7 +128,10 @@ select set_eq(
             ('registrar_conferencia_horario'), ('reuniao_da_conversa'), ('registrar_reuniao'),
             ('registrar_remarcacao'), ('registrar_cancelamento'), ('registrar_consulta_equipe'),
             ('proativos_agenda_devidos'), ('registrar_lembrete'), ('fechar_consulta'),
-            ('sessoes_para_sincronizar'), ('sincronizar_reuniao') $$,
+            ('sessoes_para_sincronizar'), ('sincronizar_reuniao'),
+            -- 0025 (P18b): janela de 24 horas do follow-up; o Apêndice A do PRD
+            -- ganha esta linha na próxima revisão do PRD
+            ('janela_followup') $$,
   'n8n_agente executa exatamente as funções do Apêndice A');
 select is_empty(
   $$ select p.oid::regprocedure::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace

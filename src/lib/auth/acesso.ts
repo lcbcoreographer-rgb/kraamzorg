@@ -33,6 +33,9 @@ const PUBLICAS = [
   // Pesquisa de satisfação da família (P42): sem sessão, protegida pelo token
   // de uso único, pela validade, pelo limite de tentativas e pelo Turnstile.
   "/pesquisa",
+  // Instalação guiada do aplicativo (P11): quem recebe o link do guia ainda
+  // não entrou. Sem dado nenhum.
+  "/instalar",
 ];
 
 /** Exigem sessão, mas não o AAL2 nem papel (o caminho até o MFA). */

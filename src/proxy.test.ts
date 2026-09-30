@@ -108,6 +108,25 @@ describe("proxy (src/proxy.ts)", () => {
     expect(destino(resposta)).toBe("/entrar?proximo=%2Finicio");
   });
 
+  it("toda resposta leva a CSP com nonce novo, inclusive o redirecionamento (P14)", async () => {
+    const pedido1 = requisicao("/entrar");
+    const ok = await proxy(pedido1);
+    const csp1 = ok.headers.get("content-security-policy") ?? "";
+    const nonce1 = /'nonce-([^']+)'/.exec(csp1)?.[1];
+    expect(nonce1).toBeTruthy();
+    expect(csp1).toContain("frame-ancestors 'none'");
+    // o Next lê o nonce no cabeçalho da requisição: precisa ser o mesmo da resposta
+    expect(pedido1.headers.get("x-nonce")).toBe(nonce1);
+    expect(pedido1.headers.get("content-security-policy")).toBe(csp1);
+
+    const redirecionada = await proxy(requisicao("/pipeline"));
+    expect(redirecionada.status).toBe(307);
+    const csp2 = redirecionada.headers.get("content-security-policy") ?? "";
+    const nonce2 = /'nonce-([^']+)'/.exec(csp2)?.[1];
+    expect(nonce2).toBeTruthy();
+    expect(nonce2).not.toBe(nonce1);
+  });
+
   it("o matcher deixa de fora estáticos, marca e rotas de API", () => {
     const [padrao] = config.matcher;
     const regex = new RegExp(`^${padrao}$`);
