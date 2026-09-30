@@ -325,7 +325,26 @@ insert into matriz values
   -- funções do formulário
   ('privado.formulario_tentativa',   '{}', 'nega'),
   ('privado.fato_operacao',          '{}', 'nega'),
-  ('privado.sync_item',              '{}', 'nega');
+  ('privado.sync_item',              '{}', 'nega'),
+  -- P47 a P51 (0027): relacionamento; tudo em privado, lido e gravado só pelas
+  -- funções api e pelas funções abertas do servidor
+  ('privado.limite_publico',                '{}', 'nega'),
+  ('privado.canal_captacao',                '{}', 'nega'),
+  ('privado.captacao_visita',               '{}', 'nega'),
+  ('privado.conversa_origem',               '{}', 'nega'),
+  ('privado.custo_canal',                   '{}', 'nega'),
+  ('privado.copiloto_pergunta',             '{}', 'nega'),
+  ('privado.acesso_familia',                '{}', 'nega'),
+  ('privado.profissional_portal',           '{}', 'nega'),
+  ('privado.parceiro_medico',               '{}', 'nega'),
+  ('privado.indicacao',                     '{}', 'nega'),
+  ('privado.manual',                        '{}', 'nega'),
+  ('privado.manual_versao',                 '{}', 'nega'),
+  ('privado.manual_leitura',                '{}', 'nega'),
+  ('privado.trilha',                        '{}', 'nega'),
+  ('privado.trilha_item',                   '{}', 'nega'),
+  ('privado.candidata',                     '{}', 'nega'),
+  ('privado.candidata_avaliacao',           '{}', 'nega');
 
 create temp table esperado on commit drop as
   select m.tabela, p.papel, a.aal,
@@ -982,7 +1001,20 @@ select set_eq(
             ('api.registrar_alerta_clinico'), ('api.alertas_clinicos'),
             ('api.registrar_acionamento_alerta'), ('api.fechar_alerta_clinico'),
             ('api.registrar_anexo_audio'), ('api.audio_da_visita_para_ouvir'),
-            ('api.contato_medico_situacao'), ('api.supervisao_medica_telefone') $$,
+            ('api.contato_medico_situacao'), ('api.supervisao_medica_telefone'),
+            ('api.marketing_canais'), ('api.marketing_canal_salvar'), ('api.marketing_custo_salvar'),
+            ('api.marketing_relatorio'), ('api.marketing_exportar'), ('api.copiloto_config'),
+            ('api.copiloto_registrar'), ('api.copiloto_historico'), ('api.copiloto_pipeline'),
+            ('api.copiloto_conversao'), ('api.copiloto_receita'), ('api.copiloto_ocupacao'),
+            ('api.copiloto_leads_origem'), ('api.portal_familia'), ('api.portal_familia_acessos'),
+            ('api.portal_familia_liberar'), ('api.portal_familia_suspender'), ('api.profissionais_portal'),
+            ('api.profissional_portal_salvar'), ('api.parceiros_listar'), ('api.parceiro_salvar'),
+            ('api.parceiro_contato_registrar'), ('api.parceiro_tarefa_criar'), ('api.indicacao_registrar'),
+            ('api.indicacoes_relatorio'), ('api.tarefas_por_equipe'), ('api.manuais_listar'),
+            ('api.manual_obter'), ('api.manual_salvar'), ('api.manual_confirmar_leitura'),
+            ('api.manual_leituras'), ('api.trilhas_listar'), ('api.trilha_salvar'), ('api.talentos_roteiro'),
+            ('api.talentos_listar'), ('api.talento_obter'), ('api.talento_salvar'), ('api.talento_estado'),
+            ('api.talento_avaliar') $$,
   'authenticated executa exatamente a lista do ADR 0002 seção 6');
 
 select is_empty(

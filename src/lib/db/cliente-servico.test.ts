@@ -20,6 +20,9 @@ const AUTORIZADOS = new Set([
   // Formulário seguro público, sem sessão de usuário (P30, motivo
   // formulario_contrato): só as duas funções public.formulario_contrato_*.
   "src/lib/dados/supabase/formulario.ts",
+  // Páginas abertas do relacionamento (P47, P49 e P51, motivo
+  // paginas_abertas_relacao): só as seis funções public.* da 0027.
+  "src/lib/dados/supabase/relacao-publica.ts",
   // Armazenamento privado do PDF do contrato e do comprovante (P31 e P32,
   // motivo armazenamento_privado).
   "src/lib/armazenamento/supabase.ts",

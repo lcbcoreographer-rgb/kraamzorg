@@ -11,6 +11,7 @@ import { criarFichaSupabase } from "./ficha";
 import { criarEquipeSupabase } from "./equipe";
 import { criarOperacaoSupabase } from "./operacao";
 import { criarPortalSupabase } from "./portal";
+import { criarRelacaoSupabase } from "./relacao";
 import { criarTarefasSupabase } from "./tarefas";
 import { criarUsuariosSupabase } from "./usuarios";
 import { criarVendaSupabase } from "./venda";
@@ -35,5 +36,6 @@ export function criarRepositoriosSupabase(
     equipe: criarEquipeSupabase(contexto),
     portal: criarPortalSupabase(contexto),
     assistencial: criarAssistencialSupabase(contexto),
+    relacao: criarRelacaoSupabase(contexto),
   };
 }

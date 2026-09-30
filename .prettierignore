@@ -32,3 +32,5 @@ docs/adr/
 # Numeração das listas segue os itens da revisão do CRM (9, 10, 17...), não
 # a ordem da lista; o Prettier renumeraria e apagaria a referência.
 docs/sessoes/CRM-integracao.md
+playwright-report-relacao/
+test-results-relacao/

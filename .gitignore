@@ -56,3 +56,5 @@ supabase/.temp
 
 # worktrees dos agentes (Claude Code), nunca no repositório
 .claude/worktrees/
+/playwright-report-relacao/
+/test-results-relacao/

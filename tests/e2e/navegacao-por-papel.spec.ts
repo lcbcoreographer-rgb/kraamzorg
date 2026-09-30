@@ -38,7 +38,7 @@ const PAPEIS: Esperado[] = [
     rotulo: "Financeiro",
     inicio: "/inicio",
     abas: ["Início", "Cobranças", "Notas", "Mais"],
-    grupos: ["Comercial", "Gestão"],
+    grupos: ["Comercial", "Gestão", "Sistema"],
   },
   {
     rotulo: "Diretoria",
@@ -50,7 +50,7 @@ const PAPEIS: Esperado[] = [
     rotulo: "Marketing",
     inicio: "/inicio",
     abas: ["Início", "Mais"],
-    grupos: ["Gestão"],
+    grupos: ["Gestão", "Sistema"],
   },
   {
     rotulo: "Enfermeira",

@@ -1,10 +1,12 @@
 /**
  * Caminhos do armazenamento privado (CLAUDE.md: "nome de paciente nunca em
  * nome de arquivo, caminho de storage, URL, query string..."). Só existem
- * dois formatos, e os dois são montados a partir de ids:
+ * três formatos, e os três são montados a partir de ids:
  *
  * - contratos/<id do contrato>.pdf e contratos/<id do contrato>-assinado.pdf
  * - comprovantes/<id da cobrança>-<código>.<pdf|png|jpg|jpeg>
+ * - profissionais/<id da profissional>/foto.<jpg|jpeg|png|webp> (P49: a foto
+ *   que a enfermeira autorizou a família a ver; a 0027 confere o mesmo formato)
  *
  * O banco confere os mesmos formatos (0019_contrato_cobranca.sql); aqui a
  * checagem vem antes de qualquer gravação ou leitura no storage.
@@ -15,6 +17,10 @@ const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 const RE_CONTRATO = new RegExp(`^contratos/${UUID}(-assinado)?\\.pdf$`);
 const RE_COMPROVANTE = new RegExp(
   `^comprovantes/${UUID}-[a-z0-9]{8,32}\\.(pdf|png|jpg|jpeg)$`,
+);
+
+const RE_FOTO_PROFISSIONAL = new RegExp(
+  `^profissionais/${UUID}/foto\\.(jpg|jpeg|png|webp)$`,
 );
 
 export type ExtensaoComprovante = "pdf" | "png" | "jpg";
@@ -38,7 +44,16 @@ export function codigoAleatorio(): string {
 }
 
 export function caminhoValido(caminho: string): boolean {
-  return RE_CONTRATO.test(caminho) || RE_COMPROVANTE.test(caminho);
+  return (
+    RE_CONTRATO.test(caminho) ||
+    RE_COMPROVANTE.test(caminho) ||
+    RE_FOTO_PROFISSIONAL.test(caminho)
+  );
+}
+
+/** Foto autorizada de uma profissional (P49), pelo id dela, nunca pelo nome. */
+export function ehFotoProfissional(caminho: string): boolean {
+  return RE_FOTO_PROFISSIONAL.test(caminho);
 }
 
 export function ehComprovante(caminho: string): boolean {

@@ -92,3 +92,14 @@ export function codigoEquipe(erro: unknown): string | null {
   const achado = /equipe:([a-z_0-9]+)/.exec(mensagem);
   return achado?.[1] ?? null;
 }
+
+/**
+ * Código da recusa de negócio das funções de relacionamento (0027, P47 a
+ * P51): o banco manda "relacao:<código> <detalhe>" na mensagem. null quando
+ * o erro não é desse tipo.
+ */
+export function codigoRelacao(erro: unknown): string | null {
+  const mensagem = erro instanceof Error ? erro.message : String(erro ?? "");
+  const achado = /relacao:([a-z_0-9]+)/.exec(mensagem);
+  return achado?.[1] ?? null;
+}

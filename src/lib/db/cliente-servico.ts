@@ -36,6 +36,13 @@ import type { Database } from "./types";
  *   conferir papel e AAL2 do usuário. Quem abre o arquivo recebe URL
  *   assinada de 60 segundos.
  *
+ * - "paginas_abertas_relacao": as páginas abertas do relacionamento (P47 a
+ *   P51: `/c/[canal]`, o link do portal da família e `/candidatura`) chamam
+ *   só as seis funções public.captacao_*, public.portal_familia_* e
+ *   public.candidatura_* (0027_relacao.sql), depois de conferir o Turnstile.
+ *   Elas limitam a taxa por dentro e nunca devolvem dado pessoal
+ *   (src/lib/dados/supabase/relacao-publica.ts).
+ *
  * Rotas de webhook e jobs futuros (P18) acrescentam o próprio motivo aqui
  * quando chegarem. O teste src/lib/db/cliente-servico.test.ts falha se um
  * arquivo fora da lista de autorizados importar este módulo.
@@ -46,6 +53,7 @@ export type MotivoClienteServico =
   | "webhook_autentique"
   | "webhook_infinitepay"
   | "formulario_contrato"
+  | "paginas_abertas_relacao"
   | "armazenamento_privado";
 
 export function criarClienteServico(motivo: MotivoClienteServico) {

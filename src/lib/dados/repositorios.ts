@@ -28,6 +28,7 @@ import type {
   UsuarioSistema,
 } from "./tipos";
 import type { AssistencialRepositorio } from "./tipos-assistencial";
+import type { RelacaoRepositorio } from "./tipos-relacao";
 import type {
   AgendaPeriodo,
   EquipeVisao,
@@ -379,6 +380,8 @@ export interface Repositorios {
   portal: PortalRepositorio;
   /** Checklist diário, registro assinado e alertas clínicos (P39 e P40). */
   assistencial: AssistencialRepositorio;
+  /** Marketing, copiloto, portal da família (equipe), parceiros, manuais e talentos (P47 a P51). */
+  relacao: RelacaoRepositorio;
 }
 
 /**
