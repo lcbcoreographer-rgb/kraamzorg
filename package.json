@@ -18,6 +18,7 @@
     "e2e:evolucao-ocorrencia-nf": "playwright test --config=playwright.evolucao-ocorrencia-nf.config.ts",
     "e2e:infra": "playwright test --config=playwright.infra.config.ts",
     "e2e:gestao": "playwright test --config=playwright.gestao.config.ts",
+    "e2e:relacao": "playwright test --config=playwright.relacao.config.ts",
     "e2e:homologacao": "playwright test --config=playwright.homologacao.config.ts",
     "e2e:homologacao:simulada": "playwright test --config=playwright.homologacao-simulada.config.ts",
     "agente:local": "vitest run tests/agente/local",

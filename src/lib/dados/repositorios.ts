@@ -36,6 +36,7 @@ import type {
   PosVendaRepositorio,
 } from "./tipos-ocorrencia";
 import type { GestaoRepositorio } from "./tipos-gestao";
+import type { RelacaoRepositorio } from "./tipos-relacao";
 import type {
   AgendaPeriodo,
   EquipeVisao,
@@ -404,6 +405,8 @@ export interface Repositorios {
   notas: NotaRepositorio;
   /** Capacidade, financeiro e painel executivo da Fase 3 (P45, P46 e P52). */
   gestao: GestaoRepositorio;
+  /** Marketing, copiloto, portal da família (equipe), parceiros, manuais e talentos (P47 a P51). */
+  relacao: RelacaoRepositorio;
 }
 
 /** Pesquisa pública da família (P42): sem usuário logado, por isso fora de obterRepositorios(). */

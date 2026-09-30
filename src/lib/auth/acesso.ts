@@ -36,6 +36,13 @@ const PUBLICAS = [
   // Instalação guiada do aplicativo (P11): quem recebe o link do guia ainda
   // não entrou. Sem dado nenhum.
   "/instalar",
+  // Páginas abertas do relacionamento (P47, P49 e P51): a captação por canal,
+  // o portal da família (conta própria, sem perfil, que nunca abre tela da
+  // equipe) e a candidatura, esta desligada por parâmetro até o cliente abrir.
+  // Protegidas por Turnstile, limite de taxa e, no portal, pela RLS.
+  "/c",
+  "/familia",
+  "/candidatura",
 ];
 
 /** Exigem sessão, mas não o AAL2 nem papel (o caminho até o MFA). */

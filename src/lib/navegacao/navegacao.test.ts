@@ -68,6 +68,10 @@ describe("barra lateral agrupada (PRD 20.4)", () => {
       "Sessões de venda",
       "Famílias",
       "Tarefas",
+      // P48 a P50: copiloto, parceiros médicos e acesso da família ao portal.
+      "Copiloto",
+      "Parceiros médicos",
+      "Portal da família",
     ]);
   });
 
@@ -92,6 +96,7 @@ describe("barra lateral agrupada (PRD 20.4)", () => {
       "Isadora",
       "Configurações",
       "Sessões e acessos",
+      "Manuais",
     ]);
     for (const papel of PAPEIS.filter((p) => p !== "diretoria")) {
       expect(podeAbrir([papel], "/sessoes")).toBe(false);
@@ -150,7 +155,11 @@ describe("Mais, início e acesso", () => {
       "transferencias",
       "sessoesVenda",
       "tarefas",
+      "copiloto",
+      "parceiros",
+      "portalFamilia",
       "agente",
+      "manuais",
     ]);
   });
 

@@ -40,8 +40,9 @@ enabled = true
 # conhecimento inicial do agente (P26), toda em rascunho, sem repetir nada do
 # primeiro. O terceiro traz os parâmetros e os modelos de rascunho da Cloud API
 # do WhatsApp e da saúde do sistema (P14 e P18b); o quarto traz os parâmetros da
-# capacidade, do financeiro e do painel (P45, P46 e P52).
-sql_paths = ["./seed.sql", "./dados/base_conhecimento_seed.sql", "./dados/infra_seed.sql", "./dados/gestao_seed.sql"]
+# capacidade, do financeiro e do painel (P45, P46 e P52); o quinto traz os do
+# relacionamento (P47 a P51).
+sql_paths = ["./seed.sql", "./dados/base_conhecimento_seed.sql", "./dados/infra_seed.sql", "./dados/gestao_seed.sql", "./dados/relacao_seed.sql"]
 
 [realtime]
 enabled = false

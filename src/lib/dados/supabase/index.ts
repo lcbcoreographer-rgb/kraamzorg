@@ -15,6 +15,7 @@ import { criarNotaSupabase } from "./nota";
 import { criarOcorrenciaSupabase, criarPosVendaSupabase } from "./ocorrencia";
 import { criarOperacaoSupabase } from "./operacao";
 import { criarPortalSupabase } from "./portal";
+import { criarRelacaoSupabase } from "./relacao";
 import { criarTarefasSupabase } from "./tarefas";
 import { criarUsuariosSupabase } from "./usuarios";
 import { criarVendaSupabase } from "./venda";
@@ -44,5 +45,6 @@ export function criarRepositoriosSupabase(
     posVenda: criarPosVendaSupabase(contexto),
     notas: criarNotaSupabase(contexto),
     gestao: criarGestaoSupabase(contexto),
+    relacao: criarRelacaoSupabase(contexto),
   };
 }

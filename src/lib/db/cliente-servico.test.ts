@@ -23,6 +23,9 @@ const AUTORIZADOS = new Set([
   // Pesquisa pública da família, sem sessão de usuário (P42, motivo
   // pesquisa_publica): só as duas funções public.pesquisa_*.
   "src/lib/dados/supabase/pesquisa.ts",
+  // Páginas abertas do relacionamento (P47, P49 e P51, motivo
+  // paginas_abertas_relacao): só as seis funções public.* da 0027.
+  "src/lib/dados/supabase/relacao-publica.ts",
   // Armazenamento privado do PDF do contrato e do comprovante (P31 e P32,
   // motivo armazenamento_privado).
   "src/lib/armazenamento/supabase.ts",

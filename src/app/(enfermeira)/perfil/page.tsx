@@ -201,6 +201,21 @@ export default async function PaginaPerfil() {
           </Botao>
         </Secao>
 
+        <Secao id="p-treinamentos" titulo="Treinamentos e manuais">
+          <p className="text-corpo text-texto-2">
+            Os manuais e protocolos da sua função, com a trilha de leitura que a
+            coordenação montou.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Botao asChild variante="secundario" className="self-start">
+              <Link href="/treinamentos">Ver os treinamentos</Link>
+            </Botao>
+            <Botao asChild variante="secundario" className="self-start">
+              <Link href="/manuais">Ver os manuais</Link>
+            </Botao>
+          </div>
+        </Secao>
+
         <Secao id="p-app" titulo="Usar como aplicativo">
           <p className="text-corpo text-texto-2">
             Instalado, o aplicativo abre o Hoje mesmo sem sinal e guarda o que

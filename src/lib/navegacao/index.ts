@@ -57,6 +57,14 @@ export type NomeIcone =
   | "painel"
   | "alertas"
   | "perfil"
+  | "marketing"
+  | "copiloto"
+  | "parceiros"
+  | "portalFamilia"
+  | "tarefasEquipe"
+  | "manuais"
+  | "talentos"
+  | "treinamentos"
   | "mais";
 
 export interface Rota {
@@ -225,6 +233,62 @@ export const ROTAS = {
     dono: "P52",
     casca: "app",
   },
+  marketing: {
+    caminho: "/marketing",
+    rotulo: "Marketing",
+    icone: "marketing",
+    dono: "P47",
+    casca: "app",
+  },
+  copiloto: {
+    caminho: "/copiloto",
+    rotulo: "Copiloto",
+    icone: "copiloto",
+    dono: "P48",
+    casca: "app",
+  },
+  portalFamilia: {
+    caminho: "/portal-familia",
+    rotulo: "Portal da família",
+    icone: "portalFamilia",
+    dono: "P49",
+    casca: "app",
+  },
+  parceiros: {
+    caminho: "/parceiros",
+    rotulo: "Parceiros médicos",
+    icone: "parceiros",
+    dono: "P50",
+    casca: "app",
+  },
+  tarefasEquipe: {
+    caminho: "/tarefas-equipe",
+    rotulo: "Tarefas por equipe",
+    icone: "tarefasEquipe",
+    dono: "P51",
+    casca: "app",
+  },
+  manuais: {
+    caminho: "/manuais",
+    rotulo: "Manuais",
+    icone: "manuais",
+    dono: "P51",
+    casca: "app",
+  },
+  talentos: {
+    caminho: "/talentos",
+    rotulo: "Banco de talentos",
+    icone: "talentos",
+    dono: "P51",
+    casca: "app",
+  },
+  treinamentos: {
+    caminho: "/treinamentos",
+    rotulo: "Treinamentos",
+    icone: "treinamentos",
+    dono: "P51",
+    casca: "enfermeira",
+  },
   mais: {
     caminho: "/mais",
     rotulo: "Mais",
@@ -314,9 +378,12 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
           "sessoesVenda",
           "familias",
           "tarefas",
+          "copiloto",
+          "parceiros",
+          "portalFamilia",
         ],
       },
-      { titulo: "Sistema", itens: ["agente"] },
+      { titulo: "Sistema", itens: ["agente", "manuais"] },
     ],
     inicio: "inicio",
   },
@@ -335,17 +402,25 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
           "prenatal",
           "sessoesVenda",
           "tarefas",
+          "tarefasEquipe",
           "alertasClinicos",
           "evolucoes",
           "ocorrencias",
           "capacidade",
+          "talentos",
         ],
       },
       {
         titulo: "Experiência",
-        itens: ["familias", "conversas", "transferencias", "posVenda"],
+        itens: [
+          "familias",
+          "conversas",
+          "transferencias",
+          "posVenda",
+          "portalFamilia",
+        ],
       },
-      { titulo: "Sistema", itens: ["configuracoes"] },
+      { titulo: "Sistema", itens: ["configuracoes", "manuais"] },
     ],
     inicio: "inicio",
   },
@@ -355,14 +430,25 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
       { titulo: "Comercial", itens: ["familias"] },
       {
         titulo: "Gestão",
-        itens: ["inicio", "financeiro", "cobrancas", "notas", "tarefas"],
+        itens: [
+          "inicio",
+          "financeiro",
+          "cobrancas",
+          "notas",
+          "tarefas",
+          "marketing",
+        ],
       },
+      { titulo: "Sistema", itens: ["manuais"] },
     ],
     inicio: "inicio",
   },
   marketing: {
     abas: ["inicio", "mais"],
-    grupos: [{ titulo: "Gestão", itens: ["inicio"] }],
+    grupos: [
+      { titulo: "Gestão", itens: ["inicio", "marketing"] },
+      { titulo: "Sistema", itens: ["manuais"] },
+    ],
     inicio: "inicio",
   },
   diretoria: {
@@ -378,6 +464,9 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
           "sessoesVenda",
           "familias",
           "tarefas",
+          "copiloto",
+          "parceiros",
+          "portalFamilia",
         ],
       },
       {
@@ -391,6 +480,8 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
           "evolucoes",
           "ocorrencias",
           "capacidade",
+          "tarefasEquipe",
+          "talentos",
         ],
       },
       {
@@ -399,16 +490,19 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
       },
       {
         titulo: "Gestão",
-        itens: ["painel", "financeiro", "cobrancas", "notas"],
+        itens: ["painel", "financeiro", "cobrancas", "notas", "marketing"],
       },
-      { titulo: "Sistema", itens: ["agente", "configuracoes", "sessoes"] },
+      {
+        titulo: "Sistema",
+        itens: ["agente", "configuracoes", "sessoes", "manuais"],
+      },
     ],
     inicio: "inicio",
   },
   enfermeira: {
     abas: ["hoje", "minhasFamilias", "alertas", "perfil"],
     grupos: [],
-    ocultas: ["ofertas", "minhasEvolucoes"],
+    ocultas: ["ofertas", "minhasEvolucoes", "treinamentos", "manuais"],
     inicio: "hoje",
   },
 };

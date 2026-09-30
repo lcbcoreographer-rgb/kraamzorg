@@ -51,6 +51,12 @@ import type { Database } from "./types";
  *   do cron, dos webhooks e das falhas por public.saude_sistema (P14).
  * - "push_servidor": o envio de Web Push lê as inscrições dos aparelhos por
  *   public.inscricoes_push e apaga as expiradas (P11).
+ * - "paginas_abertas_relacao": as páginas abertas do relacionamento (P47 a
+ *   P51: `/c/[canal]`, o link do portal da família e `/candidatura`) chamam
+ *   só as seis funções public.captacao_*, public.portal_familia_* e
+ *   public.candidatura_* (0027_relacao.sql), depois de conferir o Turnstile.
+ *   Elas limitam a taxa por dentro e nunca devolvem dado pessoal
+ *   (src/lib/dados/supabase/relacao-publica.ts).
  *
  * Rotas de webhook e jobs futuros (P18) acrescentam o próprio motivo aqui
  * quando chegarem. O teste src/lib/db/cliente-servico.test.ts falha se um
@@ -63,6 +69,7 @@ export type MotivoClienteServico =
   | "webhook_infinitepay"
   | "formulario_contrato"
   | "pesquisa_publica"
+  | "paginas_abertas_relacao"
   | "armazenamento_privado"
   | "webhook_whatsapp"
   | "saude_sistema"

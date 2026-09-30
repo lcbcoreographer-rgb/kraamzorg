@@ -11,6 +11,7 @@ import {
   caminhoValido,
   codigoAleatorio,
   ehComprovante,
+  ehFotoProfissional,
   tipoDoArquivo,
   tipoDoArquivoNota,
 } from "./caminhos";
@@ -22,7 +23,7 @@ import {
 const ID = "b1900000-0000-4000-8000-000000000001";
 
 describe("caminhos do armazenamento privado", () => {
-  it("só aceita os dois formatos, montados a partir de ids", () => {
+  it("só aceita os formatos conhecidos, montados a partir de ids", () => {
     expect(caminhoValido(caminhoContrato(ID, false))).toBe(true);
     expect(caminhoValido(caminhoContrato(ID, true))).toBe(true);
     expect(
@@ -62,6 +63,19 @@ describe("caminhos do armazenamento privado", () => {
       `notas/${ID}.docx`,
       `notas/nota-da-maria.pdf`,
       `notas/${ID}/../x.xml`,
+    ]) {
+      expect(caminhoValido(ruim), ruim).toBe(false);
+    }
+  });
+
+  it("a foto autorizada da profissional (P49) usa o id dela, nunca o nome", () => {
+    expect(caminhoValido(`profissionais/${ID}/foto.jpg`)).toBe(true);
+    expect(ehFotoProfissional(`profissionais/${ID}/foto.webp`)).toBe(true);
+    for (const ruim of [
+      "profissionais/Enfermeira-Teste/foto.jpg",
+      `profissionais/${ID}/foto.gif`,
+      `profissionais/${ID}/outra.jpg`,
+      `profissionais/${ID}/foto.jpg/../x`,
     ]) {
       expect(caminhoValido(ruim), ruim).toBe(false);
     }

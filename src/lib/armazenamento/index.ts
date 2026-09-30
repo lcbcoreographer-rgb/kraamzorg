@@ -13,6 +13,7 @@ export {
   caminhoValido,
   codigoAleatorio,
   ehComprovante,
+  ehFotoProfissional,
   tipoDoArquivo,
   tipoDoArquivoNota,
 } from "./caminhos";
