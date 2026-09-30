@@ -296,29 +296,31 @@ describe("demais regras ativas do banco (Fonte: DOC 3)", () => {
     ).toEqual([]);
   });
 
-  it("PU-04: salvar o subcampo da condição (sem sinais de infecção = não) dispara, mesmo com o campo da regra sendo o item pai", () => {
+  it("PU-04: cesárea sem sinais de infecção = não dispara (campo do DOC 2 aprovado); = sim e sem resposta não", () => {
     expect(
-      codigos("2.2.sem_sinais_infeccao", {
-        "2.2": { sem_sinais_infeccao: false },
+      codigos("2.2.cesarea_sem_sinais_infeccao", {
+        "2.2": { cesarea_sem_sinais_infeccao: false },
       }),
     ).toEqual(["PU-04"]);
     expect(
-      codigos("2.2.sem_sinais_infeccao", {
-        "2.2": { sem_sinais_infeccao: true },
+      codigos("2.2.cesarea_sem_sinais_infeccao", {
+        "2.2": { cesarea_sem_sinais_infeccao: true },
       }),
     ).toEqual([]);
-    expect(codigos("2.2.sem_sinais_infeccao", { "2.2": {} })).toEqual([]);
+    expect(codigos("2.2.cesarea_sem_sinais_infeccao", { "2.2": {} })).toEqual(
+      [],
+    );
   });
 
   it("RN-01, RN-03 e RN-07 disparam pelo sim ou não do DOC 2", () => {
     expect(
-      codigos("3.respiracao_com_esforco", {
-        "3": { respiracao_com_esforco: true },
+      codigos("3.respiracao_sem_sinais_esforco", {
+        "3": { respiracao_sem_sinais_esforco: false },
       }),
     ).toEqual(["RN-01"]);
     expect(
-      codigos("3.atividade_preservada", {
-        "3": { atividade_preservada: false },
+      codigos("3.atividade_responsividade_preservadas", {
+        "3": { atividade_responsividade_preservadas: false },
       }),
     ).toEqual(["RN-03"]);
     expect(
@@ -327,8 +329,8 @@ describe("demais regras ativas do banco (Fonte: DOC 3)", () => {
       }),
     ).toEqual(["RN-07"]);
     expect(
-      codigos("3.atividade_preservada", {
-        "3": { atividade_preservada: true },
+      codigos("3.atividade_responsividade_preservadas", {
+        "3": { atividade_responsividade_preservadas: true },
       }),
     ).toEqual([]);
   });
@@ -371,8 +373,11 @@ describe("avaliarRegistro (reavaliação completa, na sincronização)", () => {
     const resultados = avaliarRegistro({
       registro: {
         "2.1": { temperatura: 36.6 },
-        "2.2": { sem_sinais_infeccao: true },
-        "3": { respiracao_com_esforco: false, atividade_preservada: true },
+        "2.2": { cesarea_sem_sinais_infeccao: true },
+        "3": {
+          respiracao_sem_sinais_esforco: true,
+          atividade_responsividade_preservadas: true,
+        },
         "3.1": { temperatura: 36.8 },
         "3.2": { horas_sem_diurese: 2, coto_com_sinais_flogisticos: false },
       },

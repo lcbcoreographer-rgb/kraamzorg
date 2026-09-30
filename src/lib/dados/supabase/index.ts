@@ -1,6 +1,7 @@
 import "server-only";
 import type { Repositorios } from "../repositorios";
 import { criarAgenteSupabase } from "./agente";
+import { criarAssistencialSupabase } from "./assistencial";
 import type { ContextoSupabase } from "./comum";
 import { criarCobrancaSupabase } from "./cobranca";
 import { criarConfiguracoesSupabase } from "./configuracoes";
@@ -35,5 +36,6 @@ export function criarRepositoriosSupabase(
     operacao: criarOperacaoSupabase(contexto),
     equipe: criarEquipeSupabase(contexto),
     portal: criarPortalSupabase(contexto),
+    assistencial: criarAssistencialSupabase(contexto),
   };
 }

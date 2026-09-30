@@ -2,11 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { vitrineLiberada } from "@/lib/ambiente";
 import { obterSessao } from "@/lib/auth/sessao";
-import { obterRepositorios } from "@/lib/dados/fabrica";
 import { processarLote } from "@/lib/sync/protocolo";
-import { RepositorioSincronizacaoComposto } from "@/lib/sync/repositorio-composto";
-import { RepositorioSincronizacaoMemoria } from "@/lib/sync/repositorio-memoria";
-import { RepositorioSincronizacaoVisita } from "@/lib/sync/repositorio-visita";
+import { repositorioDaRequisicao } from "@/lib/sync/repositorio-do-servidor";
 import type {
   RequisicaoSincronizacao,
   RespostaSincronizacao,
@@ -20,6 +17,13 @@ const entidadeSchema = z.enum([
   "alerta_clinico",
   "registro_atendimento",
 ]);
+
+/** Entidades com gravação real no banco (o resto só sobe fora de produção). */
+const ENTIDADES_DE_PRODUCAO: readonly z.infer<typeof entidadeSchema>[] = [
+  "visita",
+  "registro_atendimento",
+  "alerta_clinico",
+];
 
 const itemSchema = z.object({
   id: z.string().uuid(),
@@ -51,25 +55,6 @@ function idInformado(bruto: unknown): string {
 }
 
 /**
- * Repositório de processo para as entidades que ainda não têm repositório
- * de verdade (pré-natal, áudio, alerta e registro: P35, P39 e P40). Só
- * existe fora de produção (`vitrineLiberada()`); um deploy serverless pode
- * reiniciar este módulo a qualquer chamada. A visita (chegada e saída do
- * portal da enfermeira, P38) não passa por aqui: vai para as funções
- * `api.*` do banco, com a sessão da própria enfermeira.
- */
-const repositorioDeProcesso = new RepositorioSincronizacaoMemoria();
-
-async function repositorioDoLote() {
-  const { portal } = await obterRepositorios();
-  return new RepositorioSincronizacaoComposto(
-    new RepositorioSincronizacaoVisita(portal),
-    ["visita"],
-    vitrineLiberada() ? repositorioDeProcesso : null,
-  );
-}
-
-/**
  * `POST /api/sync` (PRD 15, invariante 4): idempotente pelo `id` de cada
  * item (gerado no aparelho), aplicado na ordem de criação, conflito
  * resolvido pela coluna `versao` com o original preservado, e registro
@@ -86,10 +71,13 @@ async function repositorioDoLote() {
  * `usuarioId` de cada item é conferido contra o da sessão: item de outra
  * pessoa recebe "erro" sozinho, sem derrubar o lote, como o item inválido.
  *
- * Produção (P38): só a entidade `visita` (chegada e saída) é aceita; as
- * outras recebem "erro" no próprio item até ganharem repositório real. Fora
- * de produção (`vitrineLiberada()`), o resto continua na memória de
- * processo, para a demonstração do motor (`/dev/sync`).
+ * Gravação: `visita` (chegada e saída, P38), `registro_atendimento` e
+ * `alerta_clinico` (P39 e P40) vão para o banco pelas funções do schema api,
+ * com a sessão de quem enviou (`src/lib/sync/repositorio-do-servidor.ts`).
+ * Em produção só essas três entidades são aceitas; as outras recebem "erro"
+ * no próprio item (a consulta pré-natal sobe por `/api/sync/prenatal`). Fora
+ * de produção (`vitrineLiberada()`), o resto continua na memória de processo,
+ * para a demonstração do motor (`/dev/sync`).
  */
 export async function POST(request: Request) {
   const sessao = await obterSessao();
@@ -136,7 +124,7 @@ export async function POST(request: Request) {
       });
     } else if (
       item.success &&
-      item.data.entidade !== "visita" &&
+      !ENTIDADES_DE_PRODUCAO.includes(item.data.entidade) &&
       !vitrineLiberada()
     ) {
       recusados.push({
@@ -157,7 +145,7 @@ export async function POST(request: Request) {
 
   const resposta =
     validos.length > 0
-      ? await processarLote({ itens: validos }, await repositorioDoLote())
+      ? await processarLote({ itens: validos }, await repositorioDaRequisicao())
       : { resultados: [] };
   return NextResponse.json({
     resultados: [...resposta.resultados, ...recusados],

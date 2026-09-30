@@ -27,6 +27,7 @@ import type {
   Transferencia,
   UsuarioSistema,
 } from "./tipos";
+import type { AssistencialRepositorio } from "./tipos-assistencial";
 import type {
   AgendaPeriodo,
   EquipeVisao,
@@ -376,6 +377,8 @@ export interface Repositorios {
   operacao: OperacaoRepositorio;
   equipe: EquipeRepositorio;
   portal: PortalRepositorio;
+  /** Checklist diário, registro assinado e alertas clínicos (P39 e P40). */
+  assistencial: AssistencialRepositorio;
 }
 
 /**

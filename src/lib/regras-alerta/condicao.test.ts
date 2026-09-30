@@ -284,8 +284,12 @@ describe("formato curto do banco (regra_alerta.condicao do seed)", () => {
     ).toBe(false);
     expect(
       avaliarCondicao(
-        { campo: "3.atividade_preservada", operador: "=", valor: false },
-        { registro: { "3": { atividade_preservada: false } } },
+        {
+          campo: "3.atividade_responsividade_preservadas",
+          operador: "=",
+          valor: false,
+        },
+        { registro: { "3": { atividade_responsividade_preservadas: false } } },
       ),
     ).toBe(true);
   });

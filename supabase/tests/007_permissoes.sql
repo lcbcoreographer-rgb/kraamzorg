@@ -977,7 +977,12 @@ select set_eq(
             ('api.reagendar_cascata'), ('api.salvar_profissional'), ('api.salvar_documento_profissional'),
             ('api.salvar_bloqueio_agenda'), ('api.remover_bloqueio_agenda'), ('api.portal_hoje'),
             ('api.portal_familias'), ('api.portal_perfil'), ('api.registrar_chegada'), ('api.registrar_saida'),
-            ('api.sincronizacao_item'), ('api.sincronizacao_registrar') $$,
+            ('api.sincronizacao_item'), ('api.sincronizacao_registrar'),
+            ('api.checklist_visita'), ('api.registrar_atendimento'), ('api.registrar_adendo'),
+            ('api.registrar_alerta_clinico'), ('api.alertas_clinicos'),
+            ('api.registrar_acionamento_alerta'), ('api.fechar_alerta_clinico'),
+            ('api.registrar_anexo_audio'), ('api.audio_da_visita_para_ouvir'),
+            ('api.contato_medico_situacao'), ('api.supervisao_medica_telefone') $$,
   'authenticated executa exatamente a lista do ADR 0002 seção 6');
 
 select is_empty(

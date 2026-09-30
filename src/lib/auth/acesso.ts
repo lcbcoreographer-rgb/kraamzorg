@@ -42,6 +42,13 @@ const RESTRITAS: Record<string, readonly Papel[]> = {
   // própria página recusa em produção). Abre para quem trabalha sempre em
   // AAL2, a mesma exigência de POST /api/sync, que recebe dado assistencial.
   "/dev/sync": PAPEIS_COM_MFA,
+  // Checklist diário (P39): a enfermeira abre a visita dela; a coordenação e
+  // a diretoria leem. Quem confere de quem é a visita é o banco
+  // (api.checklist_visita), não a rota.
+  "/visita": ["enfermeira", "coordenacao", "diretoria"],
+  // Alertas clínicos da coordenação (P40): ver, completar o registro do DOC 3
+  // e fechar. A diretoria só lê; o banco recusa o fechamento a ela.
+  "/alertas-clinicos": ["coordenacao", "diretoria"],
 };
 
 export type DecisaoAcesso =

@@ -27,6 +27,7 @@ import {
   criarContratoDemonstracao,
 } from "./contrato";
 import { criarOperacaoDemonstracao } from "./operacao";
+import { criarAssistencialDemonstracao } from "./assistencial";
 import { criarVendaDemonstracao, dadosContratoDemonstracao } from "./venda";
 
 /**
@@ -783,5 +784,6 @@ export function criarRepositoriosDemonstracao(
     operacao: criarOperacaoDemonstracao(contexto),
     equipe: criarEquipeDemonstracao(contexto),
     portal: criarPortalDemonstracao(contexto),
+    assistencial: criarAssistencialDemonstracao(contexto),
   };
 }

@@ -54,6 +54,24 @@ function ordenarPorCriacao(
   });
 }
 
+/**
+ * Payload de adendo pedido pela enfermeira: `{ adendo: { motivo, conteudo } }`
+ * no lugar do registro inteiro (P39 item 3). Divergência de conteúdo entre
+ * dois envios do mesmo registro continua virando adendo sozinha (D-05).
+ */
+export function lerAdendoDoPayload(
+  payload: unknown,
+): { motivo: string; conteudo: string } | null {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return null;
+  }
+  const adendo = (payload as { adendo?: unknown }).adendo;
+  if (!adendo || typeof adendo !== "object") return null;
+  const { motivo, conteudo } = adendo as Record<string, unknown>;
+  if (typeof motivo !== "string" || typeof conteudo !== "string") return null;
+  return { motivo, conteudo };
+}
+
 async function processarItem(
   item: ItemSincronizacaoEntrada,
   repo: RepositorioSincronizacao,
@@ -79,17 +97,15 @@ async function processarItem(
       };
     }
   } catch (erro) {
-    // Recusa do banco (ex.: a chegada é de outro dia) ou queda do
-    // repositório: vira "erro" só deste item. Se subisse, derrubaria o lote
-    // inteiro e os itens válidos atrás dele ficariam presos no aparelho.
-    // Não é guardado como processado: o aparelho tenta de novo (PRD 15).
+    // Recusa do banco (ex.: a chegada é de outro dia, assinatura que não
+    // confere, obrigatório faltando) ou queda do repositório: vira "erro" só
+    // deste item. Se subisse, derrubaria o lote inteiro e os itens válidos
+    // atrás dele ficariam presos no aparelho. Não é guardado como processado:
+    // o aparelho tenta de novo com espera crescente (PRD 15).
     return {
       id: item.id,
       status: "erro",
-      erro:
-        erro instanceof Error
-          ? erro.message
-          : "não foi possível aplicar o item",
+      erro: (erro instanceof Error ? erro.message : String(erro)).slice(0, 300),
     };
   }
 
@@ -139,6 +155,20 @@ async function processarAssistencialAppendOnly(
   }
 
   const estado = await repo.buscarEstado(item.entidade, item.entidadeId);
+
+  // Adendo pedido de propósito (P39): correção com motivo de um registro
+  // que já existe. O registro em si nunca muda.
+  if (lerAdendoDoPayload(item.payload)) {
+    if (!estado) {
+      return {
+        id: item.id,
+        status: "erro",
+        erro: "adendo: o registro desta visita ainda não chegou ao servidor",
+      };
+    }
+    await repo.registrarAdendo(item);
+    return { id: item.id, status: "processado", virouAdendo: true };
+  }
 
   if (!estado) {
     await repo.aplicar(item);

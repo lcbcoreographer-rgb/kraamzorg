@@ -16,8 +16,19 @@ const portalFalso = vi.hoisted(() => ({
   resultadoProcessado: vi.fn(),
   guardarProcessado: vi.fn(),
 }));
+// O registro assistencial e o alerta (P39 e P40) gravam pelo repositório do
+// schema api; o banco de verdade é coberto por supabase/tests/023_checklist_alertas.sql.
+const assistencialFalso = vi.hoisted(() => ({
+  obterChecklist: vi.fn(),
+  registrarAtendimento: vi.fn(),
+  listarAlertas: vi.fn(),
+  registrarAlerta: vi.fn(),
+}));
 vi.mock("@/lib/dados/fabrica", () => ({
-  obterRepositorios: async () => ({ portal: portalFalso }),
+  obterRepositorios: async () => ({
+    portal: portalFalso,
+    assistencial: assistencialFalso,
+  }),
 }));
 
 import { POST } from "./route";
@@ -218,6 +229,7 @@ describe("POST /api/sync em produção (P38: só a visita tem repositório real)
     vi.unstubAllEnvs();
     obterSessao.mockReset();
     Object.values(portalFalso).forEach((f) => f.mockReset());
+    Object.values(assistencialFalso).forEach((f) => f.mockReset());
   });
 
   it("exige sessão também em produção", async () => {
@@ -275,5 +287,34 @@ describe("POST /api/sync em produção (P38: só a visita tem repositório real)
     const corpo = (await resposta.json()) as RespostaSincronizacao;
     expect(corpo.resultados[0]).toMatchObject({ id, status: "processado" });
     expect(portalFalso.registrarChegadaSincronizada).not.toHaveBeenCalled();
+  });
+
+  it("o alerta clínico criado no aparelho sobe pelo banco, com a sessão da enfermeira", async () => {
+    assistencialFalso.registrarAlerta.mockResolvedValue({
+      id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    });
+    portalFalso.resultadoProcessado.mockResolvedValue(null);
+    const alerta = item({
+      id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      entidade: "alerta_clinico",
+      entidadeId: null,
+      payload: {
+        visitaId: visitaId,
+        regraId: "regra-teste",
+        instrumentoVersao: "v1",
+        bebeId: null,
+        campo: null,
+        valorObservado: null,
+        manual: true,
+      },
+    });
+    const resposta = await POST(requisicao({ itens: [alerta] }));
+    expect(resposta.status).toBe(200);
+    const corpo = (await resposta.json()) as RespostaSincronizacao;
+    expect(corpo.resultados[0]).toMatchObject({
+      id: alerta.id,
+      status: "processado",
+    });
+    expect(assistencialFalso.registrarAlerta).toHaveBeenCalledTimes(1);
   });
 });

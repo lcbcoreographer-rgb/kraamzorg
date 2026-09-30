@@ -145,8 +145,8 @@ function avaliarRegra(
 /**
  * A regra olha para o campo salvo agora? Vale o `campo` da regra e todos
  * os campos que a condição consulta, porque no banco o `campo` pode ser o
- * item do checklist e a condição ler um subcampo dele (seed: PU-04 tem
- * campo "2.2.ferida_operatoria" e condição em "2.2.sem_sinais_infeccao").
+ * item do checklist e a condição ler um subcampo dele (ou outro campo do
+ * mesmo bloco).
  */
 function regraLigadaAoCampo(regra: RegraAlerta, campo: string): boolean {
   if (regra.campo === campo) return true;
