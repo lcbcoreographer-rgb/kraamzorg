@@ -70,3 +70,14 @@ export function codigoVenda(erro: unknown): string | null {
   const achado = /venda:([a-z_]+)/.exec(mensagem);
   return achado?.[1] ?? null;
 }
+
+/**
+ * Código da recusa de negócio das funções de operação (0021): o banco manda
+ * "operacao:<código> <detalhe>" na mensagem. null quando o erro não é desse
+ * tipo.
+ */
+export function codigoOperacao(erro: unknown): string | null {
+  const mensagem = erro instanceof Error ? erro.message : String(erro ?? "");
+  const achado = /operacao:([a-z_0-9]+)/.exec(mensagem);
+  return achado?.[1] ?? null;
+}

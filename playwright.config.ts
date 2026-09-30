@@ -32,7 +32,13 @@ const portaContratoCelular = porta + 4;
 const portaContratoComputador = porta + 5;
 const PASTA_CONTRATO = "**/p31-p32-contrato/**";
 const TESTES_CONTRATO = "**/p31-p32-contrato/**/*.spec.ts";
-const PASTAS_A_PARTE = [PASTA_VENDA, PASTA_CONTRATO];
+// A operação (P35 e P36) marca consultas, designa, registra nascimento e alta
+// na loja em memória: também roda em dois servidores só dela.
+const portaOperacaoCelular = porta + 6;
+const portaOperacaoComputador = porta + 7;
+const PASTA_OPERACAO = "**/p35-p36-operacao/**";
+const TESTES_OPERACAO = "**/p35-p36-operacao/**/*.spec.ts";
+const PASTAS_A_PARTE = [PASTA_VENDA, PASTA_CONTRATO, PASTA_OPERACAO];
 
 // /design-system só existe em desenvolvimento e homologação (P10 item 4):
 // sem isto, `vitrineLiberada()` recusa por omissão e os testes de
@@ -92,8 +98,22 @@ export default defineConfig({
       env: ambienteDemonstracao,
     },
     {
+      command: `pnpm start -p ${portaOperacaoCelular}`,
+      url: `http://127.0.0.1:${portaOperacaoCelular}`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+      env: ambienteDemonstracao,
+    },
+    {
       command: `pnpm start -p ${portaContratoComputador}`,
       url: `http://127.0.0.1:${portaContratoComputador}`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+      env: ambienteDemonstracao,
+    },
+    {
+      command: `pnpm start -p ${portaOperacaoComputador}`,
+      url: `http://127.0.0.1:${portaOperacaoComputador}`,
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
       env: ambienteDemonstracao,
@@ -152,11 +172,30 @@ export default defineConfig({
       },
     },
     {
+      name: "celular-operacao",
+      testMatch: TESTES_OPERACAO,
+      use: {
+        ...devices["Pixel 7"],
+        viewport: { width: 390, height: 844 },
+        baseURL: `http://127.0.0.1:${portaOperacaoCelular}`,
+        launchOptions: executablePath ? { executablePath } : undefined,
+      },
+    },
+    {
       name: "computador-contrato",
       testMatch: TESTES_CONTRATO,
       use: {
         ...devices["Desktop Chrome"],
         baseURL: `http://127.0.0.1:${portaContratoComputador}`,
+        launchOptions: executablePath ? { executablePath } : undefined,
+      },
+    },
+    {
+      name: "computador-operacao",
+      testMatch: TESTES_OPERACAO,
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: `http://127.0.0.1:${portaOperacaoComputador}`,
         launchOptions: executablePath ? { executablePath } : undefined,
       },
     },

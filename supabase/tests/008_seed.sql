@@ -27,7 +27,7 @@
 
 begin;
 
-select plan(83);
+select plan(84);
 
 
 -- =============================================================================
@@ -205,8 +205,13 @@ select ok((select count(*)::integer from automacao where ativa) >= 12,
 select is((select count(*)::integer from automacao where id = 'retencao_diaria' and ativa), 1,
   'retencao_diaria ativa (proteção de LGPD, O-06, independente de fase)');
 select is((select count(*)::integer from automacao where id in
-    ('alerta_34s','alerta_clinico','nascimento','alta','pesquisa','sobrevenda') and not ativa), 6,
-  'automações de Fase 2 e 3 (pré-natal, alertas clínicos, capacidade) inativas até o prompt correspondente');
+    ('alerta_clinico','pesquisa','sobrevenda') and not ativa), 3,
+  'automações de Fase 3 (alertas clínicos, pesquisa, capacidade) inativas até o prompt correspondente');
+-- [P35 e P36] as automações do pré-natal, da DPP, do nascimento e da alta ligam com as funções da 0021
+select is((select count(*)::integer from automacao where id in
+    ('prenatal_urgente','alerta_34s','checkin_dpp','dpp_sem_confirmacao','dpp_sem_contato','nascimento','alta')
+    and ativa), 7,
+  'automações do pré-natal, da DPP, do nascimento e da alta ativas (P35 e P36)');
 
 select is((select count(*)::integer from regra_alerta), 38, 'DOC 3 inteiro: PU-01 a AM-06 (12+7+13+6)');
 select is((select count(*)::integer from regra_alerta where condicao is not null), 7,

@@ -151,3 +151,43 @@ describe("Mais, início e acesso", () => {
     for (const rota of Object.values(ROTAS)) expect(rota.dono).toMatch(/^P\d+/);
   });
 });
+
+describe("pré-natal e ofertas (P35 e P36)", () => {
+  it("Pré-natal é da coordenação e da diretoria, no grupo Operação; comercial, financeiro e enfermeira não abrem", () => {
+    for (const papel of ["coordenacao", "diretoria"] as const) {
+      const operacao = gruposDe([papel]).find((g) => g.titulo === "Operação");
+      expect(rotulos(operacao!.itens)).toContain("Pré-natal");
+      expect(podeAbrir([papel], "/prenatal")).toBe(true);
+      expect(podeAbrir([papel], "/prenatal/abc")).toBe(true);
+    }
+    for (const papel of [
+      "comercial",
+      "financeiro",
+      "marketing",
+      "enfermeira",
+    ] as const) {
+      expect(podeAbrir([papel], "/prenatal")).toBe(false);
+    }
+  });
+
+  it("Ofertas só a enfermeira abre, sem aparecer nas abas nem em grupos", () => {
+    expect(podeAbrir(["enfermeira"], "/ofertas")).toBe(true);
+    expect(abasDe(["enfermeira"]).map((a) => a.id)).not.toContain("ofertas");
+    expect(gruposDe(["enfermeira"])).toEqual([]);
+    for (const papel of [
+      "comercial",
+      "coordenacao",
+      "financeiro",
+      "diretoria",
+    ] as const) {
+      expect(podeAbrir([papel], "/ofertas")).toBe(false);
+    }
+  });
+
+  it("o radar e a alocação de uma família são da coordenação e da diretoria", () => {
+    expect(podeAbrir(["coordenacao"], "/radar/abc")).toBe(true);
+    expect(podeAbrir(["diretoria"], "/radar")).toBe(true);
+    expect(podeAbrir(["enfermeira"], "/radar/abc")).toBe(false);
+    expect(podeAbrir(["comercial"], "/radar")).toBe(false);
+  });
+});

@@ -57,6 +57,24 @@ import type {
   SituacaoCobranca,
   SituacaoContrato,
 } from "./tipos-contrato";
+import type {
+  AlocacaoFamilia,
+  ConsultaPrenatalResumo,
+  EntrevistaPrenatal,
+  EstadoPrenatal,
+  Oferta,
+  PedidoAgendarConsulta,
+  PedidoAlta,
+  PedidoAtribuir,
+  PedidoNascimento,
+  PedidoOferecer,
+  PedidoSalvarCampo,
+  Radar,
+  ResultadoAlta,
+  ResultadoNascimento,
+  ResultadoResposta,
+  ResultadoSalvarCampo,
+} from "./tipos-operacao";
 
 /**
  * Interfaces dos repositórios, uma por domínio. Toda tela lê e grava por
@@ -220,6 +238,44 @@ export interface CobrancaRepositorio {
   baixarManual(pedido: PedidoBaixaManual): Promise<void>;
 }
 
+/**
+ * Operação (P35 consulta pré-natal, P36 designação, radar, nascimento e
+ * alta). Toda escrita e toda leitura de dado assistencial vão por função do
+ * schema api (0021_prenatal_nascimento.sql), que confere papel e AAL2 por
+ * dentro, grava a leitura no log e move o P2 só por privado.transicionar.
+ * Recusa de negócio vira ErroRepositorio "recusado" com "operacao:<código>"
+ * no detalhe (codigoOperacao em erros.ts).
+ */
+export interface OperacaoRepositorio {
+  // Consulta pré-natal (P35)
+  /** Consultas vivas, sem conteúdo (coordenação e diretoria). */
+  listarConsultas(): Promise<ConsultaPrenatalResumo[]>;
+  /** Só o estado, para o comercial. */
+  estadoPrenatal(familiaId: string): Promise<EstadoPrenatal>;
+  agendarConsulta(pedido: PedidoAgendarConsulta): Promise<void>;
+  /** Abre a entrevista em branco (a leitura vai para o log). */
+  abrirEntrevista(familiaId: string): Promise<EntrevistaPrenatal>;
+  /** Um campo por vez; é o que o motor offline sobe. */
+  salvarCampo(pedido: PedidoSalvarCampo): Promise<ResultadoSalvarCampo>;
+  concluirEntrevista(consultaId: string): Promise<ResultadoNascimento>;
+  // Designação (P36)
+  alocacao(familiaId: string): Promise<AlocacaoFamilia>;
+  oferecer(pedido: PedidoOferecer): Promise<void>;
+  atribuir(pedido: PedidoAtribuir): Promise<void>;
+  /** As ofertas sem resposta da enfermeira logada. */
+  minhasOfertas(): Promise<Oferta[]>;
+  responder(
+    designacaoId: string,
+    aceita: boolean,
+    motivo: string | null,
+  ): Promise<ResultadoResposta>;
+  // Radar, nascimento e alta (P36)
+  radar(regiaoId?: string | null): Promise<Radar>;
+  registrarNascimento(pedido: PedidoNascimento): Promise<ResultadoNascimento>;
+  registrarPrevisaoAlta(familiaId: string, previsao: string): Promise<void>;
+  registrarAlta(pedido: PedidoAlta): Promise<ResultadoAlta>;
+}
+
 export interface Repositorios {
   familias: FamiliasRepositorio;
   ficha: FichaRepositorio;
@@ -230,6 +286,7 @@ export interface Repositorios {
   venda: VendaRepositorio;
   contratos: ContratoRepositorio;
   cobrancas: CobrancaRepositorio;
+  operacao: OperacaoRepositorio;
 }
 
 /**
