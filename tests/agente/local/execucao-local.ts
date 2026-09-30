@@ -24,9 +24,12 @@
  */
 import path from "node:path";
 import { carregarN8n } from "./n8n";
-import type { Fluxo, N8n, Servico } from "./n8n";
+import type { CalendarioSimuladoN8n, Fluxo, N8n, Servico } from "./n8n";
 
-import { executarAcaoDeBanco } from "../lib/acoes";
+import { encerrarPendencias, executarAcaoDeBanco } from "../lib/acoes";
+import type { AcaoDeBanco } from "../lib/acoes";
+import { CALENDARIO_DE_TESTE, fotografar, resumirEvento } from "../lib/agenda";
+import type { CalendarioDeTeste } from "../lib/agenda";
 import {
   descreverTurno,
   idDaMensagem,
@@ -55,14 +58,23 @@ import type {
   ResultadoTurno,
   Turno,
 } from "../lib/tipos";
-import { CLASSIFICACAO_PADRAO, ROTEIROS } from "./modelo-roteirizado";
+import { CLASSIFICACAO_PADRAO } from "./modelo-roteirizado";
+import { ROTEIROS } from "./roteiros";
 import type { ContextoDoModelo, RoteiroDoTurno } from "./modelo-roteirizado";
 import { consultaLocal, linhasPsql } from "./ponte-psql";
 import type { ConexaoLocal } from "./ponte-psql";
 
-let fluxosEmCache: Promise<{ fluxo2: Fluxo; fluxo3: Fluxo }> | null = null;
+let fluxosEmCache: Promise<{
+  fluxo2: Fluxo;
+  fluxo3: Fluxo;
+  fluxo4: Fluxo;
+}> | null = null;
 
-export function fluxosGerados(): Promise<{ fluxo2: Fluxo; fluxo3: Fluxo }> {
+export function fluxosGerados(): Promise<{
+  fluxo2: Fluxo;
+  fluxo3: Fluxo;
+  fluxo4: Fluxo;
+}> {
   fluxosEmCache ??= (async () => {
     const n8n = await carregarN8n();
     const { config } = await n8n.carregarConfig(
@@ -86,7 +98,8 @@ export type FalhaForcada =
   | "registrar_transcricao"
   | "agente"
   | "redis"
-  | "fluxo2";
+  | "fluxo2"
+  | "fluxo4";
 
 export interface OpcoesDeCaso {
   falhas?: FalhaForcada[];
@@ -110,6 +123,11 @@ export interface OpcoesDeSessao {
   aoEnviar?: (corpo: Objeto, tipo: "texto" | "midia") => void;
   /** O que `message/download` devolve para uma mensagem de áudio. */
   transcricaoDe: (messageId: string) => Transcricao | null;
+  /**
+   * O Google Calendar de teste desta conversa (P25b). O executor cria um por
+   * caso; o servidor simulado, um por conversa. Sem ele, um calendário novo e vazio.
+   */
+  calendario?: CalendarioSimuladoN8n;
 }
 
 // ---------------------------------------------------------------------------
@@ -128,6 +146,15 @@ export class SessaoLocal {
   private n8n!: N8n;
   private fluxo2!: Fluxo;
   private fluxo3!: Fluxo;
+  private fluxo4!: Fluxo;
+  /** O calendário de teste desta conversa (a Edilaine mexe nele pelo executor). */
+  calendario!: CalendarioSimuladoN8n;
+  /** O que cada ferramenta devolveu por último, para o roteiro do modelo (ids de opção, por exemplo). */
+  private readonly ultimasObservacoes = new Map<string, Objeto>();
+  /** As opções de horário da última lista que a agenda devolveu. */
+  private ultimasOpcoes: { id_opcao: string; texto: string }[] = [];
+  /** As entradas de cada chamada de ferramenta, na ordem em que o roteiro as fez. */
+  private readonly historicoDeEntradas = new Map<string, Objeto[]>();
   private ultimaMensagem = "";
   private mensagemAtual = "";
 
@@ -141,6 +168,8 @@ export class SessaoLocal {
     const fluxos = await fluxosGerados();
     this.fluxo2 = fluxos.fluxo2;
     this.fluxo3 = fluxos.fluxo3;
+    this.fluxo4 = fluxos.fluxo4;
+    this.calendario = this.o.calendario ?? this.n8n.criarCalendarioSimulado();
   }
 
   /** Entrada A: uma mensagem da família chega ao webhook. */
@@ -152,16 +181,29 @@ export class SessaoLocal {
     this.n8n.simularFluxo(this.fluxo3, {
       gatilho: this.n8n.NOS.webhook,
       entrada: { headers: {}, body: corpo },
-      servicos: this.servicosDe(this.fluxo3, true),
+      servicos: this.servicosDe(this.fluxo3, "fluxo3"),
     });
   }
 
-  /** Entrada B: o gatilho de 30 minutos busca os follow-ups devidos. */
+  /**
+   * Entrada B: o gatilho de 30 minutos busca os follow-ups devidos e, [v4.3],
+   * o que a Isadora escreve em torno da agenda (lembrete da véspera, falta,
+   * devolutiva e horário liberado).
+   */
   followup(): void {
     this.n8n.simularFluxo(this.fluxo3, {
       gatilho: this.n8n.NOS.aCada30Min,
       entrada: {},
-      servicos: this.servicosDe(this.fluxo3, true),
+      servicos: this.servicosDe(this.fluxo3, "fluxo3"),
+    });
+  }
+
+  /** [v4.3] Entrada B do fluxo 4: compara as reuniões da Isadora com o calendário. */
+  sincronizarAgenda(): void {
+    this.n8n.simularFluxo(this.fluxo4, {
+      gatilho: this.n8n.NOS_FLUXO4.aCada30Min,
+      entrada: {},
+      servicos: this.servicosDe(this.fluxo4, "fluxo4"),
     });
   }
 
@@ -208,7 +250,8 @@ export class SessaoLocal {
   };
 
   private openai =
-    (tipo: "classificacao" | "reescrita" | "followup") => (): Objeto => {
+    (tipo: "classificacao" | "reescrita" | "followup") =>
+    (parametros: Objeto = {}): Objeto => {
       if (this.falhas.has(`openai_${tipo}` as FalhaForcada))
         throw new Error("OpenAI 500");
       const roteiro = this.roteiros[this.turnoAtual];
@@ -224,7 +267,10 @@ export class SessaoLocal {
         );
       const final =
         typeof saida === "function"
-          ? saida({ digitos: this.o.quem.digitos })
+          ? saida({
+              digitos: this.o.quem.digitos,
+              textoBase: textoBaseDoPrompt(parametros),
+            })
           : saida;
       return { choices: [{ message: { content: JSON.stringify(final) } }] };
     };
@@ -265,19 +311,31 @@ export class SessaoLocal {
     return null as never;
   };
 
-  private servicosDe(fluxo: Fluxo, ehFluxo3: boolean): Record<string, Servico> {
+  private servicosDe(
+    fluxo: Fluxo,
+    qual: "fluxo2" | "fluxo3" | "fluxo4",
+  ): Record<string, Servico> {
+    const ehFluxo3 = qual === "fluxo3";
     const servicos: Record<string, Servico> = {};
     for (const no of fluxo.nodes) {
       if (no.type === "n8n-nodes-base.postgres")
         servicos[no.name] = ((p: Objeto) => this.banco(p)) as Servico;
+      else if (no.type === "n8n-nodes-base.googleCalendar")
+        // [v4.3] O nó do Google Calendar do fluxo 4 fala com o calendário de teste.
+        servicos[no.name] = ((p: Objeto) =>
+          this.calendario.executarNoGoogle(p)) as Servico;
       else if (no.type === "n8n-nodes-base.redis")
         servicos[no.name] = this.redisFalso;
       else if (no.type === "n8n-nodes-base.executeWorkflow") {
         servicos[no.name] = ((p: Objeto) => {
+          const entradas = (p["workflowInputs"] as { value: Objeto }).value;
+          if (this.ehFluxo4(p)) {
+            if (this.falhas.has("fluxo4"))
+              throw new Error("sub-fluxo da agenda falhou");
+            return this.rodarFluxo4(entradas);
+          }
           if (this.falhas.has("fluxo2")) throw new Error("sub-fluxo falhou");
-          return this.rodarFluxo2(
-            (p["workflowInputs"] as { value: Objeto }).value,
-          );
+          return this.rodarFluxo2(entradas);
         }) as Servico;
       } else if (no.type === "@n8n/n8n-nodes-langchain.agent")
         servicos[no.name] = this.agenteRoteirizado;
@@ -302,17 +360,40 @@ export class SessaoLocal {
           servicos[no.name] = this.openai("classificacao") as Servico;
         else if (ehFluxo3 && no.name === this.n8n.NOS.reescrever)
           servicos[no.name] = this.openai("reescrita") as Servico;
-        else if (ehFluxo3 && no.name === this.n8n.NOS.gerarMensagem)
+        else if (
+          ehFluxo3 &&
+          (no.name === this.n8n.NOS.gerarMensagem ||
+            no.name === this.n8n.NOS.gerarMensagemAgenda)
+        )
           servicos[no.name] = this.openai("followup") as Servico;
       }
     }
     return servicos;
   }
 
+  /** A chamada aponta para o fluxo 4 (Agenda da Isadora)? O id vem do config do build. */
+  private ehFluxo4(parametros: Objeto): boolean {
+    const referencia = parametros["workflowId"] as
+      { value?: unknown } | undefined;
+    return String(referencia?.value ?? "") === this.fluxo4.id;
+  }
+
   private rodarFluxo2(entrada: Objeto): unknown {
     return this.n8n.simularFluxo(this.fluxo2, {
       entrada,
-      servicos: this.servicosDe(this.fluxo2, false),
+      servicos: this.servicosDe(this.fluxo2, "fluxo2"),
+    }).saida[0];
+  }
+
+  /**
+   * O fluxo 4 (Agenda da Isadora) gerado, com o banco local e o calendário de
+   * teste. É o que as cinco ferramentas de agenda e a Entrada B do fluxo 3
+   * chamam.
+   */
+  private rodarFluxo4(entrada: Objeto): unknown {
+    return this.n8n.simularFluxo(this.fluxo4, {
+      entrada,
+      servicos: this.servicosDe(this.fluxo4, "fluxo4"),
     }).saida[0];
   }
 
@@ -345,13 +426,26 @@ export class SessaoLocal {
       (item as { texto_agrupado?: unknown })["texto_agrupado"] ??
         this.ultimaMensagem,
     );
-    const chamadas =
+    const observacoes: Objeto[] = [];
+    // Cada chamada pode depender do que a anterior devolveu (o id da opção que
+    // a ferramenta de agenda acabou de gravar, por exemplo), como o modelo faz.
+    const contextoDeChamada = {
+      mensagem,
+      observacoes,
+      ultimo: (ferramenta: string) => this.ultimasObservacoes.get(ferramenta),
+      opcoes: () => this.ultimasOpcoes,
+      entradas: (ferramenta: string) =>
+        this.historicoDeEntradas.get(ferramenta) ?? [],
+    };
+    const lista =
       typeof resposta.ferramentas === "function"
-        ? resposta.ferramentas({ mensagem })
+        ? resposta.ferramentas(contextoDeChamada)
         : (resposta.ferramentas ?? []);
     const passos: Objeto[] = [];
-    const observacoes: Objeto[] = [];
-    for (const chamada of chamadas) {
+    for (const item of lista) {
+      const chamada =
+        typeof item === "function" ? item(contextoDeChamada) : item;
+      if (chamada === null) continue;
       const observacao = this.executarFerramenta(
         chamada.ferramenta,
         chamada.entrada,
@@ -361,11 +455,29 @@ export class SessaoLocal {
         action: { tool: chamada.ferramenta, toolInput: chamada.entrada },
         observation: JSON.stringify(observacao),
       });
-      observacoes.push(extrairResultado(observacao));
+      const resultado = extrairResultado(observacao);
+      observacoes.push(resultado);
+      this.ultimasObservacoes.set(chamada.ferramenta, resultado);
+      this.historicoDeEntradas.set(chamada.ferramenta, [
+        ...(this.historicoDeEntradas.get(chamada.ferramenta) ?? []),
+        chamada.entrada,
+      ]);
+      const opcoesDaResposta = (resultado as { opcoes?: unknown }).opcoes;
+      if (Array.isArray(opcoesDaResposta) && opcoesDaResposta.length > 0)
+        this.ultimasOpcoes = opcoesDaResposta as {
+          id_opcao: string;
+          texto: string;
+        }[];
     }
     const texto =
       typeof resposta.texto === "function"
-        ? resposta.texto({ ...this.contextoDoModelo(mensagem), observacoes })
+        ? resposta.texto({
+            ...this.contextoDoModelo(mensagem),
+            observacoes,
+            ultimo: contextoDeChamada.ultimo,
+            opcoes: contextoDeChamada.opcoes,
+            entradas: contextoDeChamada.entradas,
+          })
         : resposta.texto;
     return { output: texto, intermediateSteps: passos };
   }
@@ -394,6 +506,10 @@ export class SessaoLocal {
       planos: this.o.planos,
       mensagem,
       observacoes: [],
+      ultimo: (ferramenta: string) => this.ultimasObservacoes.get(ferramenta),
+      opcoes: () => this.ultimasOpcoes,
+      entradas: (ferramenta: string) =>
+        this.historicoDeEntradas.get(ferramenta) ?? [],
       horariosDaEdilaine: this.o.horariosDaEdilaine,
       aVista: (f) => achar(f).valor,
       parcela: (f) => achar(f).parcela_texto,
@@ -430,10 +546,28 @@ export class SessaoLocal {
         (no.parameters["workflowInputs"] as { value: Objeto }).value,
         escopo,
       ) as Objeto;
+      if (this.ehFluxo4(no.parameters)) {
+        if (this.falhas.has("fluxo4"))
+          throw new Error("sub-fluxo da agenda falhou");
+        return this.rodarFluxo4(valores);
+      }
       return this.rodarFluxo2(valores);
     }
     return [];
   }
+}
+
+/** O texto aprovado que o nó de follow-up entregou ao gerador, lido do prompt montado. */
+function textoBaseDoPrompt(parametros: Objeto): string {
+  const corpo = JSON.stringify(parametros["jsonBody"] ?? parametros).replace(
+    /\\n/g,
+    "\n",
+  );
+  const achado =
+    /define a intenção desta mensagem:\s*([\s\S]*?)\s*Nome da pessoa:/.exec(
+      corpo,
+    );
+  return achado?.[1]?.replace(/\\"/g, '"') ?? "";
 }
 
 function extrairResultado(observacao: unknown): Objeto {
@@ -441,6 +575,67 @@ function extrairResultado(observacao: unknown): Objeto {
     return ((observacao[0] as Objeto | undefined)?.["resultado"] ??
       {}) as Objeto;
   return (observacao ?? {}) as Objeto;
+}
+
+// ---------------------------------------------------------------------------
+// Calendário de teste local (P25b)
+// ---------------------------------------------------------------------------
+
+/**
+ * O Google Calendar de mentira do n8n (`n8n/src/lib/calendario-simulado.mjs`)
+ * na interface que o roteiro usa. Os eventos "de outra pessoa" que o teste cria
+ * têm o id começando por `alheio`: a chamada de criação deles não conta como
+ * chamada da Isadora.
+ */
+export function calendarioLocal(sim: CalendarioSimuladoN8n): CalendarioDeTeste {
+  let alheios = 0;
+  const deOutraPessoa = (c: Objeto) =>
+    String(c["id"] ?? "").startsWith("alheio");
+  return {
+    async chamadas() {
+      return sim.chamadas
+        .filter((c) => !deOutraPessoa(c))
+        .map((c) => JSON.parse(JSON.stringify(c)) as Objeto) as never;
+    },
+    async eventos() {
+      return sim.eventos(CALENDARIO_DE_TESTE).map(resumirEvento);
+    },
+    async ocupar(inicio, fim) {
+      sim.ocupar(CALENDARIO_DE_TESTE, inicio, fim);
+    },
+    async liberarTudo() {
+      sim.liberarTudo();
+    },
+    async criarEventoAlheio(inicio, fim) {
+      alheios += 1;
+      const id = `alheio${alheios}${Math.random().toString(36).slice(2, 8)}`;
+      sim.executarHttp("eventos", {
+        calendar_id: CALENDARIO_DE_TESTE,
+        id,
+        summary: "Compromisso pessoal (evento de outra pessoa)",
+        start: inicio,
+        end: fim,
+        attendees: [],
+      });
+      return id;
+    },
+    async moverEvento(eventoId, inicio, fim) {
+      sim.moverPelaEdilaine(CALENDARIO_DE_TESTE, eventoId, inicio, fim);
+    },
+    async apagarEvento(eventoId) {
+      sim.apagarPelaEdilaine(CALENDARIO_DE_TESTE, eventoId);
+    },
+    async foraDoAr(valor) {
+      sim.ficarForaDoAr(valor);
+    },
+    async falharProxima(operacao, mensagem, codigo) {
+      sim.falharProxima(operacao, mensagem, codigo);
+    },
+    async reiniciar() {
+      sim.liberarTudo();
+      sim.limparFalhas();
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -495,6 +690,11 @@ export class ExecutorLocal {
     });
 
     const transcricoes = new Map<string, Transcricao>();
+    const n8n = await carregarN8n();
+    const calendarioSimulado = n8n.criarCalendarioSimulado();
+    const calendario = calendarioLocal(calendarioSimulado);
+    const eventosAlheios: string[] = [];
+    const chamadasPorTurno: number[] = [];
     const sessao = new SessaoLocal({
       caso,
       quem,
@@ -503,6 +703,7 @@ export class ExecutorLocal {
       planos: referenciaInicial.planos,
       horariosDaEdilaine: referenciaInicial.horariosDaEdilaine,
       transcricaoDe: (id) => transcricoes.get(id) ?? null,
+      calendario: calendarioSimulado,
     });
     await sessao.iniciar();
 
@@ -519,11 +720,20 @@ export class ExecutorLocal {
             await this.consulta.linhas(sqlAgendarFollowup());
             sessao.followup();
             enviado = "[o agendador do follow-up roda]";
+          } else if (turno.acao === "executarAgendador") {
+            // O motor agenda a cadência (pg_cron a cada 5 minutos); a Entrada B do fluxo 3
+            // (lembrete, falta, devolutiva, horário liberado, retorno) e a sincronização do
+            // fluxo 4 com o calendário fazem o resto.
+            await this.consulta.linhas(sqlAgendarFollowup());
+            sessao.followup();
+            sessao.sincronizarAgenda();
+            enviado = "[o agendador da agenda roda]";
           } else {
             enviado = await executarAcaoDeBanco(
               this.consulta,
-              turno,
+              turno as AcaoDeBanco,
               quem.e164,
+              { calendario, eventosAlheios },
             );
           }
         } else {
@@ -542,6 +752,7 @@ export class ExecutorLocal {
           enviado,
           envios: sessao.envios.slice(antes),
         });
+        chamadasPorTurno.push((await calendario.chamadas()).length);
         estadoPorTurno.push(await lerEstado(this.consulta, quem.e164));
       }
     } catch (e) {
@@ -556,6 +767,7 @@ export class ExecutorLocal {
       telefone: quem.e164,
       cpfEnviado: sessao.cpfEnviado,
     });
+    await encerrarPendencias(this.consulta, estadoFinal.conversa?.id);
     await desfazerPreparo();
 
     // Turnos que faltaram por causa do erro ficam vazios, para as regras acusarem em vez de quebrar.
@@ -566,6 +778,7 @@ export class ExecutorLocal {
         envios: [],
       });
       estadoPorTurno.push(estadoFinal);
+      chamadasPorTurno.push((await calendario.chamadas()).length);
     }
     const resultado: ResultadoCaso = {
       caso,
@@ -576,6 +789,11 @@ export class ExecutorLocal {
       modeloRodouPorTurno: caso.turnos.map(
         (_, i) => sessao.modeloRodouPorTurno[i] === true,
       ),
+      agenda: await fotografar(calendario, eventosAlheios, (i) => {
+        const indice = chamadasPorTurno.findIndex((n) => i < n);
+        return indice < 0 ? chamadasPorTurno.length : indice + 1;
+      }),
+      chamadasDeAgendaPorTurno: chamadasPorTurno,
     };
     if (erro)
       throw Object.assign(new Error(erro), { resultadoParcial: resultado });

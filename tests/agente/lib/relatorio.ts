@@ -100,7 +100,7 @@ export function gerarRelatorio(
   linhas.push(
     meta.modo === "ambiente_real"
       ? "Execução no ambiente de homologação: webhook do fluxo 3, captura da UAZAPI e banco de homologação. Modelo de verdade."
-      : "Execução no simulador do fluxo 3 sobre o banco local, com o modelo roteirizado. Prova o encanamento do sistema, não o modelo. O aceite de 24 de 24 só vale no ambiente de homologação.",
+      : "Execução no simulador do fluxo 3 sobre o banco local, com o modelo roteirizado. Prova o encanamento do sistema, não o modelo. O aceite de 28 de 28 só vale no ambiente de homologação.",
   );
   if (meta.observacao) linhas.push("", meta.observacao);
   linhas.push("");

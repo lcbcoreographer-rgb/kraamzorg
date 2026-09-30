@@ -206,10 +206,17 @@ export interface VendaRepositorio {
   ): Promise<TransferenciaReuniao | null>;
   agendarSessao(pedido: PedidoAgendarSessao): Promise<ResultadoAgendarSessao>;
   remarcarSessao(pedido: PedidoRemarcarSessao): Promise<{ sessaoId: string }>;
+  /**
+   * [v4.3] Realizada e não compareceu: só coordenação e diretoria (a
+   * Edilaine). Realizada leva a conversa ao Leonardo (`humano_comercial`);
+   * `resultado` é o campo curto que vai no resumo dele. Cancelada: só
+   * reunião marcada pela equipe.
+   */
   registrarDesfecho(
     sessaoId: string,
     desfecho: DesfechoSessao,
     parceiroPresente: boolean | null,
+    resultado?: string | null,
   ): Promise<ResultadoDesfecho>;
   /**
    * `api.sessao_venda_gravacao`: só quem conduziu e a diretoria, AAL2, com

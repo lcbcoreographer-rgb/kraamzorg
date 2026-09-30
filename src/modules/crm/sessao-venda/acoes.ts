@@ -157,6 +157,8 @@ const esquemaDesfecho = z.object({
   sessaoId: z.uuid(),
   desfecho: z.enum(DESFECHOS, "Escolha como foi a conversa."),
   parceiroPresente: z.enum(["sim", "nao", ""]),
+  // [v4.3] Campo curto que vai no resumo do Leonardo; sem dado clínico.
+  resultado: z.string().max(300, "O resultado passou de 300 caracteres."),
 });
 
 /** Como foi a conversa (P29 item 2): estados e tarefas de retorno. */
@@ -169,6 +171,7 @@ export async function acaoRegistrarDesfecho(
     sessaoId: texto(formulario, "sessaoId"),
     desfecho: texto(formulario, "desfecho"),
     parceiroPresente: texto(formulario, "parceiroPresente"),
+    resultado: texto(formulario, "resultado"),
   });
   if (!dados.success) {
     return {
@@ -182,36 +185,41 @@ export async function acaoRegistrarDesfecho(
       : dados.data.parceiroPresente === "sim";
 
   let tarefaCriada: boolean;
+  let passouAoLeonardo = false;
+  let isadoraRemarca = false;
   try {
     const { venda } = await obterRepositorios();
     const resultado = await venda.registrarDesfecho(
       dados.data.sessaoId,
       desfecho,
       desfecho === "realizada" ? parceiro : null,
+      desfecho === "realizada" ? dados.data.resultado || null : null,
     );
     tarefaCriada = resultado.tarefaId !== null;
+    passouAoLeonardo = resultado.humanoComercial;
+    isadoraRemarca = resultado.remarcacaoDaIsadora;
   } catch (erro) {
     return { erro: fraseErroSessao(erro, "registrar como foi a conversa") };
   }
 
   revalidarSessao(dados.data.sessaoId);
-  if (desfecho === "cancelada") {
-    return {
-      sucesso: "Conversa cancelada. O lembrete da véspera saiu das tarefas.",
-    };
-  }
-  if (!tarefaCriada) {
-    return {
-      sucesso:
-        "Registrado. Nenhuma mensagem foi sugerida porque a família está com o freio ou pediu para não ser contatada.",
-    };
-  }
-  return {
-    sucesso:
+  revalidatePath("/conversas");
+  // A confirmação diz o que muda para a família e para o Leonardo: ela vai na URL (como marcar e
+  // remarcar) e não no estado do formulário, porque com o estado novo a página deixa de mostrar
+  // o painel "como foi" e a frase sumiria antes de a pessoa ler.
+  let chave: string;
+  if (desfecho === "cancelada") chave = "desfecho_cancelada";
+  else if (desfecho === "realizada" && passouAoLeonardo)
+    chave = "desfecho_leonardo";
+  else if (desfecho === "nao_compareceu" && isadoraRemarca)
+    chave = "desfecho_isadora_remarca";
+  else if (!tarefaCriada) chave = "desfecho_sem_mensagem";
+  else
+    chave =
       desfecho === "realizada"
-        ? "Registrado. A tarefa de perguntar à família como foi já está nas tarefas, com o texto pronto e o prazo do retorno."
-        : "Registrado. A tarefa de oferecer outro horário já está nas suas tarefas, com o texto pronto.",
-  };
+        ? "desfecho_tarefa_retorno"
+        : "desfecho_tarefa_horario";
+  redirect(`/sessoes-venda/${dados.data.sessaoId}?feito=${chave}`);
 }
 
 const esquemaGravacao = z.object({

@@ -40,6 +40,7 @@ import {
   VARIAVEIS_PROMPT_ISADORA_EXPR,
 } from './src/fluxo-3-agente-isadora.mjs';
 import { NOS as NOS2 } from './src/fluxo-2-pausar-notificar.mjs';
+import { NOS as NOS4 } from './src/fluxo-4-agenda-isadora.mjs';
 
 import { extrairDadosMensagem, tipoDaMensagem, telefoneE164 } from './src/code/extrair-dados.js';
 import { agrupamento, lerBufferRedis } from './src/code/agrupamento.js';
@@ -195,6 +196,9 @@ function criarAmbiente(opcoes = {}) {
     registrar_marco: () => ({ ok: true }),
     followups_devidos: () => opcoes.followups ?? { ok: true, itens: [] },
     registrar_followup: () => ({ ok: true }),
+    proativos_agenda_devidos: () => opcoes.proativosAgenda ?? { ok: true, itens: [], validador: { listas: LISTAS } },
+    registrar_lembrete: () => ({ ok: true }),
+    fechar_consulta: () => ({ ok: true }),
   };
 
   const postgres = (parametros) => {
@@ -261,6 +265,17 @@ function criarAmbiente(opcoes = {}) {
     };
   };
 
+  // [v4.3] Fluxo 4 (Agenda da Isadora) chamado pelo fluxo 3: o teste diz o que
+  // ele devolve; o registro guarda as entradas para conferir o `conversa_id`.
+  const fluxo4 = (nomeNo) => (parametros) => {
+    const entrada = parametros.workflowInputs.value;
+    estado.fluxo4 ??= [];
+    estado.fluxo4.push({ no: nomeNo, entrada });
+    if (falhas.has('fluxo4') || falhas.has(nomeNo)) throw new Error('sub-fluxo da agenda falhou');
+    const resposta = typeof opcoes.fluxo4 === 'function' ? opcoes.fluxo4(entrada) : opcoes.fluxo4;
+    return resposta ?? { origem: 'agenda_isadora', estado: 'indisponivel' };
+  };
+
   const agente = (parametros, item, ctx) => {
     estado.agente.push({ entrada: parametros.text, sistema: parametros.options.systemMessage });
     if (falhas.has('agente')) throw new Error('OpenAI timeout');
@@ -275,7 +290,10 @@ function criarAmbiente(opcoes = {}) {
       for (const no of fluxo.nodes) {
         if (no.type === 'n8n-nodes-base.postgres') servicos[no.name] = postgres;
         else if (no.type === 'n8n-nodes-base.redis') servicos[no.name] = redis;
-        else if (no.type === 'n8n-nodes-base.executeWorkflow') servicos[no.name] = fluxo2(no.name);
+        else if (no.type === 'n8n-nodes-base.executeWorkflow') {
+          const ehFluxo4 = [NOS.consultarAgendaFollowup, NOS.conferirAgenda, NOS.abrirConsultaDeHorario].includes(no.name);
+          servicos[no.name] = ehFluxo4 ? fluxo4(no.name) : fluxo2(no.name);
+        }
         else if (no.type === '@n8n/n8n-nodes-langchain.agent') servicos[no.name] = agente;
         else if (no.type === 'n8n-nodes-base.httpRequest') {
           const url = no.parameters.url;
@@ -288,7 +306,7 @@ function criarAmbiente(opcoes = {}) {
             };
           } else if (no.name === NOS.classificarMensagem) servicos[no.name] = openai('classificacao');
           else if (no.name === NOS.reescrever) servicos[no.name] = openai('reescrita');
-          else if (no.name === NOS.gerarMensagem) servicos[no.name] = openai('followup');
+          else if (no.name === NOS.gerarMensagem || no.name === NOS.gerarMensagemAgenda) servicos[no.name] = openai('followup');
         }
       }
       return servicos;
@@ -784,8 +802,18 @@ describe('fluxo 3 · saída do agente e reescrita (funções puras)', () => {
     const base = { validador: CONTEXTO_VALIDADOR, texto_resposta: 'x', violacoes: [] };
     assert.equal(lerReescrita(base, resposta({ texto: '[SEGURANCA]', transferir: null })).reescrita_aprovada, false);
     assert.equal(lerReescrita(base, resposta({ texto: 'O Essencial é R$ 3.000.', transferir: null })).reescrita_aprovada, false);
+    // [v4.3] Desconto, parcelamento e contrato viram anotação para o Leonardo, nunca transferência.
     const ok = lerReescrita(base, resposta({ texto: 'Essa condição quem confirma é o Leonardo.', transferir: 'condicao_comercial' }));
-    assert.deepEqual([ok.reescrita_aprovada, ok.reescrita_transferir, ok.tem_transferencia_reescrita], [true, 'condicao_comercial', true]);
+    assert.deepEqual(
+      [ok.reescrita_aprovada, ok.reescrita_transferir, ok.tem_transferencia_reescrita, ok.reescrita_anotar],
+      [true, null, false, true],
+    );
+    for (const motivo of ['reuniao', 'cobertura_taxa', 'reembolso_fiscal', 'duvida_sem_resposta']) {
+      const semTransferencia = lerReescrita(base, resposta({ texto: 'Vou conferir isso com a equipe.', transferir: motivo }));
+      assert.deepEqual([semTransferencia.reescrita_transferir, semTransferencia.reescrita_anotar], [null, false], motivo);
+    }
+    const excecao = lerReescrita(base, resposta({ texto: 'Vou chamar alguém da equipe.', transferir: 'pediu_humano' }));
+    assert.deepEqual([excecao.reescrita_transferir, excecao.tem_transferencia_reescrita], ['pediu_humano', true]);
     assert.equal(lerReescrita(base, resposta({ texto: 'Ok.', transferir: 'inventado' })).reescrita_transferir, null);
     assert.equal(lerReescrita(base, { error: 'x' }).reescrita_aprovada, false);
   });
@@ -1162,15 +1190,20 @@ describe('fluxo 3 · cenários do P25 (JSON gerado no simulador)', () => {
     assert.deepEqual(ambiente.estado.envios.map((e) => e.no), [NOS.enviarTexto, NOS.enviarApresentacao]);
   });
 
-  test('reescrita que tira desconto abre condicao_comercial antes do envio', async () => {
+  test('[v4.3] reescrita que tira desconto grava a anotação para o Leonardo e não abre transferência', async () => {
     const ambiente = criarAmbiente({
       agente: () => ({ output: 'No Pix tem 10% de desconto.' }),
-      reescrita: { texto: 'Essa condição quem confirma é o Leonardo, tá? Vou pedir para ele falar com você por aqui.', transferir: 'condicao_comercial' },
+      reescrita: { texto: 'As condições de pagamento o Leonardo apresenta depois da reunião com a Edilaine, tá? Já deixei anotado aqui.', transferir: 'condicao_comercial' },
     });
     const execucao = await rodar(ambiente, corpo({ texto: 'tem desconto no pix?' }));
-    assert.deepEqual(ambiente.estado.fluxo2.map((c) => [c.no, c.entrada.motivo]), [[NOS.transferirPelaReescrita, 'condicao_comercial']]);
-    assert.ok(execucao.ordem.indexOf(NOS.transferirPelaReescrita) < execucao.ordem.indexOf(NOS.enviarTexto));
-    assert.equal(ambiente.chamadas('pode_enviar')[0].argumentos[2], 'handoff-1');
+    assert.deepEqual(ambiente.estado.fluxo2, [], 'nenhuma transferência antes da reunião');
+    assert.ok(!execucao.rodou(NOS.transferirPelaReescrita));
+    // a query do nó já fixa o marco `anotacao_comercial`; os parâmetros são a conversa e o pedido da família
+    assert.ok(execucao.rodou(NOS.anotarCondicao));
+    assert.deepEqual(ambiente.chamadas('registrar_marco').map((c) => c.argumentos), [[CONVERSA, 'tem desconto no pix?']]);
+    assert.ok(execucao.ordem.indexOf(NOS.anotarCondicao) < execucao.ordem.indexOf(NOS.enviarTexto), 'anota antes de enviar');
+    assert.equal(ambiente.enviosDe(NOS.enviarTexto).length, 1);
+    assert.ok(!ambiente.chamadas('pode_enviar')[0].argumentos[2], 'sem handoff desta execução');
   });
 
   test('violação que persiste: fallback_confirmar e fluxo 2 com validacao_resposta', async () => {
@@ -1271,6 +1304,7 @@ describe('fluxo 3 · cenários do P25 (JSON gerado no simulador)', () => {
 
   test('duas conversas: as ferramentas resolvem o conversa_id de cada execução, nunca do modelo', async () => {
     const { fluxo3 } = await fluxos();
+    const config = await configExemplo();
     const execucoes = [];
     for (const [jid, conversa] of [['000000000001@s.whatsapp.net', 'conversa-a'], ['000000000002@s.whatsapp.net', 'conversa-b']]) {
       const ambiente = criarAmbiente({ conversaPorJid: { [jid]: conversa } });
@@ -1290,7 +1324,10 @@ describe('fluxo 3 · cenários do P25 (JSON gerado no simulador)', () => {
         }
         if (no.type === '@n8n/n8n-nodes-langchain.toolWorkflow') {
           const valores = avaliarParametro(no.parameters.workflowInputs.value, escopo);
-          assert.deepEqual([valores.conversa_id, valores.wa_jid], [conversa, jid], nome);
+          assert.equal(valores.conversa_id, conversa, nome);
+          // as ferramentas do fluxo 2 levam também o jid (só para enviar); as do fluxo 4 nunca
+          if (no.parameters.workflowId.value === config.fluxo.idFluxo2) assert.equal(valores.wa_jid, jid, nome);
+          else assert.ok(!('wa_jid' in valores), nome);
         }
       }
       const memoria = fluxo3.nodes.find((n) => n.name === NOS.memoria);
@@ -1383,6 +1420,207 @@ describe('fluxo 3 · entrada B (follow-up) no simulador', () => {
   });
 });
 
+
+// ---------------------------------------------------------------------------
+// [v4.3] Entrada B da agenda (nós 42 a 47): lembrete da véspera, remarcação
+// depois de falta, devolutiva de consulta, horário liberado, e a retomada das
+// opções vencidas dentro da cadência de follow-up (nós 36 a 41)
+// ---------------------------------------------------------------------------
+
+describe('fluxo 3 · entrada B da agenda no simulador', () => {
+  const LISTAS_AGENDA = {
+    ...LISTAS,
+    agenda_contexto: ['reunião', 'reuniao', 'edilaine', 'agenda', 'horário', 'horario', 'convite', 'link', 'meet'],
+    agenda_confirmacao: ['agendada', 'agendado', 'marcada', 'marcado', 'confirmada', 'confirmado', 'prontinho', 'combinado'],
+    agenda_reserva: ['vaga reservada', 'vaga garantida'],
+    agenda_leonardo_verbos: ['vai te chamar', 'vai entrar em contato'],
+    agenda_depois: ['depois da reunião'],
+    agenda_anotacao_termos: ['condição', 'pagamento', 'contrato', 'desconto'],
+  };
+  const LINK = 'https://meet.google.com/aaa-bbbb-ccc';
+  const proativos = (itens) => ({ ok: true, itens, validador: { listas: LISTAS_AGENDA } });
+  const base = { conversa_id: 'c1', wa_jid: JID, nome: 'Ana' };
+  const rodarAgendado = async (ambiente) => {
+    const { fluxo3 } = await fluxos();
+    return simularFluxo(fluxo3, { gatilho: NOS.aCada30Min, entrada: {}, servicos: ambiente.montarServicos(fluxo3) });
+  };
+  const lembrete = {
+    ...base,
+    tipo: 'lembrete',
+    sessao_id: 's1',
+    hora: '10h',
+    link: LINK,
+    texto_horario: 'sábado, 03/10, às 10h',
+    texto_modelo: 'Oi, {nome}! Passando para lembrar da sua reunião com a Edilaine amanhã, às {hora} 😊 O link é este: {link}',
+    texto_base: `Oi, Ana! Passando para lembrar da sua reunião com a Edilaine amanhã, às 10h 😊 O link é este: ${LINK}`,
+  };
+  const eventoOk = { origem: 'agenda_isadora', estado: 'evento_ok', texto: 'sábado, 03/10, às 10h', link: LINK };
+
+  test('lembrete: confere o evento no calendário, passa por pode_enviar (operacional) e só então envia; registra o lembrete e a memória', async () => {
+    const texto = `Oi, Ana! Amanhã, às 10h, temos a reunião com a Edilaine 😊 O link é este: ${LINK}`;
+    const ambiente = criarAmbiente({ proativosAgenda: proativos([lembrete]), fluxo4: eventoOk, followup: { texto } });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.fluxo4[0].entrada.operacao, 'conferir_evento');
+    assert.equal(ambiente.estado.fluxo4[0].entrada.conversa_id, 'c1', 'a chave é o conversa_id do banco');
+    assert.deepEqual(ambiente.chamadas('pode_enviar')[0].argumentos, ['c1', 'operacional', null]);
+    assert.deepEqual(ambiente.enviosDe(NOS.enviarAgenda).map((e) => [e.number, e.text]), [[JID, texto]]);
+    assert.deepEqual(ambiente.chamadas('registrar_lembrete')[0].argumentos, ['s1', true, texto]);
+    assert.deepEqual(ambiente.chamadas('sincronizar_memoria')[0].argumentos.slice(0, 2), ['c1', 'followup']);
+  });
+
+  test('lembrete com horário diferente do que o calendário devolveu: o validador reprova, nada sai e o lembrete volta', async () => {
+    const texto = `Oi, Ana! Amanhã, às 11h, temos a reunião com a Edilaine 😊 O link é este: ${LINK}`;
+    const ambiente = criarAmbiente({ proativosAgenda: proativos([lembrete]), fluxo4: eventoOk, followup: { texto } });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.envios.length, 0);
+    assert.deepEqual(ambiente.chamadas('registrar_lembrete')[0].argumentos, ['s1', false, null]);
+  });
+
+  test('lembrete com link que não é o do Meet do evento: reprovado (link só o do convite)', async () => {
+    const texto = 'Oi, Ana! Amanhã, às 10h, temos a reunião com a Edilaine 😊 O link é este: https://exemplo.invalid/outro';
+    const ambiente = criarAmbiente({ proativosAgenda: proativos([lembrete]), fluxo4: eventoOk, followup: { texto } });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.envios.length, 0);
+  });
+
+  test('freio, janela ou pausa (pode_enviar recusado): nada sai e o lembrete é fechado sem ok', async () => {
+    const texto = `Oi, Ana! Amanhã, às 10h, temos a reunião com a Edilaine 😊 O link é este: ${LINK}`;
+    const ambiente = criarAmbiente({ proativosAgenda: proativos([lembrete]), fluxo4: eventoOk, followup: { texto }, podeEnviar: () => ({ pode: false, motivo: 'freio' }) });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.envios.length, 0);
+    assert.deepEqual(ambiente.chamadas('registrar_lembrete')[0].argumentos, ['s1', false, null]);
+  });
+
+  test('evento apagado pela Edilaine: o lembrete não sai (e não consome o freio nem o modelo)', async () => {
+    const ambiente = criarAmbiente({ proativosAgenda: proativos([lembrete]), fluxo4: { origem: 'agenda_isadora', estado: 'evento_apagado' }, followup: { texto: 'não deveria gerar' } });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.envios.length, 0);
+    assert.equal(ambiente.estado.openai.length, 0);
+    assert.equal(ambiente.chamadas('pode_enviar').length, 0);
+    assert.equal(ambiente.chamadas('registrar_lembrete').length, 0);
+  });
+
+  test('evento movido para outro dia que não é amanhã: o lembrete é adiado, sem enviar o horário velho', async () => {
+    const ambiente = criarAmbiente({
+      proativosAgenda: proativos([lembrete]),
+      fluxo4: { origem: 'agenda_isadora', estado: 'evento_movido', texto: 'terça, 06/10, às 16h', hora: '16h', inicio: '2026-10-06T19:00:00.000Z', link: LINK },
+      followup: { texto: 'não deveria gerar' },
+    });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.envios.length, 0);
+  });
+
+  test('Google fora do ar na véspera: o lembrete não sai com dado velho e volta na próxima rodada', async () => {
+    const ambiente = criarAmbiente({ proativosAgenda: proativos([lembrete]), fluxo4: { origem: 'agenda_isadora', estado: 'indisponivel' }, followup: { texto: 'x' } });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.envios.length, 0);
+    assert.deepEqual(ambiente.chamadas('registrar_lembrete')[0].argumentos, ['s1', false, null]);
+  });
+
+  test('falta: remarcação sem constranger, conteúdo com pode_enviar, e o registro fecha a execução do motor', async () => {
+    const falta = { ...base, tipo: 'falta', execucao_id: 'e9', texto_base: 'Imagino que tenha surgido algum imprevisto, acontece! Quer que eu veja um novo horário com a Edilaine?' };
+    const texto = 'Oi, Ana! Imagino que tenha surgido algum imprevisto, acontece. Quer que eu veja um novo horário com a Edilaine?';
+    const ambiente = criarAmbiente({ proativosAgenda: proativos([falta]), followup: { texto } });
+    await rodarAgendado(ambiente);
+    assert.equal((ambiente.estado.fluxo4 ?? []).length, 0, 'falta não consulta o calendário');
+    assert.deepEqual(ambiente.chamadas('pode_enviar')[0].argumentos, ['c1', 'conteudo', null]);
+    assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e9', texto, true]);
+  });
+
+  test('falta: texto que confirma reunião ou cita horário sem consulta é reprovado', async () => {
+    const falta = { ...base, tipo: 'falta', execucao_id: 'e9', texto_base: 'Quer que eu veja um novo horário com a Edilaine?' };
+    for (const texto of ['Oi, Ana! Já remarquei a reunião para quinta, 08/10, às 19h.', 'Oi, Ana! A reunião com a Edilaine está confirmada.']) {
+      const ambiente = criarAmbiente({ proativosAgenda: proativos([falta]), followup: { texto } });
+      await rodarAgendado(ambiente);
+      assert.equal(ambiente.estado.envios.length, 0, texto);
+      assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e9', null, false]);
+    }
+  });
+
+  test('devolutiva de consulta: entrega a resposta da equipe ao modelo e fecha a consulta como devolvida só depois de enviar', async () => {
+    const devolutiva = { ...base, tipo: 'devolutiva', consulta_id: 'q1', pergunta: 'Santo André', resposta: 'Atendemos Santo André, sem taxa.', texto_base: 'Voltei com a resposta da equipe.' };
+    const texto = 'Oi, Ana! Boa notícia: atendemos Santo André, sem taxa 🤍';
+    const ambiente = criarAmbiente({ proativosAgenda: proativos([devolutiva]), followup: { texto } });
+    await rodarAgendado(ambiente);
+    assert.match(ambiente.estado.openai[0].corpo.messages[0].content, /Atendemos Santo André, sem taxa\./);
+    assert.deepEqual(ambiente.chamadas('fechar_consulta')[0].argumentos, ['q1', 'devolvida', texto]);
+    // não enviou: a consulta continua aberta para outra tentativa
+    const recusado = criarAmbiente({ proativosAgenda: proativos([devolutiva]), followup: { texto }, podeEnviar: () => ({ pode: false }) });
+    await rodarAgendado(recusado);
+    assert.equal(recusado.chamadas('fechar_consulta').length, 0);
+  });
+
+  test('horário liberado pela Edilaine: consulta a agenda agora (1 opção) e só oferece o que o calendário devolveu', async () => {
+    const horario = { ...base, tipo: 'horario', consulta_id: 'q2', preferencia: { dias: 'sábado', periodos: 'manhã' }, texto_base: 'A Edilaine abriu um horário: {opcao_1}. Serve para vocês?' };
+    const ambiente = criarAmbiente({
+      proativosAgenda: proativos([horario]),
+      fluxo4: { origem: 'agenda_isadora', estado: 'opcoes', opcoes: [{ id_opcao: 'x', texto: 'sábado, 03/10, às 9h' }] },
+      followup: { texto: 'Oi, Ana! A Edilaine abriu um horário: sábado, 03/10, às 9h. Serve para vocês?' },
+    });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.fluxo4[0].entrada.operacao, 'consultar');
+    assert.equal(ambiente.estado.fluxo4[0].entrada.maximo, 1);
+    assert.match(ambiente.estado.fluxo4[0].entrada.preferencia, /sábado/);
+    assert.equal(ambiente.enviosDe(NOS.enviarAgenda).length, 1);
+    assert.equal(ambiente.chamadas('fechar_consulta')[0].argumentos[1], 'devolvida');
+
+    const ocupado = criarAmbiente({
+      proativosAgenda: proativos([horario]),
+      fluxo4: { origem: 'agenda_isadora', estado: 'sem_horario', opcoes: [] },
+      followup: { texto: 'Oi, Ana! A Edilaine abriu um horário: sábado, 03/10, às 9h.' },
+    });
+    await rodarAgendado(ocupado);
+    assert.equal(ocupado.estado.envios.length, 0, 'sem opção consultada agora, nada é oferecido');
+  });
+
+  test('cadência (1, 3 e 14 dias): follow-up que retoma opções vencidas consulta a agenda de novo e usa só as opções novas', async () => {
+    const item = {
+      execucao_id: 'e5',
+      conversa_id: 'c5',
+      wa_jid: '000000000005@s.whatsapp.net',
+      nome: 'Ana',
+      texto_base: 'Oi, {nome}! Conferi a agenda da Edilaine agora e os horários de ontem já não valem. Hoje ela tem {opcao_1} ou {opcao_2}. Algum fica bom?',
+      tempo_sem_resposta: '1 dia',
+      ultimas_mensagens: [],
+      etapa: 1,
+      motivo: 'opcoes_vencidas',
+      precisa_agenda: true,
+    };
+    const novas = { origem: 'agenda_isadora', estado: 'opcoes', opcoes: [{ texto: 'sexta, 02/10, às 14h' }, { texto: 'sábado, 03/10, às 9h' }] };
+    const texto = 'Oi, Ana! Conferi a agenda da Edilaine agora: ela tem sexta, 02/10, às 14h ou sábado, 03/10, às 9h. Algum fica bom?';
+    const ambiente = criarAmbiente({
+      followups: { ok: true, itens: [item], validador: { listas: LISTAS_AGENDA }, enviados_hoje: [], limite_similaridade: 0.8 },
+      fluxo4: novas,
+      followup: { texto },
+    });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.fluxo4[0].entrada.conversa_id, 'c5');
+    assert.equal(ambiente.estado.fluxo4[0].entrada.operacao, 'consultar');
+    assert.match(ambiente.estado.openai[0].corpo.messages[0].content, /sexta, 02\/10, às 14h/);
+    assert.deepEqual(ambiente.chamadas('pode_enviar')[0].argumentos, ['c5', 'conteudo', null]);
+    assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e5', texto, true]);
+
+    // horário de ontem no texto do modelo: reprovado
+    const velho = criarAmbiente({
+      followups: { ok: true, itens: [item], validador: { listas: LISTAS_AGENDA }, enviados_hoje: [], limite_similaridade: 0.8 },
+      fluxo4: novas,
+      followup: { texto: 'Oi, Ana! Ontem a Edilaine tinha quarta, 30/09, às 20h. Ainda serve?' },
+    });
+    await rodarAgendado(velho);
+    assert.equal(velho.estado.envios.length, 0);
+
+    // agenda sem horário: o retorno não sai
+    const semAgenda = criarAmbiente({
+      followups: { ok: true, itens: [item], validador: { listas: LISTAS_AGENDA }, enviados_hoje: [], limite_similaridade: 0.8 },
+      fluxo4: { origem: 'agenda_isadora', estado: 'sem_horario', opcoes: [] },
+      followup: { texto },
+    });
+    await rodarAgendado(semAgenda);
+    assert.equal(semAgenda.estado.envios.length, 0);
+    assert.deepEqual(semAgenda.chamadas('registrar_followup')[0].argumentos, ['e5', null, false]);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // 3. Estrutura do JSON gerado
 // ---------------------------------------------------------------------------
@@ -1468,9 +1706,9 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
     const podeEnviar = fluxo3.nodes
       .filter((no) => no.type === 'n8n-nodes-base.postgres' && /agente\.pode_enviar\(/.test(no.parameters.query))
       .map((no) => no.name);
-    assert.deepEqual(podeEnviar.sort(), [NOS.podeEnviarSistema, NOS.reconsultar, NOS.reconsultarEEnviar].sort());
+    assert.deepEqual(podeEnviar.sort(), [NOS.podeEnviarSistema, NOS.reconsultar, NOS.reconsultarEEnviar, NOS.reconsultarAgenda].sort());
     const semPodeEnviar = alcancaveis(fluxo3, [NOS.webhook, NOS.aCada30Min], new Set(podeEnviar));
-    for (const envio of [NOS.enviarTexto, NOS.enviarApresentacao, NOS.enviarTextoSistema, NOS.enviarFollowup]) {
+    for (const envio of [NOS.enviarTexto, NOS.enviarApresentacao, NOS.enviarTextoSistema, NOS.enviarFollowup, NOS.enviarAgenda]) {
       assert.ok(!semPodeEnviar.has(envio), `"${envio}" alcançável sem pode_enviar`);
     }
     assert.ok(semPodeEnviar.has(NOS.enviarTextoAudio), 'o texto de áudio sai nos modos do alerta, sem pode_enviar');
@@ -1479,6 +1717,8 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
     );
     assert.ok(tipos[NOS.reconsultar].includes("'resposta'") && tipos[NOS.reconsultar].includes('handoff_id_execucao'));
     assert.ok(tipos[NOS.reconsultarEEnviar].includes("'conteudo'"));
+    // [v4.3] nó 46: 'operacional' para o lembrete, 'conteudo' para os demais
+    assert.ok(tipos[NOS.reconsultarAgenda].includes("'operacional'") && tipos[NOS.reconsultarAgenda].includes("'conteudo'"));
   });
 
   test('a chave de toda chamada ao banco é o conversa_id do "Registrar Msg Família" (ou "Humana"); entrada B usa o de followups_devidos', async () => {
@@ -1491,12 +1731,25 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
     assert.ok(resultado.ok, resultado.problemas.join(' | '));
     const resultadoB = conversaIdSoDoRegistro(
       { ...fluxo3, nodes: fluxo3.nodes.filter((no) => entradaB.has(no.name)) },
-      { expressoesPermitidas: ['$json.conversa_id', `$(${JSON.stringify(NOS.fecharFollowup)}).item.json.conversa_id`] },
+      {
+        expressoesPermitidas: [
+          '$json.conversa_id',
+          `$(${JSON.stringify(NOS.fecharFollowup)}).item.json.conversa_id`,
+          `$(${JSON.stringify(NOS.fecharAgenda)}).item.json.conversa_id`,
+        ],
+      },
     );
     assert.ok(resultadoB.ok, resultadoB.problemas.join(' | '));
-    for (const no of fluxo3.nodes.filter((n) => n.type === 'n8n-nodes-base.executeWorkflow')) {
+    const config = await configExemplo();
+    for (const no of fluxo3.nodes.filter((n) => n.type === 'n8n-nodes-base.executeWorkflow' && !entradaB.has(n.name))) {
       assert.equal(no.parameters.workflowInputs.value.conversa_id, `={{ ${EXPR_CONVERSA} }}`, no.name);
-      assert.equal(no.parameters.workflowInputs.value.wa_jid, `={{ ${EXPR_JID} }}`, no.name);
+      if (no.parameters.workflowId.value === config.fluxo.idFluxo2) {
+        assert.equal(no.parameters.workflowInputs.value.wa_jid, `={{ ${EXPR_JID} }}`, no.name);
+      }
+    }
+    // entrada B: o fluxo 4 recebe o conversa_id do item devolvido pelo banco
+    for (const no of fluxo3.nodes.filter((n) => n.type === 'n8n-nodes-base.executeWorkflow' && entradaB.has(n.name))) {
+      assert.equal(no.parameters.workflowInputs.value.conversa_id, '={{ $json.conversa_id }}', no.name);
     }
   });
 
@@ -1507,7 +1760,7 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
     for (const nome of b) assert.ok(!a.has(nome), nome);
   });
 
-  test('as nove ferramentas da 11.9: conversa_id fixo por expressão, só campos de conteúdo por $fromAI', async () => {
+  test('as quinze ferramentas da 11.9: conversa_id fixo por expressão, só campos de conteúdo por $fromAI', async () => {
     const config = await configExemplo();
     const { fluxo3 } = await fluxos();
     const conteudo = {
@@ -1517,7 +1770,21 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
       registrar_retorno: ['quando'],
       transferir_para_equipe: ['motivo', 'resumo', 'solicitacao', 'dados'],
       acionar_equipe_saude: ['tipo', 'resumo'],
+      // [v4.3] agenda e anotação: só conteúdo; nenhum id de evento, de calendário, de sessão ou de conversa
+      anotar_para_leonardo: ['anotacao'],
+      consultar_horarios_edilaine: ['id_opcao', 'modo', 'preferencia'],
+      agendar_reuniao: ['email', 'email_parceiro', 'id_opcao'],
+      remarcar_reuniao: ['id_opcao'],
+      cancelar_reuniao: ['motivo'],
+      consultar_equipe: ['pergunta', 'tipo'],
     };
+    const nosDoFluxo4 = new Set([
+      FERRAMENTAS.consultarHorariosEdilaine,
+      FERRAMENTAS.agendarReuniao,
+      FERRAMENTAS.remarcarReuniao,
+      FERRAMENTAS.cancelarReuniao,
+      FERRAMENTAS.consultarEquipe,
+    ]);
     const conexoesAgente = [];
     for (const [origem, porTipo] of Object.entries(fluxo3.connections)) {
       for (const destino of porTipo.ai_tool?.[0] ?? []) if (destino.node === NOS.agente) conexoesAgente.push(origem);
@@ -1528,7 +1795,11 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
       const texto = JSON.stringify(no.parameters);
       const chaves = [...texto.matchAll(/\$fromAI\('([a-z_]+)'/g)].map((m) => m[1]);
       assert.deepEqual([...new Set(chaves)].sort(), [...(conteudo[nome] ?? [])].sort(), nome);
-      if (no.type === '@n8n/n8n-nodes-langchain.toolWorkflow') {
+      if (no.type === '@n8n/n8n-nodes-langchain.toolWorkflow' && nosDoFluxo4.has(nome)) {
+        assert.equal(no.parameters.workflowId.value, config.fluxo.idFluxo4);
+        assert.equal(no.parameters.workflowInputs.value.conversa_id, `={{ ${EXPR_CONVERSA} }}`);
+        assert.ok(!('wa_jid' in no.parameters.workflowInputs.value), 'o fluxo 4 não recebe o jid');
+      } else if (no.type === '@n8n/n8n-nodes-langchain.toolWorkflow') {
         assert.equal(no.parameters.workflowId.value, config.fluxo.idFluxo2);
         assert.equal(no.parameters.workflowInputs.value.conversa_id, `={{ ${EXPR_CONVERSA} }}`);
         assert.equal(no.parameters.workflowInputs.value.wa_jid, `={{ ${EXPR_JID} }}`);
@@ -1539,7 +1810,7 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
     assert.deepEqual([saude.enviar_texto, saude.acao], [true, 'alerta_saude']);
     const transferir = fluxo3.nodes.find((n) => n.name === FERRAMENTAS.transferirParaEquipe).parameters.workflowInputs.value;
     assert.equal(transferir.enviar_texto, false);
-    for (const nome of [FERRAMENTAS.atualizarFicha, FERRAMENTAS.registrarRetorno, FERRAMENTAS.marcarNaoContatar]) {
+    for (const nome of [FERRAMENTAS.atualizarFicha, FERRAMENTAS.registrarRetorno, FERRAMENTAS.marcarNaoContatar, FERRAMENTAS.anotarParaLeonardo]) {
       const lista = fluxo3.nodes.find((n) => n.name === nome).parameters.options.queryReplacement;
       assert.ok(lista.startsWith(`={{ [ ${EXPR_CONVERSA}`), nome);
     }
@@ -1669,11 +1940,22 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
     assert.doesNotThrow(() => conferirHomologacao(exemplo, 'hml'));
   });
 
-  test('ferramentas e sub-fluxos apontam para o id do fluxo 2 do config, que é o id do fluxo 2 gerado', async () => {
+  test('ferramentas e sub-fluxos apontam para o id do fluxo 2 (e, na agenda, do fluxo 4) do config, que é o id do fluxo gerado', async () => {
     const config = await configExemplo();
-    const { fluxo2, fluxo3 } = await fluxos();
+    const { fluxo2, fluxo3, fluxo4 } = await fluxos();
     assert.equal(fluxo2.id, config.fluxo.idFluxo2);
-    const chamadas = fluxo3.nodes.filter((no) => ['n8n-nodes-base.executeWorkflow', '@n8n/n8n-nodes-langchain.toolWorkflow'].includes(no.type));
+    assert.equal(fluxo4.id, config.fluxo.idFluxo4);
+    const todas = fluxo3.nodes.filter((no) => ['n8n-nodes-base.executeWorkflow', '@n8n/n8n-nodes-langchain.toolWorkflow'].includes(no.type));
+    const para4 = todas.filter((no) => no.parameters.workflowId.value === config.fluxo.idFluxo4);
+    assert.equal(para4.length, 5 + 3, 'cinco ferramentas de agenda e três chamadas (cadência, conferir a agenda, violação de agenda)');
+    for (const no of para4) {
+      assert.deepEqual(
+        no.parameters.workflowInputs.schema.map((s) => s.id),
+        fluxo4.nodes.find((n) => n.name === NOS4.quandoChamado).parameters.workflowInputs.values.map((v) => v.name),
+        no.name,
+      );
+    }
+    const chamadas = todas.filter((no) => no.parameters.workflowId.value === config.fluxo.idFluxo2);
     assert.equal(chamadas.length, 11);
     for (const no of chamadas) {
       assert.equal(no.parameters.workflowId.value, config.fluxo.idFluxo2, no.name);

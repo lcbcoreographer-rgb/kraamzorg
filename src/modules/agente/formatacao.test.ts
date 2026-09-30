@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   pausaVenceuComTransferenciaAberta,
   primeiroNome,
+  quemConduzAConversa,
+  rotuloDaSituacao,
   situacaoDaConversa,
   textoVoltaDaPausa,
 } from "./formatacao";
@@ -216,5 +218,40 @@ describe("primeiroNome com nome de família ou telefone", () => {
   it("'Família Teste Aurora' e telefone viram 'a família'", () => {
     expect(primeiroNome("Família Teste Aurora")).toBe("a família");
     expect(primeiroNome("+55 11 90000-0029")).toBe("a família");
+  });
+});
+
+describe("quem conduz a conversa (v4.3, D-20)", () => {
+  const base = {
+    classificacao: "lead" as const,
+    agenteEncerradoEm: null,
+    agentePausadoAte: null,
+  };
+
+  it("a lista chama de Leonardo conduzindo a conversa que a reunião realizada encerrou para a Isadora", () => {
+    expect(rotuloDaSituacao("equipe", "reuniao_realizada")).toBe(
+      "Leonardo conduzindo",
+    );
+    expect(rotuloDaSituacao("equipe", null)).toBe("Com a equipe");
+    expect(rotuloDaSituacao("isadora", null)).toBe("Isadora conduzindo");
+  });
+
+  it("Isadora, Leonardo (humano_comercial), equipe (pausada) e ninguém (fora de lead e cliente)", () => {
+    expect(quemConduzAConversa(base, AGORA)).toBe("isadora");
+    expect(
+      quemConduzAConversa(
+        { ...base, agenteEncerradoEm: "2026-09-24T14:02:00-03:00" },
+        AGORA,
+      ),
+    ).toBe("leonardo");
+    expect(
+      quemConduzAConversa(
+        { ...base, agentePausadoAte: "2026-09-25T15:25:00-03:00" },
+        AGORA,
+      ),
+    ).toBe("equipe");
+    expect(
+      quemConduzAConversa({ ...base, classificacao: "fornecedor" }, AGORA),
+    ).toBeNull();
   });
 });

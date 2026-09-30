@@ -103,6 +103,7 @@ export const CHAVE_MENSAGEM_NAO_LEAD: Record<ClassificacaoNaoLead, string> = {
 export const ROTULO_MOTIVO_HANDOFF: Record<MotivoHandoff, string> = {
   contratar: "Quer contratar",
   reuniao: "Quer a conversa com a coordenação",
+  reuniao_realizada: "Reunião inicial realizada",
   condicao_comercial: "Pediu condição especial",
   cobertura_taxa: "Dúvida de área ou taxa",
   reembolso_fiscal: "Dúvida de reembolso ou nota",

@@ -17,8 +17,30 @@ export interface No {
 }
 
 export interface Fluxo {
+  /** Id gravado na raiz do JSON gerado (o mesmo que as chamadas ao fluxo usam). */
+  id: string;
   nodes: No[];
   connections: Objeto;
+}
+
+/** O Google Calendar de mentira do n8n (P25b): o mesmo dos testes do build. */
+export interface CalendarioSimuladoN8n {
+  chamadas: Objeto[];
+  executarNoGoogle(parametros: Objeto): unknown;
+  executarHttp(operacao: string, corpo: Objeto): unknown;
+  ocupar(calendarId: string, inicioIso: string, fimIso: string): void;
+  liberarTudo(): void;
+  eventos(calendarId: string): Objeto[];
+  apagarPelaEdilaine(calendarId: string, eventoId: string): void;
+  moverPelaEdilaine(
+    calendarId: string,
+    eventoId: string,
+    inicioIso: string,
+    fimIso: string,
+  ): void;
+  ficarForaDoAr(valor?: boolean): void;
+  falharProxima(operacao: string, mensagem?: string, codigo?: number): void;
+  limparFalhas(): void;
 }
 
 export interface ContextoDeExecucao {
@@ -42,7 +64,7 @@ export interface N8n {
   gerarFluxos(
     config: unknown,
     ambiente: string,
-  ): { fluxo1: Fluxo; fluxo2: Fluxo; fluxo3: Fluxo };
+  ): { fluxo1: Fluxo; fluxo2: Fluxo; fluxo3: Fluxo; fluxo4: Fluxo };
   carregarConfig(
     ambiente: string,
     diretorio: string,
@@ -64,6 +86,8 @@ export interface N8n {
   ): unknown;
   NOS: Record<string, string>;
   NOS_FLUXO2: Record<string, string>;
+  NOS_FLUXO4: Record<string, string>;
+  criarCalendarioSimulado(): CalendarioSimuladoN8n;
 }
 
 // No Playwright, `new Function` impede o compilador de trocar o import() por require().
@@ -84,13 +108,16 @@ export function carregarN8n(): Promise<N8n> {
     const raiz = path.join(process.cwd(), "n8n");
     const carregar = (relativo: string) =>
       importar(pathToFileURL(path.join(raiz, relativo)).href);
-    const [build, config, simulador, fluxo3, fluxo2] = await Promise.all([
-      carregar("build.mjs"),
-      carregar("src/lib/config.mjs"),
-      carregar("src/lib/simulador.mjs"),
-      carregar("src/fluxo-3-agente-isadora.mjs"),
-      carregar("src/fluxo-2-pausar-notificar.mjs"),
-    ]);
+    const [build, config, simulador, fluxo3, fluxo2, fluxo4, calendario] =
+      await Promise.all([
+        carregar("build.mjs"),
+        carregar("src/lib/config.mjs"),
+        carregar("src/lib/simulador.mjs"),
+        carregar("src/fluxo-3-agente-isadora.mjs"),
+        carregar("src/fluxo-2-pausar-notificar.mjs"),
+        carregar("src/fluxo-4-agenda-isadora.mjs"),
+        carregar("src/lib/calendario-simulado.mjs"),
+      ]);
     return {
       gerarFluxos: build["gerarFluxos"],
       carregarConfig: config["carregarConfig"],
@@ -100,6 +127,8 @@ export function carregarN8n(): Promise<N8n> {
       escopoDeFerramenta: simulador["escopoDeFerramenta"],
       NOS: fluxo3["NOS"],
       NOS_FLUXO2: fluxo2["NOS"],
+      NOS_FLUXO4: fluxo4["NOS"],
+      criarCalendarioSimulado: calendario["criarCalendarioSimulado"],
     } as unknown as N8n;
   })();
   return emCache;

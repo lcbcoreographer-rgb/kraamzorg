@@ -33,6 +33,7 @@ import {
   pausaVenceuComTransferenciaAberta,
   primeiroNome,
   ROTULO_SITUACAO,
+  rotuloDaSituacao,
   textoVoltaDaPausa,
 } from "../../formatacao";
 import {
@@ -200,7 +201,7 @@ export function CartaoConversa({ conversa }: { conversa: ConversaComPausa }) {
             ) : undefined
           }
         >
-          {ROTULO_SITUACAO[conversa.situacao]}
+          {rotuloDaSituacao(conversa.situacao, conversa.agenteEncerradoMotivo)}
         </Selo>
         {conversa.transferenciaAberta ? (
           <Selo

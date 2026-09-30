@@ -1,14 +1,16 @@
 # Ajustes no prompt da Isadora para aprovação
 
 Para: Leonardo (conteúdo e tom) e Edilaine (itens marcados como clínicos)
-Arquivo novo: `n8n/prompts/isadora-system.md` (versão 4.2-rc4, 29/09/2026; a revisão de voz da rc4 está na seção 7)
-Base: Prompt de Sistema v4.0 (23/09) e Treinamento da Isadora (24/09)
+Arquivo novo: `n8n/prompts/isadora-system.md` (versão 4.3-rc1, 29/09/2026; a adaptação do prompt v6.0 está na seção 8; a revisão de voz da rc4 está na seção 7)
+Base: Prompt de Sistema v4.0 (23/09) e Treinamento da Isadora (24/09); [v4.3] Prompt de Sistema v6.0 e Treinamento da Isadora v3 (29/09)
 
 O prompt v4.0 continua sendo a base: persona, tom, princípios, textos aprovados, objeções, situações especiais e lista do que a Isadora nunca faz foram mantidos. As mudanças abaixo vêm de três fontes: as decisões do treinamento de 24/09, o que o sistema passou a garantir sozinho (e por isso saiu do texto) e o método de copy da Drop. Nada vai ao ar antes da aprovação registrada no CRM.
 
 **[v4.2] Atualização de 25/09/2026.** Esta revisão corrige os itens 2, 13 e L, que ainda não batiam com o que os prompts em 4.2-rc3 fazem de fato, acrescenta os itens 17 e 18 e escreve a exceção da regra de uma pergunta por vez na seção 6. Nenhum item já numerado foi renumerado; o que é novo entrou com número ou letra nova no fim da lista.
 
 ## 1. Decisões do treinamento de 24/09 aplicadas
+
+[v4.3] Os itens 2 (agendamento e follow-up), 3, 4, 5 e 17 foram substituídos pela decisão de 29/09 (seção 8). Ficam aqui como histórico.
 
 | # | O que mudou | Antes (v4.0) | Agora |
 | :-: | :-- | :-- | :-- |
@@ -120,9 +122,138 @@ Quem aprova: L é o Leonardo, E é a Edilaine (texto que descreve cuidado clíni
 
 Divergência encontrada e corrigida nesta revisão: o passo 9 do caminho da conversa (V8) pedia à Isadora uma ação que o modo `humano_comercial` impede. O sistema já não deixava a Isadora responder nesse caso, então nenhuma família recebia essa pergunta; o texto agora bate com o comportamento e com o PRD.
 
+## 8. Versão 4.3: prompt v6.0 e treinamento v3 (29/09/2026)
+
+Arquivos: `n8n/prompts/isadora-system.md` e `n8n/prompts/isadora-followup.md` em 4.3-rc1, `n8n/prompts/reescrever-resposta.md` em 4.3-rc1, `supabase/dados/base_conhecimento_seed.sql` (14 itens novos e 2 ajustados), `n8n/src/code/validar-resposta.js` e `parametro.validador_listas` (e-mail no convite).
+
+A decisão de 29/09 muda o papel da Isadora: ela qualifica e agenda a reunião online inicial com a Edilaine no Google Calendar, lembra na véspera, remarca e, se a família faltar, remarca sem constranger. O Leonardo entra só depois de a Edilaine registrar a reunião como realizada. Isso substitui a decisão de 24/09 (agendamento só por humano) e os itens 2, 3, 4, 5 e 17 da seção 1, que ficam valendo só como histórico.
+
+O prompt v6.0 é a fonte do conteúdo. A voz continua a da rc4 onde ela não contradiz o v6; quando contradiz, vale o v6, e cada caso está na tabela 8.3. O texto do v6 não foi copiado para o repositório: o prompt de produção é a adaptação dele à arquitetura que já existe (filtro de saúde antes do modelo, `[SILENCIO]`, validador, ferramentas, freio, `humano_comercial`).
+
+Regra de LGPD desta versão: o treinamento v3 cita primeiros nomes de clientes reais nas linhas "Inspirada em", na coluna "Hoje (texto real)", nas "Boas práticas" e em "casos". Nada disso entrou em nenhum arquivo, nem nesta seção. Os depoimentos da seção 9.13 do v6 também ficaram de fora, porque dependem de autorização de uso do nome (item E da seção 3 e C-15). Os exemplos usam só nomes fictícios (Carla, Júlia, Renata, Beatriz, Fernanda). Os números da auditoria entram como números (78,4%, 128 de 161, 65 leads, 4,4%).
+
+### 8.1 O que veio do v6
+
+| # | Seção do v6 | Onde entrou no prompt | Observação |
+| :-: | :-- | :-- | :-- |
+| A1 | 1. Identidade | "Quem você é" | Escopo até o agendamento, com a lista do que ela faz e a entrada do Leonardo só depois da reunião realizada |
+| A2 | 2. Fundadores | "Os fundadores" | Papéis atualizados (Edilaine faz a reunião inicial, Leonardo entra depois) e a frase "Unidos pela mesma certeza" |
+| A3 | 3. Transparência | "Transparência" | Texto do v6 palavra por palavra, inclusive "com todo cuidado" (ver X1) |
+| A4 | 4 a 8. Princípios, tom, como escrever, expressões, soar humana | "Como você atende", "Tom de voz", "Como escrever no WhatsApp", "Expressões", "Soar como gente" | Somados aos comportamentos da rc4 (calma, escuta, clareza, carinho com medida) e à seção "Escutar antes de responder", que o v6 não contradiz |
+| A5 | 9. Base de conhecimento | "O que a Kraamzorg é" | Ficou o que é identidade e conduta. Números, contatos e depoimentos foram para a base de conhecimento; planos e valores vêm das variáveis (ver 8.2) |
+| A6 | 10 a 12. O que descobrir, primeira resposta, qualificação | "Modo vendas", "Primeira resposta", "Qualificação e explicação" | Três variações de abertura da rc4 mantidas |
+| A7 | 13. Valor sempre com o PDF | "Apresentação e valores" | Envio da apresentação assim que a família está qualificada, mesmo sem pedir preço; o sistema garante o PDF antes de todo "R$" |
+| A8 | 14. Reunião e agendamento | "Reunião online inicial com a Edilaine" | Passo a passo com as ferramentas reais do fluxo 3 (ver 8.2) |
+| A9 | 15. Objeções | "Objeções" | Com o texto do v6 onde ele difere da rc4 |
+| A10 | 16. Follow-up | `isadora-followup.md` e "Vou pensar" | Cadência 1, 3 e 14 dias, cada um com motivo novo, feita pelo sistema |
+| A11 | 17. Situações especiais | "Situações especiais" e "Modo cliente" | Com as ferramentas de consulta e de anotação no lugar da transferência |
+| A12 | 19. Nunca | "O que você nunca faz" | Inclui horário não consultado e reunião confirmada sem evento |
+| A13 | 20. Saúde | "Saúde e perda" | O texto de saúde do v6 é o `alerta_saude` que o sistema já envia; o modelo só aciona e fica em `[SILENCIO]` |
+| A14 | 21. Quando o Leonardo entra | "Antes da reunião: o que fica para o Leonardo" e "Quando passar para a equipe" | Só as exceções transferem |
+| A15 | 23. Despedida | "Vou pensar, retorno e despedida" | As três variações do v6 |
+| A16 | 24. Exemplos | "Exemplos curtos" | Do primeiro contato até a reunião agendada, preço, retomada de valor, desconto, dia seguinte, nenhum horário, região, contrato, robô, com a anotação da ferramenta em cada um |
+| A17 | 25. Pergunta final | "Antes de enviar, confira" | Itens 6 (horário e confirmação) e 7 (anotação) novos |
+| A18 | 26 e 27. Prioridade e regra de ouro | "Prioridade das regras" e fecho | O item 4 ganhou "horário sempre consultado na hora" |
+| A19 | Treinamento v3, simulações 1 a 10 | Base de conhecimento, 11 conversas modelo | Ver 8.5 |
+| A20 | Treinamento v3, seção 8 | Casos 1 a 28 cobertos pelo texto | O teste automático dos 28 casos é do P28 |
+
+### 8.2 O que foi adaptado à arquitetura, e por quê
+
+| O v6 diz | O prompt faz | Por quê |
+| :-- | :-- | :-- |
+| Valores, parcelas, dias e horas dos planos escritos no prompt (9.10) | Tudo vem de `{{planos}}`, `{{valor.*}}`, `{{parcela.continuado}}` e `{{pagina.*}}`; os exemplos não citam dias, horas nem número de parcelas | Preço muda no CRM sem mexer no prompt, e o validador confere cada valor contra a tabela vigente |
+| Contatos oficiais, bairros, "até 3 famílias por semana", números da apresentação (9.1, 9.2, 9.7, 9.12, 9.14, 9.15) | Contatos, números e evidências na `base_conhecimento`; bairros pela `verificar_cobertura` | Mesma regra do item 8: nada que mora no banco fica no texto. A janela de 28 a 36 semanas ficou, porque é regra de conduta |
+| Reunião "de 30 minutos" em várias frases | A duração vem da linha "Reunião inicial" da ficha; sem ela, "reunião online curta" | A duração é o parâmetro `agenda_bloco_minutos`; se a Edilaine mudar, o texto acompanha |
+| A Isadora consulta a agenda e cria o evento (14.2 a 14.6) | `consultar_horarios_edilaine` (`sugerir` e `conferir`), `agendar_reuniao`, `remarcar_reuniao`, `cancelar_reuniao`, com o `estado` devolvido guiando cada resposta | As regras de agenda valem pelo código e pelo validador (item 9 do PRD 11.11), não só pelo texto. Opção de outro dia é recusada pelo banco |
+| Confirmação "Prontinho" depois do evento criado | Só com `criada` ou `remarcada`; `falhou` ou `indisponivel` vira "Vou conferir isso com a equipe e já te retorno por aqui" | Nenhuma reunião fantasma. O sistema abre a consulta à equipe |
+| Nenhum horário serve: "avise a Edilaine" (14.5) | `consultar_horarios_edilaine` com `preferencia`; `sem_horario` já abre a consulta `horario_edilaine` | Aviso sem transferir e sem pausar a Isadora |
+| Pede o e-mail para o convite (14.3) | E-mail só com a ficha em "aguardando e-mail", o único dado pedido | O validador libera o e-mail só nesse passo (8.6) |
+| Título do evento com o nome da família (14.3) | O prompt não fala do título; o evento sai com `agenda_titulo_evento`, sem o nome | O título vira o assunto do e-mail de convite, e nome de paciente nunca vai em assunto (CLAUDE.md, C-21) |
+| "Falta" como status que a Isadora atualiza (22) | A falta vem registrada pela equipe na ficha; a Isadora só oferece novo horário | Ela nunca conclui sozinha que a família faltou (C-22) |
+| Status comerciais atualizados pela Isadora (22) | Fora do prompt; as ferramentas movem as etapas | Igual ao item 12 da seção 2 |
+| Resumo interno para o Leonardo (21) | Montado pelo banco (`resumo_interno`); a Isadora alimenta com `atualizar_ficha` e `anotar_para_leonardo` | O resumo nunca passa pelo modelo, e nada nele vai à família |
+| Desconto, parcelamento e contrato antes da reunião: "anote no resumo" (13, 15, 21) | `anotar_para_leonardo` obrigatório sempre que ela disser que o Leonardo trata depois | Item 10 do PRD 11.11; sem anotação, a promessa fica vazia |
+| Área não confirmada e dúvida fora da base: "consulte a equipe sem transferir" (17, 21) | `consultar_equipe` com `area` ou `duvida` | A consulta não pausa, não muda o modo e a resposta volta pela Isadora |
+| PDF não abriu: "avise a equipe" (13) | `consultar_equipe` com `duvida` | Antes era transferência com `outro`; agora a conversa continua com ela |
+| Mensagem de saúde escrita pela Isadora (20) | Sistema envia o texto aprovado (o mesmo do v6) e o modelo responde `[SILENCIO]` | Filtro de saúde antes do modelo (PRD 11.11 e 19.4) |
+| Bebê nascido, cliente, pedido de pessoa, insatisfação, médico: transferir (21) | `transferir_para_equipe` com `bebe_nasceu`, `pos_venda_operacao`, `outro`, `pediu_humano`, `reclamacao`, `parceiro_medico` | Contrato ou pagamento de quem já é cliente vai como `outro`, porque `condicao_comercial` e `contratar` saíram da ferramenta (PRD 11.9) |
+| Negrito para horário (6) | Um negrito só na confirmação; as duas opções sem negrito | O validador deixa um negrito por mensagem; o treinamento pôs as duas opções em negrito |
+| Follow-up com valor manda o PDF de novo (16) | O follow-up não cita valor | O prompt de follow-up não recebe a tabela de planos; valor fica para a resposta, com o PDF |
+| Regras de follow-up e janela de mensagens (31) | Janela, uma mensagem por dia e cadência no banco (`agente_janela_envio`, `agente_cadencia_dias`) | Já garantidos pelo sistema |
+
+### 8.3 Conflitos entre o v6 e a voz da rc4, e o que prevaleceu
+
+Em todos, vale o v6, como pedido. A coluna "Rc4" mostra o que a revisão de voz tinha feito.
+
+| # | Assunto | Rc4 | V6 (o que ficou) |
+| :-: | :-- | :-- | :-- |
+| X1 | Transparência | Tirou "com todo cuidado" (V2) | Volta "com todo cuidado" e "falar diretamente com a equipe" |
+| X2 | Expressões | Tirou "Imagino o quanto esse momento é especial para vocês.", "Entendo perfeitamente." e "Faz todo sentido." (V6) | As três voltam para a lista. A orientação da rc4 fica como regra de uso: uma vez, quando for verdade, nunca como abertura de toda resposta |
+| X3 | Aberturas de robô | "Perfeito!" era abertura de robô (V7) | Sai da lista, porque o v6 usa "Perfeito, esse horário está livre!" |
+| X4 | Objeções "Vou falar com meu marido" e "Está caro" | Sem "faz todo sentido" (V12 e V13) | "Claro, faz todo sentido decidirem juntos!" e "Entendo, é um valor importante" voltam; a informação útil da rc4 (os formatos mudam em dias e horas) fica |
+| X5 | Novas expressões do v6 | Não existiam | Entram "Fico muito feliz em te explicar como funciona.", "A Edilaine vai adorar conversar com vocês.", "Se fizer sentido para vocês, eu olho a agenda dela agora.", "Fico feliz que tenha gostado." e "Um abraço e uma ótima sequência de gestação! 🤍" |
+| X6 | Emoji | Nunca em saúde, perda, reclamação ou valores | Acrescenta "preocupação" |
+| X7 | Follow-up, `[SILENCIO]` | Silêncio quando a família disse que ia responder depois | Silêncio só quando ela pediu para ser chamada numa data que ainda não chegou; um "te chamo" sem data não para a cadência (simulação 5) |
+| X8 | Follow-up, aberturas gastas | "Passando para lembrar" era abertura gasta (V21) | Sai da lista, porque o lembrete do v6 começa assim |
+| X9 | Exceção de uma pergunta por vez no fechamento | Existia (v4.2) | Sai: a Isadora não fecha mais venda antes da reunião |
+
+### 8.4 Divergências de dados e de regra encontradas
+
+1. Valores: os cinco valores à vista do v6 batem com `pacote_versao` no `supabase/seed.sql` (Essencial R$ 4.200, Imersão R$ 7.800, Continuado R$ 8.100, Gemelar Essencial R$ 5.400, Gemelar Continuado R$ 10.300). As parcelas de 3x também batem, menos uma: o v6 diz "3x de R$ 3.433" no Gemelar Continuado, e o sistema calcula R$ 3.433,33 (10.300 dividido por 3). Se a Isadora escrever "R$ 3.433", o validador reprova, porque 3 vezes R$ 3.433 dá R$ 10.299. Decidir se a apresentação e o seed passam a dizer R$ 3.433,33, ou se a primeira parcela fica maior (como a `api` da sessão de venda já faz).
+2. Selos: o v6 diz que o Imersão é "o mais escolhido" e o Gemelar Continuado é "recomendado", e a simulação 9 também. O seed deixa `destaque` nulo nos cinco planos até alguém confirmar no PDF (PRD 3.2). O prompt só cita selo quando o bloco de planos trouxer; basta preencher `destaque` para a Isadora usar.
+3. Duração da reunião: o v6 e o PRD dizem 30 minutos. Ainda dizem "uns 15 minutos" e "me passa dois dias e horários" os textos de `mensagem_modelo` `followup_d3` e `regua_28_34` no `supabase/seed.sql` e o exemplo da regra 1 da família em `docs/design/voz.md`. O `followup_d3` é o ponto de partida do segundo retorno da cadência, então precisa ir para o texto do PRD 23.2 antes do P28.
+4. Nota fiscal: o v6 (19.1) manda não confirmar tipo de documento fiscal, e o caso 22 do treinamento espera a resposta padrão ("descreve o serviço como cuidado domiciliar pós-parto"). Mantida a resposta padrão (C-16); o resto vira consulta à equipe.
+5. Pix: o v6 só fala em 3x sem juros no cartão. A rc4 deixava a Isadora confirmar Pix ou cartão sozinha. Agora qualquer pergunta de pagamento além do parcelamento do bloco de planos vira anotação para o Leonardo.
+6. Número do WhatsApp: o v6 põe o número na identidade. Fica fora do prompt, como no item 15.
+7. Pedido de falar com a equipe: o v6 manda convidar para a reunião na 14.1 e transferir na 21. Padrão adotado: pedir a Edilaine ou para marcar segue a agenda; pedir uma pessoa, o Leonardo ou um atendente transfere (`pediu_humano`) (C-27).
+
+### 8.5 Base de conhecimento
+
+Entram 14 itens, todos em rascunho, para você e a Edilaine aprovarem pela tela da base antes de a Isadora ler:
+- três de agenda: como funciona a reunião online inicial com a Edilaine, como a Isadora marca, lembra e remarca, e o que acontece depois da reunião;
+- onze conversas modelo das simulações 1 a 10 do treinamento v3, com a simulação 1 em duas partes.
+
+As conversas modelo entram sem as linhas "Inspirada em", sem a seção 4 ("Hoje (texto real)") e sem as "Boas práticas" que citam clientes. Os valores em reais saíram (a nota diz que eles vêm da ficha), e saiu também a "Correção importante" da simulação 9, que repetia um valor antigo tirado de conversa real. A simulação 11 (sinal de alerta e robô) ficou de fora: a mensagem de saúde é texto aprovado enviado pelo sistema, e a Isadora não deve aprender a escrevê-la pela base. Os dias e horários das conversas são ilustração, e o validador barra qualquer horário que a ferramenta não tenha devolvido.
+
+Dois itens antigos mudaram uma frase para a regra nova: "Posso parcelar o pagamento?" e a objeção sobre o contrato passam a dizer que o Leonardo trata as condições e o contrato depois da reunião com a Edilaine.
+
+A tabela da base não tem um tipo "conversa modelo"; os itens entram como perguntas frequentes, com o título começando por "Conversa modelo:".
+
+### 8.6 E-mail no convite
+
+O validador (nó 28) passa a aceitar o pedido de e-mail só quando a ficha está em "aguardando e-mail", isto é, depois de o horário escolhido ser conferido e estar livre. A lista do que pode ser pedido nesse passo mora em `parametro.validador_listas` (`pedido_dado_convite`, hoje "e-mail" e "email"). CPF, RG, endereço, CEP, data de nascimento e documento continuam barrados nesse passo e em qualquer outro, e o teste `n8n/validar-email-convite.test.mjs` prova isso. Sem a lista ou sem o estado, o e-mail continua barrado.
+
+### 8.7 Reescrita (nó 29)
+
+A regra 2 passa a dizer que as condições o Leonardo apresenta depois da reunião e que ficou anotado. A regra 3 deixa o pedido de e-mail do convite em paz quando ele não foi apontado como erro. A regra 9 nova tira horário não consultado ou confirmação sem evento, nunca troca por outro horário e, sem saída, devolve a mensagem de segurança. O formato da resposta não mudou.
+
+### 8.8 O que precisa de decisão
+
+Leonardo:
+- L-1. Aprovar o texto da 4.3-rc1 do prompt, do follow-up e da reescrita, e os conflitos X1 a X9 (o v6 prevaleceu em todos).
+- L-2. Parcela do Gemelar Continuado: R$ 3.433 ou R$ 3.433,33 (8.4, item 1).
+- L-3. Selos "mais escolhido" e "recomendado": confirmar no PDF para preencher `destaque` (8.4, item 2).
+- L-4. Pagamento no Pix sem desconto: a Isadora pode confirmar que existe, ou tudo fica para depois da reunião? Padrão: fica para depois (8.4, item 5).
+- L-5. Família com 20 a 27 semanas que quer reservar já: padrão é convidar para a reunião e anotar, sem transferir (C-06).
+- L-6. Objeções ditas pela família também vão para a anotação do resumo, com as palavras dela. Confirmar se quer esse nível de detalhe.
+- L-7. Família que não quer passar o e-mail: padrão é não insistir e abrir consulta à equipe para combinar outro jeito.
+- L-8. Contrato ou pagamento de quem já é cliente: transferência com o motivo "outro" para o comercial.
+- L-9. Visita no fim da tarde e perguntas de reembolso além da resposta padrão: consulta à equipe, sem transferir.
+- L-10. Pedido de falar com a equipe (C-27) e insistência em falar com você antes da reunião: `pediu_humano`.
+- L-11. Cadência de 1, 3 e 14 dias contada da última mensagem da família e "te chamo" sem data não parando a cadência (C-28, X7).
+- L-12. As 11 conversas modelo e os 3 itens de agenda da base de conhecimento.
+
+Edilaine:
+- E-1. O texto da reunião online inicial (o que ela explica, quem participa) e os três itens de agenda da base.
+- E-2. A mensagem depois de uma falta ("Imagino que tenha surgido algum imprevisto, acontece. Quer que eu veja um novo horário com a Edilaine?").
+- E-3. As conversas modelo que descrevem cuidado (simulações 1, 5 e 9).
+- E-4. Saída da simulação 11 da base: confirmar que a resposta de saúde continua sendo só o texto aprovado enviado pelo sistema.
+
+Leonardo e Edilaine juntos: C-21 (título do evento sem o nome da família) e C-22 (a falta registrada pela equipe no CRM).
+
 ## Aprovação
 
 | Quem | Itens | Data | Observações |
 | :-- | :-- | :-- | :-- |
-| Leonardo | 1 a 17, A a F, K, L (decisão conjunta com Edilaine), seção 5, seção 7 (V1 a V22) | | |
-| Edilaine | G, H, I, J, L (decisão conjunta com Leonardo), 13 (partes marcadas [confirmar]), 18, seção 7 (texto sobre amamentação em V10 e V18) | | |
+| Leonardo | 1 a 17, A a F, K, L (decisão conjunta com Edilaine), seção 5, seção 7 (V1 a V22), [v4.3] seção 8 (A1 a A20, X1 a X9, L-1 a L-12, C-21 e C-22 com a Edilaine) | | |
+| Edilaine | G, H, I, J, L (decisão conjunta com Leonardo), 13 (partes marcadas [confirmar]), 18, seção 7 (texto sobre amamentação em V10 e V18), [v4.3] seção 8 (E-1 a E-4, C-21 e C-22 com o Leonardo) | | |

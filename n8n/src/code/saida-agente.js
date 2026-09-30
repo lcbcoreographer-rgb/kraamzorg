@@ -16,6 +16,31 @@ import { comMarca, falhouChamada, descreverErro, textoLimpo } from './resultado-
 export const FERRAMENTA_SAUDE = 'acionar_equipe_saude';
 export const FERRAMENTA_TRANSFERIR = 'transferir_para_equipe';
 export const FERRAMENTA_FICHA = 'atualizar_ficha';
+// [v4.3] Ferramentas de agenda e de anotação (PRD 11.9 e 11.14).
+export const FERRAMENTA_ANOTAR = 'anotar_para_leonardo';
+export const FERRAMENTAS_DE_AGENDA = [
+  'consultar_horarios_edilaine',
+  'agendar_reuniao',
+  'remarcar_reuniao',
+  'cancelar_reuniao',
+  'consultar_equipe',
+];
+// Marca que o fluxo 4 põe em todo retorno de ferramenta de agenda.
+export const ORIGEM_AGENDA = 'agenda_isadora';
+export const ESTADOS_DE_AGENDA = [
+  'opcoes',
+  'livre',
+  'ocupado',
+  'criada',
+  'remarcada',
+  'cancelada',
+  'sem_horario',
+  'aberta',
+  'invalida',
+  'email_invalido',
+  'falhou',
+  'indisponivel',
+];
 
 function analisarObservacao(observacao) {
   if (observacao && typeof observacao === 'object') return observacao;
@@ -42,6 +67,52 @@ function retornosDoFluxo2(valor, achados = []) {
   return achados;
 }
 
+// [v4.3] Retornos do fluxo 4 (ferramentas de agenda) dentro de uma observação:
+// objetos com `origem = agenda_isadora`, em qualquer profundidade; texto JSON
+// também é lido.
+export function retornosDeAgenda(valor, achados = [], profundidade = 0) {
+  if (profundidade > 6) return achados;
+  if (typeof valor === 'string') {
+    const texto = valor.trim();
+    if (texto.startsWith('{') || texto.startsWith('[')) {
+      try {
+        retornosDeAgenda(JSON.parse(texto), achados, profundidade + 1);
+      } catch {
+        // texto que não é JSON: nada a ler
+      }
+    }
+    return achados;
+  }
+  if (Array.isArray(valor)) {
+    for (const item of valor) retornosDeAgenda(item, achados, profundidade + 1);
+    return achados;
+  }
+  if (valor && typeof valor === 'object') {
+    if (valor.origem === ORIGEM_AGENDA && typeof valor.estado === 'string') {
+      achados.push(valor);
+      return achados;
+    }
+    for (const item of Object.values(valor)) if (item && typeof item === 'object') retornosDeAgenda(item, achados, profundidade + 1);
+    for (const item of Object.values(valor)) if (typeof item === 'string') retornosDeAgenda(item, achados, profundidade + 1);
+  }
+  return achados;
+}
+
+// Textos de horário que um retorno de agenda autoriza a Isadora a citar.
+export function horariosDoRetorno(retorno) {
+  const textos = [];
+  if (typeof retorno?.texto === 'string' && retorno.texto.trim()) textos.push(retorno.texto.trim());
+  for (const opcao of Array.isArray(retorno?.opcoes) ? retorno.opcoes : []) {
+    if (typeof opcao?.texto === 'string' && opcao.texto.trim()) textos.push(opcao.texto.trim());
+  }
+  return textos;
+}
+
+function observacaoFalhou(observacao) {
+  if (typeof observacao === 'string') return /"ok"\s*:\s*false/.test(observacao) || /^\s*error\b/i.test(observacao);
+  return Boolean(observacao && typeof observacao === 'object' && (observacao.ok === false || observacao.error !== undefined));
+}
+
 export function chamadasDeFerramenta(passos) {
   if (!Array.isArray(passos)) return [];
   return passos
@@ -53,6 +124,8 @@ export function chamadasDeFerramenta(passos) {
         ferramenta: textoLimpo(acao.tool),
         entrada: acao.toolInput ?? null,
         retornos: retornosDoFluxo2(observacao),
+        agenda: retornosDeAgenda(observacao),
+        falhou: observacaoFalhou(observacao),
       };
     });
 }
@@ -76,6 +149,14 @@ export function lerSaidaAgente(estado, resposta, { saudeExecutada = false } = {}
     estado.validador?.quer_contratar === true ||
     chamadas.some((chamada) => chamada.ferramenta === FERRAMENTA_FICHA && JSON.stringify(chamada.entrada ?? '').includes('quer_contratar'));
 
+  // [v4.3] Agenda e anotação (PRD 11.11 itens 9 e 10): o que as ferramentas de
+  // agenda devolveram nesta execução é a única fonte de horário e de
+  // confirmação para o validador.
+  const retornosAgenda = chamadas.flatMap((chamada) => chamada.agenda);
+  const estadosAgenda = retornosAgenda.map((retorno) => retorno.estado);
+  const horariosFerramentas = retornosAgenda.flatMap(horariosDoRetorno);
+  const anotou = chamadas.some((chamada) => chamada.ferramenta === FERRAMENTA_ANOTAR && !chamada.falhou);
+
   const silencio = !falhou && temSilencio(saida);
   const vazia = !falhou && !silencio && saida.trim().length === 0;
   const modeloFalhou = (falhou || vazia) && !saude;
@@ -91,6 +172,9 @@ export function lerSaidaAgente(estado, resposta, { saudeExecutada = false } = {}
     ferramentas_chamadas: chamadas.map((chamada) => chamada.ferramenta),
     motivos_transferidos: motivosTransferidos,
     fechamento_venda: fechamento,
+    agenda_estados: estadosAgenda,
+    agenda_horarios_ferramentas: horariosFerramentas,
+    anotacao_registrada: anotou,
     handoff_id_execucao: handoffs.length > 0 ? handoffs[handoffs.length - 1] : estado.handoff_id_execucao ?? null,
     responder: !falhou && !vazia && !saude && !silencio,
   });

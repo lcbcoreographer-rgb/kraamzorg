@@ -238,18 +238,154 @@ describe("sessão de venda (P29)", () => {
     );
     expect(resultado.estagioP1).toBe("qualificado");
     await expect(
-      venda.registrarDesfecho(marcada!.id, "realizada", true),
+      repos("coordenacao").venda.registrarDesfecho(
+        marcada!.id,
+        "realizada",
+        true,
+      ),
     ).rejects.toThrow(/venda:sessao_nao_agendada/);
   });
 
   it("não compareceu antes do horário é recusado", async () => {
-    const { venda } = repos("comercial", "aal1");
+    const { venda } = repos("coordenacao");
     const [marcada] = await venda.listarSessoes({
       familiaId: familiaPorNome("Dália").id,
     });
     await expect(
       venda.registrarDesfecho(marcada!.id, "nao_compareceu", null),
     ).rejects.toThrow(/venda:sessao_ainda_nao_aconteceu/);
+  });
+});
+
+describe("reunião marcada pela Isadora (P25b, D-19 e D-20)", () => {
+  const aurora = () => familiaPorNome("Aurora").id;
+  const horizonte = () => familiaPorNome("Horizonte").id;
+
+  it("a agenda mostra a origem, o lembrete e a conversa com a Isadora; o resumo só vem no detalhe", async () => {
+    const { venda } = repos("coordenacao");
+    const [lista] = await venda.listarSessoes({ familiaId: aurora() });
+    expect(lista).toMatchObject({
+      agendadaPor: "isadora",
+      status: "agendada",
+      conversaCom: "isadora",
+    });
+    expect(lista!.lembreteEnviadoEm).not.toBeNull();
+    expect(lista!.resumoIsadora).toBeNull();
+    const [detalhe] = await venda.listarSessoes({ sessaoId: lista!.id });
+    expect(detalhe!.resumoIsadora).toContain("desconto no Pix");
+    expect(detalhe!.resumoIsadora).toContain(" / ");
+    // Nunca o id do evento: a sessão da tela nem tem esse campo.
+    expect(JSON.stringify(detalhe)).not.toMatch(/evento/i);
+  });
+
+  it("só a Edilaine (coordenação) e a diretoria registram realizada e não compareceu; o comercial não", async () => {
+    const [sessao] = await repos("comercial").venda.listarSessoes({
+      familiaId: aurora(),
+    });
+    for (const desfecho of ["realizada", "nao_compareceu"] as const) {
+      await expect(
+        repos("comercial").venda.registrarDesfecho(sessao!.id, desfecho, null),
+      ).rejects.toMatchObject({ codigo: "sem_permissao" });
+    }
+    await expect(
+      repos("comercial").venda.registrarDesfecho(sessao!.id, "realizada", null),
+    ).rejects.toThrow(/venda:so_edilaine/);
+  });
+
+  it("realizada leva a conversa ao Leonardo: humano_comercial, transferência para o comercial e tarefa do responsável", async () => {
+    const { venda } = repos("coordenacao");
+    const [sessao] = await venda.listarSessoes({ familiaId: aurora() });
+    const resultado = await venda.registrarDesfecho(
+      sessao!.id,
+      "realizada",
+      true,
+      "Interesse no Imersão. Decide até sexta.",
+    );
+    expect(resultado.humanoComercial).toBe(true);
+    expect(resultado.tarefaId).not.toBeNull();
+
+    const l = obterLoja();
+    const conversa = l.conversas.find((c) => c.familiaId === aurora());
+    expect(conversa?.agenteEncerradoEm).not.toBeNull();
+    expect(conversa?.agenteEncerradoMotivo).toBe("reuniao_realizada");
+    const transferencia = l.transferencias.find(
+      (t) => t.familiaId === aurora() && t.motivo === "reuniao_realizada",
+    );
+    expect(transferencia).toMatchObject({
+      destino: "comercial",
+      status: "aberto",
+    });
+    const tarefa = l.tarefas.find((t) => t.id === resultado.tarefaId);
+    expect(tarefa?.responsavelId).not.toBe(usuario("coordenacao").id);
+
+    const [depois] = await venda.listarSessoes({ sessaoId: sessao!.id });
+    expect(depois).toMatchObject({
+      status: "realizada",
+      conversaCom: "leonardo",
+      resultado: "Interesse no Imersão. Decide até sexta.",
+    });
+  });
+
+  it("não compareceu: a Isadora remarca e nenhuma tarefa humana nasce; a conversa segue com ela", async () => {
+    const { venda } = repos("diretoria");
+    const [sessao] = await venda.listarSessoes({ familiaId: aurora() });
+    const tarefasAntes = obterLoja().tarefas.length;
+    const resultado = await venda.registrarDesfecho(
+      sessao!.id,
+      "nao_compareceu",
+      null,
+    );
+    expect(resultado).toMatchObject({
+      tarefaId: null,
+      humanoComercial: false,
+      remarcacaoDaIsadora: true,
+    });
+    expect(obterLoja().tarefas.length).toBe(tarefasAntes);
+    const [depois] = await venda.listarSessoes({ sessaoId: sessao!.id });
+    expect(depois!.conversaCom).toBe("isadora");
+  });
+
+  it("a equipe não cancela nem remarca a reunião da Isadora pelo CRM", async () => {
+    const [sessao] = await repos("comercial").venda.listarSessoes({
+      familiaId: aurora(),
+    });
+    await expect(
+      repos("comercial").venda.registrarDesfecho(sessao!.id, "cancelada", null),
+    ).rejects.toThrow(/venda:sessao_da_isadora/);
+    const [condutor] = await repos("comercial").venda.listarCondutores();
+    await expect(
+      repos("comercial").venda.remarcarSessao({
+        sessaoId: sessao!.id,
+        agendadaPara: emDias(2),
+        conduzidaPor: condutor!.id,
+      }),
+    ).rejects.toThrow(/venda:sessao_da_isadora/);
+  });
+
+  it("resultado grande demais é recusado", async () => {
+    const [sessao] = await repos("coordenacao").venda.listarSessoes({
+      familiaId: aurora(),
+    });
+    await expect(
+      repos("coordenacao").venda.registrarDesfecho(
+        sessao!.id,
+        "realizada",
+        null,
+        "x".repeat(301),
+      ),
+    ).rejects.toThrow(/venda:resultado_grande/);
+  });
+
+  it("a reunião já realizada da Horizonte é do Leonardo", async () => {
+    const [sessao] = await repos("comercial").venda.listarSessoes({
+      familiaId: horizonte(),
+    });
+    expect(sessao).toMatchObject({
+      agendadaPor: "isadora",
+      status: "realizada",
+      conversaCom: "leonardo",
+    });
+    expect(sessao!.resultado).toContain("Continuado");
   });
 });
 

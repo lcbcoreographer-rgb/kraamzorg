@@ -10,7 +10,8 @@
 --      variantes de mídia, dados._fluxo2 (prioridade_minima,
 --      manter_opcoes, mensagem_enviada) e dados._fluxo3
 --      (acrescentar_ao_aberto).
---   2. Conversa transferida com reuniao continua em humano_comercial
+--   2. [v4.3] Transferência comercial já não põe a conversa em humano_comercial
+--      (D-20); o modo é gravado por api.registrar_desfecho_sessao_venda (teste 028)
 --      depois de o handoff ser fechado, e só privado.retomar_agente a
 --      devolve, com linha no log.
 --   3. registrar_notificacao_handoff e marcar_nao_lead.
@@ -27,7 +28,7 @@
 
 begin;
 
-select plan(146);
+select plan(147);
 
 -- -----------------------------------------------------------------------------
 -- 0. Preparação
@@ -209,7 +210,8 @@ select is((agente.registrar_handoff((select id from t_id where chave = 'conv_can
 
 
 -- =============================================================================
--- 4. humano_comercial: reuniao, handoff fechado, só retomar_agente devolve
+-- 4. [v4.3] reuniao com pausa de 48 h; humano_comercial (gravado pelo desfecho
+--    da sessão, teste 028) só volta por retomar_agente
 -- =============================================================================
 
 insert into t_r
@@ -217,16 +219,16 @@ select 'reuniao', agente.registrar_handoff((select id from t_id where chave = 'c
   'quinta ou sexta às 10h', '{"opcoes":["quinta 10h","sexta 10h"]}', 'agente', 'pode ser quinta?');
 select results_eq(
   $$ select (r ->> 'humano_comercial')::boolean, r -> 'pausa_horas', r ->> 'instrucao_chave' from t_r where chave = 'reuniao' $$,
-  $$ values (true, 'null'::jsonb, 'instrucao_reuniao') $$,
-  'reuniao: humano_comercial, sem pausa com prazo, instrução de reunião');
+  $$ values (false, '48'::jsonb, 'instrucao_reuniao') $$,
+  '[v4.3] reuniao (uso humano): sem humano_comercial, com a pausa de 48 h, instrução de reunião');
 select results_eq(
   $$ select agente_encerrado_em is not null, agente_encerrado_motivo from conversa where id = (select id from t_id where chave = 'conv_vendas') $$,
-  $$ values (true, 'reuniao') $$,
-  'reuniao grava agente_encerrado_em e agente_encerrado_motivo');
+  $$ values (false, null::text) $$,
+  '[v4.3] reuniao não grava agente_encerrado_em nem agente_encerrado_motivo');
 select ok((select r ->> 'mensagem_grupo' like '%quinta 10h ou sexta 10h%'
-                  and r ->> 'mensagem_grupo' like '%A Isadora não volta a esta conversa. Para devolver, use Devolver à Isadora na ficha.'
+                  and r ->> 'mensagem_grupo' like '%IA pausada por 48 h nesta conversa.'
            from t_r where chave = 'reuniao'),
-  'aviso de reunião com as opções e a linha final de humano_comercial (23.3)');
+  'aviso de reunião com as opções e a linha final da pausa (23.3)');
 select is((agente.pode_enviar((select id from t_id where chave = 'conv_vendas'), 'resposta', (select (r ->> 'handoff_id')::uuid from t_r where chave = 'reuniao')) ->> 'pode')::boolean,
   true, 'a resposta da própria transferência sai (tipo resposta com o handoff_id)');
 
@@ -237,9 +239,16 @@ update handoff set status = 'resolvido', resolvido_em = now()
 select testes.encerrar();
 select is((select status::text from handoff where id = (select (r ->> 'handoff_id')::uuid from t_r where chave = 'reuniao')), 'resolvido',
   'o comercial resolveu a transferência');
+select is(agente.pode_responder((select id from t_id where chave = 'conv_vendas')) ->> 'modo', 'pausado',
+  '[v4.3] transferência fechada: a conversa continua pausada até o prazo, sem virar humano_comercial');
+
+-- [v4.3] a reunião foi registrada como realizada (o que api.registrar_desfecho_sessao_venda
+-- faz, provado no teste 028): a conversa vai a humano_comercial, sem prazo
+update conversa set agente_encerrado_em = now(), agente_encerrado_motivo = 'reuniao_realizada', agente_pausado_ate = null
+ where id = (select id from t_id where chave = 'conv_vendas');
 select is(agente.pode_responder((select id from t_id where chave = 'conv_vendas')) ->> 'modo', 'humano_comercial',
-  'transferência fechada: a conversa continua em humano_comercial');
-select ok((select agente_pausado_ate is null or agente_pausado_ate < now() + interval '1 second' from conversa where id = (select id from t_id where chave = 'conv_vendas'))
+  'reunião realizada: a conversa está em humano_comercial');
+select ok((select agente_pausado_ate is null from conversa where id = (select id from t_id where chave = 'conv_vendas'))
           and (select agente_encerrado_em is not null from conversa where id = (select id from t_id where chave = 'conv_vendas')),
   'humano_comercial não vence por prazo (não é pausa)');
 
@@ -265,18 +274,20 @@ select testes.encerrar();
 select throws_ok(format('select privado.retomar_agente(%L)', (select id from t_id where chave = 'conv_vendas')), '42501', null,
   'retomar_agente sem usuário (sistema, agente) é recusado');
 
--- comercial ao lead qualificado (qualquer motivo comercial) também encerra
+-- [v4.3] comercial ao lead qualificado: pausa de 48 h, não humano_comercial
 insert into conversa (id, wa_jid, telefone_e164, familia_id, classificacao, iniciada_por)
 select 'e1400000-0000-4000-8000-000000000004', '5511900000308-novo@s.whatsapp.net', '+5511900000308', f.id, 'lead', 'cliente'
 from familia f where f.id = (select id from t_id where chave = 'fam_gruta');
 select is((agente.registrar_handoff('e1400000-0000-4000-8000-000000000004', 'duvida_sem_resposta', 'dúvida', 'tem nota?', '{}', 'agente', 'tem nota?') ->> 'humano_comercial')::boolean,
-  true, 'transferência ao comercial com a oportunidade qualificada ou adiante: humano_comercial');
-select is((select agente_encerrado_motivo from conversa where id = 'e1400000-0000-4000-8000-000000000004'), 'qualificado',
-  'motivo gravado: qualificado');
+  false, '[v4.3] transferência ao comercial com a oportunidade qualificada ou adiante: pausa, não humano_comercial');
+select is((select agente_encerrado_motivo from conversa where id = 'e1400000-0000-4000-8000-000000000004'), null,
+  '[v4.3] nenhum motivo de encerramento gravado');
 
--- humano_comercial: o texto novo vai para a transferência aberta, sem aviso
+-- humano_comercial (reunião realizada): o texto novo vai para a transferência aberta, sem aviso
+update conversa set agente_encerrado_em = now(), agente_encerrado_motivo = 'reuniao_realizada'
+ where id = 'e1400000-0000-4000-8000-000000000003';
 insert into t_r select 'contratar', agente.registrar_handoff('e1400000-0000-4000-8000-000000000003', 'contratar', 'quer contratar', 'fechado, Continuado no Pix', '{}', 'agente', 'fechado!');
-select is((select (r ->> 'humano_comercial')::boolean from t_r where chave = 'contratar'), true, 'contratar: humano_comercial');
+select is((select (r ->> 'humano_comercial')::boolean from t_r where chave = 'contratar'), true, 'contratar em conversa já em humano_comercial: sem pausa nova');
 insert into t_r select 'acresc', agente.registrar_handoff('e1400000-0000-4000-8000-000000000003', 'contratar', '', 'e o contrato?', '{"_fluxo3":{"acrescentar_ao_aberto":true}}', 'sistema', 'e o contrato?');
 select results_eq(
   $$ select (r ->> 'duplicado')::boolean, (r ->> 'acrescentado')::boolean, r -> 'mensagem_grupo' from t_r where chave = 'acresc' $$,

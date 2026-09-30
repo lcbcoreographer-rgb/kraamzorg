@@ -48,6 +48,12 @@ const FRASES: Record<string, string> = {
     "O resumo veio num formato que o sistema não guarda. Revise os itens e salve de novo.",
   so_quem_conduziu:
     "A gravação desta conversa fica só com quem conduziu e com a diretoria.",
+  so_edilaine:
+    "Só a Edilaine, a coordenação e a diretoria registram como foi a reunião. Peça a uma delas.",
+  sessao_da_isadora:
+    "Esta reunião foi marcada pela Isadora e vive no Google Calendar. Para mudar, mova ou apague o evento lá: o CRM se atualiza sozinho em até 30 minutos. Se a família pedir, a Isadora remarca.",
+  resultado_grande:
+    "O resultado passou de 300 caracteres. Escreva o essencial: o que a família decidiu ou pediu.",
 };
 
 export function fraseErroSessao(erro: unknown, acao: string): string {
@@ -66,3 +72,27 @@ export function fraseErroSessao(erro: unknown, acao: string): string {
   }
   return `Não foi possível ${acao} agora. Nada foi alterado; tente de novo em instantes.`;
 }
+
+/**
+ * Confirmações que a página da conversa mostra depois de uma ação que
+ * redireciona (`?feito=`). Ficam aqui para a ação e a página dizerem a mesma
+ * frase.
+ */
+export const FEITO_SESSAO: Record<string, string> = {
+  marcada:
+    "Conversa marcada. A família passou para Sessão agendada no pipeline e o lembrete da véspera já está nas tarefas.",
+  remarcada:
+    "Conversa remarcada. O lembrete antigo saiu das tarefas e o novo entrou com a data certa.",
+  desfecho_cancelada:
+    "Conversa cancelada. O lembrete da véspera saiu das tarefas.",
+  desfecho_leonardo:
+    "Registrado. A conversa agora é do Leonardo e a Isadora não escreve mais para esta família. Ele recebeu o resumo da Isadora e o seu resultado, e a tarefa de perguntar como foi já está nas tarefas dele.",
+  desfecho_isadora_remarca:
+    "Registrado. A Isadora vai oferecer outro horário à família, sem cobrar, e a conversa continua com ela.",
+  desfecho_sem_mensagem:
+    "Registrado. Nenhuma mensagem foi sugerida porque a família está com o freio ou pediu para não ser contatada.",
+  desfecho_tarefa_retorno:
+    "Registrado. A tarefa de perguntar à família como foi já está nas tarefas, com o texto pronto e o prazo do retorno.",
+  desfecho_tarefa_horario:
+    "Registrado. A tarefa de oferecer outro horário já está nas suas tarefas, com o texto pronto.",
+};

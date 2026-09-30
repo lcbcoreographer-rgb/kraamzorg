@@ -211,6 +211,11 @@ export function criarVendaSupabase(
           criadoEm: l.criado_em,
           podeVerGravacao: l.pode_ver_gravacao,
           gravacaoRegistrada: l.gravacao_registrada,
+          agendadaPor: l.agendada_por,
+          lembreteEnviadoEm: l.lembrete_enviado_em,
+          resultado: l.resultado,
+          resumoIsadora: l.resumo_isadora,
+          conversaCom: l.conversa_com === "leonardo" ? "leonardo" : "isadora",
         }),
       );
     },
@@ -292,13 +297,14 @@ export function criarVendaSupabase(
       return { sessaoId: String(r.sessao_id) };
     },
 
-    async registrarDesfecho(sessaoId, desfecho, parceiroPresente) {
+    async registrarDesfecho(sessaoId, desfecho, parceiroPresente, resultado) {
       const r = objeto(
         exigir(
           await api().rpc("registrar_desfecho_sessao_venda", {
             sessao_id: sessaoId,
             desfecho,
             parceiro_presente: parceiroPresente ?? undefined,
+            resultado: resultado?.trim() || undefined,
           }),
           "api.registrar_desfecho_sessao_venda",
         ),
@@ -308,6 +314,8 @@ export function criarVendaSupabase(
         status: desfecho,
         tarefaId: texto(r.tarefa_id),
         estagioP1: texto(r.estagio_p1) as EstagioP1 | null,
+        humanoComercial: r.humano_comercial === true,
+        remarcacaoDaIsadora: r.remarcacao_da_isadora === true,
       };
     },
 

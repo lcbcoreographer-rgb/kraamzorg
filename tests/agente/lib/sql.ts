@@ -70,7 +70,30 @@ select jsonb_build_object(
   'familia', (select jsonb_build_object('estado_sensivel', f.estado_sensivel, 'nao_contatar', f.nao_contatar)
       from public.familia f, c where f.id = c.familia_id),
   'tarefas_followup', (select count(*) from public.tarefa t, c
-      where t.familia_id = c.familia_id and t.origem_automacao_id like 'followup%')
+      where t.familia_id = c.familia_id and t.origem_automacao_id like 'followup%'),
+  'sessoes', coalesce((select jsonb_agg(jsonb_build_object(
+      'id', s.id, 'status', s.status, 'agendada_por', s.agendada_por, 'agendada_para', s.agendada_para,
+      'link_reuniao', s.link_reuniao, 'tem_evento', s.evento_calendar_id is not null,
+      'lembrete_enviado_em', s.lembrete_enviado_em, 'resultado', s.resultado, 'criado_em', s.criado_em)
+      order by s.criado_em, s.id) from public.sessao_venda s, c where s.familia_id = c.familia_id), '[]'::jsonb),
+  'opcoes', coalesce((select jsonb_agg(jsonb_build_object(
+      'id', op.id, 'inicio', op.inicio, 'fim', op.fim, 'consultada_em', op.consultada_em, 'valida_ate', op.valida_ate,
+      'conferida_em', op.conferida_em, 'escolhida_em', op.escolhida_em, 'descartada_em', op.descartada_em)
+      order by op.criado_em, op.id) from public.sessao_venda_opcao op where op.conversa_id = (select id from c)), '[]'::jsonb),
+  'consultas', coalesce((select jsonb_agg(jsonb_build_object(
+      'id', q.id, 'tipo', q.tipo, 'status', q.status, 'pergunta', q.pergunta, 'preferencia', q.preferencia,
+      'resposta', q.resposta, 'devolvida_em', q.devolvida_em,
+      'prioridade', (select t.prioridade::text from public.tarefa t
+                      where t.tipo = 'responder_consulta_isadora' and t.payload ->> 'consulta_id' = q.id::text
+                      order by t.criado_em desc limit 1))
+      order by q.criado_em, q.id) from public.consulta_equipe q where q.conversa_id = (select id from c)), '[]'::jsonb),
+  'execucoes', coalesce((select jsonb_agg(jsonb_build_object(
+      'automacao_id', e.automacao_id, 'status', e.status, 'motivo_aborto', e.motivo_aborto,
+      'etapa', (e.payload ->> 'etapa')::integer, 'executada_em', e.executada_em)
+      order by e.criado_em, e.id) from public.automacao_execucao e, c
+      where e.familia_id = c.familia_id
+        and e.automacao_id in ('followup_d1', 'followup_d3_d14', 'lembrete_sessao', 'reuniao_falta_remarcar',
+                               'consulta_horario_retomada', 'desfecho_sessao_pendente')), '[]'::jsonb)
 ) as estado`;
 }
 
@@ -86,6 +109,10 @@ const ESTADO_VAZIO: EstadoBanco = {
   oportunidade: null,
   familia: null,
   tarefas_followup: 0,
+  sessoes: [],
+  opcoes: [],
+  consultas: [],
+  execucoes: [],
 };
 
 export async function lerEstado(
@@ -282,4 +309,116 @@ export function sqlResolverTransferencia(handoffId: string): string {
 
 export function sqlDevolverAIsadora(conversaId: string): string {
   return sqlComoComercial(`api.retomar_agente(${lit(conversaId)}::uuid)`);
+}
+
+// ---------------------------------------------------------------------------
+// [v4.3] Agenda: preparo, passagem do tempo e o que a equipe faz no CRM
+// ---------------------------------------------------------------------------
+
+/**
+ * Passa o relógio da conversa e da agenda. Só o que o roteiro precisa: os
+ * carimbos que a cadência e as opções de horário leem. `mensagem` continua
+ * intocada (é quase append-only); o horário da reunião marcada não muda.
+ * As execuções do motor recuam junto (senão o "familia_respondeu" cancelaria
+ * a etapa seguinte da cadência).
+ */
+export function sqlPassarTempo(conversaId: string, horas: number): string[] {
+  const intervalo = `make_interval(hours => ${lit(horas)})`;
+  return [
+    `update public.conversa
+        set ultima_entrada_em = ultima_entrada_em - ${intervalo},
+            ultima_saida_em = ultima_saida_em - ${intervalo},
+            primeira_msg_em = primeira_msg_em - ${intervalo}
+      where id = ${lit(conversaId)}::uuid
+  returning id`,
+    `update public.sessao_venda_opcao o
+        set consultada_em = o.consultada_em - ${intervalo},
+            valida_ate = o.valida_ate - ${intervalo}
+      where o.conversa_id = ${lit(conversaId)}::uuid
+  returning o.id`,
+    `update public.automacao_execucao e
+        set executada_em = e.executada_em - ${intervalo},
+            agendada_para = e.agendada_para - ${intervalo},
+            payload = case when e.payload ? 'ultima_entrada_em'
+              then e.payload || jsonb_build_object('ultima_entrada_em',
+                     to_jsonb(((e.payload ->> 'ultima_entrada_em')::timestamptz - ${intervalo})))
+              else e.payload end
+       from public.conversa c
+      where c.id = ${lit(conversaId)}::uuid and e.familia_id = c.familia_id
+  returning e.id`,
+  ];
+}
+
+/** O lembrete da véspera fica devido agora. */
+export function sqlChegarAVespera(conversaId: string): string {
+  return `
+update public.automacao_execucao e
+   set agendada_para = clock_timestamp() - interval '1 minute'
+  from public.conversa c
+ where c.id = ${lit(conversaId)}::uuid and e.familia_id = c.familia_id
+   and e.automacao_id = 'lembrete_sessao' and e.status = 'agendada'
+returning e.id`;
+}
+
+/** Puxa o horário da reunião marcada para 1 hora atrás (para a Edilaine poder registrar como foi). */
+export function sqlReuniaoJaAconteceu(conversaId: string): string {
+  return `
+update public.sessao_venda s
+   set agendada_para = now() - interval '1 hour'
+  from public.conversa c
+ where c.id = ${lit(conversaId)}::uuid and s.familia_id = c.familia_id and s.status = 'agendada'
+returning s.id`;
+}
+
+/** A Edilaine (coordenação, AAL2) registra como foi a reunião, como o CRM faz. */
+export function sqlRegistrarDesfecho(
+  sessaoId: string,
+  desfecho: "realizada" | "nao_compareceu",
+  resultado: string | null,
+): string {
+  return `
+with u as (select usuario_id from public.usuario_papel where papel = 'coordenacao' order by usuario_id limit 1)
+select set_config('request.jwt.claims',
+         jsonb_build_object('sub', u.usuario_id, 'role', 'authenticated', 'aal', 'aal2')::text, true) as claims,
+       set_config('role', 'authenticated', true) as papel,
+       (api.registrar_desfecho_sessao_venda(${lit(sessaoId)}::uuid, ${lit(desfecho)}::public.status_sessao, null, ${lit(resultado)})) as resultado
+  from u`;
+}
+
+/** A equipe (comercial, AAL2) responde uma consulta da Isadora em "Perguntas da Isadora". */
+export function sqlResponderConsulta(
+  consultaId: string,
+  resposta: string | null,
+): string {
+  return sqlComoComercial(
+    `api.responder_consulta_equipe(${lit(consultaId)}::uuid, ${lit(resposta)})`,
+  );
+}
+
+/** O id do evento da reunião marcada pela Isadora: só o teste (superusuário local ou de homologação) lê. */
+export function sqlEventoDaConversa(conversaId: string): string {
+  return `
+select s.evento_calendar_id as evento_id, s.id as sessao_id
+  from public.sessao_venda s
+  join public.conversa c on c.familia_id = s.familia_id
+ where c.id = ${lit(conversaId)}::uuid and s.status = 'agendada' and s.evento_calendar_id is not null
+ order by s.criado_em desc limit 1`;
+}
+
+/**
+ * Ao fim de cada caso, as pendências da conversa de teste deixam de valer: uma
+ * consulta aberta ou um lembrete agendado de um caso não podem ser processados
+ * pelo agendador no caso seguinte (o gatilho de 30 minutos olha todas as famílias).
+ */
+export function sqlEncerrarPendencias(conversaId: string): string[] {
+  return [
+    `update public.consulta_equipe set status = 'cancelada'
+      where conversa_id = ${lit(conversaId)}::uuid and status = 'aberta'
+  returning id`,
+    `update public.automacao_execucao e
+        set status = 'cancelada', motivo_aborto = 'fim_do_teste'
+       from public.conversa c
+      where c.id = ${lit(conversaId)}::uuid and e.familia_id = c.familia_id and e.status = 'agendada'
+  returning e.id`,
+  ];
 }

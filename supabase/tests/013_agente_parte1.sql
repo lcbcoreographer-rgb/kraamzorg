@@ -122,7 +122,13 @@ select set_eq(
             ('verificar_cobertura'), ('verificar_disponibilidade'), ('atualizar_lead'), ('registrar_marco'),
             ('registrar_handoff'), ('registrar_notificacao_handoff'), ('marcar_nao_lead'), ('followups_devidos'),
             ('registrar_followup'), ('base_para_indexar'), ('promover_lote'), ('descartar_lote'),
-            ('registrar_ingestao') $$,
+            ('registrar_ingestao'),
+            -- [v4.3] agenda da Isadora (0028)
+            ('parametros_agenda'), ('registrar_opcoes_horario'), ('validar_opcao_horario'),
+            ('registrar_conferencia_horario'), ('reuniao_da_conversa'), ('registrar_reuniao'),
+            ('registrar_remarcacao'), ('registrar_cancelamento'), ('registrar_consulta_equipe'),
+            ('proativos_agenda_devidos'), ('registrar_lembrete'), ('fechar_consulta'),
+            ('sessoes_para_sincronizar'), ('sincronizar_reuniao') $$,
   'n8n_agente executa exatamente as funções do Apêndice A');
 select is_empty(
   $$ select p.oid::regprocedure::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace
@@ -372,18 +378,19 @@ select is((agente.pode_enviar((select id from t_id where chave = 'conv_vendas'),
 select is((agente.pode_enviar((select id from t_id where chave = 'conv_vendas'), 'conversa', null) ->> 'pode')::boolean, false,
   'pode_enviar: tipo inválido nunca libera');
 
--- resposta depois de transferência com reuniao (humano_comercial criado por
--- este handoff): passa
+-- [v4.3] transferência com reuniao (uso humano): já não põe a conversa em
+-- humano_comercial (D-20); a pausa com prazo criada por este handoff não
+-- bloqueia a resposta dele
 create temp table t_h on commit drop as
 select agente.registrar_handoff((select id from t_id where chave = 'conv_vendas'), 'reuniao', 'quer a conversa com a Edilaine',
                                 'quinta ou sexta às 10h', '{"opcoes":["quinta 10h","sexta 10h"]}', 'agente', 'pode ser quinta?') as r;
-select is((select (r ->> 'humano_comercial')::boolean from t_h), true, 'transferência com reuniao põe a conversa em humano_comercial');
+select is((select (r ->> 'humano_comercial')::boolean from t_h), false, '[v4.3] transferência com reuniao não põe a conversa em humano_comercial');
 select is((agente.pode_enviar((select id from t_id where chave = 'conv_vendas'), 'resposta', (select (r ->> 'handoff_id')::uuid from t_h)) ->> 'pode')::boolean,
   true, 'pode_enviar resposta depois de transferência com reuniao, com o handoff_id desta execução: passa');
 select is((agente.pode_enviar((select id from t_id where chave = 'conv_vendas'), 'resposta', null) ->> 'pode')::boolean,
-  false, 'a mesma resposta sem o handoff_id desta execução: bloqueada (humano_comercial)');
-select is(agente.pode_responder((select id from t_id where chave = 'conv_vendas')) ->> 'modo', 'humano_comercial',
-  'a mensagem seguinte encontra humano_comercial');
+  false, 'a mesma resposta sem o handoff_id desta execução: bloqueada (pausa de outra origem)');
+select is(agente.pode_responder((select id from t_id where chave = 'conv_vendas')) ->> 'modo', 'pausado',
+  '[v4.3] a mensagem seguinte encontra a conversa pausada, não em humano_comercial');
 
 -- às 22h: janela de envio que não contém a hora atual
 update parametro set valor = pg_catalog.jsonb_build_object(
@@ -658,7 +665,7 @@ insert into t_id select 'fam_lia', (r ->> 'familia_id')::uuid from t_l;
 select results_eq(
   $$ select f.dpp, f.cidade_informada, f.bairro, f.cidade_id is not null, f.municipio_codigo_ibge, f.primeira_gestacao, f.historico_sensivel
      from familia f where f.id = (select id from t_id where chave = 'fam_lia') $$,
-  $$ values (current_date + (280 - (29 * 7 + 3)), 'São Paulo', 'Pinheiros', true, null::integer, true, true) $$,
+  $$ values ((now() at time zone 'America/Sao_Paulo')::date + (280 - (29 * 7 + 3)), 'São Paulo', 'Pinheiros', true, null::integer, true, true) $$,
   'atualizar_lead: semanas viram DPP pela data de hoje; cidade_informada e cidade_id; historico_sensivel só como verdadeiro');
 select is_empty(
   $$ select 1 from familia f where f.id = (select id from t_id where chave = 'fam_lia')
@@ -701,8 +708,8 @@ select is((select r -> 'validador' -> 'listas' from t_f), (select valor from par
   'ficha: listas do validador de parametro.validador_listas');
 select is((select r -> 'validador' -> 'taxas_centavos' from t_f), '[]'::jsonb,
   'ficha: sem taxas enquanto taxa_visivel_agente for falso');
-select ok((select r ? 'data_hora' and r ? 'planos' and r ? 'valores_permitidos' and r ? 'pdf_status' and r ? 'horarios_edilaine' from t_f),
-  'ficha: data e hora, planos, valores permitidos, situação da apresentação e horários da Edilaine');
+select ok((select r ? 'data_hora' and r ? 'planos' and r ? 'valores_permitidos' and r ? 'pdf_status' and r ? 'agenda_estado' from t_f),
+  'ficha: data e hora, planos, valores permitidos, situação da apresentação e [v4.3] situação da agenda');
 
 -- deduplica pelo telefone: conversa nova do mesmo número cai na mesma família
 insert into conversa (id, wa_jid, telefone_e164, classificacao, iniciada_por)

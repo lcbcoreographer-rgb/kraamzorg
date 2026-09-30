@@ -31,6 +31,11 @@ function sessao(parcial: Partial<SessaoVenda>): SessaoVenda {
     criadoEm: "2026-09-20T12:00:00Z",
     podeVerGravacao: false,
     gravacaoRegistrada: null,
+    agendadaPor: "humano",
+    lembreteEnviadoEm: null,
+    resultado: null,
+    resumoIsadora: null,
+    conversaCom: "isadora",
     ...parcial,
   };
 }

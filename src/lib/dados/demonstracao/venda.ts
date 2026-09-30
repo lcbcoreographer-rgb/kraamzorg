@@ -13,6 +13,7 @@ import type {
   CategoriaTarefa,
   ContaProposta,
   DadosFormularioContrato,
+  OrigemAgendamento,
   EnderecoFormulario,
   ParaQuem,
   Proposta,
@@ -44,6 +45,7 @@ import {
   MENSAGENS_VENDA,
   OPCOES_TRANSFERENCIA,
   PARAMETROS_VENDA,
+  RESUMOS_ISADORA,
   sessoesIniciais,
   TAXAS_CIDADE,
 } from "./venda-fixtures";
@@ -71,6 +73,9 @@ interface SessaoDemo {
   parceiroPresente: boolean | null;
   conduzidaPor: string | null;
   criadoEm: string;
+  agendadaPor: OrigemAgendamento;
+  lembreteEnviadoEm: string | null;
+  resultado: string | null;
 }
 
 interface GravacaoDemo {
@@ -575,6 +580,7 @@ export function criarVendaDemonstracao(
     l: LojaDemonstracao,
     lv: LojaVenda,
     s: SessaoDemo,
+    comResumo = false,
   ): SessaoVenda {
     const familia = l.familias.find((f) => f.id === s.familiaId);
     const podeVer = tem("diretoria") || s.conduzidaPor === contexto.usuarioId;
@@ -601,6 +607,21 @@ export function criarVendaDemonstracao(
         podeVer && contexto.aal === "aal2"
           ? Boolean(gravacao?.transcricao)
           : null,
+      agendadaPor: s.agendadaPor,
+      lembreteEnviadoEm: s.lembreteEnviadoEm,
+      resultado: s.resultado,
+      // O resumo interno só sai no detalhe de uma sessão, como no banco.
+      resumoIsadora:
+        comResumo && s.agendadaPor === "isadora"
+          ? (RESUMOS_ISADORA[s.id] ?? null)
+          : null,
+      // Quem conduz a conversa hoje: a Isadora, ou o Leonardo depois da
+      // reunião realizada (conversa encerrada para a Isadora).
+      conversaCom: l.conversas.some(
+        (c) => c.familiaId === s.familiaId && c.agenteEncerradoEm,
+      )
+        ? "leonardo"
+        : "isadora",
     };
   }
 
@@ -656,7 +677,7 @@ export function criarVendaDemonstracao(
         .sort((a, b) =>
           (a.agendadaPara ?? "").localeCompare(b.agendadaPara ?? ""),
         )
-        .map((s) => sessaoTela(l, lv, s));
+        .map((s) => sessaoTela(l, lv, s, Boolean(filtro.sessaoId)));
     },
 
     async obterTransferenciaReuniao(handoffId) {
@@ -743,6 +764,9 @@ export function criarVendaDemonstracao(
         parceiroPresente: null,
         conduzidaPor: pedido.conduzidaPor,
         criadoEm: new Date().toISOString(),
+        agendadaPor: "humano",
+        lembreteEnviadoEm: null,
+        resultado: null,
       };
       lv.sessoes.push(sessao);
       const lembrete = criarLembrete(l, lv, sessao, o?.responsavelId ?? uid);
@@ -768,6 +792,9 @@ export function criarVendaDemonstracao(
       if (!antiga) recusar("sessao_inexistente");
       if (antiga.status !== "agendada")
         recusar("sessao_nao_agendada", antiga.status);
+      // [v4.3] O evento vive no Google Calendar: quem remarca é a Isadora
+      // (ou a Edilaine, movendo o evento), e o CRM se atualiza sozinho.
+      if (antiga.agendadaPor === "isadora") recusar("sessao_da_isadora");
       if (
         !pedido.agendadaPara ||
         Date.parse(pedido.agendadaPara) <= Date.now()
@@ -796,6 +823,8 @@ export function criarVendaDemonstracao(
         linkReuniao: link,
         conduzidaPor: condutor,
         criadoEm: new Date().toISOString(),
+        lembreteEnviadoEm: null,
+        resultado: null,
       };
       lv.sessoes.push(nova);
       criarLembrete(
@@ -814,10 +843,20 @@ export function criarVendaDemonstracao(
       return { sessaoId: nova.id };
     },
 
-    async registrarDesfecho(sessaoId, desfecho, parceiroPresente) {
-      const uid = autorizar(["comercial", "diretoria"], false);
+    async registrarDesfecho(sessaoId, desfecho, parceiroPresente, resultado) {
+      const uid = autorizar(["comercial", "coordenacao", "diretoria"], false);
       const l = obterLoja();
       const lv = obterLojaVenda();
+      // [v4.3, D-20] Só a Edilaine (coordenação) e a diretoria registram que a
+      // reunião aconteceu ou que a família não veio.
+      if (
+        (desfecho === "realizada" || desfecho === "nao_compareceu") &&
+        !tem("coordenacao", "diretoria")
+      ) {
+        semPermissao(
+          "venda:so_edilaine Só a Edilaine, a coordenação e a diretoria registram como foi a reunião",
+        );
+      }
       if (!["realizada", "nao_compareceu", "cancelada"].includes(desfecho)) {
         recusar("desfecho_invalido");
       }
@@ -832,11 +871,19 @@ export function criarVendaDemonstracao(
       ) {
         recusar("sessao_ainda_nao_aconteceu");
       }
+      // A reunião da Isadora não se cancela pelo CRM: o evento vive no
+      // Google Calendar (a Isadora cancela quando a família pede).
+      if (desfecho === "cancelada" && sessao.agendadaPor === "isadora") {
+        recusar("sessao_da_isadora");
+      }
+      const anotado = resultado?.trim() || null;
+      if (anotado && anotado.length > 300) recusar("resultado_grande");
       const familia = l.familias.find((f) => f.id === sessao.familiaId);
       const o = oportunidadeAberta(l, sessao.familiaId);
       sessao.status = desfecho;
       if (desfecho === "realizada") sessao.realizadaEm = sessao.agendadaPara;
       if (parceiroPresente !== null) sessao.parceiroPresente = parceiroPresente;
+      if (anotado) sessao.resultado = anotado;
       cancelarLembretes(l, sessao.id);
 
       if (
@@ -856,15 +903,19 @@ export function criarVendaDemonstracao(
       }
 
       let tarefaId: string | null = null;
+      let humanoComercial = false;
+      let remarcacaoDaIsadora = false;
       const responsavel = o?.responsavelId ?? uid;
       if (desfecho === "realizada") {
         const horas = numeroParametro("sessao_venda_retorno_horas");
         if (horas !== null && sessao.agendadaPara) {
+          // A tarefa é do Leonardo (responsável da oportunidade), nunca de
+          // quem registrou a reunião.
           tarefaId = criarTarefa(l, {
             familiaId: sessao.familiaId,
             tipo: "followup_comercial",
             titulo: `Perguntar à ${familia?.nome ?? "família"} como foi a conversa`,
-            responsavelId: responsavel,
+            responsavelId: o?.responsavelId ?? null,
             venceEm: new Date(
               Date.parse(sessao.agendadaPara) + horas * 3_600_000,
             ).toISOString(),
@@ -874,18 +925,79 @@ export function criarVendaDemonstracao(
             extra: { sessao_venda_id: sessao.id },
           });
         }
-      } else if (desfecho === "nao_compareceu") {
-        tarefaId = criarTarefa(l, {
-          familiaId: sessao.familiaId,
-          tipo: "agendar_sessao",
-          titulo: `Oferecer outro horário à ${familia?.nome ?? "família"}`,
-          responsavelId: responsavel,
-          venceEm: new Date().toISOString(),
-          chaveMensagem: "nao_compareceu",
-          variaveis: {},
-          categoria: "operacional",
-          extra: { sessao_venda_id: sessao.id },
+        // [v4.3, D-20] A conversa passa ao Leonardo (humano_comercial): a
+        // Isadora não volta sozinha; só o botão "Devolver à Isadora".
+        const conversa = [...l.conversas]
+          .filter(
+            (c) =>
+              c.familiaId === sessao.familiaId &&
+              (c.classificacao === "lead" ||
+                c.classificacao === "nao_classificado"),
+          )
+          .sort((a, b) =>
+            (b.ultimaEntradaEm ?? "").localeCompare(a.ultimaEntradaEm ?? ""),
+          )[0];
+        for (const c of l.conversas) {
+          if (
+            c.familiaId === sessao.familiaId &&
+            (c.classificacao === "lead" ||
+              c.classificacao === "nao_classificado") &&
+            !c.agenteEncerradoEm
+          ) {
+            c.agenteEncerradoEm = new Date().toISOString();
+            c.agenteEncerradoMotivo = "reuniao_realizada";
+          }
+        }
+        humanoComercial = Boolean(conversa);
+        if (
+          !l.transferencias.some(
+            (t) =>
+              t.familiaId === sessao.familiaId &&
+              t.motivo === "reuniao_realizada" &&
+              (t.status === "aberto" || t.status === "assumido"),
+          )
+        ) {
+          l.transferencias.push({
+            id: crypto.randomUUID(),
+            conversaId: conversa?.id ?? null,
+            familiaId: sessao.familiaId,
+            motivo: "reuniao_realizada",
+            destino: "comercial",
+            prioridade: "normal",
+            resumo: RESUMOS_ISADORA[sessao.id]
+              ? RESUMOS_ISADORA[sessao.id]!.replaceAll(" / ", "\n")
+              : "Reunião inicial realizada.",
+            status: "aberto",
+            slaVenceEm: null,
+            notificacaoOk: null,
+            assumidoPor: null,
+            assumidoEm: null,
+            criadoEm: new Date().toISOString(),
+          });
+        }
+        lv.notificacoes.push({
+          usuarioId: null,
+          titulo: "reuniao_realizada",
+          link: `/familias/${sessao.familiaId}`,
         });
+      } else if (desfecho === "nao_compareceu") {
+        if (sessao.agendadaPor === "isadora") {
+          // A Isadora remarca sem constranger; a conversa continua com ela e
+          // não nasce tarefa humana.
+          remarcacaoDaIsadora = true;
+        } else {
+          tarefaId = criarTarefa(l, {
+            familiaId: sessao.familiaId,
+            tipo: "agendar_sessao",
+            titulo: `Oferecer outro horário à ${familia?.nome ?? "família"}`,
+            responsavelId: responsavel,
+            venceEm: new Date().toISOString(),
+            chaveMensagem: "nao_compareceu",
+            variaveis: {},
+            categoria: "operacional",
+            extra: { sessao_venda_id: sessao.id },
+          });
+        }
       }
       evento(
         l,
@@ -903,6 +1015,8 @@ export function criarVendaDemonstracao(
         status: desfecho,
         tarefaId,
         estagioP1: oportunidadeAberta(l, sessao.familiaId)?.estagioP1 ?? null,
+        humanoComercial,
+        remarcacaoDaIsadora,
       };
     },
 

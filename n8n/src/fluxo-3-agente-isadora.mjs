@@ -1,6 +1,10 @@
-// Fluxo 3: Agente Isadora, entrada via webhook (PRD 19.4 v4.2, P25).
+// Fluxo 3: Agente Isadora, entrada via webhook (PRD 19.4 v4.3, P25 e P25b).
 //
-// Entrada A (nós 1 a 35) e entrada B (nós 36 a 41) com os nomes do PRD. Onde
+// Entrada A (nós 1 a 35) e entrada B (nós 36 a 47) com os nomes do PRD. [v4.3]
+// As ferramentas de agenda são `toolWorkflow` para o fluxo 4 (a credencial do
+// Google mora só lá); a entrada B ganha a retomada das opções vencidas na
+// cadência (nós 36 a 41) e os envios da agenda (nós 42 a 47: lembrete da
+// véspera, remarcação por falta, devolutiva de consulta e horário liberado). Onde
 // o PRD descreve um nó como várias chamadas (nó 8, 14, 23, 24, 32, 35, 40,
 // 41), cada chamada vira um nó. Nós Code curtos ("Ler ...", "Preparar ...",
 // "Conferir ...") juntam o estado do fluxo com o resultado da chamada
@@ -35,6 +39,7 @@ import { criarConstrutor, credencialDoConfig } from './lib/construtor.mjs';
 import { destinoUazapi, corpoEnvioTexto, corpoEnvioDocumento, CAMINHOS_UAZAPI } from './lib/uazapi.mjs';
 import { URL_OPENAI_CHAT, corpoChatJson } from './lib/openai.mjs';
 import { ENTRADAS as ENTRADAS_FLUXO2 } from './fluxo-2-pausar-notificar.mjs';
+import { ENTRADAS as ENTRADAS_FLUXO4 } from './fluxo-4-agenda-isadora.mjs';
 import { VARIAVEIS_PROMPT_ISADORA } from './code/contexto-agente.js';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
@@ -183,6 +188,13 @@ export const NOS = {
   textoSaiu: 'Texto Saiu?',
   memoriaIa: 'Memória: Fala da IA',
   memoriaDescartada: 'Memória: Fala Descartada',
+  // [v4.3] Anotação no lugar de transferência (nó 29) e violação de agenda
+  anotarPelaReescrita: 'Anotar pela Reescrita?',
+  anotarCondicao: 'Anotar Condição',
+  lerAnotacao: 'Ler Anotação da Reescrita',
+  violacaoDeAgenda: 'Violação de Agenda?',
+  abrirConsultaDeHorario: 'Abrir Consulta de Horário',
+  lerConsultaDeHorario: 'Ler Consulta de Horário',
   // Entrada B
   aCada30Min: 'A Cada 30 Min',
   buscarFollowups: 'Buscar Follow-ups Devidos',
@@ -200,10 +212,38 @@ export const NOS = {
   registrarFollowup: 'Registrar Follow-up',
   followupSaiu: 'Follow-up Saiu?',
   memoriaFollowup: 'Memória: Follow-up',
+  // [v4.3] Retomada das opções vencidas na cadência
+  precisaAgendaFollowup: 'Precisa Agenda?',
+  consultarAgendaFollowup: 'Consultar Agenda do Follow-up',
+  aplicarAgendaFollowup: 'Aplicar Agenda no Follow-up',
+  agendaFollowupOk: 'Agenda do Follow-up OK?',
+  // [v4.3] Nós 42 a 47: envios da agenda
+  buscarEnviosAgenda: 'Buscar Envios da Agenda',
+  separarEnviosAgenda: 'Separar Envios da Agenda',
+  consultaAgenda: 'Consulta Agenda?',
+  conferirAgenda: 'Conferir Agenda',
+  lerAgenda: 'Ler Agenda',
+  agendaLiberada: 'Agenda Liberada?',
+  montarPromptAgenda: 'Montar Prompt da Agenda',
+  gerarMensagemAgenda: 'Gerar Mensagem da Agenda',
+  validarAgenda: 'Validar Agenda',
+  agendaAprovada: 'Agenda Aprovada?',
+  reconsultarAgenda: 'Reconsultar e Enviar Agenda',
+  lerReconsultaAgenda: 'Ler Reconsulta da Agenda',
+  podeEnviarAgenda: 'Pode Enviar Agenda?',
+  enviarAgenda: 'Enviar Agenda',
+  conferirEnvioAgenda: 'Conferir Envio da Agenda',
+  fecharAgenda: 'Fechar Agenda',
+  comoRegistrarAgenda: 'Como Registrar a Agenda?',
+  registrarLembrete: 'Registrar Lembrete',
+  registrarFaltaAgenda: 'Registrar Remarcação por Falta',
+  registrarConsultaDevolvida: 'Fechar Consulta Devolvida',
+  agendaSaiu: 'Agenda Saiu?',
+  memoriaAgenda: 'Memória: Envio da Agenda',
 };
 
-// As nove ferramentas da 11.9. O nome do nó é o nome que o modelo vê (PGVector
-// 1.3 e Tool Workflow 2.2 tiram o nome da ferramenta do nome do nó).
+// As quinze ferramentas da 11.9 [v4.3]. O nome do nó é o nome que o modelo vê
+// (PGVector 1.3 e Tool Workflow 2.2 tiram o nome da ferramenta do nome do nó).
 export const FERRAMENTAS = {
   baseConhecimento: 'base_conhecimento',
   consultarPlanos: 'consultar_planos',
@@ -214,6 +254,13 @@ export const FERRAMENTAS = {
   marcarNaoContatar: 'marcar_nao_contatar',
   transferirParaEquipe: 'transferir_para_equipe',
   acionarEquipeSaude: 'acionar_equipe_saude',
+  // [v4.3] Agenda da reunião inicial (fluxo 4), consulta à equipe e anotação
+  consultarHorariosEdilaine: 'consultar_horarios_edilaine',
+  agendarReuniao: 'agendar_reuniao',
+  remarcarReuniao: 'remarcar_reuniao',
+  cancelarReuniao: 'cancelar_reuniao',
+  consultarEquipe: 'consultar_equipe',
+  anotarParaLeonardo: 'anotar_para_leonardo',
 };
 
 // Expressões de chave (CLAUDE.md, PRD 19.1): o `conversa_id` sai sempre do
@@ -272,9 +319,21 @@ const DESCRICOES = {
   registrar_retorno: 'Registra que a família pediu para ser chamada depois, com a data combinada ou as semanas-alvo.',
   marcar_nao_contatar: 'Registra o pedido explícito da família para não receber mais mensagens.',
   transferir_para_equipe:
-    'Transfere para a equipe nas situações de "Quando passar para a equipe", exceto saúde e perda. Devolve uma instrução; siga a instrução ao pé da letra.',
+    'Transfere para a equipe só nas exceções de "Quando passar para a equipe": pediu_humano, reclamacao, bebe_nasceu, pos_venda_operacao, parceiro_medico e outro. Nunca para desconto, parcelamento, contrato, área a confirmar, dúvida sem resposta ou reunião: isso é anotar_para_leonardo, consultar_equipe ou a agenda. Não serve para saúde e perda. Devolve uma instrução; siga a instrução ao pé da letra.',
   acionar_equipe_saude:
     'Aciona a coordenação diante de sinal de saúde ou notícia de perda. O sistema envia a mensagem aprovada e avisa a equipe; depois disso a resposta é só [SILENCIO].',
+  consultar_horarios_edilaine:
+    'Agenda da Edilaine, consultada naquele momento. modo "sugerir" devolve até duas opções livres, com id_opcao, e grava as opções do dia; use preferencia com o que a família contou ("sábado de manhã", "depois das 20h"). modo "conferir" com o id_opcao que a família escolheu confere se aquele horário continua livre (estado livre) ou devolve duas opções novas (estado ocupado). Estados: opcoes, livre, ocupado, sem_horario, invalida, indisponivel. Nunca cite um horário que esta ferramenta não devolveu.',
+  agendar_reuniao:
+    'Cria a reunião inicial com a Edilaine: exige o id_opcao já conferido e livre e o email da pessoa (email_parceiro se mais alguém for participar). Consulta a agenda de novo, cria o evento com Google Meet e envia o convite. Só confirme a reunião à família se o estado for criada. Estados: criada, ocupado, email_invalido, invalida, falhou, indisponivel.',
+  remarcar_reuniao:
+    'Muda a reunião já marcada para outro horário: exige o id_opcao novo, já conferido e livre. Estados: remarcada, ocupado, invalida, falhou, indisponivel. Só confirme o novo horário se o estado for remarcada.',
+  cancelar_reuniao:
+    'Cancela a reunião marcada, só quando a família pede para cancelar. motivo é curto e nas palavras dela. Estados: cancelada, falhou, indisponivel.',
+  consultar_equipe:
+    'Pergunta algo à equipe sem passar a conversa adiante. tipo "area" para cidade ou bairro a confirmar, tipo "duvida" para pergunta que você não sabe responder; pergunta é a dúvida em uma frase, sem dado de saúde. A conversa continua com você e a resposta da equipe volta por aqui. Devolve uma instrução; siga a instrução.',
+  anotar_para_leonardo:
+    'Guarda uma frase curta no resumo que o Leonardo recebe depois da reunião com a Edilaine: pedido de desconto, cupom, mais parcelas, outra condição de pagamento, indicação de médico, dúvida de contrato, vontade de contratar ou uma objeção com as palavras da família. Sem dado clínico. Obrigatória sempre que você disser que o Leonardo trata algo depois da reunião.',
 };
 
 function schemaDoFluxo2() {
@@ -301,6 +360,34 @@ function workflowInputsFluxo2(valores) {
     attemptToConvertTypes: false,
     convertFieldsToString: false,
   };
+}
+
+function workflowInputsFluxo4(valores) {
+  const faltando = ENTRADAS_FLUXO4.map((entrada) => entrada.name).filter((nome) => !(nome in valores));
+  if (faltando.length > 0) throw new Error(`chamada ao fluxo 4 sem as entradas: ${faltando.join(', ')}`);
+  return {
+    mappingMode: 'defineBelow',
+    value: valores,
+    matchingColumns: [],
+    schema: ENTRADAS_FLUXO4.map((entrada) => ({
+      id: entrada.name,
+      displayName: entrada.name,
+      required: false,
+      defaultMatch: false,
+      display: true,
+      canBeUsedToMatch: true,
+      type: entrada.type,
+      removed: false,
+    })),
+    attemptToConvertTypes: false,
+    convertFieldsToString: false,
+  };
+}
+
+function referenciaFluxo4(config) {
+  const id = config?.fluxo?.idFluxo4;
+  if (typeof id !== 'string' || !id) throw new Error('config.fluxo.idFluxo4 é obrigatório para o fluxo 3');
+  return { __rl: true, mode: 'id', value: id };
 }
 
 function referenciaFluxo2(config) {
@@ -400,6 +487,42 @@ export function montarFluxo(config) {
       posicao,
       { onError: 'continueRegularOutput' },
     );
+
+  // [v4.3] Chamada ao fluxo 4 (Agenda da Isadora) fora do agente: a entrada B
+  // (conferir o evento, consultar horários) e o caminho da violação de agenda.
+  // `valores` mapeia as entradas do fluxo 4 (`ENTRADAS_FLUXO4`) por expressão.
+  const chamarFluxo4 = (nome, valores, posicao) =>
+    c.no(
+      'executeWorkflow',
+      nome,
+      {
+        source: 'database',
+        workflowId: referenciaFluxo4(config),
+        workflowInputs: workflowInputsFluxo4(valores),
+        mode: 'once',
+        options: { waitForSubWorkflow: true },
+      },
+      posicao,
+      { onError: 'continueRegularOutput' },
+    );
+  const entradasDoFluxo4 = (sobrescritas) => ({
+    operacao: '',
+    modo: '',
+    conversa_id: '',
+    id_opcao: '',
+    preferencia: '',
+    email: '',
+    email_parceiro: '',
+    motivo: '',
+    tipo: '',
+    pergunta: '',
+    maximo: 2,
+    ...sobrescritas,
+  });
+  const textosDaAgenda = config.textosSistema?.agenda ?? {};
+  if (typeof textosDaAgenda.rotuloFatoDaEquipe !== 'string' || !textosDaAgenda.rotuloFatoDaEquipe) {
+    throw new Error('config.textosSistema.agenda.rotuloFatoDaEquipe é obrigatório');
+  }
 
   const redis = (nome, parametros, posicao) =>
     c.no('redis', nome, parametros, posicao, {
@@ -845,6 +968,13 @@ export function montarFluxo(config) {
     [EXPR_CONVERSA],
     [9140, 1400],
   );
+  // [v4.3] PRD 11.9: a anotação que o Leonardo lê depois da reunião.
+  ferramentaPostgres(
+    FERRAMENTAS.anotarParaLeonardo,
+    "select agente.registrar_marco($1, 'anotacao_comercial', $2) as resultado",
+    [EXPR_CONVERSA, "$fromAI('anotacao', 'frase curta com o que a família pediu ou disse, nas palavras dela, sem dado de saúde', 'string')"],
+    [9140, 1600],
+  );
 
   const fixosDaFerramenta = {
     wa_jid: `={{ ${EXPR_JID} }}`,
@@ -875,7 +1005,7 @@ export function montarFluxo(config) {
     FERRAMENTAS.transferirParaEquipe,
     {
       acao: 'transferir',
-      motivo: "={{ $fromAI('motivo', 'um motivo de Quando passar para a equipe: contratar, reuniao, condicao_comercial, cobertura_taxa, reembolso_fiscal, bebe_nasceu, pos_venda_operacao, reclamacao, pediu_humano, parceiro_medico, duvida_sem_resposta ou outro', 'string') }}",
+      motivo: "={{ $fromAI('motivo', 'uma exceção de Quando passar para a equipe: pediu_humano, reclamacao, bebe_nasceu, pos_venda_operacao, parceiro_medico ou outro', 'string') }}",
       resumo: "={{ $fromAI('resumo', 'uma ou duas frases só com o que a família disse', 'string') }}",
       solicitacao: "={{ $fromAI('solicitacao', 'o pedido com as palavras da família', 'string') }}",
       dados: "={{ $fromAI('dados', 'o que ajuda a equipe: opções de horário, plano, pagamento preferido, para quem é', 'json') }}",
@@ -896,6 +1026,82 @@ export function montarFluxo(config) {
       enviar_texto: true,
     },
     [9500, 1400],
+  );
+
+  // [v4.3] Ferramentas de agenda e de consulta à equipe: `toolWorkflow` para o
+  // fluxo 4. O modelo preenche só os campos de conteúdo; o `conversa_id` vem do
+  // "Registrar Msg Família" e o id do evento vem do banco dentro do fluxo 4
+  // (PRD 11.9 e 11.14). Nenhum id de evento, de calendário ou de sessão passa
+  // por `$fromAI`.
+  const fixosDaAgenda = {
+    operacao: '',
+    modo: '',
+    conversa_id: `={{ ${EXPR_CONVERSA} }}`,
+    id_opcao: '',
+    preferencia: '',
+    email: '',
+    email_parceiro: '',
+    motivo: '',
+    tipo: '',
+    pergunta: '',
+    maximo: 2,
+  };
+  const ferramentaFluxo4 = (nome, valores, posicao) =>
+    c.no(
+      'toolWorkflow',
+      nome,
+      {
+        description: DESCRICOES[nome],
+        source: 'database',
+        workflowId: referenciaFluxo4(config),
+        workflowInputs: workflowInputsFluxo4({ ...fixosDaAgenda, ...valores }),
+      },
+      posicao,
+    );
+  ferramentaFluxo4(
+    FERRAMENTAS.consultarHorariosEdilaine,
+    {
+      operacao: 'consultar',
+      modo: "={{ $fromAI('modo', 'sugerir para oferecer horários, conferir para checar o horário que a família escolheu', 'string') }}",
+      preferencia: "={{ $fromAI('preferencia', 'dia e período que a família prefere, nas palavras dela, ou vazio', 'string', '') }}",
+      id_opcao: "={{ $fromAI('id_opcao', 'id_opcao do horário escolhido (só no modo conferir), como está na ficha ou no retorno da ferramenta', 'string', '') }}",
+    },
+    [9680, 1400],
+  );
+  ferramentaFluxo4(
+    FERRAMENTAS.agendarReuniao,
+    {
+      operacao: 'agendar',
+      id_opcao: "={{ $fromAI('id_opcao', 'id_opcao do horário conferido e livre', 'string') }}",
+      email: "={{ $fromAI('email', 'e-mail da pessoa que vai participar, como ela escreveu', 'string') }}",
+      email_parceiro: "={{ $fromAI('email_parceiro', 'e-mail de quem mais vai participar, ou vazio', 'string', '') }}",
+    },
+    [9860, 1400],
+  );
+  ferramentaFluxo4(
+    FERRAMENTAS.remarcarReuniao,
+    {
+      operacao: 'remarcar',
+      id_opcao: "={{ $fromAI('id_opcao', 'id_opcao do novo horário, conferido e livre', 'string') }}",
+    },
+    [10040, 1400],
+  );
+  ferramentaFluxo4(
+    FERRAMENTAS.cancelarReuniao,
+    {
+      operacao: 'cancelar',
+      motivo: "={{ $fromAI('motivo', 'motivo curto, nas palavras da família, ou vazio', 'string', '') }}",
+    },
+    [10220, 1400],
+  );
+  ferramentaFluxo4(
+    FERRAMENTAS.consultarEquipe,
+    {
+      operacao: 'consultar_equipe',
+      tipo: "={{ $fromAI('tipo', 'area para cidade ou bairro a confirmar, duvida para pergunta sem resposta', 'string') }}",
+      pergunta: "={{ $fromAI('pergunta', 'a dúvida em uma frase, sem dado de saúde', 'string') }}",
+    },
+    [10400, 1400],
   );
 
   ligarIA(NOS.modeloConversa, NOS.agente, 'ai_languageModel');
@@ -978,6 +1184,42 @@ export function montarFluxo(config) {
     'chamadas-fluxo2.js',
     `return { json: lerRetornoFluxo2($(${JSON.stringify(NOS.prepararTransferenciaValidacao)}).item.json, $json) };`,
     [10760, 1300],
+  );
+
+  // [v4.3] Nó 29: desconto, parcelamento e contrato viram anotação para o
+  // Leonardo, nunca transferência (PRD 11.4, 11.14).
+  se(NOS.anotarPelaReescrita, '$json.reescrita_anotar === true', [9880, 850]);
+  postgres(
+    NOS.anotarCondicao,
+    "select agente.registrar_marco($1, 'anotacao_comercial', $2) as resultado",
+    [EXPR_CONVERSA, '$json.texto_agrupado'],
+    [10100, 750],
+  );
+  code(
+    NOS.lerAnotacao,
+    'resposta-agente.js',
+    `return { json: lerAnotacaoDaReescrita($(${JSON.stringify(NOS.anotarPelaReescrita)}).item.json, $json) };`,
+    [10320, 750],
+  );
+
+  // [v4.3] Nó 29 e 11.11 item 9: violação de horário ou de confirmação que a
+  // reescrita não resolveu. Sai o fallback e a equipe é avisada pela consulta
+  // `horario_edilaine`, sem transferir a conversa.
+  se(NOS.violacaoDeAgenda, '$json.violacao_de_agenda === true', [10320, 1500]);
+  chamarFluxo4(
+    NOS.abrirConsultaDeHorario,
+    entradasDoFluxo4({
+      operacao: 'abrir_consulta_horario',
+      conversa_id: `={{ ${EXPR_CONVERSA} }}`,
+      pergunta: `={{ ${EXPR_ENTRADA_AGENTE('texto_agrupado')} }}`,
+    }),
+    [10540, 1500],
+  );
+  code(
+    NOS.lerConsultaDeHorario,
+    'resposta-agente.js',
+    `return { json: lerConsultaDeHorario($(${JSON.stringify(NOS.violacaoDeAgenda)}).item.json, $json) };`,
+    [10760, 1500],
   );
 
   // 30 e 31. Preparar Envio / Reconsultar Antes de Enviar.
@@ -1121,6 +1363,110 @@ export function montarFluxo(config) {
     [1300, 2200],
   );
 
+  // [v4.3] Retomada das opções vencidas na cadência (nós 36 a 41): o banco
+  // pede a agenda (`precisa_agenda`), o fluxo 4 consulta agora e as opções
+  // entram no texto base. Sem opção, o retorno não sai.
+  se(NOS.precisaAgendaFollowup, '$json.precisa_agenda === true', [-1560, 2400]);
+  chamarFluxo4(
+    NOS.consultarAgendaFollowup,
+    entradasDoFluxo4({ operacao: 'consultar', modo: 'sugerir', conversa_id: '={{ $json.conversa_id }}' }),
+    [-1340, 2500],
+  );
+  code(
+    NOS.aplicarAgendaFollowup,
+    'agenda-proativos.js',
+    `return { json: aplicarAgendaNoFollowup($(${JSON.stringify(NOS.precisaAgendaFollowup)}).item.json, $json) };`,
+    [-1120, 2500],
+  );
+  se(NOS.agendaFollowupOk, '$json.agenda_ok === true', [-900, 2500]);
+
+  // [v4.3] Nós 42 a 47: lembrete da véspera, remarcação por falta, devolutiva
+  // de consulta e horário liberado (PRD 19.4). Cada envio passa por
+  // `agente.pode_enviar` imediatamente antes de sair.
+  postgres(NOS.buscarEnviosAgenda, 'select agente.proativos_agenda_devidos() as resultado', [], [-1780, 2900]);
+  code(
+    NOS.separarEnviosAgenda,
+    'agenda-proativos.js',
+    'return separarEnviosDaAgenda($input.first().json).map((json) => ({ json, pairedItem: 0 }));',
+    [-1560, 2900],
+    { modo: 'runOnceForAllItems' },
+  );
+  se(NOS.consultaAgenda, '$json.consultar_agenda === true', [-1340, 2900]);
+  chamarFluxo4(
+    NOS.conferirAgenda,
+    entradasDoFluxo4({
+      operacao: '={{ $json.entrada_agenda.operacao }}',
+      modo: '={{ $json.entrada_agenda.modo }}',
+      conversa_id: '={{ $json.conversa_id }}',
+      preferencia: '={{ $json.entrada_agenda.preferencia }}',
+      maximo: '={{ $json.entrada_agenda.maximo }}',
+    }),
+    [-1120, 2800],
+  );
+  code(
+    NOS.lerAgenda,
+    'agenda-proativos.js',
+    `return { json: lerAgendaProativa($(${JSON.stringify(NOS.consultaAgenda)}).item.json, $json, { agora: new Date().toISOString(), rotuloFatoDaEquipe: ${JSON.stringify(textosDaAgenda.rotuloFatoDaEquipe)} }) };`,
+    [-900, 2900],
+  );
+  se(NOS.agendaLiberada, '$json.enviar === true', [-680, 2900]);
+  montarPrompt(NOS.montarPromptAgenda, 'prompt_followup', promptComExpressoes('isadora-followup.md', VARIAVEIS_PROMPT_FOLLOWUP), [-460, 2800]);
+  chatOpenAi(NOS.gerarMensagemAgenda, config.modelos.followup, '$json.prompt_followup', [-240, 2800]);
+  code(
+    NOS.validarAgenda,
+    'validar-followup.js',
+    `return { json: validarFollowup($(${JSON.stringify(NOS.montarPromptAgenda)}).item.json, $json) };`,
+    [-20, 2800],
+  );
+  se(NOS.agendaAprovada, '$json.followup_aprovado === true', [200, 2800]);
+  postgres(
+    NOS.reconsultarAgenda,
+    'select agente.pode_enviar($1, $2, $3) as resultado',
+    ['$json.conversa_id', "$json.tipo === 'lembrete' ? 'operacional' : 'conteudo'", 'null'],
+    [420, 2700],
+  );
+  code(
+    NOS.lerReconsultaAgenda,
+    'envio-sistema.js',
+    `return { json: lerPodeEnviar($(${JSON.stringify(NOS.agendaAprovada)}).item.json, $json) };`,
+    [640, 2700],
+  );
+  se(NOS.podeEnviarAgenda, '$json.pode_enviar === true', [860, 2700]);
+  envioUazapi(NOS.enviarAgenda, destinoTexto, corpoEnvioTexto('$json.wa_jid', '$json.texto_followup'), [1080, 2600]);
+  code(
+    NOS.conferirEnvioAgenda,
+    'envio-sistema.js',
+    `return { json: conferirEnvio($(${JSON.stringify(NOS.podeEnviarAgenda)}).item.json, $json) };`,
+    [1300, 2600],
+  );
+  code(NOS.fecharAgenda, 'agenda-proativos.js', 'return { json: fecharEnvioDaAgenda($json) };', [1520, 2800]);
+  escolha(NOS.comoRegistrarAgenda, '$json.registrar', ['lembrete', 'falta', 'consulta'], [1740, 2800]);
+  postgres(
+    NOS.registrarLembrete,
+    'select agente.registrar_lembrete($1, $2, $3) as resultado',
+    ['$json.sessao_id', '$json.agenda_ok', '$json.texto_enviado'],
+    [1960, 2700],
+  );
+  postgres(
+    NOS.registrarFaltaAgenda,
+    'select agente.registrar_followup($1, $2, $3) as resultado',
+    ['$json.execucao_id', '$json.texto_enviado', '$json.agenda_ok'],
+    [1960, 2850],
+  );
+  postgres(
+    NOS.registrarConsultaDevolvida,
+    'select agente.fechar_consulta($1, $2, $3) as resultado',
+    ['$json.consulta_id', "'devolvida'", '$json.texto_enviado'],
+    [1960, 3000],
+  );
+  se(NOS.agendaSaiu, `$(${JSON.stringify(NOS.fecharAgenda)}).item.json.agenda_ok === true`, [2180, 2850]);
+  postgres(
+    NOS.memoriaAgenda,
+    'select agente.sincronizar_memoria($1, $2, $3) as resultado',
+    [`$(${JSON.stringify(NOS.fecharAgenda)}).item.json.conversa_id`, "'followup'", `$(${JSON.stringify(NOS.fecharAgenda)}).item.json.texto_enviado`],
+    [2400, 2850],
+  );
+
   // -------------------------------------------------------------------------
   // Conexões
   // -------------------------------------------------------------------------
@@ -1247,7 +1593,11 @@ export function montarFluxo(config) {
   ligar(NOS.montarPromptReescrita, NOS.reescrever);
   ligar(NOS.reescrever, NOS.lerReescrita);
   ligar(NOS.lerReescrita, NOS.reescritaAprovada);
-  ligar(NOS.reescritaAprovada, NOS.transferirPelaReescritaSe, 0);
+  ligar(NOS.reescritaAprovada, NOS.anotarPelaReescrita, 0);
+  ligar(NOS.anotarPelaReescrita, NOS.anotarCondicao, 0);
+  ligar(NOS.anotarPelaReescrita, NOS.transferirPelaReescritaSe, 1);
+  ligar(NOS.anotarCondicao, NOS.lerAnotacao);
+  ligar(NOS.lerAnotacao, NOS.transferirPelaReescritaSe);
   ligar(NOS.reescritaAprovada, NOS.buscarFallback, 1);
   ligar(NOS.transferirPelaReescritaSe, NOS.prepararTransferenciaReescrita, 0);
   ligar(NOS.transferirPelaReescritaSe, NOS.prepararEnvio, 1);
@@ -1255,7 +1605,11 @@ export function montarFluxo(config) {
   ligar(NOS.transferirPelaReescrita, NOS.lerTransferenciaReescrita);
   ligar(NOS.lerTransferenciaReescrita, NOS.prepararEnvio);
   ligar(NOS.buscarFallback, NOS.lerFallback);
-  ligar(NOS.lerFallback, NOS.prepararTransferenciaValidacao);
+  ligar(NOS.lerFallback, NOS.violacaoDeAgenda);
+  ligar(NOS.violacaoDeAgenda, NOS.abrirConsultaDeHorario, 0);
+  ligar(NOS.violacaoDeAgenda, NOS.prepararTransferenciaValidacao, 1);
+  ligar(NOS.abrirConsultaDeHorario, NOS.lerConsultaDeHorario);
+  ligar(NOS.lerConsultaDeHorario, NOS.prepararEnvio);
   ligar(NOS.prepararTransferenciaValidacao, NOS.transferirValidacao);
   ligar(NOS.transferirValidacao, NOS.lerTransferenciaValidacao);
   ligar(NOS.lerTransferenciaValidacao, NOS.prepararEnvio);
@@ -1288,7 +1642,13 @@ export function montarFluxo(config) {
 
   ligar(NOS.aCada30Min, NOS.buscarFollowups);
   ligar(NOS.buscarFollowups, NOS.separarFollowups);
-  ligar(NOS.separarFollowups, NOS.montarPromptFollowup);
+  ligar(NOS.separarFollowups, NOS.precisaAgendaFollowup);
+  ligar(NOS.precisaAgendaFollowup, NOS.consultarAgendaFollowup, 0);
+  ligar(NOS.precisaAgendaFollowup, NOS.montarPromptFollowup, 1);
+  ligar(NOS.consultarAgendaFollowup, NOS.aplicarAgendaFollowup);
+  ligar(NOS.aplicarAgendaFollowup, NOS.agendaFollowupOk);
+  ligar(NOS.agendaFollowupOk, NOS.montarPromptFollowup, 0);
+  ligar(NOS.agendaFollowupOk, NOS.fecharFollowup, 1);
   ligar(NOS.montarPromptFollowup, NOS.gerarMensagem);
   ligar(NOS.gerarMensagem, NOS.validarFollowup);
   ligar(NOS.validarFollowup, NOS.followupAprovado);
@@ -1303,6 +1663,36 @@ export function montarFluxo(config) {
   ligar(NOS.fecharFollowup, NOS.registrarFollowup);
   ligar(NOS.registrarFollowup, NOS.followupSaiu);
   ligar(NOS.followupSaiu, NOS.memoriaFollowup, 0);
+
+  // [v4.3] Nós 42 a 47
+  ligar(NOS.aCada30Min, NOS.buscarEnviosAgenda);
+  ligar(NOS.buscarEnviosAgenda, NOS.separarEnviosAgenda);
+  ligar(NOS.separarEnviosAgenda, NOS.consultaAgenda);
+  ligar(NOS.consultaAgenda, NOS.conferirAgenda, 0);
+  ligar(NOS.consultaAgenda, NOS.lerAgenda, 1);
+  ligar(NOS.conferirAgenda, NOS.lerAgenda);
+  ligar(NOS.lerAgenda, NOS.agendaLiberada);
+  ligar(NOS.agendaLiberada, NOS.montarPromptAgenda, 0);
+  ligar(NOS.agendaLiberada, NOS.fecharAgenda, 1);
+  ligar(NOS.montarPromptAgenda, NOS.gerarMensagemAgenda);
+  ligar(NOS.gerarMensagemAgenda, NOS.validarAgenda);
+  ligar(NOS.validarAgenda, NOS.agendaAprovada);
+  ligar(NOS.agendaAprovada, NOS.reconsultarAgenda, 0);
+  ligar(NOS.agendaAprovada, NOS.fecharAgenda, 1);
+  ligar(NOS.reconsultarAgenda, NOS.lerReconsultaAgenda);
+  ligar(NOS.lerReconsultaAgenda, NOS.podeEnviarAgenda);
+  ligar(NOS.podeEnviarAgenda, NOS.enviarAgenda, 0);
+  ligar(NOS.podeEnviarAgenda, NOS.fecharAgenda, 1);
+  ligar(NOS.enviarAgenda, NOS.conferirEnvioAgenda);
+  ligar(NOS.conferirEnvioAgenda, NOS.fecharAgenda);
+  ligar(NOS.fecharAgenda, NOS.comoRegistrarAgenda);
+  ligar(NOS.comoRegistrarAgenda, NOS.registrarLembrete, 0);
+  ligar(NOS.comoRegistrarAgenda, NOS.registrarFaltaAgenda, 1);
+  ligar(NOS.comoRegistrarAgenda, NOS.registrarConsultaDevolvida, 2);
+  ligar(NOS.registrarLembrete, NOS.agendaSaiu);
+  ligar(NOS.registrarFaltaAgenda, NOS.agendaSaiu);
+  ligar(NOS.registrarConsultaDevolvida, NOS.agendaSaiu);
+  ligar(NOS.agendaSaiu, NOS.memoriaAgenda, 0);
 
   return {
     id: idEstavel(fluxoChave),

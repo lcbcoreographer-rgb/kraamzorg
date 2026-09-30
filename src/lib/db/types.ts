@@ -130,6 +130,26 @@ export type Database = {
         Args: never;
         Returns: { id: string; nome: string }[];
       };
+      consultas_equipe: {
+        Args: { situacao?: string };
+        Returns: {
+          conversa_id: string;
+          criado_em: string;
+          destino: Database["public"]["Enums"]["handoff_destino"];
+          devolvida_em: string;
+          expira_em: string;
+          familia_id: string;
+          familia_nome: string;
+          id: string;
+          pergunta: string;
+          preferencia: Json;
+          respondida_em: string;
+          respondida_por_nome: string;
+          resposta: string;
+          status: Database["public"]["Enums"]["status_consulta_equipe"];
+          tipo: Database["public"]["Enums"]["tipo_consulta_equipe"];
+        }[];
+      };
       contato_medico_situacao: {
         Args: { familia_id: string };
         Returns: Json;
@@ -433,6 +453,7 @@ export type Database = {
         Args: {
           desfecho: Database["public"]["Enums"]["status_sessao"];
           parceiro_presente?: boolean;
+          resultado?: string;
           sessao_id: string;
         };
         Returns: Json;
@@ -493,6 +514,10 @@ export type Database = {
       };
       resolver_transferencia: {
         Args: { desfecho: string; handoff_id: string };
+        Returns: Json;
+      };
+      responder_consulta_equipe: {
+        Args: { consulta_id: string; resposta?: string };
         Returns: Json;
       };
       responder_designacao: {
@@ -587,8 +612,10 @@ export type Database = {
         };
         Returns: {
           agendada_para: string;
+          agendada_por: Database["public"]["Enums"]["origem_agendamento_sessao"];
           conduzida_por: string;
           conduzida_por_nome: string;
+          conversa_com: string;
           criado_em: string;
           data_nascimento: string;
           dpp: string;
@@ -597,11 +624,14 @@ export type Database = {
           familia_nome: string;
           gravacao_registrada: boolean;
           id: string;
+          lembrete_enviado_em: string;
           link_reuniao: string;
           opcoes_informadas: string;
           parceiro_presente: boolean;
           pode_ver_gravacao: boolean;
           realizada_em: string;
+          resultado: string;
+          resumo_isadora: string;
           status: Database["public"]["Enums"]["status_sessao"];
         }[];
       };
@@ -1330,6 +1360,98 @@ export type Database = {
           {
             foreignKeyName: "condicao_comercial_criado_por_fkey";
             columns: ["criado_por"];
+            isOneToOne: false;
+            referencedRelation: "perfil";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      consulta_equipe: {
+        Row: {
+          atualizado_em: string;
+          conversa_id: string;
+          criado_em: string;
+          criado_por: string | null;
+          destino: Database["public"]["Enums"]["handoff_destino"];
+          devolvida_em: string | null;
+          expira_em: string | null;
+          familia_id: string | null;
+          id: string;
+          notificada_em: string | null;
+          pergunta: string;
+          preferencia: Json;
+          reservada_em: string | null;
+          respondida_em: string | null;
+          respondida_por: string | null;
+          resposta: string | null;
+          status: Database["public"]["Enums"]["status_consulta_equipe"];
+          tipo: Database["public"]["Enums"]["tipo_consulta_equipe"];
+        };
+        Insert: {
+          atualizado_em?: string;
+          conversa_id: string;
+          criado_em?: string;
+          criado_por?: string | null;
+          destino?: Database["public"]["Enums"]["handoff_destino"];
+          devolvida_em?: string | null;
+          expira_em?: string | null;
+          familia_id?: string | null;
+          id?: string;
+          notificada_em?: string | null;
+          pergunta: string;
+          preferencia?: Json;
+          reservada_em?: string | null;
+          respondida_em?: string | null;
+          respondida_por?: string | null;
+          resposta?: string | null;
+          status?: Database["public"]["Enums"]["status_consulta_equipe"];
+          tipo: Database["public"]["Enums"]["tipo_consulta_equipe"];
+        };
+        Update: {
+          atualizado_em?: string;
+          conversa_id?: string;
+          criado_em?: string;
+          criado_por?: string | null;
+          destino?: Database["public"]["Enums"]["handoff_destino"];
+          devolvida_em?: string | null;
+          expira_em?: string | null;
+          familia_id?: string | null;
+          id?: string;
+          notificada_em?: string | null;
+          pergunta?: string;
+          preferencia?: Json;
+          reservada_em?: string | null;
+          respondida_em?: string | null;
+          respondida_por?: string | null;
+          resposta?: string | null;
+          status?: Database["public"]["Enums"]["status_consulta_equipe"];
+          tipo?: Database["public"]["Enums"]["tipo_consulta_equipe"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "consulta_equipe_conversa_id_fkey";
+            columns: ["conversa_id"];
+            isOneToOne: false;
+            referencedRelation: "conversa";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "consulta_equipe_criado_por_fkey";
+            columns: ["criado_por"];
+            isOneToOne: false;
+            referencedRelation: "perfil";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "consulta_equipe_familia_id_fkey";
+            columns: ["familia_id"];
+            isOneToOne: false;
+            referencedRelation: "familia";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "consulta_equipe_respondida_por_fkey";
+            columns: ["respondida_por"];
             isOneToOne: false;
             referencedRelation: "perfil";
             referencedColumns: ["id"];
@@ -3457,44 +3579,56 @@ export type Database = {
       sessao_venda: {
         Row: {
           agendada_para: string | null;
+          agendada_por: Database["public"]["Enums"]["origem_agendamento_sessao"];
           atualizado_em: string;
           conduzida_por: string | null;
           criado_em: string;
           criado_por: string | null;
+          evento_calendar_id: string | null;
           familia_id: string;
           id: string;
+          lembrete_enviado_em: string | null;
           link_reuniao: string | null;
           opcoes_informadas: string | null;
           parceiro_presente: boolean | null;
           realizada_em: string | null;
+          resultado: string | null;
           status: Database["public"]["Enums"]["status_sessao"];
         };
         Insert: {
           agendada_para?: string | null;
+          agendada_por?: Database["public"]["Enums"]["origem_agendamento_sessao"];
           atualizado_em?: string;
           conduzida_por?: string | null;
           criado_em?: string;
           criado_por?: string | null;
+          evento_calendar_id?: string | null;
           familia_id: string;
           id?: string;
+          lembrete_enviado_em?: string | null;
           link_reuniao?: string | null;
           opcoes_informadas?: string | null;
           parceiro_presente?: boolean | null;
           realizada_em?: string | null;
+          resultado?: string | null;
           status?: Database["public"]["Enums"]["status_sessao"];
         };
         Update: {
           agendada_para?: string | null;
+          agendada_por?: Database["public"]["Enums"]["origem_agendamento_sessao"];
           atualizado_em?: string;
           conduzida_por?: string | null;
           criado_em?: string;
           criado_por?: string | null;
+          evento_calendar_id?: string | null;
           familia_id?: string;
           id?: string;
+          lembrete_enviado_em?: string | null;
           link_reuniao?: string | null;
           opcoes_informadas?: string | null;
           parceiro_presente?: boolean | null;
           realizada_em?: string | null;
+          resultado?: string | null;
           status?: Database["public"]["Enums"]["status_sessao"];
         };
         Relationships: [
@@ -3574,6 +3708,66 @@ export type Database = {
             columns: ["sessao_id"];
             isOneToOne: true;
             referencedRelation: "sessao_venda";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sessao_venda_opcao: {
+        Row: {
+          atualizado_em: string;
+          conferida_em: string | null;
+          consultada_em: string;
+          conversa_id: string;
+          criado_em: string;
+          criado_por: string | null;
+          descartada_em: string | null;
+          escolhida_em: string | null;
+          fim: string;
+          id: string;
+          inicio: string;
+          valida_ate: string;
+        };
+        Insert: {
+          atualizado_em?: string;
+          conferida_em?: string | null;
+          consultada_em: string;
+          conversa_id: string;
+          criado_em?: string;
+          criado_por?: string | null;
+          descartada_em?: string | null;
+          escolhida_em?: string | null;
+          fim: string;
+          id?: string;
+          inicio: string;
+          valida_ate: string;
+        };
+        Update: {
+          atualizado_em?: string;
+          conferida_em?: string | null;
+          consultada_em?: string;
+          conversa_id?: string;
+          criado_em?: string;
+          criado_por?: string | null;
+          descartada_em?: string | null;
+          escolhida_em?: string | null;
+          fim?: string;
+          id?: string;
+          inicio?: string;
+          valida_ate?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sessao_venda_opcao_conversa_id_fkey";
+            columns: ["conversa_id"];
+            isOneToOne: false;
+            referencedRelation: "conversa";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sessao_venda_opcao_criado_por_fkey";
+            columns: ["criado_por"];
+            isOneToOne: false;
+            referencedRelation: "perfil";
             referencedColumns: ["id"];
           },
         ];
@@ -3994,7 +4188,8 @@ export type Database = {
         | "validacao_resposta"
         | "estado_sensivel_escreveu"
         | "outro"
-        | "audio_nao_transcrito";
+        | "audio_nao_transcrito"
+        | "reuniao_realizada";
       modo_agente: "desligado" | "teste" | "producao";
       modo_mensageria: "manual" | "uazapi" | "cloud_api";
       motivo_perda:
@@ -4010,6 +4205,7 @@ export type Database = {
         | "nao_contatar"
         | "sem_interesse"
         | "outro";
+      origem_agendamento_sessao: "isadora" | "humano";
       origem_lead:
         | "instagram_organico"
         | "meta_ads"
@@ -4040,6 +4236,8 @@ export type Database = {
         "aberta" | "paga" | "vencida" | "cancelada" | "estornada";
       status_consulta:
         "pendente" | "agendada" | "realizada" | "nao_realizada" | "cancelada";
+      status_consulta_equipe:
+        "aberta" | "respondida" | "expirada" | "cancelada";
       status_conteudo: "rascunho" | "aprovado" | "arquivado";
       status_contrato:
         | "rascunho"
@@ -4078,6 +4276,7 @@ export type Database = {
         "agendada" | "realizada" | "nao_compareceu" | "remarcada" | "cancelada";
       status_sync: "pendente" | "processado" | "conflito" | "erro";
       status_tarefa: "aberta" | "em_andamento" | "concluida" | "cancelada";
+      tipo_consulta_equipe: "area" | "duvida" | "horario_edilaine";
       tipo_conteudo:
         | "institucional"
         | "faq"
@@ -4112,7 +4311,9 @@ export type Database = {
         | "enviar_guia"
         | "cobranca_atraso"
         | "documento_vencendo"
-        | "outro";
+        | "outro"
+        | "registrar_desfecho_sessao"
+        | "responder_consulta_isadora";
       vinculo_profissional:
         "clt" | "pj" | "mei" | "autonoma" | "socia" | "a_definir";
     };
@@ -4364,6 +4565,7 @@ export const Constants = {
         "estado_sensivel_escreveu",
         "outro",
         "audio_nao_transcrito",
+        "reuniao_realizada",
       ],
       modo_agente: ["desligado", "teste", "producao"],
       modo_mensageria: ["manual", "uazapi", "cloud_api"],
@@ -4381,6 +4583,7 @@ export const Constants = {
         "sem_interesse",
         "outro",
       ],
+      origem_agendamento_sessao: ["isadora", "humano"],
       origem_lead: [
         "instagram_organico",
         "meta_ads",
@@ -4422,6 +4625,7 @@ export const Constants = {
         "nao_realizada",
         "cancelada",
       ],
+      status_consulta_equipe: ["aberta", "respondida", "expirada", "cancelada"],
       status_conteudo: ["rascunho", "aprovado", "arquivado"],
       status_contrato: [
         "rascunho",
@@ -4482,6 +4686,7 @@ export const Constants = {
       ],
       status_sync: ["pendente", "processado", "conflito", "erro"],
       status_tarefa: ["aberta", "em_andamento", "concluida", "cancelada"],
+      tipo_consulta_equipe: ["area", "duvida", "horario_edilaine"],
       tipo_conteudo: [
         "institucional",
         "faq",
@@ -4519,6 +4724,8 @@ export const Constants = {
         "cobranca_atraso",
         "documento_vencendo",
         "outro",
+        "registrar_desfecho_sessao",
+        "responder_consulta_isadora",
       ],
       vinculo_profissional: [
         "clt",

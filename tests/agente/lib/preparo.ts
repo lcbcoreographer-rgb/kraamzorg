@@ -53,6 +53,40 @@ export async function aplicarPreparo(
           ),
         );
         break;
+      case "agendaDeTeste": {
+        // Faixas de segunda a sábado (domingo fica sem horário de propósito: é o dia que
+        // os casos 17 e "nenhum horário serve" pedem). Bloco, antecedência e janela vêm do
+        // padrão do seed; o que muda é só o que faz o caso não depender do dia em que roda.
+        const dia = [
+          ["09:00", "12:00"],
+          ["14:00", "18:00"],
+        ];
+        desfazer.push(
+          await trocarParametro(consulta, "agenda_faixas", {
+            seg: dia,
+            ter: dia,
+            qua: dia,
+            qui: dia,
+            sex: dia,
+            sab: [["09:00", "12:00"]],
+          }),
+        );
+        // A falta é remarcada na hora (o padrão espera algumas horas).
+        desfazer.push(
+          await trocarParametro(
+            consulta,
+            "agenda_remarcar_apos_falta_horas",
+            0,
+          ),
+        );
+        desfazer.push(
+          await trocarParametro(consulta, "agente_janela_envio", {
+            inicio: "00:00",
+            fim: "23:59",
+          }),
+        );
+        break;
+      }
       case "modoTesteForaDaLista":
         desfazer.push(await trocarParametro(consulta, "agente_modo", "teste"));
         break;

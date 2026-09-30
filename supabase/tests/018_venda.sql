@@ -25,7 +25,7 @@
 
 begin;
 
-select plan(160);
+select plan(161);
 
 -- -----------------------------------------------------------------------------
 -- 0. Preparação
@@ -291,10 +291,18 @@ select ok(exists (select 1 from log_auditoria where acao = 'sessao_venda_agendad
 insert into t_r select 'sessao_um', to_jsonb(s.id) from sessao_venda s
   where s.familia_id = 'c1800000-0000-4000-8000-000000000001' and s.status = 'agendada';
 
+-- [v4.3] realizada e não compareceu são da Edilaine (coordenação) e da diretoria
 select testes.autenticar_authenticated('a1800000-0000-4000-8000-000000000001', 'aal1');
 select throws_like(
   format($s$ select api.registrar_desfecho_sessao_venda(%L, 'realizada') $s$, (select r #>> '{}' from t_r where chave = 'sessao_um')),
+  '%venda:so_edilaine%', '[v4.3] desfecho: realizada pelo comercial é recusada (só a Edilaine, a coordenação e a diretoria)');
+select testes.encerrar();
+select testes.autenticar_authenticated('a1800000-0000-4000-8000-000000000003', 'aal2');
+select throws_like(
+  format($s$ select api.registrar_desfecho_sessao_venda(%L, 'realizada') $s$, (select r #>> '{}' from t_r where chave = 'sessao_um')),
   '%venda:sessao_ainda_nao_aconteceu%', 'desfecho: realizada antes do horário é recusada');
+select testes.encerrar();
+select testes.autenticar_authenticated('a1800000-0000-4000-8000-000000000001', 'aal1');
 insert into t_r values ('remarcar', api.remarcar_sessao_venda((select (r #>> '{}')::uuid from t_r where chave = 'sessao_um'),
   now() + interval '5 days'));
 select testes.encerrar();
@@ -312,11 +320,15 @@ select is((select count(*)::integer from tarefa where payload ->> 'sessao_venda_
 select is((select estagio_p1::text from oportunidade where id = 'e1800000-0000-4000-8000-000000000001'),
   'sessao_venda_agendada', 'remarcar: o P1 continua em sessao_venda_agendada');
 
-select testes.autenticar_authenticated('a1800000-0000-4000-8000-000000000001', 'aal1');
+select testes.autenticar_authenticated('a1800000-0000-4000-8000-000000000003', 'aal2');
 insert into t_r values ('realizada', api.registrar_desfecho_sessao_venda('b1800000-0000-4000-8000-000000000005', 'realizada', true));
 insert into t_r values ('faltou', api.registrar_desfecho_sessao_venda('b1800000-0000-4000-8000-000000000006', 'nao_compareceu'));
 insert into t_r values ('atencao', api.registrar_desfecho_sessao_venda('b1800000-0000-4000-8000-000000000007', 'realizada'));
+select testes.encerrar();
+select testes.autenticar_authenticated('a1800000-0000-4000-8000-000000000001', 'aal1');
 insert into t_r values ('cancelar', api.registrar_desfecho_sessao_venda((select (r ->> 'sessao_id')::uuid from t_r where chave = 'agendar2'), 'cancelada'));
+select testes.encerrar();
+select testes.autenticar_authenticated('a1800000-0000-4000-8000-000000000003', 'aal2');
 select throws_like(
   $s$ select api.registrar_desfecho_sessao_venda('b1800000-0000-4000-8000-000000000005', 'nao_compareceu') $s$,
   '%venda:sessao_nao_agendada%', 'desfecho: sessão já registrada não muda de novo');

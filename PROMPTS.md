@@ -2,7 +2,7 @@
 
 Sequência de sessões do Claude Code, do repositório vazio ao aceite final. Cada prompt é uma sessão (às vezes duas) com um objetivo só. A ordem respeita as dependências do PRD: banco antes de tela, freio antes de automação, fronteira do agente antes dos fluxos n8n.
 
-Versão 2 · 25/09/2026 · acompanha o PRD v4.2
+Versão 3 · 29/09/2026 · acompanha o PRD v4.3
 
 ## Como usar
 
@@ -18,7 +18,7 @@ Regras de uso:
 - Se o prompt pedir algo que o PRD não cobre ou contradiz, a sessão para e o PRD é atualizado primeiro.
 - "Ler" lista o que a sessão precisa abrir antes de codar. "Fora de escopo" existe para a sessão não crescer.
 
-Os três arquivos JSON do n8n saem dos prompts P24 (fluxo 2), P25 (fluxo 3) e P26 (fluxo 1), gerados por script a partir do repositório. Os fluxos da Enjoy em `n8n/referencia/` servem só como referência de formato de nó; a lógica é a do capítulo 19 do PRD.
+Os três arquivos JSON do n8n saem dos prompts P24 (fluxo 2), P25 (fluxo 3) e P26 (fluxo 1), gerados por script a partir do repositório. Os fluxos da Enjoy em `n8n/referencia/` servem só como referência de formato de nó; a lógica é a do capítulo 19 do PRD. **[v4.3]** Um quarto arquivo, o fluxo 4 (Agenda da Isadora, no Google Calendar), sai do P25b.
 
 ## Calendário [v4.2]
 
@@ -35,7 +35,7 @@ O aceite das Fases 0 e 1 (P33) fica **condicionado a T-01 e T-06**: se os dois e
 | S5 | 05 a 09/10 | Fase 2 | P05 a P09 (fim do banco, uma pessoa) e, a partir do P07 (por volta do meio da semana), o restante do P10, P11 e P12 (interface, a outra pessoa) |
 | S6 | 13 a 16/10 (curta, 12/10 é feriado) | Fase 2 | P13 a P20 (CRM), as duas pessoas |
 | S7 | 19 a 23/10 | Fase 2 | P21 a P23 (agente, com parada de revisão do SQL depois do P21) e P29 a P32 (venda), em paralelo; **[v4.2]** P18b (adaptador `cloud_api`), antes do P33 |
-| S8 | 26 a 30/10 | Aceite das Fases 0 e 1 | P24 a P28 (fluxos n8n e homologação da Isadora) e P33 (aceite das Fases 0 e 1, candidato a 30/10, condicionado a T-01 e T-06 conforme acima) |
+| S8 | 26 a 30/10 | Aceite das Fases 0 e 1 | P24 a P28 (fluxos n8n e homologação da Isadora; **[v4.3]** com o P25b, agenda da Isadora, antes do P28) e P33 (aceite das Fases 0 e 1, candidato a 30/10, condicionado a T-01 e T-06 conforme acima) |
 | S9 | 02 a 06/11 | Fase 3 | P34 a P36 |
 | S10 | 09 a 13/11 | Fase 3 | P37 a P41 |
 | S11 | 16 a 20/11 | Fase 3 | P42 a P44 (aceite da Fase 2), P45 e P46 |
@@ -53,6 +53,7 @@ Caminho crítico e bloqueios externos:
 | Bloqueio | Trava | Situação em 25/09 | Plano B |
 | :-- | :-- | :-- | :-- |
 | Conta do WhatsApp restrita (T-01) | Isadora em produção | Restrita desde 24/09 | Construir e homologar com número de teste; produção só com o adaptador `cloud_api` (P18b) pronto, conforme mitigação registrada no PRD 22.1 e 4.1. |
+| Google Calendar da Edilaine (T-11) **[v4.3]** | Agenda da Isadora (P25b) em produção e aceite do P33 com calendário real | Credencial e agenda ainda sem definição (C-20) | Construir e homologar com calendário de teste (`agenda_simulada`); produção só com a credencial em nome da Kraamzorg no cofre do n8n. |
 | Credencial InfinitePay (T-06) | Baixa automática (P32) | Em avaliação | Adaptador pronto com `payment_check` simulado nos testes; baixa manual com comprovante até liberar. |
 | Autentique em nome da Kraamzorg | Contrato (P31) | Não solicitado | Sandbox da Autentique em homologação. |
 | Certificado A1 e provedor de NFS-e (T-05) | NFS-e (P43) | A Kraamzorg nunca emitiu A1; SP muda para o Emissor Nacional em 01/11 | Emissão manual pela contadora até homologar. |
@@ -75,7 +76,7 @@ Contas, todas em nome da Kraamzorg (D-12), com credenciais só no cofre de senha
 7. Autentique: conta da Kraamzorg, token de API e acesso ao sandbox.
 8. InfinitePay: InfiniteTag e confirmação de que o Checkout por API está liberado.
 9. UAZAPI: instância de homologação com chip de teste. A instância do número oficial só depois do T-01.
-10. n8n: acesso à instância, credenciais criadas com os nomes do PRD 19.1 ("Postgres Kraamzorg Agente", "Redis Drop", "OpenAI Kraamzorg", "UAZAPI Kraamzorg"), versões dos nós anotadas.
+10. n8n: acesso à instância, credenciais criadas com os nomes do PRD 19.1 ("Postgres Kraamzorg Agente", "Redis Drop", "OpenAI Kraamzorg", "UAZAPI Kraamzorg"; **[v4.3]** mais "Google Calendar Kraamzorg", que só o fluxo 4 usa), versões dos nós anotadas.
 11. Sentry: projeto com limpeza de dados pessoais.
 
 Material:
@@ -87,10 +88,11 @@ Material:
 16. Perguntas da pesquisa de satisfação atual (Google Forms, item 9 do briefing) transcritas em `docs/referencia-pesquisa.md`, para o P42.
 
 Decisões que destravam sessões:
-17. Leonardo aprova `docs/aprovacao/ajustes-prompt-isadora.md` antes do P28.
+17. Leonardo aprova `docs/aprovacao/ajustes-prompt-isadora.md` antes do P28. **[v4.3]** Também os textos novos da agenda (PRD 23.1 e 23.3) e o prompt v6.0 do cliente como referência do P25b; a lista de bairros e cidades atendidos (C-24).
 18. Edilaine aprova os itens clínicos do mesmo documento (G, H, I, J e L, **[v4.2]** mais as partes marcadas do item 13 e o item 18) antes de a Isadora ir para produção. Os textos de internação e de sofrimento emocional ficam desligados por parâmetro até lá. O Apêndice B do PRD precisa da aprovação dela antes do P40.
 18a. **[v4.2]** Leonardo e Edilaine aprovam por escrito a matriz de permissões do PRD 22.4 (O-05) e o ADR 0002 antes das políticas do P07: o onboarding 14.1 marcou acesso total ao registro assistencial para o comercial e para a diretoria, e o PRD adotou o padrão mais restritivo (sem acesso para o comercial); essa divergência precisa de confirmação escrita antes de virar política de RLS.
 19. Registrar por escrito os bloqueios de terceiros da tabela acima (cláusula 3.4).
+20. **[v4.3]** Edilaine define a agenda da reunião inicial (dias e faixas, bloco de 30 minutos, antecedência, intervalo, qual calendário vale, C-20), cria a credencial do Google Calendar em nome da Kraamzorg e dá acesso ao n8n (T-11); Leonardo e Edilaine respondem C-21 (título do evento sem o nome da família), C-22 (como a Edilaine registra "reunião realizada"), C-27 (pedir para falar com a equipe) e C-28 (ponto de contagem da cadência) antes do P25b. Sem resposta, o P25b segue com os padrões do PRD.
 
 ---
 
@@ -413,13 +415,14 @@ Objetivo: implementar de verdade a interface `cloud_api` do `src/lib/messaging`,
 Fazer:
 1. `cloud_api` chamando a API oficial do WhatsApp (Cloud API da Meta): mensagem de texto livre dentro da janela de 24 horas desde a última mensagem da família, e envio por modelo de mensagem aprovado pela Meta fora dessa janela. Toda chamada passa por `pode_enviar_mensagem` (app) ou `agente.pode_enviar` (n8n), como as demais.
 2. Cadastro dos modelos de mensagem aprovados (nome, idioma, categoria, variáveis) com o texto exato submetido à Meta e o status de aprovação; nenhum texto de modelo aprovado é editado fora desse cadastro.
-3. Ajuste do follow-up fora da janela de 24 horas: quando a última mensagem da família tiver mais de 24 horas, o primeiro retorno da Isadora (`agente_followup_horas`, PRD 11.3) e as réguas proativas do capítulo 23 saem por modelo aprovado, não pelo texto livre que `n8n/prompts/isadora-followup.md` gera hoje. Documentar no próprio arquivo a diferença entre o texto livre (dentro da janela) e o texto do modelo aprovado (fora dela).
+3. Ajuste do follow-up fora da janela de 24 horas: quando a última mensagem da família tiver mais de 24 horas, os retornos da Isadora (`agente_cadencia_dias`, PRD 11.3; **[v4.3]** antes era `agente_followup_horas`, e a cadência agora tem três retornos, 1, 3 e 14 dias) e as réguas proativas do capítulo 23 saem por modelo aprovado, não pelo texto livre que `n8n/prompts/isadora-followup.md` gera hoje. Documentar no próprio arquivo a diferença entre o texto livre (dentro da janela) e o texto do modelo aprovado (fora dela).
 4. Webhook de status de entrega da Cloud API (entregue, lido, falhou) gravado em `mensagem`.
 5. Coexistência de número: se a Meta confirmar que o WhatsApp Business comum e a Cloud API coexistem no mesmo número, a migração usa o número já em uso pelo Leonardo, mantendo um único `conversa.wa_jid`; confirmar a viabilidade técnica nesta sessão antes de codar. Se não for viável, o protocolo de passagem entre dois números fica registrado como pendência do PRD (T-01), fora do escopo desta sessão.
+6. **[v4.3]** Modelos aprovados da agenda (PRD 4.1 e T-12): lembrete da véspera da reunião (variáveis nome, hora e link), cadência de 1, 3 e 14 dias, retomada de horário liberado pela Edilaine, remarcação depois de falta e devolutiva de consulta à equipe. A confirmação da reunião responde à escolha da família e sai como texto livre, dentro da janela. O lembrete da véspera fora da janela usa o modelo; dentro dela (a família escreveu há menos de 24 horas), pode sair texto livre.
 
 Fora de escopo: desligar `uazapi` (só acontece quando T-01 estiver resolvido e a homologação deste adaptador estiver completa, junto com P28 e P33).
 
-Aceite: teste automatizado com credencial de sandbox da Cloud API (ou simulada, se a credencial ainda não existir) cobre envio dentro e fora da janela de 24 horas, com o modelo aprovado certo escolhido fora dela; nenhum texto livre sai fora da janela.
+Aceite: teste automatizado com credencial de sandbox da Cloud API (ou simulada, se a credencial ainda não existir) cobre envio dentro e fora da janela de 24 horas, com o modelo aprovado certo escolhido fora dela; nenhum texto livre sai fora da janela. **[v4.3]** O teste cobre o lembrete da véspera e um retorno da cadência fora da janela (saem por modelo) e a confirmação de reunião dentro dela (sai texto livre); nenhum texto livre sai fora da janela.
 
 ## P19 · Ocupação projetada e recálculo diário
 
@@ -522,6 +525,30 @@ Fazer:
 
 Aceite: testes do build verdes; em homologação, com `agente_modo = teste` e os números da equipe na lista, uma conversa real do "Olá" até o pedido de conversa com a Edilaine funciona, com a apresentação chegando antes do primeiro valor; **[v4.2]** com `agente_modo = teste`, número fora da lista com "sangramento" chama o fluxo 2 com `enviar_texto` falso; **[v4.2]** teste de ida e volta da memória: o nó grava uma troca, `agente.sincronizar_memoria` grava uma fala da equipe e troca a última fala da IA, e a mensagem seguinte relê a memória pelo nó sem erro (confere o formato do JSON contra P-1 item 15); **[v4.2]** resposta depois de transferência com `reuniao` chega à família e a mensagem seguinte não recebe resposta automática (`humano_comercial`); áudio com a transcrição forçada a falhar abre `audio_nao_transcrito` e envia o texto `audio_nao_transcrito`; áudio com sintoma, transcrição certa e gravação forçada a falhar chama o fluxo 2 com `alerta_saude`; foto com legenda neutra abre `midia_recebida`; os casos extras [v4.2] do Apêndice C passam.
 
+**[v4.3] Ajuste do P25 (PRD 19.4 e 11.14; executado no P25b para não reabrir esta sessão).** O fluxo 3 já construído muda nestes pontos: (a) o nó 21 abre `reuniao_realizada` quando `humano_comercial` recebe mensagem sem handoff aberto; (b) a ficha (nó 25) traz `agenda_estado` no lugar dos horários da Edilaine; (c) as ferramentas passam de nove para quinze (nós 26c a 26q): `consultar_horarios_edilaine`, `agendar_reuniao`, `remarcar_reuniao`, `cancelar_reuniao` e `consultar_equipe` como `toolWorkflow` do fluxo 4, mais `anotar_para_leonardo`; `transferir_para_equipe` perde os motivos `reuniao`, `contratar` e `condicao_comercial`; (d) o validador ganha o item 9 do 11.11 e o e-mail só no passo do convite; (e) a Entrada B troca `agente_followup_horas` por `agente_cadencia_dias` (nós 37 e 38) e ganha os nós 42 a 47; (f) `isadora-system.md`, `isadora-followup.md` e `classificar-pedido.md` seguem o PRD 11.8 e 11.14. O critério "do Olá até o pedido de conversa com a Edilaine" do aceite acima passa a ser "do Olá até a reunião agendada no calendário de teste".
+
+## P25b · Agenda da Isadora no Google Calendar [v4.3]
+
+Fase 1 · S8 [v4.3] (antes do P28 e do P33) · depende de P22, P24, P25, P29 e P18b (modelos aprovados) · trilha do agente · **plano primeiro** · pode levar duas sessões
+Ler: PRD 2.1, 4 (D-17, D-19, D-20 e D-21), 6.3, 6.4, 6.8, 7.1, 11 inteiro (11.14 em especial), 19.4 (nós 21 a 47), 19.5, 19.6, 21.3, 22.1 (T-11 e T-12), 22.2 (C-20 a C-28), 23 e os Apêndices A e C; `n8n/prompts/`; `docs/sessoes/P25.md`, `P29-P30.md` e `p27-agente.md`. Do treinamento v3 e do prompt v6 vale só o que o PRD registra: nenhum nome real, nenhuma frase marcada como texto real e nenhum trecho de conversa real entram no repositório (CLAUDE.md).
+
+Objetivo: a Isadora agenda, lembra e remarca a reunião online inicial de 30 minutos com a Edilaine no Google Calendar e só passa a conversa ao Leonardo depois de "reunião realizada" (D-19 a D-21). Substitui o agendamento humano da D-15.
+
+Fazer:
+1. Migration `supabase/migrations/0028_agenda_isadora.sql`, a única desta frente (as 0019 a 0027 são de outra frente): valor `reuniao_realizada` em `handoff_motivo` e os dois valores novos de `tipo_tarefa`; enums `origem_agendamento_sessao`, `tipo_consulta_equipe` e `status_consulta_equipe`; colunas novas de `sessao_venda`; tabelas `sessao_venda_opcao` e `consulta_equipe` com RLS (PRD 13); parâmetros `agenda_*` e `agente_cadencia_dias`, migrando `agente_followup_horas`, com faixas de teste só no seed de homologação; automações novas e ajustadas do 10.1 (`contratar_sem_transferencia` desligada); `reuniao_realizada` na `handoff_matriz`; textos novos do 23 em `mensagem_modelo` (rascunho; aprovados em homologação); as funções do Apêndice A (agenda), `security definer` com `set search_path = ''`, nomes qualificados e `execute` só para `n8n_agente`; `create or replace` de `api.registrar_desfecho_sessao_venda` (realizada: conversa em `humano_comercial`, handoff `reuniao_realizada`, tarefa do Leonardo, aviso ao grupo, cancelamento de follow-ups e lembretes) e de `api.agendar_sessao_venda` e `api.remarcar_sessao_venda` (marcam `agendada_por = humano` e recusam sessão da Isadora). Nunca editar migration já aplicada. **Parar para revisão do SQL antes do `db push`.**
+2. pgTAP: opção oferecida ontem recusada, opção já usada recusada, antecedência respeitada; `registrar_reuniao` idempotente por `evento_id` e movendo o P1; remarcação e cancelamento; `registrar_consulta_equipe` sem pausa, sem handoff e sem mudança de modo; `n8n_agente` sem acesso às tabelas novas nem ao `evento_calendar_id` fora das funções; desfecho "realizada" põe `humano_comercial` e "resolver" o handoff depois não devolve a Isadora; `followups_devidos` sem conversa com reunião agendada e com a cadência de 1, 3 e 14 dias; `proativos_agenda_devidos` respeitando freio, `nao_contatar`, pausa e janela.
+3. n8n: fluxo 4 em `n8n/src/fluxo-4-agenda.mjs` (PRD 19.6), com `calcularOpcoes` e a conferência do resultado como funções puras testadas; `agenda_simulada` no config (calendário de teste, análogo a `envio_simulado`); build, testes do 19.5 [v4.3] e importação em homologação.
+4. Fluxo 3: as alterações do bloco [v4.3] do P25 acima (nós 21, 25, 26c a 26q, 28, 37, 38 e 42 a 47), e o teste das duas conversas concorrentes do P25 item 6 repetido com as ferramentas de agenda: o id do evento de cada conversa vem do banco, nunca do modelo.
+5. Prompts, com aprovação do Leonardo antes de publicar: `isadora-system.md` (escopo até a reunião realizada, agenda, exceções, o que não se transfere, anotação no resumo, status), `isadora-followup.md` (cadência de 1, 3 e 14 dias, lembrete, remarcação por falta, retomada de horário e devolutiva de consulta), `classificar-pedido.md` (os tipos comerciais viram anotação ou consulta) e `reescrever-resposta.md` (item 9 do 11.11). A voz da 4.2-rc4 se mantém.
+6. Validador (`n8n/src/code/validar-resposta.js`): item 9 do 11.11 e e-mail só com `agenda_estado = aguardando_email` (itens 5 e 9), com teste para "ontem ela tinha quarta às 20h" sem consulta e "pronto, está marcado" sem evento criado.
+7. App: "Perguntas da Isadora" na tela do agente (P27), com as consultas abertas e a resposta da equipe, que grava `resposta` e libera a devolutiva pela Entrada B; agenda da sessão conforme o bloco [v4.3] do P29; parâmetros `agenda_*` nas configurações (P13). O app não chama o Google.
+8. Base de conhecimento (P26): itens de agenda e as simulações do treinamento v3 só com nomes fictícios, sem as linhas "Inspirada em", sem a coluna "Hoje (texto real)" e sem os nomes das "Boas práticas". Varredura local do repositório e do histórico do commit com a lista de nomes reais mantida fora do repositório (no cofre da Kraamzorg).
+9. `docs/sessoes/P25b.md`, adendo ao `docs/adr/0003-fronteira-agente.md` (credencial do Google só no n8n, leitura só de ocupado e livre, título do evento sem o nome da família) e atualização dos [confirmar] C-20 a C-28, T-11 e T-12 no PRD.
+
+Fora de escopo: o adaptador `cloud_api` e os modelos da Meta (P18b); ligar o Google Calendar real de produção (T-11); a homologação dos 28 casos (P28); a Isadora em produção.
+
+Aceite: pgTAP verde e parada para revisão do SQL; `node --test n8n/build.test.mjs` verde; em homologação, com `agente_modo = teste` e o calendário de teste, uma conversa do "Olá" até a reunião agendada funciona, com as três consultas (sugestão, escolha e criação) registradas e a confirmação só depois do evento; opção de ontem recusada; horário ocupado entre a sugestão e a escolha gera duas opções novas; agenda indisponível não confirma e abre a consulta; o lembrete da véspera sai uma vez; o registro de "reunião realizada" pelo CRM põe a conversa em `humano_comercial` e a Isadora não responde à mensagem seguinte; nenhum evento de outra pessoa do calendário de teste é alterado.
+
 ## P26 · n8n: fluxo 1, Ingestão RAG, e base de conhecimento inicial
 
 Fase 1 · S6 · depende de P22 e P23 · trilha do agente
@@ -550,28 +577,37 @@ Aceite: e2e com transferência aparecendo com o prazo; assumir pausa a Isadora; 
 
 ## P28 · Homologação automatizada da Isadora
 
-Fase 1 · S7 · depende de P25, P26, P27 e da aprovação do item 17 do P-1 **[v4.2]**
-Ler: PRD 11.5, Apêndice C e 16.2 (Fase 1)
+Fase 1 · S7 · depende de P25, P26, P27 e da aprovação do item 17 do P-1 **[v4.2]**; **[v4.3]** também do P25b (agenda da Isadora) e do calendário de teste
+Ler: PRD 11.5, 11.14, Apêndice C e 16.2 (Fase 1)
 
 Fazer:
-1. Roteiro automatizado (`tests/agente/roteiro.spec.ts`) que manda ao webhook do fluxo 3 em homologação payloads iguais aos da UAZAPI (texto, áudio com `transcricao_simulada`, foto com legenda, CPF, figurinha) a partir de números da lista de teste, uma conversa nova por caso, com `envio_simulado` ligado, e confere as mensagens capturadas, o estado no banco (transferências, marcos, pausa, freio) e o conteúdo (valores permitidos, apresentação antes do valor, sem travessão, sem pedido de documento).
-2. Os 24 casos do Apêndice C (13 e 15 em dois turnos, 14 com horários da Edilaine cadastrados) e os casos extras, inclusive saúde com a IA pausada, foto com legenda de sintoma e perda de gestação anterior. Avaliação de tom por modelo pode entrar como informação, nunca como critério único.
+1. Roteiro automatizado (`tests/agente/roteiro.spec.ts`) que manda ao webhook do fluxo 3 em homologação payloads iguais aos da UAZAPI (texto, áudio com `transcricao_simulada`, foto com legenda, CPF, figurinha) a partir de números da lista de teste, uma conversa nova por caso, com `envio_simulado` ligado, e confere as mensagens capturadas, o estado no banco (transferências, marcos, pausa, freio) e o conteúdo (valores permitidos, apresentação antes do valor, sem travessão, sem pedido de documento). **[v4.3]** Com `agenda_simulada` ligado, o teste controla o calendário de teste: insere evento de outra pessoa no horário oferecido, apaga o evento da reunião à mão e recua a validade das opções (só em homologação) para simular o dia seguinte.
+2. **[v4.3]** Os 28 casos do Apêndice C (treinamento v3), com os casos de vários turnos ou de mais de um dia (14 a 19 e 27) rodando no calendário de teste, mais os casos extras [v4.2] e [v4.3] (agenda indisponível, falha ao criar o evento, horário ocupado entre a sugestão e a escolha, horário e confirmação sem consulta, e-mail fora do passo do convite, evento de terceiros intocado, lembrete com evento movido ou apagado, falta, desconto com reunião agendada, saúde com reunião agendada, exceções, reunião realizada e `humano_comercial`, cadência com reunião agendada e lembrete fora da janela de 24 horas). Avaliação de tom por modelo pode entrar como informação, nunca como critério único.
 3. Relatório em `docs/homologacao/isadora-AAAA-MM-DD.md` com o resultado e as transcrições.
 
-Aceite: 24 de 24. Falha em saúde, valor sem apresentação, promessa ou dado sensível reprova a versão (PRD 11.5).
+Aceite: **[v4.3]** 28 de 28. Falha em saúde, valor sem apresentação, horário sem consulta, reunião confirmada sem evento criado, promessa ou dado sensível reprova a versão (PRD 11.5).
 
 ## P29 · Sessão de venda
 
 Fase 1 · S6 · depende de P16 e P22 · trilha de venda
-Ler: PRD 4 (D-04 e D-15), 6.3 (`sessao_venda`), 13 (sessão gravada) e 14 (transcrição)
+Ler: PRD 4 (D-04, D-15 substituída pela D-19, D-20), 6.3 (`sessao_venda`), 11.14, 13 (sessão gravada) e 14 (transcrição)
 
 Fazer:
-1. A partir da transferência `reuniao`: tela para o comercial com as opções que a família passou, escolha da data e hora, link da reunião, estado e transições do P1.
+1. A partir da transferência `reuniao`: tela para o comercial com as opções que a família passou, escolha da data e hora, link da reunião, estado e transições do P1. **[v4.3]** Com a D-19, a sessão nasce também da Isadora (bloco [v4.3] abaixo); esta tela continua para a equipe, em contingência e para pedidos que chegam por outro canal.
 2. Estados: agendada, realizada, não compareceu, remarcada, cancelada. Tarefas de lembrete na véspera, de "não compareceu" e de retorno 48 horas depois da conversa, com os textos do 23.2.
 3. Consentimento de gravação com versão do termo; envio do áudio ou colagem da transcrição; resumo estruturado por IA (dúvidas, objeções ditas, plano de interesse, próximos passos, sem inventar), com o prompt em `src/modules/crm/prompts/resumo-sessao.md`. Tudo isso mora em `sessao_venda_gravacao`.
 4. Agenda da sessão visível para o comercial e a coordenação; gravação, transcrição e resumo só para quem conduziu e para a diretoria, com leitura registrada.
 
 Aceite: e2e com a sessão agendada movendo o P1; comercial que não conduziu não vê a gravação.
+
+**[v4.3] Ajuste do P29 (PRD 11.14 e 7.1; executado no P25b, migration 0028).**
+1. A sessão tem duas origens: a Isadora (`agendada_por = isadora`, `evento_calendar_id` e link do Meet) e a equipe (`api.agendar_sessao_venda`, como hoje). O app não cria evento no Google. A agenda mostra a origem. Remarcar ou cancelar pelo CRM uma sessão da Isadora é recusado com a explicação "Esta reunião foi marcada pela Isadora no Google Calendar. Para mudar, mova o evento no calendário ou peça à Isadora; o CRM atualiza sozinho em até 30 minutos."
+2. "Reunião realizada" (Edilaine, coordenação ou diretoria) faz mais do que mover o P1 e criar a tarefa: põe a conversa em `humano_comercial` (`agente_encerrado_motivo = reuniao_realizada`), abre o handoff `reuniao_realizada` com o resumo interno completo e o resultado (campo curto, sem dado clínico), cancela follow-ups e lembretes pendentes e avisa o grupo. A tarefa `pos_sessao_48h` vai para o Leonardo.
+3. "Não compareceu" libera a mensagem de remarcação da Isadora (`reuniao_falta_remarcar`); para sessão da Isadora não nasce tarefa humana de remarcação. A tarefa `registrar_desfecho_sessao` lembra a Edilaine quando o desfecho passa de `agenda_desfecho_pendente_horas`.
+4. A tarefa do lembrete da véspera só nasce para sessão marcada pela equipe; a da Isadora é a automação `lembrete_sessao` com executor `agente`.
+5. Continuam iguais o consentimento de gravação, a transcrição, o resumo e a visibilidade da gravação.
+
+Aceite [v4.3]: e2e com uma sessão criada pela função de teste do agente aparecendo na agenda com a origem; registrar "realizada" põe a conversa em `humano_comercial` e cria a tarefa do Leonardo; a Isadora não responde à mensagem seguinte; remarcar sessão da Isadora pelo CRM é recusado com a explicação; comercial que não conduziu segue sem ver a gravação.
 
 ## P30 · Proposta, condições comerciais e formulário seguro
 
@@ -613,11 +649,11 @@ Aceite: teste automatizado com `payment_check` simulado cobre webhook duplicado 
 
 ## P33 · Aceite das Fases 0 e 1
 
-Fase 1 · S8 [v4.2] (30/10 na proposta, condicionado a T-01 e T-06 conforme o Calendário) · depende de P00 a P32, inclusive P18b
+Fase 1 · S8 [v4.2] (30/10 na proposta, condicionado a T-01 e T-06 conforme o Calendário) · depende de P00 a P32, inclusive P18b e **[v4.3]** P25b
 Ler: PRD 16.1 e 16.2
 
 Fazer:
-1. Roteiro em `docs/aceite/fases-0-1.md`: login de cada papel pelo celular conferindo a matriz; toda ação no log; formulário preenchido offline sincronizando; família fictícia do primeiro contato no WhatsApp de teste até o pagamento confirmado, com contrato gerado e enviado pelo celular, sem mexer no banco; 24 de 24 da Isadora.
+1. Roteiro em `docs/aceite/fases-0-1.md`: login de cada papel pelo celular conferindo a matriz; toda ação no log; formulário preenchido offline sincronizando; família fictícia do primeiro contato no WhatsApp de teste até o pagamento confirmado, com contrato gerado e enviado pelo celular, sem mexer no banco; **[v4.3]** 28 de 28 da Isadora, com a reunião inicial agendada pela Isadora no calendário de teste e registrada como realizada pela Edilaine, momento em que a conversa passa ao Leonardo.
 2. Rodar o roteiro em homologação e corrigir o que falhar em sessões curtas.
 3. Listar o que depende de terceiros (T-01, T-06) e o que fica condicionado.
 

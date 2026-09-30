@@ -2,7 +2,7 @@
 /**
  * P28 · Roteiro da Isadora no simulador do fluxo 3, sobre o banco local.
  *
- * Roda os 24 casos do Apêndice C e os extras que o sistema consegue provar
+ * Roda os 28 casos do Apêndice C e os extras que o sistema consegue provar
  * sem modelo de verdade (ver `execucao-local.ts` para o que é real e o que é
  * de mentira). Precisa do Postgres local de `supabase/sem-docker`:
  *
@@ -75,7 +75,7 @@ describe.skipIf(!conexao)(
       (c.ambientes ?? ["real", "local"]).includes("local"),
     );
 
-    it("o Apêndice C tem os 24 casos", () => {
+    it("o Apêndice C tem os 28 casos", () => {
       expect(CASOS.filter((c) => c.grupo === "apendice")).toHaveLength(
         TOTAL_DO_APENDICE,
       );

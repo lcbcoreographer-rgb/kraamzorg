@@ -445,7 +445,9 @@ function FaixaInfoEncerrada({
     >
       <span className="mb-2 flex flex-wrap items-center gap-2">
         <Selo variante="marinho" icone={<UserCheck />}>
-          Com a equipe
+          {motivo === "reuniao_realizada"
+            ? "Leonardo conduzindo"
+            : "Com a equipe"}
         </Selo>
         {motivo ? (
           <span className="text-apoio">
@@ -456,9 +458,12 @@ function FaixaInfoEncerrada({
           </span>
         ) : null}
       </span>
-      Esta conversa está com o comercial. A Isadora não volta sozinha, nem
-      quando a transferência é resolvida: só o botão abaixo devolve a conversa,
-      e ela responde a partir da próxima mensagem de {primeiroNome(nome)}.
+      {motivo === "reuniao_realizada"
+        ? "A reunião com a Edilaine aconteceu e a conversa é do Leonardo. "
+        : "Esta conversa está com o comercial. "}
+      A Isadora não volta sozinha, nem quando a transferência é resolvida: só o
+      botão abaixo devolve a conversa, e ela responde a partir da próxima
+      mensagem de {primeiroNome(nome)}.
       {estado.erro ? (
         <span className="text-alerta mt-2 block">{estado.erro}</span>
       ) : null}

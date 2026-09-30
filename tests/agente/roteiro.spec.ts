@@ -14,7 +14,7 @@
  * Confere regra, não frase: a voz da Isadora mudou na 4.2-rc4.
  *
  * Sem as variáveis do ambiente (`hml/ambiente.ts`), os casos são pulados com a
- * lista do que falta. O aceite de 24 de 24 só vale rodando aqui, contra o
+ * lista do que falta. O aceite de 28 de 28 só vale rodando aqui, contra o
  * ambiente real. Como rodar: docs/homologacao/isadora-MODELO.md.
  *
  *   pnpm e2e:homologacao
@@ -41,11 +41,11 @@ const leitura = lerAmbiente();
 const ambiente = leitura.ok ? leitura.ambiente : null;
 const ordemDosCasos = CASOS.map((c) => c.id);
 // Contra o servidor simulado local (global-setup-simulado.ts), o roteiro prova o executor, não a Isadora:
-// a lacuna declarada não derruba a rodada e o aceite de 24 de 24 não se aplica.
+// a lacuna declarada não derruba a rodada e o aceite de 28 de 28 não se aplica.
 const simulado = process.env["KZ_HML_SIMULADO"] === "1";
 
 test.describe("catálogo do roteiro", () => {
-  test("tem os 24 casos do Apêndice C, na ordem, e as regras têm identificador único", () => {
+  test("tem os 28 casos do Apêndice C, na ordem, e as regras têm identificador único", () => {
     const apendice = CASOS.filter((c) => c.grupo === "apendice");
     expect(apendice).toHaveLength(TOTAL_DO_APENDICE);
     expect(apendice.map((c) => c.rotulo)).toEqual(
@@ -98,10 +98,22 @@ test.describe("roteiro da Isadora contra a homologação", () => {
     (c.ambientes ?? ["real", "local"]).includes("real"),
   )) {
     test(`${caso.id} · ${caso.titulo}`, async () => {
-      test.setTimeout(caso.demorado ? 75 * 60_000 : 10 * 60_000);
+      // Cada ação do agendador espera o gatilho de 30 minutos do n8n (no simulador, é imediato).
+      const esperasDoAgendador = caso.turnos.filter(
+        (t) =>
+          "acao" in t &&
+          (t.acao === "executarFollowup" || t.acao === "executarAgendador"),
+      ).length;
+      test.setTimeout(
+        esperasDoAgendador > 0 && !simulado
+          ? (esperasDoAgendador * (ambiente?.esperaFollowupMinutos ?? 45) +
+              15) *
+              60_000
+          : 10 * 60_000,
+      );
       test.skip(
-        caso.demorado === true && ambiente?.pularFollowup === true,
-        "KZ_HML_PULAR_FOLLOWUP=1: o caso do follow-up espera o agendador de 30 minutos e foi pulado de propósito. O aceite de 24 de 24 exige rodá-lo.",
+        esperasDoAgendador > 0 && ambiente?.pularFollowup === true,
+        "KZ_HML_PULAR_FOLLOWUP=1: o caso espera o agendador de 30 minutos (follow-up, lembrete, falta, devolutiva ou cadência) e foi pulado de propósito. O aceite de 28 de 28 exige rodá-lo.",
       );
       if (!executor) throw new Error("executor não iniciado");
 
@@ -139,10 +151,10 @@ test.describe("roteiro da Isadora contra a homologação", () => {
     });
   }
 
-  test("aceite: 24 de 24 no Apêndice C", () => {
+  test("aceite: 28 de 28 no Apêndice C", () => {
     test.skip(
       simulado,
-      "Servidor simulado: o aceite de 24 de 24 só vale no ambiente de homologação real.",
+      "Servidor simulado: o aceite de 28 de 28 só vale no ambiente de homologação real.",
     );
     const apendice = carregarRelatorios(
       DIRETORIO_DOS_CASOS,

@@ -383,7 +383,8 @@ select is((select valor_centavos from cobranca where contrato_id = 'b1900000-000
 select is((select external_id from cobranca where contrato_id = 'b1900000-0000-4000-8000-000000000001'),
   (select id::text from cobranca where contrato_id = 'b1900000-0000-4000-8000-000000000001'),
   'external_id (order_nsu) é o id da cobrança');
-select is((select vencimento from cobranca where contrato_id = 'b1900000-0000-4000-8000-000000000001'), current_date + 3,
+select is((select vencimento from cobranca where contrato_id = 'b1900000-0000-4000-8000-000000000001'),
+  (now() at time zone 'America/Sao_Paulo')::date + 3,
   'vencimento vem de parametro.cobranca');
 select is((select count(*)::integer from automacao_execucao where automacao_id = 'pos_assinatura' and familia_id = 'c1900000-0000-4000-8000-000000000001' and status = 'executada'), 1,
   'pos_assinatura registrada como executada uma vez');

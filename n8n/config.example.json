@@ -8,6 +8,8 @@
   "fluxo": {
     "_comentario_idFluxo2": "P24: o build grava no JSON do fluxo 2 um id estável (idEstavel da chave do fluxo), que o n8n mantém em n8n import:workflow. Se a importação for pela interface e o n8n trocar o id, anote aqui o id novo no config do ambiente antes do rebuild do fluxo 3 (PRD 19.5, ordem de importação).",
     "idFluxo2": "0ceff455-b8e4-48c9-8fa1-50c079a4f857",
+    "_comentario_idFluxo4": "[v4.3] PRD 19.5: o fluxo 4 (Agenda da Isadora) é importado junto com o fluxo 2, antes do fluxo 3. O build grava um id estável; se a importação pela interface trocar o id, anote o novo aqui antes do rebuild do fluxo 3.",
+    "idFluxo4": "d3d6e6c8-0d73-4968-89c5-1616f912ce63",
     "settings": {
       "executionOrder": "v1",
       "callerPolicy": "workflowsFromSameOwner",
@@ -27,6 +29,7 @@
     "httpRequest": { "typeVersion": 4.4 },
     "postgres": { "typeVersion": 2.6 },
     "postgresTool": { "typeVersion": 2.6 },
+    "googleCalendar": { "typeVersion": 1.3 },
     "redis": { "typeVersion": 1 },
     "wait": { "typeVersion": 1.1 },
     "splitOut": { "typeVersion": 1 },
@@ -62,7 +65,17 @@
     "uazapi": {
       "id": "EXEMPLO-CRED-0004-UAZAPI-KRAAMZORG",
       "name": "UAZAPI Kraamzorg"
+    },
+    "googleCalendar": {
+      "id": "EXEMPLO-CRED-0005-GOOGLE-CALENDAR",
+      "name": "Google Calendar Kraamzorg"
     }
+  },
+
+  "_comentario_agenda": "[v4.3] PRD 11.14 e 19.6 (T-11). calendarId: o calendário da reunião inicial, onde a Isadora cria, move e apaga os eventos dela (a credencial tem acesso de edição só a ele). calendarIdsOcupacao: outros calendários da Edilaine lidos só para ocupado e livre (a Isadora nunca lê título, descrição nem participantes). Os dois são configuração do build, não regra de negócio; faixas, bloco, antecedência, intervalo, título e descrição do evento moram em parametro (agenda_*). A credencial do Google (OAuth2 do Google Calendar, ou conta de serviço com acesso delegado) fica só no cofre do n8n; o JSON referencia pelo id.",
+  "agenda": {
+    "calendarId": "EXEMPLO-calendario-reuniao-inicial@group.calendar.google.invalid",
+    "calendarIdsOcupacao": []
   },
 
   "uazapi": {
@@ -129,13 +142,20 @@
       "video": "um vídeo",
       "documento": "um documento",
       "padrao": "um arquivo"
+    },
+    "_comentario_agenda": "[v4.3] Fluxo 4: pergunta à equipe quando a família não deu palavras próprias (consulta horario_edilaine sem preferência, ou pedido de remarcar ou cancelar uma reunião marcada pela equipe). Fluxo 3, entrada B: rótulo da linha que entrega ao modelo o fato confirmado pela equipe (isadora-followup.md, regra 4). Textos internos, nunca vão à família. Mudança passa pela mesma aprovação dos prompts.",
+    "agenda": {
+      "perguntaHorario": "Horário para a reunião inicial com a Edilaine",
+      "perguntaReuniaoDaEquipe": "A família quer mudar ou cancelar a reunião que a equipe marcou",
+      "rotuloFatoDaEquipe": "Fato confirmado pela equipe:"
     }
   },
 
-  "_comentario_homologacao": "P25 item 5: com envioSimulado, todo envio (fluxos 2 e 3) vai para a rota de captura do app (urlCaptura, /api/teste/uazapi), sem credencial; com transcricaoSimulada, o download e a transcrição de áudio também. O build recusa --env prod com qualquer das duas ligada.",
+  "_comentario_homologacao": "P25 item 5: com envioSimulado, todo envio (fluxos 2 e 3) vai para a rota de captura do app (urlCaptura, /api/teste/uazapi), sem credencial; com transcricaoSimulada, o download e a transcrição de áudio também. O build recusa --env prod com qualquer das duas ligada. [v4.3] agendaSimulada troca os nós do Google Calendar do fluxo 4 por chamadas a urlCaptura + /agenda/... (o calendário de teste do P28, mesmo formato de retorno); o build recusa --env prod com ela ligada.",
   "homologacao": {
     "envioSimulado": true,
     "transcricaoSimulada": true,
+    "agendaSimulada": false,
     "urlCaptura": "https://exemplo-nao-real.kraamzorg.invalid/api/teste/uazapi"
   }
 }

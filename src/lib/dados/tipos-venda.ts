@@ -36,6 +36,12 @@ export interface FiltroSessoes {
   sessaoId?: string;
 }
 
+/** Quem marcou a reunião: a Isadora (Google Calendar) ou a equipe (P29). */
+export type OrigemAgendamento = "isadora" | "humano";
+
+/** Quem conduz a conversa com a família hoje (D-20). */
+export type ConversaCom = "isadora" | "leonardo";
+
 export interface SessaoVenda {
   id: string;
   familiaId: string;
@@ -56,6 +62,19 @@ export interface SessaoVenda {
   podeVerGravacao: boolean;
   /** Só vem para quem pode ver e está em AAL2; null para os demais. */
   gravacaoRegistrada: boolean | null;
+  /** [v4.3] Quem marcou: a Isadora, pelo Google Calendar, ou a equipe. */
+  agendadaPor: OrigemAgendamento;
+  /** [v4.3] Lembrete da véspera que a Isadora enviou. */
+  lembreteEnviadoEm: string | null;
+  /** [v4.3] Resultado escrito por quem registrou a reunião (campo curto). */
+  resultado: string | null;
+  /**
+   * [v4.3] Resumo da Isadora para o Leonardo (dados da qualificação e
+   * anotações), só no detalhe de uma sessão. Nunca o id do evento.
+   */
+  resumoIsadora: string | null;
+  /** [v4.3] Isadora até a reunião realizada; depois, o Leonardo. */
+  conversaCom: ConversaCom;
 }
 
 /** A transferência "reuniao" de onde a tela de agendar parte (D-15). */
@@ -98,6 +117,10 @@ export interface ResultadoDesfecho {
   status: DesfechoSessao;
   tarefaId: string | null;
   estagioP1: EstagioP1 | null;
+  /** [v4.3] Reunião realizada: a conversa passou ao Leonardo. */
+  humanoComercial: boolean;
+  /** [v4.3] Família não veio a uma reunião da Isadora: ela remarca. */
+  remarcacaoDaIsadora: boolean;
 }
 
 /** Item do resumo: o texto e, quando veio da IA, o trecho da transcrição. */

@@ -12,6 +12,8 @@ export const TIPO_NO = {
   httpRequest: 'n8n-nodes-base.httpRequest',
   postgres: 'n8n-nodes-base.postgres',
   postgresTool: 'n8n-nodes-base.postgresTool',
+  // [v4.3] Só o fluxo 4 (Agenda da Isadora) usa; credencial do Google só nele.
+  googleCalendar: 'n8n-nodes-base.googleCalendar',
   redis: 'n8n-nodes-base.redis',
   wait: 'n8n-nodes-base.wait',
   splitOut: 'n8n-nodes-base.splitOut',

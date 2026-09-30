@@ -110,13 +110,13 @@ export const MENSAGENS_VENDA: {
     chave: "lembrete_sessao",
     canal: "whatsapp",
     texto:
-      "Oi, {nome}! Amanhã, às {hora}, é a sua conversa com a Edilaine 😊 O acesso é este: {link}. Se precisar mudar o horário, é só me avisar por aqui.",
+      "Oi, {nome}! Amanhã, às {hora}, é a sua reunião com a Edilaine 😊 O link é este: {link}. Se precisar mudar o horário, é só me avisar por aqui.",
   },
   {
     chave: "nao_compareceu",
     canal: "whatsapp",
     texto:
-      "Imagino que tenha surgido algum imprevisto, acontece. Se quiser, a gente remarca. Me passa dois dias e horários que ficam bons para vocês?",
+      "Imagino que tenha surgido algum imprevisto, acontece. Quer que eu veja um novo horário com a Edilaine?",
   },
   {
     chave: "pos_sessao_48h",
@@ -250,6 +250,7 @@ export const OPCOES_TRANSFERENCIA: Record<string, string[]> = {
  */
 export function sessoesIniciais(agora: number) {
   const dia = 24 * 60 * 60 * 1000;
+  const hora = 60 * 60 * 1000;
   return [
     {
       id: id(13, 1),
@@ -262,6 +263,9 @@ export function sessoesIniciais(agora: number) {
       parceiroPresente: null as boolean | null,
       conduzidaPor: ID_COORDENACAO,
       criadoEm: new Date(agora - 2 * dia).toISOString(),
+      agendadaPor: "humano" as const,
+      lembreteEnviadoEm: null as string | null,
+      resultado: null as string | null,
     },
     {
       id: id(13, 2),
@@ -274,9 +278,74 @@ export function sessoesIniciais(agora: number) {
       parceiroPresente: true as boolean | null,
       conduzidaPor: ID_COORDENACAO,
       criadoEm: new Date(agora - 9 * dia).toISOString(),
+      agendadaPor: "humano" as const,
+      lembreteEnviadoEm: null as string | null,
+      resultado: null as string | null,
+    },
+    // [v4.3] Reunião que a Isadora marcou e que já começou: falta a Edilaine
+    // registrar como foi (o desfecho decide se a conversa passa ao Leonardo).
+    {
+      id: id(13, 3),
+      familiaId: familiaPorNome("Aurora").id,
+      agendadaPara: new Date(agora - 2 * hora).toISOString(),
+      status: "agendada" as const,
+      realizadaEm: null as string | null,
+      linkReuniao: "https://meet.google.com/aur-oraa-teste",
+      opcoesInformadas: null as string | null,
+      parceiroPresente: null as boolean | null,
+      conduzidaPor: ID_COORDENACAO,
+      criadoEm: new Date(agora - 2 * dia).toISOString(),
+      agendadaPor: "isadora" as const,
+      lembreteEnviadoEm: new Date(agora - 20 * hora).toISOString(),
+      resultado: null as string | null,
+    },
+    // [v4.3] Reunião da Isadora já realizada: a conversa é do Leonardo.
+    {
+      id: id(13, 4),
+      familiaId: familiaPorNome("Horizonte").id,
+      agendadaPara: new Date(agora - 6 * dia).toISOString(),
+      status: "realizada" as const,
+      realizadaEm: new Date(agora - 6 * dia).toISOString(),
+      linkReuniao: "https://meet.google.com/hor-izon-teste",
+      opcoesInformadas: null as string | null,
+      parceiroPresente: true as boolean | null,
+      conduzidaPor: ID_COORDENACAO,
+      criadoEm: new Date(agora - 8 * dia).toISOString(),
+      agendadaPor: "isadora" as const,
+      lembreteEnviadoEm: new Date(agora - 7 * dia).toISOString(),
+      resultado:
+        "Interesse no Continuado. Quer decidir com o parceiro até sexta.",
     },
   ];
 }
+
+/**
+ * [v4.3] Resumo interno da Isadora para o Leonardo (privado.agenda_resumo_reuniao),
+ * no formato do banco: " / " separa as linhas. Dado fictício, só o comercial.
+ */
+export const RESUMOS_ISADORA: Record<string, string> = {
+  [id(13, 3)]: [
+    "Marina · para ela mesma · DPP 03/05/2027",
+    "São Paulo, Pinheiros · área confirmada",
+    "primeiro bebê: sim · gemelar: não · rede de apoio: só o casal, a mãe mora longe",
+    "principal preocupação: amamentação",
+    "PDF: 28/09 20:40 · reunião com a Edilaine: agendada (marcada por a Isadora) · lembrete: enviado",
+    "plano: não informado · pagamento: não informado",
+    "objeções: nenhuma · pedidos de condição ou dúvidas de contrato anotados: perguntou se há desconto no Pix (a Isadora disse que o Leonardo trata depois da reunião) · origem: anúncio",
+    "próximo passo: não informado",
+  ].join(" / "),
+  [id(13, 4)]: [
+    "Vanessa · para ela mesma · DPP 24/11/2026",
+    "São Paulo, Itaim Bibi · área confirmada",
+    "primeiro bebê: não · gemelar: não · rede de apoio: mãe e irmã",
+    "principal preocupação: rotina com o filho mais velho",
+    "PDF: 20/09 19:12 · reunião com a Edilaine: realizada · lembrete: enviado",
+    "plano: Continuado · pagamento: em 3x",
+    "objeções: nenhuma · pedidos de condição ou dúvidas de contrato anotados: nenhum · origem: indicação",
+    "resultado da reunião (Edilaine): Interesse no Continuado. Quer decidir com o parceiro até sexta.",
+    "próximo passo: não informado",
+  ].join(" / "),
+};
 
 export const GRAVACAO_GRUTA = {
   sessaoId: id(13, 2),

@@ -21,7 +21,10 @@ import {
   montarPayload,
 } from "../lib/payloads";
 import type { Interlocutora } from "../lib/payloads";
-import { executarAcaoDeBanco } from "../lib/acoes";
+import { encerrarPendencias, executarAcaoDeBanco } from "../lib/acoes";
+import type { AcaoDeBanco } from "../lib/acoes";
+import { CALENDARIO_DE_TESTE, fotografar, resumirEvento } from "../lib/agenda";
+import type { CalendarioDeTeste } from "../lib/agenda";
 import { aplicarPreparo } from "../lib/preparo";
 import {
   envelopar,
@@ -50,6 +53,111 @@ interface Captura {
   corpo: Objeto;
 }
 
+/**
+ * O calendário de teste do app de homologação (`/api/teste/uazapi/agenda`),
+ * o mesmo que o fluxo 4 do n8n usa com `homologacao.agendaSimulada`. O painel
+ * exige o segredo das rotas internas, como a captura da UAZAPI.
+ */
+class CalendarioReal implements CalendarioDeTeste {
+  constructor(
+    private readonly appUrl: string,
+    private readonly cabecalhos: () => Record<string, string>,
+  ) {}
+
+  private get base() {
+    return `${this.appUrl}/api/teste/uazapi/agenda`;
+  }
+
+  private async ler(): Promise<{ chamadas: Objeto[]; eventos: Objeto[] }> {
+    const resposta = await fetch(
+      `${this.base}?calendarId=${encodeURIComponent(CALENDARIO_DE_TESTE)}`,
+      { headers: this.cabecalhos() },
+    );
+    if (!resposta.ok)
+      throw new Error(
+        `Falha ao ler o calendário de teste: HTTP ${resposta.status}. Confira homologacao.agendaSimulada no config do build e NEXT_PUBLIC_APP_ENV=homologacao no app.`,
+      );
+    return (await resposta.json()) as { chamadas: Objeto[]; eventos: Objeto[] };
+  }
+
+  private async comando(corpo: Objeto): Promise<Objeto> {
+    const resposta = await fetch(this.base, {
+      method: "POST",
+      headers: this.cabecalhos(),
+      body: JSON.stringify(corpo),
+    });
+    if (!resposta.ok)
+      throw new Error(
+        `Falha no calendário de teste (${String(corpo["comando"])}): HTTP ${resposta.status}`,
+      );
+    return (await resposta.json()) as Objeto;
+  }
+
+  async chamadas() {
+    return (await this.ler()).chamadas as never;
+  }
+  async eventos() {
+    return (await this.ler()).eventos.map(resumirEvento);
+  }
+  async ocupar(inicio: string, fim: string) {
+    await this.comando({
+      comando: "ocupar",
+      calendarId: CALENDARIO_DE_TESTE,
+      inicio,
+      fim,
+    });
+  }
+  async liberarTudo() {
+    await this.comando({ comando: "liberar_tudo" });
+  }
+  async criarEventoAlheio(inicio: string, fim: string) {
+    const r = await this.comando({
+      comando: "criar_evento_alheio",
+      calendarId: CALENDARIO_DE_TESTE,
+      inicio,
+      fim,
+    });
+    return String(r["id"]);
+  }
+  async moverEvento(eventoId: string, inicio: string, fim: string) {
+    await this.comando({
+      comando: "mover",
+      calendarId: CALENDARIO_DE_TESTE,
+      eventoId,
+      inicio,
+      fim,
+    });
+  }
+  async apagarEvento(eventoId: string) {
+    await this.comando({
+      comando: "apagar",
+      calendarId: CALENDARIO_DE_TESTE,
+      eventoId,
+    });
+  }
+  async foraDoAr(valor: boolean) {
+    await this.comando({ comando: "fora_do_ar", valor });
+  }
+  async falharProxima(operacao: string, mensagem: string, codigo: number) {
+    await this.comando({
+      comando: "falhar_proxima",
+      operacao,
+      mensagem,
+      codigo,
+    });
+  }
+  async reiniciar() {
+    const resposta = await fetch(this.base, {
+      method: "DELETE",
+      headers: this.cabecalhos(),
+    });
+    if (!resposta.ok)
+      throw new Error(
+        `Falha ao limpar o calendário de teste: HTTP ${resposta.status}`,
+      );
+  }
+}
+
 const dormir = (ms: number) =>
   new Promise<void>((resolver) => setTimeout(resolver, ms));
 
@@ -61,8 +169,10 @@ export class ExecutorReal {
   private readonly base = 1_000_000 + Math.floor(Math.random() * 8_000_000);
   private debounceSegundos = 20;
   private modoDoAgente: string | null = null;
+  private readonly calendario: CalendarioDeTeste;
 
   constructor(private readonly amb: AmbienteReal) {
+    this.calendario = new CalendarioReal(amb.appUrl, () => this.cabecalhos());
     this.client = new Client({ connectionString: amb.databaseUrl });
     this.consulta = {
       linhas: async (sql) => {
@@ -228,6 +338,12 @@ export class ExecutorReal {
       }
 
       await this.limparCaptura();
+      // [v4.3] Um calendário de teste limpo por caso, só quando o caso mexe na agenda.
+      const usaAgenda =
+        caso.preparo?.some((p) => p.preparo === "agendaDeTeste") === true;
+      if (usaAgenda) await this.calendario.reiniciar();
+      const eventosAlheios: string[] = [];
+      const chamadasPorTurno: number[] = [];
       const resultados: ResultadoTurno[] = [];
       const estadoPorTurno: EstadoBanco[] = [];
       let cpfEnviado: string | null = null;
@@ -239,7 +355,12 @@ export class ExecutorReal {
         let enviado: string;
 
         if (ehAcao(turno)) {
-          enviado = await this.executarAcao(turno, quem);
+          enviado = await this.executarAcao(
+            turno,
+            quem,
+            eventosAlheios,
+            numeroDoTurno,
+          );
         } else {
           enviado = descreverTurno(turno);
           const trecho =
@@ -270,6 +391,8 @@ export class ExecutorReal {
             ),
           ),
         });
+        if (usaAgenda)
+          chamadasPorTurno.push((await this.calendario.chamadas()).length);
         estadoPorTurno.push(await lerEstado(this.consulta, quem.e164));
       }
 
@@ -281,12 +404,23 @@ export class ExecutorReal {
         telefone: quem.e164,
         cpfEnviado,
       });
+      // O gatilho de 30 minutos olha todas as famílias: o que este caso deixou pendente não pode sair no próximo.
+      await encerrarPendencias(this.consulta, estadoFinal.conversa?.id);
       return {
         caso,
         turnos: resultados,
         estado: estadoFinal,
         estadoPorTurno,
         referencia,
+        ...(usaAgenda
+          ? {
+              agenda: await fotografar(this.calendario, eventosAlheios, (i) => {
+                const indice = chamadasPorTurno.findIndex((n) => i < n);
+                return indice < 0 ? chamadasPorTurno.length : indice + 1;
+              }),
+              chamadasDeAgendaPorTurno: chamadasPorTurno,
+            }
+          : {}),
       };
     } finally {
       if (desfazerLista) await desfazerLista();
@@ -338,20 +472,51 @@ export class ExecutorReal {
   private async executarAcao(
     turno: Extract<Turno, { acao: string }>,
     quem: Interlocutora,
+    eventosAlheios: string[],
+    numeroDoTurno: number,
   ): Promise<string> {
-    if (turno.acao !== "executarFollowup")
-      return executarAcaoDeBanco(this.consulta, turno, quem.e164);
+    if (turno.acao !== "executarFollowup" && turno.acao !== "executarAgendador")
+      return executarAcaoDeBanco(
+        this.consulta,
+        turno as AcaoDeBanco,
+        quem.e164,
+        { calendario: this.calendario, eventosAlheios },
+      );
     const antes = (await this.capturados()).length;
+    // A cadência precisa do motor (pg_cron); o lembrete, a falta e a devolutiva já estão agendados no banco.
     await this.consulta.linhas(sqlAgendarFollowup());
+    // Contra o servidor simulado (KZ_HML_SIMULADO=1) não há gatilho de 30 minutos: pede o disparo na hora.
+    if (process.env["KZ_HML_SIMULADO"] === "1") {
+      const disparo = await fetch(
+        `${this.amb.appUrl}/api/teste/uazapi/agendador`,
+        {
+          method: "POST",
+          headers: this.cabecalhos(),
+          body: JSON.stringify({ turno: numeroDoTurno }),
+        },
+      );
+      if (!disparo.ok)
+        throw new Error(
+          `O servidor simulado não rodou o agendador: HTTP ${disparo.status}`,
+        );
+    }
+    const nadaSai =
+      turno.acao === "executarAgendador" && turno.nadaSai === true;
+    if (nadaSai && process.env["KZ_HML_SIMULADO"] === "1")
+      return "[o agendador da agenda roda e nada sai]";
     // O gatilho de 30 minutos do fluxo 3 (entrada B) busca o follow-up devido.
     const limite = Date.now() + this.amb.esperaFollowupMinutos * 60_000;
     while (Date.now() < limite) {
       await dormir(Math.max(this.amb.intervaloSegundos * 1000, 1000));
       if ((await this.capturados()).length > antes) {
         await this.aguardar(quem, antes, 0);
-        return "[o agendador do follow-up roda]";
+        return turno.acao === "executarFollowup"
+          ? "[o agendador do follow-up roda]"
+          : "[o agendador da agenda roda]";
       }
     }
-    return "[o agendador do follow-up não rodou dentro do tempo]";
+    return nadaSai
+      ? "[o agendador da agenda roda e nada sai]"
+      : "[o agendador não rodou dentro do tempo]";
   }
 }

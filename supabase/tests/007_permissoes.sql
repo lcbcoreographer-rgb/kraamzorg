@@ -140,6 +140,11 @@ insert into mensagem (conversa_id, direcao, enviado_por, conteudo)
   values ('c7000000-0000-4000-8000-000000000061', 'entrada', 'cliente', 'Mensagem sintética.');
 insert into handoff (conversa_id, familia_id, motivo, destino, prioridade, resumo)
   values ('c7000000-0000-4000-8000-000000000061', 'c7000000-0000-4000-8000-000000000001', 'reuniao', 'comercial', 'normal', 'Resumo sintético.');
+-- [v4.3] uma consulta à equipe e uma opção de horário, para a matriz ter o que ver
+insert into consulta_equipe (conversa_id, familia_id, tipo, pergunta)
+  values ('c7000000-0000-4000-8000-000000000061', 'c7000000-0000-4000-8000-000000000001', 'duvida', 'Pergunta sintética de teste.');
+insert into sessao_venda_opcao (conversa_id, inicio, fim, consultada_em, valida_ate)
+  values ('c7000000-0000-4000-8000-000000000061', now() + interval '3 days', now() + interval '3 days 30 minutes', now(), now() + interval '1 day');
 
 -- Uma tarefa, uma notificação e um item de fila para cada usuário; uma
 -- tarefa de papel (coordenação) sem pessoa.
@@ -283,6 +288,8 @@ insert into matriz values
   ('public.oportunidade',            '{comercial,financeiro,coordenacao,diretoria}', 'perfil'),
   ('public.sessao_venda',            '{comercial,coordenacao,diretoria}', 'perfil'),
   ('public.sessao_venda_gravacao',   '{}', 'nega'),
+  ('public.sessao_venda_opcao',      '{}', 'nega'),   -- [v4.3] 0028: só funções do agente
+  ('public.consulta_equipe',         '{comercial,coordenacao,diretoria}', 'perfil'),   -- [v4.3] 0028
   ('public.contrato',                '{comercial,financeiro,diretoria}', 'aal2'),
   ('public.cobranca',                '{financeiro,diretoria}', 'aal2'),
   ('public.nota_fiscal',             '{financeiro,diretoria}', 'aal2'),
@@ -764,7 +771,10 @@ select testes.autenticar_authenticated(testes.uid('coordenacao'), 'aal2');
 select is(
   (api.ficha_assistencial('c7000000-0000-4000-8000-000000000001') -> 'familia' ->> 'historico_sensivel'), 'true',
   'ficha_assistencial: coordenação vê historico_sensivel');
-select is((select count(*)::integer from api.familias_do_dia()), 2, 'familias_do_dia: coordenação vê todas as visitas do dia');
+-- a contagem vem da própria tabela no dia de São Paulo (o seed também tem visita perto de hoje; entre 21h e meia-noite o dia de São Paulo difere do UTC)
+select is((select count(*)::integer from api.familias_do_dia()),
+  (select count(*)::integer from visita where data = (now() at time zone 'America/Sao_Paulo')::date),
+  'familias_do_dia: coordenação vê todas as visitas do dia');
 select testes.encerrar();
 
 select testes.autenticar_authenticated(testes.uid('comercial'), 'aal2');
@@ -982,7 +992,8 @@ select set_eq(
             ('api.registrar_alerta_clinico'), ('api.alertas_clinicos'),
             ('api.registrar_acionamento_alerta'), ('api.fechar_alerta_clinico'),
             ('api.registrar_anexo_audio'), ('api.audio_da_visita_para_ouvir'),
-            ('api.contato_medico_situacao'), ('api.supervisao_medica_telefone') $$,
+            ('api.contato_medico_situacao'), ('api.supervisao_medica_telefone'),
+            ('api.consultas_equipe'), ('api.responder_consulta_equipe') $$,
   'authenticated executa exatamente a lista do ADR 0002 seção 6');
 
 select is_empty(

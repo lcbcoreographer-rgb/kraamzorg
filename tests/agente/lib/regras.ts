@@ -11,6 +11,7 @@
  * Nenhum preço, plano, lista de termos ou texto fixo mora aqui: tudo vem de
  * `ResultadoCaso.referencia`, que os executores leem do banco.
  */
+import { horarioEmPalavras } from "./agenda";
 import type {
   EstadoBanco,
   Falha,
@@ -39,7 +40,7 @@ function escaparRegex(texto: string): string {
 }
 
 /** Palavra inteira, sem acento e sem caixa. */
-function temPalavra(texto: string, termo: string): boolean {
+export function temPalavra(texto: string, termo: string): boolean {
   const alvo = normalizar(termo);
   return new RegExp(
     `(^|[^\\p{L}\\p{N}])${escaparRegex(alvo)}([^\\p{L}\\p{N}]|$)`,
@@ -47,7 +48,7 @@ function temPalavra(texto: string, termo: string): boolean {
   ).test(normalizar(texto));
 }
 
-function temTrecho(texto: string, termo: string): boolean {
+export function temTrecho(texto: string, termo: string): boolean {
   return normalizar(texto).includes(normalizar(termo));
 }
 
@@ -108,14 +109,14 @@ function temValor(texto: string): boolean {
 // Acesso ao resultado
 // ---------------------------------------------------------------------------
 
-function enviosDaFamilia(res: ResultadoCaso, turno?: number): Envio[] {
+export function enviosDaFamilia(res: ResultadoCaso, turno?: number): Envio[] {
   return res.turnos
     .filter((t) => turno === undefined || t.turno === turno)
     .flatMap((t) => t.envios)
     .filter((e) => e.destino === "familia");
 }
 
-function textosDaFamilia(res: ResultadoCaso, turno?: number): string[] {
+export function textosDaFamilia(res: ResultadoCaso, turno?: number): string[] {
   return enviosDaFamilia(res, turno)
     .filter((e) => e.tipo === "texto")
     .map((e) => e.texto);
@@ -129,11 +130,14 @@ function todosOsEnvios(res: ResultadoCaso): Envio[] {
   return res.turnos.flatMap((t) => t.envios);
 }
 
-function estadoDepoisDoTurno(res: ResultadoCaso, turno: number): EstadoBanco {
+export function estadoDepoisDoTurno(
+  res: ResultadoCaso,
+  turno: number,
+): EstadoBanco {
   return res.estadoPorTurno[turno - 1] ?? res.estado;
 }
 
-function estadoAntesDoTurno(
+export function estadoAntesDoTurno(
   res: ResultadoCaso,
   turno: number,
 ): EstadoBanco | null {
@@ -141,7 +145,7 @@ function estadoAntesDoTurno(
 }
 
 /** Transferências criadas no turno (as que não existiam depois do turno anterior). */
-function transferenciasNovas(
+export function transferenciasNovas(
   res: ResultadoCaso,
   turno: number,
 ): TransferenciaLida[] {
@@ -206,13 +210,36 @@ export function regra(
   return { ...meta, verificar };
 }
 
-function falha(regraId: string, detalhe: string): Falha {
+export function falha(regraId: string, detalhe: string): Falha {
   return { regra: regraId, detalhe };
 }
 
-function limitar(texto: string, max = 140): string {
+export function limitar(texto: string, max = 140): string {
   const limpo = texto.replace(/\s+/g, " ").trim();
   return limpo.length > max ? `${limpo.slice(0, max - 1)}…` : limpo;
+}
+
+/**
+ * [v4.3] O turno está no passo do convite? A família escolheu um horário, a
+ * agenda foi consultada de novo na escolha (opção conferida) e a reunião ainda
+ * não foi criada. É o único passo em que a Isadora pode pedir o e-mail.
+ */
+export function opcaoConferidaSemUso(
+  res: ResultadoCaso,
+  turno: number,
+): boolean {
+  const passos = [
+    estadoDepoisDoTurno(res, turno),
+    estadoAntesDoTurno(res, turno),
+  ];
+  return passos.some((e) =>
+    e?.opcoes.some(
+      (o) =>
+        o.conferida_em !== null &&
+        o.escolhida_em === null &&
+        o.descartada_em === null,
+    ),
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -342,21 +369,32 @@ export function regrasUniversais(): Regra[] {
       (res) => {
         const { pedido_dado, pedido_verbos } = res.referencia.listas;
         const achados: Falha[] = [];
-        for (const t of textosDaFamilia(res)) {
-          for (const frase of sentencas(t)) {
-            const negada =
-              /\bn[aã]o\s+(precisa|e preciso|é preciso|preciso|peco|peço|pedimos|pedir|manda|mande|envie|envia)/i.test(
-                frase,
-              );
-            const pedeDado = pedido_dado.some((d) => temPalavra(frase, d));
-            const pedeVerbo = pedido_verbos.some((v) => temTrecho(frase, v));
-            if (pedeDado && pedeVerbo && !negada)
-              achados.push(
-                falha(
-                  "U06-sem-pedido-de-documento",
-                  `Pede dado em: "${limitar(frase)}"`,
-                ),
-              );
+        for (const turno of res.turnos) {
+          // [v4.3] O e-mail é o único dado que a Isadora pede, e só no passo do convite:
+          // com o horário escolhido, conferido na agenda e ainda livre (11.11 item 5).
+          const noConvite = opcaoConferidaSemUso(res, turno.turno);
+          for (const t of turno.envios
+            .filter((e) => e.destino === "familia" && e.tipo === "texto")
+            .map((e) => e.texto)) {
+            for (const frase of sentencas(t)) {
+              const negada =
+                /\bn[aã]o\s+(precisa|e preciso|é preciso|preciso|peco|peço|pedimos|pedir|manda|mande|envie|envia)/i.test(
+                  frase,
+                );
+              const dados = pedido_dado.filter((d) => temPalavra(frase, d));
+              const soEmail =
+                noConvite &&
+                dados.length > 0 &&
+                dados.every((d) => /^e-?mail$/i.test(d.trim()));
+              const pedeVerbo = pedido_verbos.some((v) => temTrecho(frase, v));
+              if (dados.length > 0 && pedeVerbo && !negada && !soEmail)
+                achados.push(
+                  falha(
+                    "U06-sem-pedido-de-documento",
+                    `Pede dado em: "${limitar(frase)}"`,
+                  ),
+                );
+            }
           }
         }
         return achados;
@@ -372,6 +410,10 @@ export function regrasUniversais(): Regra[] {
       },
       (res) =>
         textosDaFamilia(res)
+          // [v4.3] O link do Google Meet do convite é o único link que a Isadora pode repetir (lembrete da véspera).
+          .map((t) =>
+            t.replace(/https:\/\/meet\.google\.com\/[a-z0-9-]+/gi, ""),
+          )
           .filter((t) => /https?:\/\/|www\./i.test(t) || /\[[^\]]+\]/.test(t))
           .map((t) =>
             falha(
@@ -537,6 +579,50 @@ export function regrasUniversais(): Regra[] {
                 ),
               );
             }
+          }
+        }
+        return achados;
+      },
+    ),
+    regra(
+      {
+        id: "U13-horario-so-da-agenda",
+        descricao:
+          "Todo horário de reunião que a Isadora cita (dia da semana com hora, ou data com hora) é uma opção que a agenda devolveu ou a reunião marcada. Nunca 'ontem ela tinha quarta às 20h'.",
+        origem: "modelo",
+        gravidade: "bloqueante",
+      },
+      (res) => {
+        const conhecidos = new Set<string>();
+        for (const estado of res.estadoPorTurno.concat(res.estado)) {
+          for (const o of estado.opcoes)
+            conhecidos.add(horarioEmPalavras(o.inicio).texto);
+          for (const sessao of estado.sessoes)
+            if (sessao.agendada_para)
+              conhecidos.add(horarioEmPalavras(sessao.agendada_para).texto);
+        }
+        const achados: Falha[] = [];
+        const padrao =
+          /(segunda|terça|terca|quarta|quinta|sexta|sábado|sabado|domingo)(?:-feira)?[,\s]+(?:(\d{1,2}\/\d{1,2}),?\s*)?(?:às|as|a)?\s*(\d{1,2})h(\d{2})?/gi;
+        for (const t of textosDaFamilia(res)) {
+          for (const m of t.matchAll(padrao)) {
+            const dia = normalizar(m[1] ?? "");
+            const hora = `${Number(m[3])}h${m[4] ?? ""}`;
+            const achado = [...conhecidos].some((c) => {
+              const n = normalizar(c);
+              return (
+                n.startsWith(dia) &&
+                n.endsWith(`as ${hora}`) &&
+                (!m[2] || n.includes(m[2]))
+              );
+            });
+            if (!achado)
+              achados.push(
+                falha(
+                  "U13-horario-so-da-agenda",
+                  `Horário que nenhuma consulta da agenda devolveu: "${limitar(m[0])}" em "${limitar(t)}"`,
+                ),
+              );
           }
         }
         return achados;
