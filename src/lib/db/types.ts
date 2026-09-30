@@ -46,6 +46,15 @@ export type Database = {
         Args: { oportunidade_id: string };
         Returns: Json;
       };
+      baixar_cobranca_manual: {
+        Args: {
+          cobranca_id: string;
+          comprovante_path: string;
+          motivo: string;
+          valor_pago_centavos: number;
+        };
+        Returns: Json;
+      };
       base_conhecimento_aprovar: {
         Args: { id: string };
         Returns: Json;
@@ -68,12 +77,36 @@ export type Database = {
         Args: never;
         Returns: Json;
       };
+      cobranca: {
+        Args: { cobranca_id: string };
+        Returns: Json;
+      };
+      cobrancas: {
+        Args: { situacao?: string };
+        Returns: Json;
+      };
+      concluir_envio_contrato: {
+        Args: { autentique_doc_id: string; contrato_id: string };
+        Returns: Json;
+      };
       condutores_sessao_venda: {
         Args: never;
         Returns: { id: string; nome: string }[];
       };
+      contrato_situacao: {
+        Args: { familia_id: string };
+        Returns: Json;
+      };
       dados_contrato: {
         Args: { completo?: boolean; pessoa_id: string };
+        Returns: Json;
+      };
+      dados_link_pagamento: {
+        Args: { cobranca_id: string };
+        Returns: Json;
+      };
+      dados_para_contrato: {
+        Args: { contrato_id: string };
         Returns: Json;
       };
       desfazer_freio: {
@@ -113,6 +146,10 @@ export type Database = {
         Args: { familia_id: string };
         Returns: Json;
       };
+      gerar_cobranca: {
+        Args: { contrato_id: string };
+        Returns: Json;
+      };
       gerar_link_formulario_contrato: {
         Args: { oportunidade_id: string };
         Returns: Json;
@@ -131,6 +168,10 @@ export type Database = {
           origem: Database["public"]["Enums"]["origem_lead"];
           utm: Json;
         }[];
+      };
+      liberar_envio_contrato: {
+        Args: { contrato_id: string };
+        Returns: Json;
       };
       log_auditoria: {
         Args: {
@@ -191,6 +232,10 @@ export type Database = {
         Args: { handoff_id: string };
         Returns: Json;
       };
+      registrar_contrato_gerado: {
+        Args: { contrato_id: string; pdf_path: string; pdf_sha256: string };
+        Returns: Json;
+      };
       registrar_desfecho_sessao_venda: {
         Args: {
           desfecho: Database["public"]["Enums"]["status_sessao"];
@@ -211,6 +256,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      registrar_link_pagamento: {
+        Args: { cobranca_id: string; slug?: string; url: string };
+        Returns: Json;
+      };
       remarcar_sessao_venda: {
         Args: {
           agendada_para: string;
@@ -218,6 +267,10 @@ export type Database = {
           link_reuniao?: string;
           sessao_id: string;
         };
+        Returns: Json;
+      };
+      reservar_envio_contrato: {
+        Args: { contrato_id: string };
         Returns: Json;
       };
       resolver_transferencia: {
@@ -3490,6 +3543,42 @@ export type Database = {
       };
     };
     Functions: {
+      cobranca_avisar_falha_link: {
+        Args: { p_cobranca_id: string; p_motivo: string };
+        Returns: undefined;
+      };
+      cobranca_baixar: {
+        Args: {
+          p_invoice_slug: string;
+          p_metodo: string;
+          p_order_nsu: string;
+          p_parcelas: number;
+          p_recibo_url: string;
+          p_transaction_nsu: string;
+          p_valor_pago: number;
+        };
+        Returns: Json;
+      };
+      cobranca_do_pedido: {
+        Args: { p_order_nsu: string };
+        Returns: Json;
+      };
+      cobranca_registrar_link: {
+        Args: { p_cobranca_id: string; p_slug?: string; p_url: string };
+        Returns: Json;
+      };
+      cobrancas_sem_link: {
+        Args: { p_contrato_id: string };
+        Returns: Json;
+      };
+      contrato_do_documento: {
+        Args: { p_documento_id: string };
+        Returns: Json;
+      };
+      contrato_registrar_assinatura: {
+        Args: { p_documento_id: string; p_pdf_path: string };
+        Returns: Json;
+      };
       formulario_contrato_abrir: {
         Args: { origem?: string; token: string };
         Returns: Json;

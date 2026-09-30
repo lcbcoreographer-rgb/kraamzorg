@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { CircleCheck, Copy, MessageCircle } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
@@ -105,6 +106,16 @@ export function PainelFormulario({
           O contrato sai a partir destes dados. O CPF fica mascarado na ficha,
           na aba Comercial.
         </p>
+        <Botao
+          asChild
+          variante="secundario"
+          tamanho="compacto"
+          className="self-start"
+        >
+          <Link href={`/familias/${familiaId}/contrato`}>
+            Preparar o contrato
+          </Link>
+        </Botao>
       </section>
     );
   }

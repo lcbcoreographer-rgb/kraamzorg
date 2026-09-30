@@ -25,6 +25,14 @@ const portaVendaCelular = porta + 2;
 const portaVendaComputador = porta + 3;
 const PASTA_VENDA = "**/p29-p30-venda/**";
 const TESTES_VENDA = "**/p29-p30-venda/**/*.spec.ts";
+// O contrato e a cobrança (P31 e P32) levam uma família da proposta até o
+// pagamento, assinam, pagam e dão baixa: dois servidores só deles, pelo mesmo
+// motivo da venda.
+const portaContratoCelular = porta + 4;
+const portaContratoComputador = porta + 5;
+const PASTA_CONTRATO = "**/p31-p32-contrato/**";
+const TESTES_CONTRATO = "**/p31-p32-contrato/**/*.spec.ts";
+const PASTAS_A_PARTE = [PASTA_VENDA, PASTA_CONTRATO];
 
 // /design-system só existe em desenvolvimento e homologação (P10 item 4):
 // sem isto, `vitrineLiberada()` recusa por omissão e os testes de
@@ -76,6 +84,20 @@ export default defineConfig({
       timeout: 60_000,
       env: ambienteDemonstracao,
     },
+    {
+      command: `pnpm start -p ${portaContratoCelular}`,
+      url: `http://127.0.0.1:${portaContratoCelular}`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+      env: ambienteDemonstracao,
+    },
+    {
+      command: `pnpm start -p ${portaContratoComputador}`,
+      url: `http://127.0.0.1:${portaContratoComputador}`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+      env: ambienteDemonstracao,
+    },
   ],
   use: {
     trace: "on-first-retry",
@@ -83,7 +105,7 @@ export default defineConfig({
   projects: [
     {
       name: "celular",
-      testIgnore: PASTA_VENDA,
+      testIgnore: PASTAS_A_PARTE,
       use: {
         ...devices["Pixel 7"],
         viewport: { width: 390, height: 844 },
@@ -93,7 +115,7 @@ export default defineConfig({
     },
     {
       name: "computador",
-      testIgnore: PASTA_VENDA,
+      testIgnore: PASTAS_A_PARTE,
       use: {
         ...devices["Desktop Chrome"],
         baseURL: `http://127.0.0.1:${portaComputador}`,
@@ -116,6 +138,25 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         baseURL: `http://127.0.0.1:${portaVendaComputador}`,
+        launchOptions: executablePath ? { executablePath } : undefined,
+      },
+    },
+    {
+      name: "celular-contrato",
+      testMatch: TESTES_CONTRATO,
+      use: {
+        ...devices["Pixel 7"],
+        viewport: { width: 390, height: 844 },
+        baseURL: `http://127.0.0.1:${portaContratoCelular}`,
+        launchOptions: executablePath ? { executablePath } : undefined,
+      },
+    },
+    {
+      name: "computador-contrato",
+      testMatch: TESTES_CONTRATO,
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: `http://127.0.0.1:${portaContratoComputador}`,
         launchOptions: executablePath ? { executablePath } : undefined,
       },
     },

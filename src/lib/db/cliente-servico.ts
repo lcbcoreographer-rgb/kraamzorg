@@ -30,6 +30,12 @@ import type { Database } from "./types";
  *   único e o limite de tentativas por dentro; é o único papel com execute
  *   nas duas (src/lib/dados/supabase/formulario.ts).
  *
+ * - "armazenamento_privado": grava e lê o PDF do contrato e o comprovante da
+ *   baixa manual no bucket privado `documentos` (P31 e P32,
+ *   src/lib/armazenamento/supabase.ts), sempre depois de a rota ou a ação
+ *   conferir papel e AAL2 do usuário. Quem abre o arquivo recebe URL
+ *   assinada de 60 segundos.
+ *
  * Rotas de webhook e jobs futuros (P18) acrescentam o próprio motivo aqui
  * quando chegarem. O teste src/lib/db/cliente-servico.test.ts falha se um
  * arquivo fora da lista de autorizados importar este módulo.
@@ -39,7 +45,8 @@ export type MotivoClienteServico =
   | "sessoes_diretoria"
   | "webhook_autentique"
   | "webhook_infinitepay"
-  | "formulario_contrato";
+  | "formulario_contrato"
+  | "armazenamento_privado";
 
 export function criarClienteServico(motivo: MotivoClienteServico) {
   const chave = process.env.SUPABASE_SERVICE_ROLE_KEY;

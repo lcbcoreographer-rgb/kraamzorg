@@ -30,6 +30,10 @@ interface RespostaLinkBruta {
   checkout_url?: string;
   slug?: string;
   invoice_slug?: string;
+  /** [conferir] Se a InfinitePay devolver o máximo de parcelas que o link
+   * mostra, o adaptador confere de novo (aceite do P32 v4.2). */
+  installments?: number | { max?: number } | null;
+  max_installments?: number;
 }
 
 /** Resposta do `payment_check`: `success` diz só que a consulta funcionou;
@@ -69,6 +73,20 @@ async function requisitar<T>(
   }
 
   return (await resposta.json()) as T;
+}
+
+function parcelasMostradas(bruta: RespostaLinkBruta): number | null {
+  const candidatos = [
+    typeof bruta.installments === "number" ? bruta.installments : undefined,
+    typeof bruta.installments === "object" && bruta.installments !== null
+      ? bruta.installments.max
+      : undefined,
+    bruta.max_installments,
+  ];
+  const achado = candidatos.find(
+    (n): n is number => typeof n === "number" && Number.isFinite(n),
+  );
+  return achado ?? null;
 }
 
 export async function criarLinkPagamento(
@@ -114,11 +132,18 @@ export async function criarLinkPagamento(
     throw new Error("InfinitePay: resposta de /links sem url de pagamento");
   }
 
+  // Segunda trava do aceite do P32 (PRD 14 v4.2): se a resposta disser que
+  // o link mostra mais parcelas do que o pacote permite, o link é descartado.
+  const mostradas = parcelasMostradas(bruta);
+  if (mostradas !== null) {
+    validarParcelas(mostradas, entrada.parcelasMaxSemJuros);
+  }
+
   return {
     url,
     slug: bruta.slug ?? bruta.invoice_slug,
     orderNsu: entrada.orderNsu,
-    parcelas: entrada.parcelas,
+    parcelas: mostradas ?? entrada.parcelas,
   };
 }
 

@@ -61,6 +61,10 @@ export interface DocumentoAutentique {
   nome: string;
   criadoEm: string;
   signatarios: SignatarioAutentique[];
+  /** Link do PDF assinado, quando o documento já foi finalizado. Vem da
+   * reconsulta (`files { signed }`); nunca do corpo do webhook. [conferir]
+   * reconfirmar o campo com a credencial real da homologação. */
+  arquivoAssinadoUrl?: string;
   /** Verdadeiro só quando todo signatário do documento (inclusive a
    * testemunha, quando houver) assinou e ninguém recusou: é o mesmo
    * critério do evento "documento finalizado" da Autentique (PRD 14). */

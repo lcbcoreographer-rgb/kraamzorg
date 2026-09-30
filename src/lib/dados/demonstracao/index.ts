@@ -21,6 +21,10 @@ import type {
 } from "../tipos";
 import { PACOTES, REGIOES, TRANSICOES, VERSOES_PACOTE } from "./fixtures";
 import { cartaoDemonstracao, obterLoja, type LojaDemonstracao } from "./loja";
+import {
+  criarCobrancaDemonstracao,
+  criarContratoDemonstracao,
+} from "./contrato";
 import { criarVendaDemonstracao, dadosContratoDemonstracao } from "./venda";
 
 /**
@@ -772,5 +776,7 @@ export function criarRepositoriosDemonstracao(
     agente,
     usuarios,
     venda: criarVendaDemonstracao(contexto),
+    contratos: criarContratoDemonstracao(contexto),
+    cobrancas: criarCobrancaDemonstracao(contexto),
   };
 }

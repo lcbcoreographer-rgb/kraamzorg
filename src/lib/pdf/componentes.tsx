@@ -203,15 +203,18 @@ export function CabecalhoDocumento({
   );
 }
 
-/** LGPD art. 11 (dado de saúde é dado pessoal sensível) e paginação, em toda página (PRD 9.5). */
-export function RodapeDocumento() {
+const AVISO_PADRAO =
+  "Documento confidencial, com dado de saúde protegido pela Lei Geral de Proteção de Dados, artigo 11. Uso restrito à equipe assistencial e aos profissionais médicos indicados.";
+
+/**
+ * LGPD art. 11 (dado de saúde é dado pessoal sensível) e paginação, em toda
+ * página (PRD 9.5). O contrato (P31) passa o aviso dele, sem falar em equipe
+ * assistencial.
+ */
+export function RodapeDocumento({ aviso }: { aviso?: string }) {
   return (
     <View style={estilos.rodape} fixed>
-      <Text style={estilos.rodapeAviso}>
-        Documento confidencial, com dado de saúde protegido pela Lei Geral de
-        Proteção de Dados, artigo 11. Uso restrito à equipe assistencial e aos
-        profissionais médicos indicados.
-      </Text>
+      <Text style={estilos.rodapeAviso}>{aviso ?? AVISO_PADRAO}</Text>
       <Text
         style={estilos.rodapePagina}
         render={({ pageNumber, totalPages }) =>

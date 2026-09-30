@@ -1,7 +1,19 @@
 import "server-only";
-import { buscarDocumento } from "@/lib/integracoes/autentique/cliente";
+import {
+  baixarPdfAssinado,
+  buscarDocumento,
+} from "@/lib/integracoes/autentique/cliente";
 import { processarWebhookAutentique } from "@/lib/integracoes/autentique/webhook";
+import { caminhoContrato } from "@/lib/armazenamento/caminhos";
+import { criarArmazenamentoSupabase } from "@/lib/armazenamento/supabase";
 import { criarClienteServico } from "@/lib/db/cliente-servico";
+import { obterCobrador } from "@/lib/integracoes/fabrica";
+import {
+  contratoDoDocumento,
+  gerarLinksDoContrato,
+  registrarAssinatura,
+  type ClienteRpc,
+} from "@/lib/integracoes/servico-webhooks";
 
 /**
  * Webhook "documento finalizado" da Autentique (PRD 14, P31 item 3).
@@ -9,7 +21,14 @@ import { criarClienteServico } from "@/lib/db/cliente-servico";
  * tempo constante com `AUTENTIQUE_WEBHOOK_SECRET`. O corpo do POST nunca
  * decide o estado: `processarWebhookAutentique` sempre reconsulta o
  * documento pela API antes de marcar o contrato como assinado, e é
- * idempotente (a gravação é condicional no banco).
+ * idempotente (`public.contrato_registrar_assinatura` não muda contrato já
+ * assinado).
+ *
+ * Depois da assinatura: guarda o PDF assinado no storage privado (nome pelo
+ * id do contrato), registra a assinatura (a automação `pos_assinatura`
+ * cria a cobrança, sob o freio) e pede à InfinitePay o link de pagamento.
+ * O link é o último passo e nunca derruba a resposta: o contrato já está
+ * assinado, e o financeiro gera o link de novo na tela da cobrança.
  *
  * Falha de rede na reconsulta ou de banco na gravação responde 500 sem
  * detalhe, para a Autentique reenviar; nada é gravado pela metade.
@@ -31,7 +50,12 @@ export async function POST(
   const corpo: unknown = await request.json().catch(() => null);
 
   try {
-    const supabase = criarClienteServico("webhook_autentique");
+    const supabase = criarClienteServico(
+      "webhook_autentique",
+    ) as unknown as ClienteRpc;
+    const armazenamento = criarArmazenamentoSupabase();
+    let contratoId: string | null = null;
+
     const resultado = await processarWebhookAutentique(
       { segredoRecebido: segredo, corpo },
       {
@@ -39,35 +63,42 @@ export async function POST(
         buscarDocumento: (documentoId) =>
           buscarDocumento({ token }, documentoId),
         buscarContratoPorDocumento: async (documentoId) => {
-          const { data, error } = await supabase
-            .from("contrato")
-            .select("id, status")
-            .eq("autentique_doc_id", documentoId)
-            .maybeSingle();
-          if (error) throw new Error("falha ao ler o contrato");
-          return data;
+          const contrato = await contratoDoDocumento(supabase, documentoId);
+          contratoId = contrato?.id ?? null;
+          return contrato;
         },
-        marcarContratoAssinado: async (contratoId) => {
-          // Condicional: só grava se ainda não estiver assinado, então dois
-          // webhooks simultâneos nunca gravam duas vezes.
-          const { data, error } = await supabase
-            .from("contrato")
-            .update({
-              status: "assinado",
-              assinado_em: new Date().toISOString(),
-            })
-            .eq("id", contratoId)
-            .neq("status", "assinado")
-            .select("id");
-          if (error) throw new Error("falha ao gravar o contrato");
-          // [conferir] disparo de `pos_assinatura`, transição da
-          // oportunidade e PDF assinado no storage privado (P31 itens 3 e
-          // 4) ficam com a trilha de venda; este webhook só garante que o
-          // estado nunca muda sem reconsulta e nunca muda duas vezes.
-          return (data?.length ?? 0) > 0;
+        marcarContratoAssinado: async (id, documento) => {
+          // O PDF assinado vem do link que a reconsulta devolveu. Se não
+          // der para guardá-lo, a assinatura vale do mesmo jeito (é o
+          // fato) e o banco avisa o comercial para guardar à mão.
+          let caminho: string | null = null;
+          if (documento.arquivoAssinadoUrl) {
+            try {
+              const pdf = await baixarPdfAssinado(documento.arquivoAssinadoUrl);
+              const destino = caminhoContrato(id, true);
+              await armazenamento.salvar(destino, pdf, "application/pdf", true);
+              caminho = destino;
+            } catch {
+              caminho = null;
+            }
+          }
+          return registrarAssinatura(supabase, documento.id, caminho);
         },
       },
     );
+
+    if (
+      contratoId &&
+      (resultado.motivo === "assinado" || resultado.motivo === "ja_assinado")
+    ) {
+      try {
+        await gerarLinksDoContrato(supabase, contratoId, () =>
+          obterCobrador(new URL(request.url).origin),
+        );
+      } catch {
+        // O link é refeito na tela da cobrança; a assinatura já está gravada.
+      }
+    }
 
     return Response.json(
       { ok: resultado.mudouEstado },

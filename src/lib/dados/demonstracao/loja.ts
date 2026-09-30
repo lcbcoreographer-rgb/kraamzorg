@@ -29,6 +29,7 @@ import {
   type TarefaDemonstracao,
   type UsuarioDemonstracao,
 } from "./fixtures";
+import { MENSAGENS_COBRANCA } from "./contrato-fixtures";
 import { MENSAGENS_VENDA } from "./venda-fixtures";
 
 /**
@@ -187,19 +188,25 @@ export function criarLoja(agora = Date.now()): LojaDemonstracao {
       })),
       // Textos da venda (P29 e P30), em rascunho como no seed, para as
       // telas lerem pelo mesmo caminho de configuracoes.obterMensagemModelo.
-      ...MENSAGENS_VENDA.filter(
-        (v) => !MENSAGENS_MODELO.some((m) => m.chave === v.chave),
-      ).map((v) => ({
-        chave: v.chave,
-        canal: v.canal,
-        destinatario: "familia",
-        texto: v.texto,
-        variaveis: [...v.texto.matchAll(/\{([a-z_]+)\}/g)].map(
-          (a) => a[1] ?? "",
-        ),
-        status: "rascunho" as const,
-        aprovadoEm: null,
-      })),
+      ...[
+        ...MENSAGENS_VENDA,
+        ...MENSAGENS_COBRANCA.map((c) => ({
+          ...c,
+          canal: "whatsapp" as const,
+        })),
+      ]
+        .filter((v) => !MENSAGENS_MODELO.some((m) => m.chave === v.chave))
+        .map((v) => ({
+          chave: v.chave,
+          canal: v.canal,
+          destinatario: "familia",
+          texto: v.texto,
+          variaveis: [...v.texto.matchAll(/\{([a-z_]+)\}/g)].map(
+            (a) => a[1] ?? "",
+          ),
+          status: "rascunho" as const,
+          aprovadoEm: null,
+        })),
     ],
     sessoesRevogadasEm: {},
     freios: {},
