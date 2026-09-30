@@ -24,6 +24,8 @@ export interface EscolhaUnicaProps {
   disabled?: boolean;
   /** "checklist" sobe a pílula para 52 px (densidade do checklist da enfermeira). */
   tamanho?: "padrao" | "checklist";
+  /** Tela da família: rótulo e opções em 17 px (DESIGN.md, 11.4). */
+  tamanhoTexto?: "padrao" | "familia";
   className?: string;
 }
 
@@ -42,8 +44,10 @@ export function EscolhaUnica({
   descricao,
   disabled,
   tamanho = "padrao",
+  tamanhoTexto = "padrao",
   className,
 }: EscolhaUnicaProps) {
+  const texto = tamanhoTexto === "familia" ? "text-3" : "text-apoio";
   const idGrupo = React.useId();
   const [valorAtual, definirValorAtual] = useEstadoControlavel(
     valor,
@@ -53,7 +57,7 @@ export function EscolhaUnica({
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      <span id={idGrupo} className="text-apoio text-texto font-semibold">
+      <span id={idGrupo} className={cn(texto, "text-texto font-semibold")}>
         {rotulo}
       </span>
       <div
@@ -79,7 +83,8 @@ export function EscolhaUnica({
               <label
                 htmlFor={idOpcao}
                 className={cn(
-                  "rounded-pilula border-borda-campo bg-superficie text-apoio text-texto flex cursor-pointer items-center gap-2 border-[1.5px] px-4 font-medium select-none",
+                  texto,
+                  "rounded-pilula border-borda-campo bg-superficie text-texto flex cursor-pointer items-center gap-2 border-[1.5px] px-4 font-medium select-none",
                   tamanho === "checklist" ? "min-h-toque-campo" : "min-h-toque",
                   "hover:bg-marinho-08",
                   "peer-checked:border-acao peer-checked:bg-acao peer-checked:text-acao-texto",

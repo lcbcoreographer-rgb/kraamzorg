@@ -10,11 +10,13 @@ import { Forma, Ilustracao, Traco, type IlustracaoProps } from "./base";
 /** Sem tarefas: uma xícara quente, a pausa entre uma coisa e outra. */
 export function XicaraQuente(props: IlustracaoProps) {
   return (
-    <Ilustracao {...props}>
-      <Forma
-        tom="dourado-claro"
-        d="M62 18c26-1 44 20 42 46-2 27-22 42-46 40-25-2-42-20-40-44 2-25 20-41 44-42Z"
-      />
+    <Ilustracao
+      {...props}
+      mancha={{
+        tom: "dourado-claro",
+        d: "M62 18c26-1 44 20 42 46-2 27-22 42-46 40-25-2-42-20-40-44 2-25 20-41 44-42Z",
+      }}
+    >
       <Forma
         tom="branco"
         d="M37 60h46v10c0 13-10 22-23 22s-23-9-23-22Z"
@@ -34,11 +36,13 @@ export function XicaraQuente(props: IlustracaoProps) {
 /** Sem visitas hoje: a janela com o sol da manhã. */
 export function JanelaManha(props: IlustracaoProps) {
   return (
-    <Ilustracao {...props}>
-      <Forma
-        tom="dourado-claro"
-        d="M58 14c28 0 48 18 46 46-1 28-21 46-48 44-26-1-42-22-40-46 1-25 17-44 42-44Z"
-      />
+    <Ilustracao
+      {...props}
+      mancha={{
+        tom: "dourado-claro",
+        d: "M58 14c28 0 48 18 46 46-1 28-21 46-48 44-26-1-42-22-40-46 1-25 17-44 42-44Z",
+      }}
+    >
       <Forma
         tom="lavanda-clara"
         d="M32 26h56a6 6 0 0 1 6 6v58H26V32a6 6 0 0 1 6-6Z"
@@ -55,11 +59,13 @@ export function JanelaManha(props: IlustracaoProps) {
 /** Sem conversas e nenhum alerta aberto: um sino quieto. */
 export function SinoCalmo(props: IlustracaoProps) {
   return (
-    <Ilustracao {...props}>
-      <Forma
-        tom="argila-clara"
-        d="M60 16c25 0 44 19 44 44s-17 46-44 46-44-18-44-45 19-45 44-45Z"
-      />
+    <Ilustracao
+      {...props}
+      mancha={{
+        tom: "argila-clara",
+        d: "M60 16c25 0 44 19 44 44s-17 46-44 46-44-18-44-45 19-45 44-45Z",
+      }}
+    >
       <Forma
         tom="areia-clara"
         d="M36 98c0-3 11-5 24-5s24 2 24 5-11 5-24 5-24-2-24-5Z"
@@ -76,11 +82,13 @@ export function SinoCalmo(props: IlustracaoProps) {
 /** Busca sem resultado: a folha e a lupa. */
 export function FolhaLupa(props: IlustracaoProps) {
   return (
-    <Ilustracao {...props}>
-      <Forma
-        tom="salvia-clara"
-        d="M56 16c28-2 50 18 48 46-2 26-22 44-48 42-25-2-41-22-40-46 1-23 17-40 40-42Z"
-      />
+    <Ilustracao
+      {...props}
+      mancha={{
+        tom: "salvia-clara",
+        d: "M56 16c28-2 50 18 48 46-2 26-22 44-48 42-25-2-41-22-40-46 1-23 17-40 40-42Z",
+      }}
+    >
       <Forma
         tom="salvia-media"
         d="M34 84c-3-25 14-45 44-49 3 29-15 47-44 49Z"
@@ -97,11 +105,13 @@ export function FolhaLupa(props: IlustracaoProps) {
 /** Sem sinal: a nuvem longe e o registro guardado no aparelho. */
 export function NuvemSemSinal(props: IlustracaoProps) {
   return (
-    <Ilustracao {...props}>
-      <Forma
-        tom="lavanda-clara"
-        d="M60 14c26 0 46 20 44 46-1 26-20 46-46 44-25-1-43-21-42-45 1-25 19-45 44-45Z"
-      />
+    <Ilustracao
+      {...props}
+      mancha={{
+        tom: "lavanda-clara",
+        d: "M60 14c26 0 46 20 44 46-1 26-20 46-46 44-25-1-43-21-42-45 1-25 19-45 44-45Z",
+      }}
+    >
       <Forma
         tom="branco"
         d="M36 64c-9 0-11-12-2-14 0-10 14-14 20-7 4-9 20-9 22 3 11 0 13 18 2 18Z"
@@ -124,11 +134,13 @@ export function NuvemSemSinal(props: IlustracaoProps) {
 /** Checklist completo: o caderno de visita fechado, com o check. */
 export function CadernoDeVisita(props: IlustracaoProps) {
   return (
-    <Ilustracao {...props}>
-      <Forma
-        tom="salvia-clara"
-        d="M58 12c29-1 48 20 46 48-2 27-22 46-48 44-26-2-42-22-40-46 2-25 17-45 42-46Z"
-      />
+    <Ilustracao
+      {...props}
+      mancha={{
+        tom: "salvia-clara",
+        d: "M58 12c29-1 48 20 46 48-2 27-22 46-48 44-26-2-42-22-40-46 2-25 17-45 42-46Z",
+      }}
+    >
       <Forma
         tom="branco"
         d="M34 24h46a6 6 0 0 1 6 6v64a6 6 0 0 1-6 6H34Z"
@@ -156,11 +168,13 @@ export function CadernoDeVisita(props: IlustracaoProps) {
 /** Dia tranquilo e nenhuma família no estágio: a manta dobrada. */
 export function MantaDobrada(props: IlustracaoProps) {
   return (
-    <Ilustracao {...props}>
-      <Forma
-        tom="areia-clara"
-        d="M60 16c26 0 45 19 44 45-1 26-20 44-46 43-25-1-43-19-42-44 1-25 19-44 44-44Z"
-      />
+    <Ilustracao
+      {...props}
+      mancha={{
+        tom: "areia-clara",
+        d: "M60 16c26 0 45 19 44 45-1 26-20 44-46 43-25-1-43-19-42-44 1-25 19-44 44-44Z",
+      }}
+    >
       <Forma
         tom="dourado-claro"
         d="M24 78h72a8 8 0 0 1 0 16H24a8 8 0 0 1 0-16Z"
@@ -180,11 +194,13 @@ export function MantaDobrada(props: IlustracaoProps) {
 /** Nenhuma família atribuída ainda: a chave de casa. */
 export function ChaveDeCasa(props: IlustracaoProps) {
   return (
-    <Ilustracao {...props}>
-      <Forma
-        tom="dourado-claro"
-        d="M58 16c27-1 47 20 46 46-1 26-21 44-47 42-25-2-42-21-41-45 1-24 18-42 42-43Z"
-      />
+    <Ilustracao
+      {...props}
+      mancha={{
+        tom: "dourado-claro",
+        d: "M58 16c27-1 47 20 46 46-1 26-21 44-47 42-25-2-42-21-41-45 1-24 18-42 42-43Z",
+      }}
+    >
       <Forma
         tom="dourado-medio"
         d="M60 60a18 18 0 1 1-36 0 18 18 0 0 1 36 0Z"
@@ -200,11 +216,13 @@ export function ChaveDeCasa(props: IlustracaoProps) {
 /** Plantão tranquilo: a lua e a nuvem. */
 export function LuaENuvem(props: IlustracaoProps) {
   return (
-    <Ilustracao {...props}>
-      <Forma
-        tom="lavanda-clara"
-        d="M60 14c27 0 46 20 44 46-1 27-20 45-46 44-26-1-43-21-42-46 1-25 18-44 44-44Z"
-      />
+    <Ilustracao
+      {...props}
+      mancha={{
+        tom: "lavanda-clara",
+        d: "M60 14c27 0 46 20 44 46-1 27-20 45-46 44-26-1-43-21-42-46 1-25 18-44 44-44Z",
+      }}
+    >
       <Forma tom="dourado" d="M70 28a24 24 0 1 0 22 34 18 18 0 1 1-22-34Z" />
       <Traco d="M72 27a24 24 0 1 0 22 34 18 18 0 1 1-22-34Z" />
       <Forma
@@ -222,11 +240,13 @@ export function LuaENuvem(props: IlustracaoProps) {
 /** Esta parte ainda está em construção: um broto no vaso de barro. */
 export function Broto(props: IlustracaoProps) {
   return (
-    <Ilustracao {...props}>
-      <Forma
-        tom="salvia-clara"
-        d="M60 14c27 0 46 20 44 46-1 26-21 46-46 44-26-2-43-21-42-46 1-25 19-44 44-44Z"
-      />
+    <Ilustracao
+      {...props}
+      mancha={{
+        tom: "salvia-clara",
+        d: "M60 14c27 0 46 20 44 46-1 26-21 46-46 44-26-2-43-21-42-46 1-25 19-44 44-44Z",
+      }}
+    >
       <Forma tom="argila-media" d="M44 80h32l-4 20H48Z" />
       <Traco d="M42 80h36M45 80l4 20h22l4-20" />
       <Traco d="M60 80V56" atraso={160} />

@@ -107,7 +107,11 @@ export function respostaParaLeitura(
     return v;
   };
   if (typeof valor === "string") {
-    return valor.trim() === "" ? null : rotuloDa(valor);
+    if (valor.trim() === "") return null;
+    if (campo.tipo === "data" && /^\d{4}-\d{2}-\d{2}/.test(valor)) {
+      return dataCurta(valor);
+    }
+    return rotuloDa(valor);
   }
   if (Array.isArray(valor)) {
     return valor.length === 0

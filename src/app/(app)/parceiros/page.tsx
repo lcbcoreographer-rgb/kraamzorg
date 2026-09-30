@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChartColumn, LockKeyhole } from "lucide-react";
-import { SinoCalmo } from "@/components/ilustracoes";
+import { ChaveDeCasa } from "@/components/ilustracoes";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { Botao } from "@/components/ui/botao";
 import { TileIcone } from "@/components/ui/tile-icone";
@@ -156,7 +156,7 @@ export default async function PaginaParceiros() {
               ) : (
                 <EstadoVazio
                   nivelTitulo="h3"
-                  ilustracao={<SinoCalmo tamanho={96} />}
+                  ilustracao={<ChaveDeCasa tamanho={96} />}
                   titulo="Nenhuma indicação de médico ainda"
                   texto="Quando você registrar uma indicação de um médico parceiro, ela aparece aqui e também no relatório de origem do marketing."
                 />

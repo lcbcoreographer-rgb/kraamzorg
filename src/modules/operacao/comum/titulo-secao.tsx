@@ -63,7 +63,7 @@ export function TituloSecao({
             {titulo}
           </Titulo>
           {contagem !== undefined ? (
-            <span className="rounded-pilula bg-areia text-mini inline-flex min-h-7 min-w-7 items-center justify-center px-2 font-mono font-medium tabular-nums">
+            <span className="rounded-pilula bg-areia text-apoio text-texto inline-flex min-h-7 min-w-7 items-center justify-center px-2 font-mono font-medium tabular-nums">
               {contagem}
               {unidade ? (
                 <span className="sr-only">&nbsp;{unidade}</span>

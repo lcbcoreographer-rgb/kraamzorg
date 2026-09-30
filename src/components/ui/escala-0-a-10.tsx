@@ -28,6 +28,8 @@ export interface Escala0a10Props {
   /** Texto do extremo 10 (ex: "10 · pior dor possível"). */
   extremoMax?: React.ReactNode;
   disabled?: boolean;
+  /** Tela da família: rótulo e extremos maiores (DESIGN.md, 11.4). */
+  tamanhoTexto?: "padrao" | "familia";
   className?: string;
 }
 
@@ -42,6 +44,7 @@ export function Escala0a10({
   extremoMin,
   extremoMax,
   disabled,
+  tamanhoTexto = "padrao",
   className,
 }: Escala0a10Props) {
   const idGrupo = React.useId();
@@ -60,7 +63,13 @@ export function Escala0a10({
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      <span id={idGrupo} className="text-apoio text-texto font-semibold">
+      <span
+        id={idGrupo}
+        className={cn(
+          tamanhoTexto === "familia" ? "text-3" : "text-apoio",
+          "text-texto font-semibold",
+        )}
+      >
         {rotulo}
       </span>
       <div
@@ -102,7 +111,12 @@ export function Escala0a10({
         })}
       </div>
       {extremoMin || extremoMax ? (
-        <div className="text-mini text-texto-2 flex justify-between">
+        <div
+          className={cn(
+            tamanhoTexto === "familia" ? "text-corpo" : "text-mini",
+            "text-texto-2 flex justify-between",
+          )}
+        >
           <span id={idExtremoMin}>{extremoMin}</span>
           <span id={idExtremoMax}>{extremoMax}</span>
         </div>

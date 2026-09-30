@@ -391,6 +391,7 @@ function Pergunta({
           onMudar={(n) => onMudar(String(n))}
           extremoMin={pergunta.rotuloMin}
           extremoMax={pergunta.rotuloMax}
+          tamanhoTexto="familia"
         />
       ) : pergunta.tipo === "sim_nao" ? (
         <SimNao
@@ -412,6 +413,7 @@ function Pergunta({
           }))}
           valor={valor}
           onMudar={onMudar}
+          tamanhoTexto="familia"
         />
       ) : (
         <CampoTexto

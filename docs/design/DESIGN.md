@@ -334,7 +334,7 @@ Decisão do dono do projeto (PRD 20.2): um conjunto pequeno de ilustrações pr�
 | Lua e nuvem               | `LuaENuvem`       | Plantão tranquilo, nada pendente até amanhã      |
 | Broto no vaso             | `Broto`           | Parte ainda em construção                        |
 
-Regras: decorativa (`aria-hidden`) quando o título do estado vazio já diz o que é; com `titulo`, vira `role="img"`. Tamanho de 96 a 120 px. Uma por tela. Nunca em alerta clínico, perda, freio ou intercorrência. O catálogo (`ILUSTRACOES`) diz o uso de cada uma: a mesma ilustração conta sempre a mesma coisa.
+Regras: decorativa (`aria-hidden`) quando o título do estado vazio já diz o que é; com `titulo`, vira `role="img"`. A mancha de fundo nunca some no bloco que a recebe: `sobre` diz o tom do bloco e, quando a mancha tem o mesmo tom ou um vizinho (areia e dourado claros), ela vira um disco branco, como o ícone num tile. O `EstadoVazio` passa `sobre="areia-clara"` sozinho e a comemoração passa `sobre="salvia-clara"`. Tamanho de 96 a 120 px. Uma por tela. Nunca em alerta clínico, perda, freio ou intercorrência. O catálogo (`ILUSTRACOES`) diz o uso de cada uma: a mesma ilustração conta sempre a mesma coisa.
 
 ---
 

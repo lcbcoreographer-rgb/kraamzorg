@@ -52,16 +52,50 @@ export interface IlustracaoProps {
   tamanho?: number;
   /** Desenha o traço uma vez (comemoração). */
   animar?: boolean;
+  /**
+   * Tom do bloco onde a ilustração mora. Quando a mancha de fundo da peça
+   * tem o mesmo tom (ou um tom vizinho, como areia e dourado claros), ela
+   * vira branca para não sumir no bloco: a peça continua com o seu disco,
+   * como um ícone num tile.
+   */
+  sobre?: TomIlustracao;
   className?: string;
+}
+
+/** Tons claros que se confundem entre si quando um fica sobre o outro. */
+const VIZINHOS: Partial<Record<TomIlustracao, TomIlustracao[]>> = {
+  "areia-clara": ["areia-clara", "dourado-claro"],
+  "dourado-claro": ["areia-clara", "dourado-claro"],
+  "salvia-clara": ["salvia-clara"],
+  "lavanda-clara": ["lavanda-clara"],
+  "argila-clara": ["argila-clara"],
+  branco: ["branco"],
+};
+
+/** Tom da mancha de fundo conforme o bloco que recebe a ilustração. */
+export function tomDaMancha(
+  tom: TomIlustracao,
+  sobre?: TomIlustracao,
+): TomIlustracao {
+  if (!sobre) return tom;
+  const parecidos = VIZINHOS[sobre] ?? [sobre];
+  if (!parecidos.includes(tom)) return tom;
+  return sobre === "branco" ? "areia-clara" : "branco";
 }
 
 export function Ilustracao({
   titulo,
   tamanho = 120,
   animar = false,
+  sobre,
+  mancha,
   className,
   children,
-}: IlustracaoProps & { children: React.ReactNode }) {
+}: IlustracaoProps & {
+  /** Mancha de fundo da peça, desenhada antes de tudo. */
+  mancha: { tom: TomIlustracao; d: string };
+  children: React.ReactNode;
+}) {
   const id = React.useId();
   return (
     <svg
@@ -77,6 +111,7 @@ export function Ilustracao({
       className={cn("group/ilustracao shrink-0 overflow-visible", className)}
     >
       {titulo ? <title id={`${id}-titulo`}>{titulo}</title> : null}
+      <Forma d={mancha.d} tom={tomDaMancha(mancha.tom, sobre)} />
       {children}
     </svg>
   );

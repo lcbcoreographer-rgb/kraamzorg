@@ -69,7 +69,7 @@ export function EstadoVazio({
       )}
     >
       {ilustracao && !semTom ? (
-        <div className="shrink-0">{ilustracao}</div>
+        <div className="shrink-0">{sobreAreia(ilustracao)}</div>
       ) : null}
       <div className="flex flex-col items-start gap-3">
         <Titulo className="font-titulo text-2 text-texto font-medium">
@@ -80,4 +80,14 @@ export function EstadoVazio({
       </div>
     </div>
   );
+}
+
+/**
+ * A ilustração mora num bloco `areia-clara`: avisa a peça, para a mancha de
+ * fundo não sumir no bloco (DESIGN.md, 5.1). Quem já passou `sobre` manda.
+ */
+function sobreAreia(ilustracao: React.ReactNode): React.ReactNode {
+  if (!React.isValidElement<{ sobre?: string }>(ilustracao)) return ilustracao;
+  if (ilustracao.props.sobre !== undefined) return ilustracao;
+  return React.cloneElement(ilustracao, { sobre: "areia-clara" });
 }

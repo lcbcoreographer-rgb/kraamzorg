@@ -128,7 +128,11 @@ export function ListaOcorrenciasTela({
                     {ROTULO_STATUS[o.status]}
                   </Selo>
                 ),
-                familia: o.familiaNome ?? o.profissionalNome ?? "Sem família",
+                familia: (
+                  <span className="min-[720px]:whitespace-nowrap">
+                    {o.familiaNome ?? o.profissionalNome ?? "Sem família"}
+                  </span>
+                ),
                 tipo: ROTULO_TIPO[o.tipo],
                 prioridade: (
                   <Selo variante={VARIANTE_PRIORIDADE[o.prioridade]}>

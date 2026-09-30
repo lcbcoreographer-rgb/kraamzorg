@@ -34,7 +34,7 @@ export function Comemoracao({
         className,
       )}
     >
-      <CadernoDeVisita animar tamanho={112} />
+      <CadernoDeVisita animar tamanho={112} sobre="salvia-clara" />
       <div className="flex flex-col items-start gap-2">
         <div role="status" className="flex flex-col gap-2">
           <p className="font-titulo text-1 text-texto font-medium">{titulo}</p>
