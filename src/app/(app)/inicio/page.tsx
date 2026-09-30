@@ -47,7 +47,7 @@ const INICIO_POR_PAPEL: Record<
   diretoria: {
     texto:
       "Aqui você vai ver, uma linha para cada, como estão vendas, operação, equipe, financeiro e alertas, comparados com o período anterior.",
-    acao: { rotulo: "Ver pipeline", href: "/pipeline" },
+    acao: { rotulo: "Abrir o painel executivo", href: "/painel" },
   },
 };
 

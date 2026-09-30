@@ -39,7 +39,7 @@ enabled = true
 # parâmetros, textos, famílias e conversas; o segundo arquivo traz a base de
 # conhecimento inicial do agente (P26), toda em rascunho, sem repetir nada do
 # primeiro.
-sql_paths = ["./seed.sql", "./dados/base_conhecimento_seed.sql"]
+sql_paths = ["./seed.sql", "./dados/base_conhecimento_seed.sql", "./dados/gestao_seed.sql"]
 
 [realtime]
 enabled = false

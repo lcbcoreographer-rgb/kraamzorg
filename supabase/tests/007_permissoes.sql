@@ -325,7 +325,13 @@ insert into matriz values
   -- funções do formulário
   ('privado.formulario_tentativa',   '{}', 'nega'),
   ('privado.fato_operacao',          '{}', 'nega'),
-  ('privado.sync_item',              '{}', 'nega');
+  ('privado.sync_item',              '{}', 'nega'),
+  -- P45, P46 (0026): capacidade e financeiro, lidos só por funções security definer
+  ('privado.capacidade_contratos',   '{}', 'nega'),
+  ('privado.despesa',                '{}', 'nega'),
+  ('privado.pagamento_equipe',       '{}', 'nega'),
+  ('privado.extrato_importacao',     '{}', 'nega'),
+  ('privado.extrato_linha',          '{}', 'nega');
 
 create temp table esperado on commit drop as
   select m.tabela, p.papel, a.aal,
@@ -982,7 +988,11 @@ select set_eq(
             ('api.registrar_alerta_clinico'), ('api.alertas_clinicos'),
             ('api.registrar_acionamento_alerta'), ('api.fechar_alerta_clinico'),
             ('api.registrar_anexo_audio'), ('api.audio_da_visita_para_ouvir'),
-            ('api.contato_medico_situacao'), ('api.supervisao_medica_telefone') $$,
+            ('api.contato_medico_situacao'), ('api.supervisao_medica_telefone'),
+            ('api.capacidade'), ('api.pagamentos_equipe'), ('api.pagar_equipe'), ('api.meus_pagamentos'),
+            ('api.dre'), ('api.lancamentos'), ('api.despesas'), ('api.salvar_despesa'), ('api.remover_despesa'),
+            ('api.inadimplencia'), ('api.previsao_recebimentos'), ('api.importar_extrato'),
+            ('api.reconciliar_extrato'), ('api.extrato'), ('api.painel_executivo') $$,
   'authenticated executa exatamente a lista do ADR 0002 seção 6');
 
 select is_empty(

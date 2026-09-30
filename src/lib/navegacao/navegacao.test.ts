@@ -184,6 +184,45 @@ describe("pré-natal e ofertas (P35 e P36)", () => {
     }
   });
 
+  it("a capacidade é da coordenação e da diretoria, no grupo Operação (P45)", () => {
+    for (const papel of ["coordenacao", "diretoria"] as const) {
+      const operacao = gruposDe([papel]).find((g) => g.titulo === "Operação");
+      expect(rotulos(operacao!.itens)).toContain("Capacidade");
+      expect(podeAbrir([papel], "/capacidade")).toBe(true);
+    }
+    for (const papel of ["comercial", "financeiro", "enfermeira"] as const) {
+      expect(podeAbrir([papel], "/capacidade")).toBe(false);
+    }
+  });
+
+  it("o painel executivo é só da diretoria (P52)", () => {
+    expect(podeAbrir(["diretoria"], "/painel")).toBe(true);
+    const gestao = gruposDe(["diretoria"]).find((g) => g.titulo === "Gestão");
+    expect(rotulos(gestao!.itens)).toContain("Painel executivo");
+    for (const papel of [
+      "comercial",
+      "coordenacao",
+      "financeiro",
+      "enfermeira",
+    ] as const) {
+      expect(podeAbrir([papel], "/painel")).toBe(false);
+    }
+  });
+
+  it("o financeiro abre as telas de dinheiro e a diretoria também (P46)", () => {
+    for (const caminho of [
+      "/financeiro",
+      "/financeiro/despesas",
+      "/financeiro/equipe",
+      "/financeiro/extrato",
+    ]) {
+      expect(podeAbrir(["financeiro"], caminho)).toBe(true);
+      expect(podeAbrir(["diretoria"], caminho)).toBe(true);
+      expect(podeAbrir(["coordenacao"], caminho)).toBe(false);
+      expect(podeAbrir(["comercial"], caminho)).toBe(false);
+    }
+  });
+
   it("o radar e a alocação de uma família são da coordenação e da diretoria", () => {
     expect(podeAbrir(["coordenacao"], "/radar/abc")).toBe(true);
     expect(podeAbrir(["diretoria"], "/radar")).toBe(true);

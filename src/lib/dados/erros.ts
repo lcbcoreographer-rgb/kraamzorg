@@ -92,3 +92,14 @@ export function codigoEquipe(erro: unknown): string | null {
   const achado = /equipe:([a-z_0-9]+)/.exec(mensagem);
   return achado?.[1] ?? null;
 }
+
+/**
+ * Código da recusa de negócio das funções de gestão (0026_gestao.sql:
+ * capacidade, financeiro e painel): o banco manda "gestao:<código> <detalhe>"
+ * na mensagem. null quando o erro não é desse tipo.
+ */
+export function codigoGestao(erro: unknown): string | null {
+  const mensagem = erro instanceof Error ? erro.message : String(erro ?? "");
+  const achado = /gestao:([a-z_0-9]+)/.exec(mensagem);
+  return achado?.[1] ?? null;
+}

@@ -1,0 +1,91 @@
+{
+    "resumo": {
+        "mes": "2026-05-01",
+        "liberado_qtd": 1,
+        "bloqueado_qtd": 3,
+        "pago_no_mes_qtd": 1,
+        "liberado_centavos": 72000,
+        "bloqueado_centavos": 263333,
+        "pago_no_mes_centavos": 126667
+    },
+    "pagamentos": [
+        {
+            "id": "465abf00-df44-4b2b-b280-5e9a8e9f8179",
+            "horas": 8.0,
+            "status": "bloqueado",
+            "visitas": 2,
+            "familia_nome": "Família Teste Lua",
+            "total_centavos": 83333,
+            "motivo_bloqueio": "evolucao_nao_enviada",
+            "profissional_id": "0f7e6108-049f-4a22-8adc-5caa37cc9d6b",
+            "acompanhamento_id": "c279c479-bc8f-432d-a97b-6371ac0ab6aa",
+            "profissional_nome": "Profissional Teste Norte 1",
+            "valor_hora_centavos": 10000,
+            "valor_horas_centavos": 80000,
+            "estado_acompanhamento": "em_execucao",
+            "ajuda_deslocamento_centavos": 3333
+        },
+        {
+            "id": "6a4b8c0b-4686-4420-9161-957061ae764f",
+            "horas": 18.0,
+            "status": "bloqueado",
+            "visitas": 6,
+            "familia_nome": "Família Teste Jade",
+            "total_centavos": 180000,
+            "motivo_bloqueio": "evolucao_nao_enviada",
+            "profissional_id": "0e067667-7819-4641-8976-bb6fa14e8479",
+            "acompanhamento_id": "f2ce75c7-5928-4e31-9b74-7bdc17beb700",
+            "profissional_nome": "Profissional Teste Sul 2",
+            "valor_hora_centavos": 10000,
+            "valor_horas_centavos": 180000,
+            "estado_acompanhamento": "encerrado",
+            "ajuda_deslocamento_centavos": 0
+        },
+        {
+            "id": "982d4250-2e9d-4dea-a04a-33315ed3d406",
+            "horas": 3.0,
+            "status": "bloqueado",
+            "visitas": 1,
+            "familia_nome": "Família Teste SemValor P46",
+            "total_centavos": 0,
+            "motivo_bloqueio": "sem_valor_hora",
+            "profissional_id": "d2600000-0000-4000-8000-000000000005",
+            "acompanhamento_id": "d2600000-0000-4000-8000-000000000102",
+            "profissional_nome": "Profissional D1 Teste P45",
+            "valor_horas_centavos": 0,
+            "estado_acompanhamento": "em_execucao",
+            "ajuda_deslocamento_centavos": 0
+        },
+        {
+            "id": "3f1393df-cb5e-4cd5-99b0-73df98776e3e",
+            "horas": 6.0,
+            "status": "liberado",
+            "visitas": 2,
+            "familia_nome": "Família Teste Equipe P46",
+            "total_centavos": 72000,
+            "profissional_id": "d2600000-0000-4000-8000-000000000002",
+            "acompanhamento_id": "d2600000-0000-4000-8000-000000000101",
+            "profissional_nome": "Profissional A2 Teste P45",
+            "valor_hora_centavos": 12000,
+            "valor_horas_centavos": 72000,
+            "estado_acompanhamento": "encerrado",
+            "ajuda_deslocamento_centavos": 0
+        },
+        {
+            "id": "fa0c3a70-c3c0-4ce8-b486-ef0b0323a0a3",
+            "horas": 12.0,
+            "status": "pago",
+            "pago_em": "2026-05-25",
+            "visitas": 4,
+            "familia_nome": "Família Teste Equipe P46",
+            "total_centavos": 126667,
+            "profissional_id": "d2600000-0000-4000-8000-000000000001",
+            "acompanhamento_id": "d2600000-0000-4000-8000-000000000101",
+            "profissional_nome": "Profissional A1 Teste P45",
+            "valor_hora_centavos": 10000,
+            "valor_horas_centavos": 120000,
+            "estado_acompanhamento": "encerrado",
+            "ajuda_deslocamento_centavos": 6667
+        }
+    ]
+}

@@ -32,9 +32,13 @@ select plan(28);
 -- 0. Dados sintéticos
 -- -----------------------------------------------------------------------------
 
+-- capacidade_modelo 'uniforme': este arquivo prova a Fase 1 (a view e a
+-- disponibilidade pela janela uniforme). O modelo probabilístico do P45 é
+-- provado em 026_gestao.sql.
 insert into parametro (chave, valor) values
   ('janela_dpp_dias', '{"antes": 3, "depois": 3}'),
-  ('capacidade_alerta_pct', '85')
+  ('capacidade_alerta_pct', '85'),
+  ('capacidade_modelo', '"uniforme"')
 on conflict (chave) do update set valor = excluded.valor;
 
 -- São Paulo do teste: limite 5 famílias por semana = 35 dias de atendimento.

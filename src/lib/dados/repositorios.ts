@@ -28,6 +28,7 @@ import type {
   UsuarioSistema,
 } from "./tipos";
 import type { AssistencialRepositorio } from "./tipos-assistencial";
+import type { GestaoRepositorio } from "./tipos-gestao";
 import type {
   AgendaPeriodo,
   EquipeVisao,
@@ -379,6 +380,8 @@ export interface Repositorios {
   portal: PortalRepositorio;
   /** Checklist diário, registro assinado e alertas clínicos (P39 e P40). */
   assistencial: AssistencialRepositorio;
+  /** Capacidade, financeiro e painel executivo da Fase 3 (P45, P46 e P52). */
+  gestao: GestaoRepositorio;
 }
 
 /**

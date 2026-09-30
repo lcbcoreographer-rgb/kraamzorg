@@ -8,6 +8,7 @@ import { criarConfiguracoesSupabase } from "./configuracoes";
 import { criarContratoSupabase } from "./contrato";
 import { criarFamiliasSupabase } from "./familias";
 import { criarFichaSupabase } from "./ficha";
+import { criarGestaoSupabase } from "./gestao";
 import { criarEquipeSupabase } from "./equipe";
 import { criarOperacaoSupabase } from "./operacao";
 import { criarPortalSupabase } from "./portal";
@@ -35,5 +36,6 @@ export function criarRepositoriosSupabase(
     equipe: criarEquipeSupabase(contexto),
     portal: criarPortalSupabase(contexto),
     assistencial: criarAssistencialSupabase(contexto),
+    gestao: criarGestaoSupabase(contexto),
   };
 }

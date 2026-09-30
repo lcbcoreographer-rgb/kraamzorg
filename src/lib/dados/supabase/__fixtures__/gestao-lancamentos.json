@@ -1,0 +1,64 @@
+{
+    "mes": "2026-05-01",
+    "lancamentos": [
+        {
+            "id": "797652e4-3916-495e-8e81-1ff053077aa9",
+            "data": "2026-05-05",
+            "tipo": "despesa",
+            "categoria": "marketing_anuncios",
+            "descricao": "Anúncios de maio sintéticos",
+            "valor_centavos": 150000
+        },
+        {
+            "id": "e95f2672-1ea9-4b98-ac32-7ca0141f5a7a",
+            "data": "2026-05-06",
+            "tipo": "despesa",
+            "categoria": "marketing_anuncios",
+            "descricao": "Impulsionamento sem canal",
+            "valor_centavos": 20000
+        },
+        {
+            "id": "c2600000-0000-4000-8000-000000000301",
+            "data": "2026-05-10",
+            "tipo": "receita",
+            "categoria": "cobranca",
+            "descricao": "Família Teste DRE1 P46",
+            "valor_centavos": 435000
+        },
+        {
+            "id": "288528e2-726c-43a8-8eed-baba8327cd79",
+            "data": "2026-05-15",
+            "tipo": "despesa",
+            "categoria": "contabilidade",
+            "descricao": "Contabilidade de maio sintética",
+            "valor_centavos": 50000
+        },
+        {
+            "id": "37a7d83a-a720-497a-8ee8-2f6766a66c63",
+            "data": "2026-05-16",
+            "tipo": "despesa",
+            "categoria": "tecnologia",
+            "descricao": "Hospedagem sintética",
+            "valor_centavos": 30000
+        },
+        {
+            "id": "223f816b-9d17-4ed1-bb8a-47be3f709b2b",
+            "data": "2026-05-20",
+            "tipo": "despesa",
+            "categoria": "outros",
+            "descricao": "Material sintético",
+            "valor_centavos": 1000
+        },
+        {
+            "id": "c2600000-0000-4000-8000-000000000302",
+            "data": "2026-05-31",
+            "tipo": "receita",
+            "categoria": "cobranca",
+            "descricao": "Família Teste DRE2 P46",
+            "valor_centavos": 780000
+        }
+    ],
+    "saldo_centavos": 964000,
+    "despesas_centavos": 251000,
+    "receitas_centavos": 1215000
+}
