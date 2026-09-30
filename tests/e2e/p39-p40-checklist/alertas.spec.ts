@@ -91,7 +91,7 @@ test.describe("Alertas clínicos", () => {
     await page
       .getByLabel("Sinal identificado")
       .fill("Bebê com temperatura de 38,3 °C.");
-    await page.getByLabel("Horário do acionamento").fill("09:30");
+    await page.getByLabel("Horário do acionamento").fill("00:01");
     await page.getByRole("button", { name: "Salvar registro" }).click();
 
     // Faltam a orientação médica e a conduta: continua sem fechar.

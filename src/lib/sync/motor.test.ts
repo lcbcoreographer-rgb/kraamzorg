@@ -8,6 +8,7 @@ import { criarBancoOffline, type BancoOffline } from "./db";
 import {
   calcularEsperaMs,
   enfileirarRegistroAssistencial,
+  iniciarMotorSincronizacao,
   processarFila,
   salvarCampo,
   type EnviarLote,
@@ -161,6 +162,7 @@ describe("processarFila", () => {
 
     const naFila = await db.fila.get(item.id);
     expect(naFila?.estado).toBe("erro");
+    expect(naFila?.semRede).toBe(true);
     expect(naFila?.tentativas).toBe(1);
     expect(naFila?.proximoEnvioEm).toBe(agora + calcularEsperaMs(1));
 
@@ -647,5 +649,99 @@ describe("registro assistencial no aparelho", () => {
       (await repo.buscarEstado("registro_atendimento", "visita-9"))?.dados,
     ).toEqual(original);
     expect(repo.listarAdendos().map((a) => a.conteudo)).toEqual([divergente]);
+  });
+});
+
+describe("falha de rede e espera", () => {
+  it("sem chegar ao servidor a espera não passa de 5 segundos; resposta 500 mantém a espera crescente", async () => {
+    const db = novoBanco();
+    const item = await salvarCampo(db, {
+      usuarioId: "enfermeira-1",
+      entidade: "visita",
+      entidadeId: "visita-9",
+      campo: "checkin_em",
+      valor: "2026-09-30T05:00:00Z",
+      versaoBase: 1,
+    });
+    const agora = Date.now();
+    for (let i = 0; i < 5; i += 1) {
+      await processarFila(
+        db,
+        async () => {
+          throw new TypeError("Failed to fetch");
+        },
+        agora,
+        { ignorarEspera: true },
+      );
+    }
+    const semRede = await db.fila.get(item.id);
+    expect(semRede?.tentativas).toBe(5);
+    expect(semRede?.semRede).toBe(true);
+    expect(semRede?.proximoEnvioEm).toBe(agora + 5_000);
+
+    await processarFila(
+      db,
+      async () => {
+        throw new Error("POST /api/sync respondeu 500");
+      },
+      agora,
+      { ignorarEspera: true },
+    );
+    const servidor = await db.fila.get(item.id);
+    expect(servidor?.semRede).toBe(false);
+    expect(servidor?.proximoEnvioEm).toBe(agora + calcularEsperaMs(6));
+    await db.delete();
+  });
+});
+
+describe("iniciarMotorSincronizacao sem rede", () => {
+  let db: BancoOffline;
+
+  beforeEach(() => {
+    db = novoBanco();
+  });
+
+  afterEach(async () => {
+    vi.restoreAllMocks();
+    await db.delete();
+  });
+
+  it("com o aparelho sem rede não tenta enviar nem marca erro; ao voltar, sobe", async () => {
+    const item = await salvarCampo(db, {
+      usuarioId: "enfermeira-1",
+      entidade: "visita",
+      entidadeId: "visita-1",
+      campo: "checkin_em",
+      valor: "2026-09-30T05:00:00Z",
+      versaoBase: 1,
+    });
+    const enviar = vi.fn<EnviarLote>(async (itens) => ({
+      resultados: itens.map((i) => ({
+        id: i.id,
+        status: "processado" as const,
+        versaoResultante: 2,
+      })),
+    }));
+    const onLine = vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
+
+    // Tempo real: o IndexedDB falso não anda com timers simulados.
+    const espera = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const parar = iniciarMotorSincronizacao(db, { enviar, intervaloMs: 20 });
+    await espera(150);
+    window.dispatchEvent(new Event("focus"));
+    await espera(50);
+
+    expect(enviar).not.toHaveBeenCalled();
+    const semRede = await db.fila.get(item.id);
+    expect(semRede?.estado).not.toBe("erro");
+    expect(semRede?.tentativas ?? 0).toBe(0);
+
+    onLine.mockReturnValue(true);
+    window.dispatchEvent(new Event("online"));
+    await espera(200);
+
+    expect(enviar).toHaveBeenCalledTimes(1);
+    expect((await db.fila.get(item.id))?.estado).toBe("sincronizado");
+    parar();
   });
 });

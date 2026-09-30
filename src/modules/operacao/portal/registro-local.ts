@@ -22,6 +22,8 @@ export interface MarcaLocal {
   estadoItem: EstadoItemFila;
   /** Mensagem do último erro de envio, se houve. */
   erro?: string;
+  /** A última tentativa nem chegou ao servidor: não é erro, é sem sinal. */
+  semRede?: boolean;
 }
 
 export interface MarcasDaVisita {
@@ -50,6 +52,7 @@ async function lerMarca(
     valor: achado.valor,
     estadoItem: achado.item?.estado ?? "rascunho_local",
     erro: achado.item?.erroMensagem,
+    semRede: achado.item?.semRede,
   };
 }
 
@@ -64,6 +67,11 @@ export async function lerMarcasLocais(
   return { chegada, saida };
 }
 
+/** Só a recusa de verdade vira mensagem; a falta de sinal não. */
+function erroDaMarca(marca: MarcaLocal | null): string | null {
+  return marca && !marca.semRede ? (marca.erro ?? null) : null;
+}
+
 function situacao(marca: MarcaLocal | null): SituacaoEnvio | null {
   if (!marca) return null;
   switch (marca.estadoItem) {
@@ -72,7 +80,8 @@ function situacao(marca: MarcaLocal | null): SituacaoEnvio | null {
     case "conflito":
       return "conflito";
     case "erro":
-      return "erro";
+      // Sem sinal não é recusa: o registro está salvo no aparelho e sobe sozinho.
+      return marca.semRede ? "no_aparelho" : "erro";
     default:
       return "no_aparelho";
   }
@@ -121,7 +130,7 @@ export function aplicarMarcasLocais(
     checkoutEm,
     chegadaSituacao,
     saidaSituacao,
-    erroEnvio: marcas.chegada?.erro ?? marcas.saida?.erro ?? null,
+    erroEnvio: erroDaMarca(marcas.chegada) ?? erroDaMarca(marcas.saida),
   };
 }
 

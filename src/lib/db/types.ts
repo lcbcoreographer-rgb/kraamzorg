@@ -66,6 +66,14 @@ export type Database = {
         Args: { oportunidade_id: string };
         Returns: Json;
       };
+      aprovar_evolucao: {
+        Args: { p_relatorio_id: string; p_versao_base?: number };
+        Returns: Json;
+      };
+      arquivo_da_nota: {
+        Args: { p_nota_id: string; p_tipo: string };
+        Returns: Json;
+      };
       atribuir_designacao: {
         Args: {
           familia_id: string;
@@ -75,12 +83,28 @@ export type Database = {
         };
         Returns: Json;
       };
+      atualizar_ocorrencia: {
+        Args: {
+          p_nota?: string;
+          p_ocorrencia_id: string;
+          p_prioridade?: string;
+          p_privada?: boolean;
+          p_responsavel_id?: string;
+          p_status?: string;
+          p_versao_base?: number;
+        };
+        Returns: Json;
+      };
       atualizar_status_modelo_whatsapp: {
         Args: { p_id: string; p_motivo?: string; p_status: string };
         Returns: undefined;
       };
       audio_da_visita_para_ouvir: {
         Args: { audio_id: string };
+        Returns: Json;
+      };
+      avancar_pos_venda: {
+        Args: { p_pos_venda_id: string };
         Returns: Json;
       };
       baixar_cobranca_manual: {
@@ -110,8 +134,16 @@ export type Database = {
         };
         Returns: Json;
       };
+      base_evolucao: {
+        Args: { p_acompanhamento_id: string };
+        Returns: Json;
+      };
       buscar_duplicatas_pipeline: {
         Args: never;
+        Returns: Json;
+      };
+      capacidade: {
+        Args: { semanas?: number };
         Returns: Json;
       };
       checklist_visita: {
@@ -162,8 +194,56 @@ export type Database = {
         Args: { familia_id: string };
         Returns: Json;
       };
+      copiloto_config: {
+        Args: never;
+        Returns: Json;
+      };
+      copiloto_conversao: {
+        Args: { ate?: string; desde?: string };
+        Returns: Json;
+      };
+      copiloto_historico: {
+        Args: { limite?: number };
+        Returns: Json;
+      };
+      copiloto_leads_origem: {
+        Args: { ate?: string; desde?: string };
+        Returns: Json;
+      };
+      copiloto_ocupacao: {
+        Args: { semana_desde?: string; semanas?: number };
+        Returns: Json;
+      };
+      copiloto_pipeline: {
+        Args: { pipeline?: number };
+        Returns: Json;
+      };
+      copiloto_receita: {
+        Args: { ate?: string; desde?: string };
+        Returns: Json;
+      };
+      copiloto_registrar: {
+        Args: {
+          ferramenta: string;
+          motivo?: string;
+          parametros: Json;
+          pergunta: string;
+          situacao: string;
+          tokens_entrada?: number;
+          tokens_saida?: number;
+        };
+        Returns: Json;
+      };
       dados_contrato: {
         Args: { completo?: boolean; pessoa_id: string };
+        Returns: Json;
+      };
+      dados_emissao_nota: {
+        Args: { p_nota_id: string };
+        Returns: Json;
+      };
+      dados_envio_evolucao: {
+        Args: { p_relatorio_id: string };
         Returns: Json;
       };
       dados_link_pagamento: {
@@ -178,8 +258,24 @@ export type Database = {
         Args: { familia_id: string };
         Returns: Json;
       };
+      despesas: {
+        Args: { mes?: string };
+        Returns: Json;
+      };
+      devolver_evolucao: {
+        Args: { p_motivo: string; p_relatorio_id: string };
+        Returns: Json;
+      };
+      dre: {
+        Args: { mes?: string };
+        Returns: Json;
+      };
       eliminar_titular: {
         Args: { familia_id: string; motivo: string };
+        Returns: Json;
+      };
+      enviar_evolucao_para_revisao: {
+        Args: { p_relatorio_id: string; p_versao_base?: number };
         Returns: Json;
       };
       equipe: {
@@ -188,6 +284,18 @@ export type Database = {
       };
       escala_semanal: {
         Args: { regiao_id?: string; semana?: string };
+        Returns: Json;
+      };
+      evolucao: {
+        Args: { p_relatorio_id: string };
+        Returns: Json;
+      };
+      evolucoes: {
+        Args: { p_situacao?: string };
+        Returns: Json;
+      };
+      extrato: {
+        Args: { importacao_id?: string };
         Returns: Json;
       };
       familias_do_dia: {
@@ -231,8 +339,41 @@ export type Database = {
         Args: { oportunidade_id: string };
         Returns: Json;
       };
+      gerar_link_pesquisa: {
+        Args: { p_pos_venda_id: string };
+        Returns: Json;
+      };
+      importar_extrato: {
+        Args: { arquivo_hash: string; formato: string; linhas: Json };
+        Returns: Json;
+      };
+      inadimplencia: {
+        Args: never;
+        Returns: Json;
+      };
+      indicacao_registrar: {
+        Args: {
+          familia_id: string;
+          familia_promotora_id?: string;
+          medico_id?: string;
+          observacao?: string;
+        };
+        Returns: Json;
+      };
+      indicacoes_relatorio: {
+        Args: { ate?: string; desde?: string };
+        Returns: Json;
+      };
+      iniciar_emissao_nota: {
+        Args: { p_nota_id: string };
+        Returns: Json;
+      };
       justificar_freio: {
         Args: { familia_id: string; motivo: string };
+        Returns: Json;
+      };
+      lancamentos: {
+        Args: { mes?: string };
         Returns: Json;
       };
       lead_origem: {
@@ -260,6 +401,60 @@ export type Database = {
         };
         Returns: Database["public"]["Tables"]["log_auditoria"]["Row"][];
       };
+      manuais_listar: {
+        Args: never;
+        Returns: Json;
+      };
+      manual_confirmar_leitura: {
+        Args: { versao_id: string };
+        Returns: Json;
+      };
+      manual_leituras: {
+        Args: { manual_id: string };
+        Returns: Json;
+      };
+      manual_obter: {
+        Args: { manual_id: string };
+        Returns: Json;
+      };
+      manual_salvar: {
+        Args: {
+          ativo?: boolean;
+          categoria: string;
+          conteudo: string;
+          manual_id: string;
+          papeis_alvo: Database["public"]["Enums"]["papel_usuario"][];
+          resumo_mudanca?: string;
+          titulo: string;
+        };
+        Returns: Json;
+      };
+      marcar_pesquisa_enviada: {
+        Args: { p_pos_venda_id: string };
+        Returns: Json;
+      };
+      marketing_canais: {
+        Args: never;
+        Returns: Json;
+      };
+      marketing_canal_salvar: {
+        Args: {
+          ativo?: boolean;
+          codigo: string;
+          id: string;
+          nome: string;
+          origem: Database["public"]["Enums"]["origem_lead"];
+        };
+        Returns: Json;
+      };
+      marketing_custo_salvar: {
+        Args: { canal_id: string; mes: string; valor_centavos: number };
+        Returns: Json;
+      };
+      marketing_exportar: {
+        Args: { ate?: string; desde?: string };
+        Returns: Json;
+      };
       marketing_funil: {
         Args: { ate?: string; desde?: string };
         Returns: { estagio: string; oportunidades: number; pipeline: number }[];
@@ -273,6 +468,10 @@ export type Database = {
           qualificados: number;
         }[];
       };
+      marketing_relatorio: {
+        Args: { ate?: string; desde?: string };
+        Returns: Json;
+      };
       mesclar_familias: {
         Args: {
           familia_fica_id: string;
@@ -283,6 +482,10 @@ export type Database = {
       };
       metricas_agente: {
         Args: { ate: string; desde: string };
+        Returns: Json;
+      };
+      meus_pagamentos: {
+        Args: never;
         Returns: Json;
       };
       minhas_ofertas: {
@@ -297,6 +500,22 @@ export type Database = {
         Args: never;
         Returns: Json;
       };
+      nota_fiscal: {
+        Args: { p_nota_id: string };
+        Returns: Json;
+      };
+      notas_fiscais: {
+        Args: { p_situacao?: string };
+        Returns: Json;
+      };
+      ocorrencia: {
+        Args: { p_ocorrencia_id: string };
+        Returns: Json;
+      };
+      ocorrencias: {
+        Args: { p_familia_id?: string; p_situacao?: string };
+        Returns: Json;
+      };
       oferecer_designacao: {
         Args: {
           familia_id: string;
@@ -305,12 +524,54 @@ export type Database = {
         };
         Returns: Json;
       };
+      pagamentos_equipe: {
+        Args: { mes?: string };
+        Returns: Json;
+      };
+      pagar_equipe: {
+        Args: { data?: string; pagamento_id: string };
+        Returns: Json;
+      };
+      painel_executivo: {
+        Args: { mes?: string };
+        Returns: Json;
+      };
       parametros_da_tela: {
         Args: { chaves?: string[] };
         Returns: { atualizado_em: string; chave: string; valor: Json }[];
       };
+      parceiro_contato_registrar: {
+        Args: { medico_id: string; observacao?: string };
+        Returns: Json;
+      };
+      parceiro_salvar: {
+        Args: {
+          email?: string;
+          especialidade: Database["public"]["Enums"]["especialidade_medico"];
+          estado?: string;
+          hospital?: string;
+          medico_id: string;
+          nome: string;
+          observacao?: string;
+          proximo_contato_em?: string;
+          telefone?: string;
+        };
+        Returns: Json;
+      };
+      parceiro_tarefa_criar: {
+        Args: { medico_id: string; titulo: string; vence_em?: string };
+        Returns: Json;
+      };
+      parceiros_listar: {
+        Args: never;
+        Returns: Json;
+      };
       pausar_conversa: {
         Args: { conversa_id: string; motivo?: string };
+        Returns: Json;
+      };
+      pdf_evolucao: {
+        Args: { p_relatorio_id: string };
         Returns: Json;
       };
       pode_enviar_mensagem: {
@@ -319,6 +580,22 @@ export type Database = {
           categoria: Database["public"]["Enums"]["categoria_automacao"];
           familia_id: string;
         };
+        Returns: Json;
+      };
+      portal_familia: {
+        Args: never;
+        Returns: Json;
+      };
+      portal_familia_acessos: {
+        Args: { familia_id?: string };
+        Returns: Json;
+      };
+      portal_familia_liberar: {
+        Args: { pessoa_id: string };
+        Returns: Json;
+      };
+      portal_familia_suspender: {
+        Args: { pessoa_id: string };
         Returns: Json;
       };
       portal_familias: {
@@ -331,6 +608,10 @@ export type Database = {
       };
       portal_perfil: {
         Args: never;
+        Returns: Json;
+      };
+      pos_vendas: {
+        Args: { p_situacao?: string };
         Returns: Json;
       };
       prenatal_abrir: {
@@ -362,6 +643,23 @@ export type Database = {
         };
         Returns: Json;
       };
+      previsao_recebimentos: {
+        Args: never;
+        Returns: Json;
+      };
+      profissionais_portal: {
+        Args: never;
+        Returns: Json;
+      };
+      profissional_portal_salvar: {
+        Args: {
+          autoriza_foto: boolean;
+          autoriza_nome: boolean;
+          foto_path?: string;
+          profissional_id: string;
+        };
+        Returns: Json;
+      };
       proposta: {
         Args: { oportunidade_id: string };
         Returns: Json;
@@ -390,6 +688,10 @@ export type Database = {
           simular?: boolean;
           visita_id: string;
         };
+        Returns: Json;
+      };
+      reconciliar_extrato: {
+        Args: { importacao_id?: string };
         Returns: Json;
       };
       reenviar_notificacao_handoff: {
@@ -470,6 +772,15 @@ export type Database = {
         };
         Returns: Json;
       };
+      registrar_envio_evolucao: {
+        Args: {
+          p_enviados: Json;
+          p_erro?: string;
+          p_pdf_path: string;
+          p_relatorio_id: string;
+        };
+        Returns: Json;
+      };
       registrar_envio_tarefa: {
         Args: { tarefa_id: string; texto: string };
         Returns: Json;
@@ -499,8 +810,44 @@ export type Database = {
         };
         Returns: Json;
       };
+      registrar_nota_manual: {
+        Args: {
+          p_emitida_em: string;
+          p_nota_id: string;
+          p_numero: string;
+          p_pdf_path?: string;
+          p_provider?: string;
+          p_xml_path?: string;
+        };
+        Returns: Json;
+      };
+      registrar_ocorrencia: {
+        Args: {
+          p_descricao: string;
+          p_familia_id: string;
+          p_prioridade: string;
+          p_privada: boolean;
+          p_profissional_id: string;
+          p_responsavel_id?: string;
+          p_tipo: string;
+          p_titulo: string;
+        };
+        Returns: Json;
+      };
       registrar_previsao_alta: {
         Args: { familia_id: string; previsao_alta: string };
+        Returns: Json;
+      };
+      registrar_resultado_nota: {
+        Args: {
+          p_erro?: string;
+          p_estado: string;
+          p_nota_id: string;
+          p_numero?: string;
+          p_pdf_path?: string;
+          p_provider_ref?: string;
+          p_xml_path?: string;
+        };
         Returns: Json;
       };
       registrar_saida: {
@@ -524,6 +871,10 @@ export type Database = {
         Args: { id: string };
         Returns: Json;
       };
+      remover_despesa: {
+        Args: { despesa_id: string; motivo: string };
+        Returns: undefined;
+      };
       remover_inscricao_push: {
         Args: { p_endpoint: string };
         Returns: undefined;
@@ -542,6 +893,10 @@ export type Database = {
       };
       responder_designacao: {
         Args: { aceita: boolean; designacao_id: string; motivo?: string };
+        Returns: Json;
+      };
+      responsaveis_ocorrencia: {
+        Args: never;
         Returns: Json;
       };
       retomar_agente: {
@@ -574,6 +929,18 @@ export type Database = {
         };
         Returns: Json;
       };
+      salvar_despesa: {
+        Args: {
+          canal?: Database["public"]["Enums"]["origem_lead"];
+          categoria: string;
+          data: string;
+          descricao: string;
+          despesa_id: string;
+          fornecedor: string;
+          valor_centavos: number;
+        };
+        Returns: Json;
+      };
       salvar_documento_profissional: {
         Args: {
           id: string;
@@ -581,6 +948,17 @@ export type Database = {
           profissional_id: string;
           tipo: string;
           validade: string;
+        };
+        Returns: Json;
+      };
+      salvar_evolucao: {
+        Args: {
+          p_acompanhamento_id: string;
+          p_bebe_id: string;
+          p_conteudo: Json;
+          p_erros: Json;
+          p_tipo: string;
+          p_versao_base?: number;
         };
         Returns: Json;
       };
@@ -715,6 +1093,48 @@ export type Database = {
         Args: never;
         Returns: string;
       };
+      talento_avaliar: {
+        Args: {
+          candidata_id: string;
+          notas: Json;
+          observacoes?: string;
+          respostas: Json;
+        };
+        Returns: Json;
+      };
+      talento_estado: {
+        Args: { candidata_id: string; estado: string };
+        Returns: Json;
+      };
+      talento_obter: {
+        Args: { candidata_id: string };
+        Returns: Json;
+      };
+      talento_salvar: {
+        Args: {
+          apresentacao?: string;
+          candidata_id: string;
+          cidade?: string;
+          conselho?: string;
+          email?: string;
+          nome: string;
+          observacoes?: string;
+          telefone?: string;
+        };
+        Returns: Json;
+      };
+      talentos_listar: {
+        Args: { estado?: string };
+        Returns: Json;
+      };
+      talentos_roteiro: {
+        Args: never;
+        Returns: Json;
+      };
+      tarefas_por_equipe: {
+        Args: never;
+        Returns: Json;
+      };
       transicionar: {
         Args: {
           entidade_id: string;
@@ -733,6 +1153,20 @@ export type Database = {
           papel_minimo: Database["public"]["Enums"]["papel_usuario"];
           pode: boolean;
         }[];
+      };
+      trilha_salvar: {
+        Args: {
+          ativa: boolean;
+          manual_ids: string[];
+          nome: string;
+          papel_alvo: Database["public"]["Enums"]["papel_usuario"];
+          trilha_id: string;
+        };
+        Returns: Json;
+      };
+      trilhas_listar: {
+        Args: never;
+        Returns: Json;
       };
       ultima_ingestao_base: {
         Args: never;
@@ -2529,14 +2963,18 @@ export type Database = {
           cobranca_id: string;
           criado_em: string;
           criado_por: string | null;
+          edicao: number;
           emitida_em: string | null;
           erro: string | null;
           id: string;
+          manual: boolean;
           numero: string | null;
           pdf_path: string | null;
           provider: string;
           provider_ref: string | null;
           status: Database["public"]["Enums"]["status_nota"];
+          tentativas: number;
+          ultima_tentativa_em: string | null;
           xml_path: string | null;
         };
         Insert: {
@@ -2544,14 +2982,18 @@ export type Database = {
           cobranca_id: string;
           criado_em?: string;
           criado_por?: string | null;
+          edicao?: number;
           emitida_em?: string | null;
           erro?: string | null;
           id?: string;
+          manual?: boolean;
           numero?: string | null;
           pdf_path?: string | null;
           provider: string;
           provider_ref?: string | null;
           status?: Database["public"]["Enums"]["status_nota"];
+          tentativas?: number;
+          ultima_tentativa_em?: string | null;
           xml_path?: string | null;
         };
         Update: {
@@ -2559,14 +3001,18 @@ export type Database = {
           cobranca_id?: string;
           criado_em?: string;
           criado_por?: string | null;
+          edicao?: number;
           emitida_em?: string | null;
           erro?: string | null;
           id?: string;
+          manual?: boolean;
           numero?: string | null;
           pdf_path?: string | null;
           provider?: string;
           provider_ref?: string | null;
           status?: Database["public"]["Enums"]["status_nota"];
+          tentativas?: number;
+          ultima_tentativa_em?: string | null;
           xml_path?: string | null;
         };
         Relationships: [
@@ -2652,12 +3098,14 @@ export type Database = {
           criado_em: string;
           criado_por: string | null;
           descricao: string;
+          edicao: number;
           familia_id: string | null;
           historico: Json;
           id: string;
           prioridade: Database["public"]["Enums"]["prioridade"];
           privada: boolean;
           profissional_id: string | null;
+          resolvida_em: string | null;
           responsavel_id: string | null;
           sla_vence_em: string | null;
           status: Database["public"]["Enums"]["status_ocorrencia"];
@@ -2669,12 +3117,14 @@ export type Database = {
           criado_em?: string;
           criado_por?: string | null;
           descricao: string;
+          edicao?: number;
           familia_id?: string | null;
           historico?: Json;
           id?: string;
           prioridade: Database["public"]["Enums"]["prioridade"];
           privada?: boolean;
           profissional_id?: string | null;
+          resolvida_em?: string | null;
           responsavel_id?: string | null;
           sla_vence_em?: string | null;
           status?: Database["public"]["Enums"]["status_ocorrencia"];
@@ -2686,12 +3136,14 @@ export type Database = {
           criado_em?: string;
           criado_por?: string | null;
           descricao?: string;
+          edicao?: number;
           familia_id?: string | null;
           historico?: Json;
           id?: string;
           prioridade?: Database["public"]["Enums"]["prioridade"];
           privada?: boolean;
           profissional_id?: string | null;
+          resolvida_em?: string | null;
           responsavel_id?: string | null;
           sla_vence_em?: string | null;
           status?: Database["public"]["Enums"]["status_ocorrencia"];
@@ -3164,10 +3616,12 @@ export type Database = {
           criado_em: string;
           criado_por: string | null;
           depoimento_autorizado: boolean | null;
+          edicao: number;
           estagio: Database["public"]["Enums"]["estagio_p4"];
           id: string;
           nps: number | null;
           pesquisa_enviada_em: string | null;
+          pesquisa_expira_em: string | null;
           pesquisa_respondida_em: string | null;
           pesquisa_token_hash: string | null;
           respostas: Json | null;
@@ -3182,10 +3636,12 @@ export type Database = {
           criado_em?: string;
           criado_por?: string | null;
           depoimento_autorizado?: boolean | null;
+          edicao?: number;
           estagio?: Database["public"]["Enums"]["estagio_p4"];
           id?: string;
           nps?: number | null;
           pesquisa_enviada_em?: string | null;
+          pesquisa_expira_em?: string | null;
           pesquisa_respondida_em?: string | null;
           pesquisa_token_hash?: string | null;
           respostas?: Json | null;
@@ -3200,10 +3656,12 @@ export type Database = {
           criado_em?: string;
           criado_por?: string | null;
           depoimento_autorizado?: boolean | null;
+          edicao?: number;
           estagio?: Database["public"]["Enums"]["estagio_p4"];
           id?: string;
           nps?: number | null;
           pesquisa_enviada_em?: string | null;
+          pesquisa_expira_em?: string | null;
           pesquisa_respondida_em?: string | null;
           pesquisa_token_hash?: string | null;
           respostas?: Json | null;
@@ -3538,8 +3996,12 @@ export type Database = {
           criado_em: string;
           criado_por: string | null;
           destinatarios: Json | null;
+          edicao: number;
           enviado_em: string | null;
+          erro_envio: string | null;
+          erros_validacao: Json;
           id: string;
+          nota_revisao: string | null;
           pdf_path: string | null;
           profissional_id: string;
           status: Database["public"]["Enums"]["status_relatorio"];
@@ -3555,8 +4017,12 @@ export type Database = {
           criado_em?: string;
           criado_por?: string | null;
           destinatarios?: Json | null;
+          edicao?: number;
           enviado_em?: string | null;
+          erro_envio?: string | null;
+          erros_validacao?: Json;
           id?: string;
+          nota_revisao?: string | null;
           pdf_path?: string | null;
           profissional_id: string;
           status?: Database["public"]["Enums"]["status_relatorio"];
@@ -3572,8 +4038,12 @@ export type Database = {
           criado_em?: string;
           criado_por?: string | null;
           destinatarios?: Json | null;
+          edicao?: number;
           enviado_em?: string | null;
+          erro_envio?: string | null;
+          erros_validacao?: Json;
           id?: string;
+          nota_revisao?: string | null;
           pdf_path?: string | null;
           profissional_id?: string;
           status?: Database["public"]["Enums"]["status_relatorio"];
@@ -4077,6 +4547,22 @@ export type Database = {
       };
     };
     Functions: {
+      candidatura_abrir: {
+        Args: never;
+        Returns: Json;
+      };
+      candidatura_enviar: {
+        Args: { dados: Json; origem?: string };
+        Returns: Json;
+      };
+      captacao_iniciar: {
+        Args: { canal: string; origem?: string; utm?: Json };
+        Returns: Json;
+      };
+      captacao_pagina: {
+        Args: { canal: string };
+        Returns: Json;
+      };
       cobranca_avisar_falha_link: {
         Args: { p_cobranca_id: string; p_motivo: string };
         Returns: undefined;
@@ -4140,6 +4626,42 @@ export type Database = {
           p_status: string;
           p_wa_message_id: string;
         };
+        Returns: Json;
+      };
+      nota_para_emissao_automatica: {
+        Args: { p_cobranca_id: string };
+        Returns: Json;
+      };
+      nota_registrar_resultado: {
+        Args: {
+          p_erro?: string;
+          p_estado: string;
+          p_nota_id: string;
+          p_numero?: string;
+          p_pdf_path?: string;
+          p_provider_ref?: string;
+          p_xml_path?: string;
+        };
+        Returns: Json;
+      };
+      pesquisa_abrir: {
+        Args: { p_origem?: string; p_token: string };
+        Returns: Json;
+      };
+      pesquisa_enviar: {
+        Args: { p_origem?: string; p_respostas: Json; p_token: string };
+        Returns: Json;
+      };
+      portal_familia_localizar: {
+        Args: { email: string; origem?: string };
+        Returns: Json;
+      };
+      portal_familia_pagina: {
+        Args: never;
+        Returns: Json;
+      };
+      portal_familia_vincular: {
+        Args: { email: string; usuario_id: string };
         Returns: Json;
       };
       saude_registrar_webhook: {

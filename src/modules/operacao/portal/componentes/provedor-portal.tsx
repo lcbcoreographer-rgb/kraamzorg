@@ -89,17 +89,31 @@ export function ProvedorPortal({
     comErro: 0,
     comConflito: 0,
   });
+  // A última tentativa de envio nem chegou ao servidor: para a tela, é sem sinal,
+  // mesmo que o navegador ainda diga que está online (acontece ao reabrir a
+  // página sem rede).
+  const [envioSemRede, definirEnvioSemRede] = useState(false);
   const [sincronizadoEm, definirSincronizadoEm] = useState<number | null>(null);
   const [versaoFila, definirVersaoFila] = useState(0);
   const pendentesAntes = useRef(0);
 
   const ler = useCallback(
     async (banco: BancoOffline) => {
-      const [pendentes, comErro, comConflito] = await Promise.all([
+      const [pendentes, comErro, comConflito, semRede] = await Promise.all([
         banco.fila.where("estado").anyOf(ESTADOS_PENDENTES).count(),
-        banco.fila.where("estado").equals("erro").count(),
+        banco.fila
+          .where("estado")
+          .equals("erro")
+          .filter((item) => item.semRede !== true)
+          .count(),
         banco.fila.where("estado").equals("conflito").count(),
+        banco.fila
+          .where("estado")
+          .equals("erro")
+          .filter((item) => item.semRede === true)
+          .count(),
       ]);
+      definirEnvioSemRede(semRede > 0);
       definirContagem({ pendentes, comErro, comConflito });
       definirVersaoFila((v) => v + 1);
       if (pendentesAntes.current > 0 && pendentes === 0) {
@@ -232,7 +246,7 @@ export function ProvedorPortal({
     () => ({
       db,
       usuarioId,
-      online,
+      online: online && !envioSemRede,
       ...contagem,
       sincronizadoEm,
       tentarAgora,
@@ -244,6 +258,7 @@ export function ProvedorPortal({
       db,
       usuarioId,
       online,
+      envioSemRede,
       contagem,
       sincronizadoEm,
       tentarAgora,

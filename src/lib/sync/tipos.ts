@@ -74,6 +74,12 @@ export interface ItemFila {
   conflito?: ConflitoSincronizacao;
   /** Mensagem curta do último erro, para exibir com o botão "tentar novamente". */
   erroMensagem?: string;
+  /**
+   * Verdadeiro quando a última tentativa nem chegou ao servidor (sem rede,
+   * servidor fora do ar). O item segue pendente com espera crescente, mas a
+   * tela o trata como "salvo no aparelho", não como erro: nada foi recusado.
+   */
+  semRede?: boolean;
 }
 
 export interface ConflitoSincronizacao {

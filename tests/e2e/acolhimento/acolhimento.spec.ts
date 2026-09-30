@@ -104,9 +104,10 @@ test("pipeline no celular: página sem rolagem lateral, busca à vista e filtros
 test("tela sem módulo diz o que a pessoa vai ter, sem ler a especificação (DESIGN.md 11.7)", async ({
   page,
 }) => {
-  // /hoje virou tela de verdade no P38 e /notas no P43; o financeiro da diretoria (P46) segue sem módulo.
+  // /hoje virou tela de verdade no P38, /notas no P43 e /financeiro no P46; o início da
+  // diretoria segue sem módulo até o painel receber o resumo do dia.
   await entrarComo(page, "Diretoria");
-  await page.goto("/financeiro");
+  await page.goto("/inicio");
 
   await expect(
     page.getByRole("heading", {
@@ -116,7 +117,7 @@ test("tela sem módulo diz o que a pessoa vai ter, sem ler a especificação (DE
   ).toBeVisible();
   await expect(page.getByText(/aparecer aqui|régua de dias/)).toHaveCount(0);
   await expect(
-    page.getByText(/Aqui você vai ver a receita do mês/),
+    page.getByText(/Aqui você vai ver, uma linha para cada/),
   ).toBeVisible();
 });
 

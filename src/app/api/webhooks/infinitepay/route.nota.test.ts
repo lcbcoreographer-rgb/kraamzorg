@@ -130,19 +130,24 @@ describe("webhook da InfinitePay e a nota automática", () => {
     const r = await POST(pedido());
     expect(r.status).toBe(200);
     expect(await r.json()).toEqual({ ok: true });
-    // até aqui só a baixa: a nota espera a resposta
-    expect(funcoes()).toEqual(["cobranca_do_pedido", "cobranca_baixar"]);
+    // até aqui só a baixa e o registro de saúde do webhook: a nota espera a resposta
+    expect(funcoes()).toEqual([
+      "cobranca_do_pedido",
+      "cobranca_baixar",
+      "saude_registrar_webhook",
+    ]);
     expect(estado.depois).toHaveLength(1);
 
     await estado.depois[0]!();
     expect(funcoes()).toEqual([
       "cobranca_do_pedido",
       "cobranca_baixar",
+      "saude_registrar_webhook",
       "nota_para_emissao_automatica",
       "nota_registrar_resultado",
     ]);
-    expect(estado.chamadas[2]?.args).toEqual({ p_cobranca_id: COBRANCA });
-    expect(estado.chamadas[3]?.args).toMatchObject({
+    expect(estado.chamadas[3]?.args).toEqual({ p_cobranca_id: COBRANCA });
+    expect(estado.chamadas[4]?.args).toMatchObject({
       p_nota_id: NOTA,
       p_estado: "emitida",
       p_numero: "88",
@@ -161,6 +166,7 @@ describe("webhook da InfinitePay e a nota automática", () => {
     expect(funcoes()).toEqual([
       "cobranca_do_pedido",
       "cobranca_baixar",
+      "saude_registrar_webhook",
       "nota_para_emissao_automatica",
     ]);
     expect(pedidosAoProvedor).toEqual([]);
@@ -172,7 +178,11 @@ describe("webhook da InfinitePay e a nota automática", () => {
     const r = await POST(pedido());
     expect(r.status).toBe(200);
     expect(estado.depois).toEqual([]);
-    expect(funcoes()).toEqual(["cobranca_do_pedido", "cobranca_baixar"]);
+    expect(funcoes()).toEqual([
+      "cobranca_do_pedido",
+      "cobranca_baixar",
+      "saude_registrar_webhook",
+    ]);
   });
 
   it("provedor recusa: o motivo volta ao banco e a resposta do webhook não muda", async () => {
@@ -198,6 +208,10 @@ describe("webhook da InfinitePay e a nota automática", () => {
     const r = await POST(pedido());
     expect(r.status).toBe(200);
     await expect(estado.depois[0]!()).resolves.toBeUndefined();
-    expect(funcoes()).toEqual(["cobranca_do_pedido", "cobranca_baixar"]);
+    expect(funcoes()).toEqual([
+      "cobranca_do_pedido",
+      "cobranca_baixar",
+      "saude_registrar_webhook",
+    ]);
   });
 });

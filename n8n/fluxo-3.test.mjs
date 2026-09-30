@@ -1759,7 +1759,7 @@ describe('fluxo 3 · entrada B da agenda no simulador', () => {
     assert.equal(ambiente.estado.fluxo4[0].entrada.operacao, 'consultar');
     assert.match(ambiente.estado.openai[0].corpo.messages[0].content, /sexta, 02\/10, às 14h/);
     assert.deepEqual(ambiente.chamadas('pode_enviar')[0].argumentos, ['c5', 'conteudo', null]);
-    assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e5', texto, true]);
+    assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e5', texto, true, null]);
 
     // horário de ontem no texto do modelo: reprovado
     const velho = criarAmbiente({
@@ -1778,7 +1778,7 @@ describe('fluxo 3 · entrada B da agenda no simulador', () => {
     });
     await rodarAgendado(semAgenda);
     assert.equal(semAgenda.estado.envios.length, 0);
-    assert.deepEqual(semAgenda.chamadas('registrar_followup')[0].argumentos, ['e5', null, false]);
+    assert.deepEqual(semAgenda.chamadas('registrar_followup')[0].argumentos, ['e5', null, false, null]);
   });
 });
 

@@ -2550,6 +2550,17 @@ comment on function public.nota_registrar_resultado(uuid, text, text, text, text
 -- sem grant nenhum.
 -- =============================================================================
 
+-- Escrita direta fechada. Os grants por coluna que o app herdou da 0007 deixavam a
+-- enfermeira responsável apagar o histórico de uma ocorrência, a coordenação pular
+-- as regras de andamento e de SLA, escrever NPS e classificação e forjar a resposta
+-- e as autorizações de depoimento e de imagem, e o financeiro dar uma nota por
+-- emitida sem o provedor ou o registro manual conferido. Tudo isso agora só se faz
+-- pelas funções de api (security definer, papel e AAL conferidos por dentro), que já
+-- são o único caminho do app. A leitura continua pelas políticas da 0007.
+revoke insert, update on public.ocorrencia  from authenticated;
+revoke insert, update on public.pos_venda   from authenticated;
+revoke insert, update on public.nota_fiscal from authenticated;
+
 revoke execute on function privado.recusar(text, text, text)                       from public, anon, authenticated, service_role;
 revoke execute on function privado.incrementar_edicao()                            from public, anon, authenticated, service_role;
 revoke execute on function privado.hoje_sp()                                       from public, anon, authenticated, service_role;

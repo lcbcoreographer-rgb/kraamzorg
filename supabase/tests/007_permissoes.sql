@@ -715,14 +715,14 @@ select throws_ok(
   '42501', null, 'nem a diretoria troca pelo app o condutor da sessão (correção por função, P29)');
 select testes.encerrar();
 
--- ocorrência: privada só coordenação e diretoria; responsável muda só status
+-- ocorrência: privada só coordenação e diretoria; o responsável lê e anda pela função
+-- api.atualizar_ocorrencia (0024 tirou a escrita direta: histórico e SLA são das funções)
 select testes.autenticar_authenticated(testes.uid('comercial'), 'aal1');
 select is((select count(*)::integer from ocorrencia), 1, 'responsável comercial vê só a ocorrência não privada');
-select is(
-  testes.afetadas($s$ update ocorrencia set status = 'em_acompanhamento' $s$), 1,
-  'responsável atualiza o status da ocorrência');
+select throws_ok($s$ update ocorrencia set status = 'em_acompanhamento' $s$, '42501', null,
+  'responsável não muda o status da ocorrência pela tabela (é pela função, que grava o histórico)');
 select throws_ok($s$ update ocorrencia set titulo = 'outro' $s$, '42501', null,
-  'responsável não reescreve a ocorrência (só status e histórico)');
+  'responsável não reescreve a ocorrência (só status e histórico, e só pela função)');
 select testes.encerrar();
 
 -- agenda: enfermeira vê só a própria; não grava direto

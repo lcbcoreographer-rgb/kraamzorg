@@ -203,6 +203,7 @@ describe("chegada e saída sem sinal", () => {
     const item = (await db.fila.toArray())[0]!;
     expect(item.estado).toBe("erro");
     expect(item.erroMensagem).toContain("equipe:");
+    expect(item.semRede).toBe(false);
     // a visita continua como estava e o item fica na fila para nova tentativa
     expect((await primeiraVisita()).checkinEm).toBeNull();
     expect(resumo.pendentesRestantes).toBe(1);

@@ -13,6 +13,12 @@ import {
 /** Espera crescente entre tentativas (PRD 15: "reenvio e espera crescente"). */
 const ESPERA_BASE_MS = 2_000;
 const ESPERA_MAXIMA_MS = 5 * 60 * 1_000;
+/**
+ * Sem conexão, tentar de novo é barato (a chamada falha na hora) e o que
+ * importa é subir logo que o sinal voltar, inclusive quando o navegador não
+ * avisa (evento `online` que não vem). A espera não passa disto.
+ */
+const ESPERA_MAXIMA_SEM_REDE_MS = 5_000;
 
 export function calcularEsperaMs(tentativas: number): number {
   return Math.min(ESPERA_BASE_MS * 2 ** tentativas, ESPERA_MAXIMA_MS);
@@ -376,7 +382,11 @@ async function processarFilaAgora(
     resposta = await enviar(lote.map(itemParaEnvio));
   } catch (erro) {
     // Sem rede ou servidor fora do ar: todo o lote volta para trás da fila,
-    // com espera crescente (regra 15). Nada se perde.
+    // com espera crescente (regra 15). Nada se perde. Quando a chamada nem
+    // chegou ao servidor, a espera fica curta (`ESPERA_MAXIMA_SEM_REDE_MS`) e a
+    // tela trata o item como salvo no aparelho, não como erro.
+    const chegouAoServidor =
+      erro instanceof Error && /respondeu \d{3}/.test(erro.message);
     await db.fila.bulkUpdate(
       lote.map((item) => {
         const tentativas = item.tentativas + 1;
@@ -385,8 +395,16 @@ async function processarFilaAgora(
           changes: {
             estado: "erro" as const,
             tentativas,
-            proximoEnvioEm: agora + calcularEsperaMs(tentativas),
+            proximoEnvioEm:
+              agora +
+              (chegouAoServidor
+                ? calcularEsperaMs(tentativas)
+                : Math.min(
+                    calcularEsperaMs(tentativas),
+                    ESPERA_MAXIMA_SEM_REDE_MS,
+                  )),
             erroMensagem: erro instanceof Error ? erro.message : String(erro),
+            semRede: !chegouAoServidor,
           },
         };
       }),
@@ -413,6 +431,7 @@ async function processarFilaAgora(
             tentativas,
             proximoEnvioEm: agora + calcularEsperaMs(tentativas),
             erroMensagem: "sem resultado do servidor para este item",
+            semRede: false,
           },
         };
       }
@@ -449,6 +468,7 @@ async function processarFilaAgora(
           tentativas,
           proximoEnvioEm: agora + calcularEsperaMs(tentativas),
           erroMensagem: resultado.erro,
+          semRede: false,
         },
       };
     }),
@@ -479,6 +499,10 @@ export function iniciarMotorSincronizacao(
   const intervaloMs = config.intervaloMs ?? 5_000;
 
   const tentar = (opcoes: OpcoesProcessamento) => {
+    // O aparelho sabe que está sem rede: não gasta tentativa nem marca o item
+    // como erro. Ele fica "salvo no aparelho" e sobe quando a conexão volta
+    // (evento `online`), sem a espera crescente de uma falha de verdade.
+    if (typeof navigator !== "undefined" && navigator.onLine === false) return;
     // Falha aqui já ficou registrada no item (estado "erro"); o gatilho
     // seguinte tenta de novo.
     processarFila(db, enviar, undefined, opcoes).catch(() => undefined);
