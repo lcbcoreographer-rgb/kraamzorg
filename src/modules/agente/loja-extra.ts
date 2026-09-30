@@ -2,18 +2,14 @@ import { garantirDemonstracaoPermitida } from "@/lib/dados/modo";
 import { TRANSFERENCIAS } from "@/lib/dados/demonstracao/fixtures";
 import type {
   ClassificacaoNaoLead,
-  ConfiguracaoAgente,
   ItemBaseConhecimento,
-  ModoAgente,
   UltimaIngestao,
 } from "./tipos";
 
 /**
  * Loja em memória do modo demonstração, só para o que este módulo
  * acrescenta e a loja da fundação (`src/lib/dados/demonstracao/loja.ts`)
- * não guarda: modo do agente e números de teste (a fundação seleciona por
- * `agente_modo`/`agente_whitelist` só como leitura de `configuracoes`, sem
- * escrita), base de conhecimento (schema `agente`, fora do que
+ * não guarda: base de conhecimento (schema `agente`, fora do que
  * `LojaDemonstracao` cobre) e o texto da pausa manual de uma conversa
  * (`conversa.agente_pausa_motivo`, que `ResumoConversa` não expõe).
  *
@@ -23,11 +19,6 @@ import type {
  */
 export interface LojaAgenteExtra {
   criadaEm: number;
-  modo: ModoAgente;
-  numerosTeste: string[];
-  configAtualizadaEm: string | null;
-  followupHoras: number;
-  followupAtualizadoEm: string | null;
   baseConhecimento: ItemBaseConhecimento[];
   ultimaIngestao: UltimaIngestao | null;
   /** conversaId -> texto da pausa manual ("Assumida por Otávio Lemos às 15:26."). */
@@ -100,11 +91,6 @@ function itensIniciais(agora: number): ItemBaseConhecimento[] {
 function criarLojaExtra(agora = Date.now()): LojaAgenteExtra {
   return {
     criadaEm: agora,
-    modo: "teste",
-    numerosTeste: ["+5511900000001", "+5511900000002"],
-    configAtualizadaEm: isoDaqui(agora, -7 * 24 * 60),
-    followupHoras: 48,
-    followupAtualizadoEm: isoDaqui(agora, -4 * 24 * 60),
     baseConhecimento: itensIniciais(agora),
     ultimaIngestao: {
       em: isoDaqui(agora, -2 * 24 * 60),
@@ -144,14 +130,6 @@ export function reiniciarLojaExtra(agora?: number): LojaAgenteExtra {
   >;
   global[CHAVE_GLOBAL] = criarLojaExtra(agora);
   return global[CHAVE_GLOBAL];
-}
-
-export function configuracaoDaLoja(l: LojaAgenteExtra): ConfiguracaoAgente {
-  return {
-    modo: l.modo,
-    numerosTeste: [...l.numerosTeste],
-    atualizadoEm: l.configAtualizadaEm,
-  };
 }
 
 export const CLASSIFICACOES_NAO_LEAD: readonly ClassificacaoNaoLead[] = [

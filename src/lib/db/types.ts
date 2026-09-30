@@ -3440,6 +3440,7 @@ export type Database = {
           atualizado_por: string | null;
           chave: string;
           descricao: string | null;
+          restrito: boolean;
           valor: Json;
         };
         Insert: {
@@ -3447,6 +3448,7 @@ export type Database = {
           atualizado_por?: string | null;
           chave: string;
           descricao?: string | null;
+          restrito?: boolean;
           valor: Json;
         };
         Update: {
@@ -3454,6 +3456,7 @@ export type Database = {
           atualizado_por?: string | null;
           chave?: string;
           descricao?: string | null;
+          restrito?: boolean;
           valor?: Json;
         };
         Relationships: [];

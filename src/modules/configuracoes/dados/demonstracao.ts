@@ -29,6 +29,16 @@ function ehCoordenacaoOuDiretoria(papeis: readonly Papel[]): boolean {
   return papeis.includes("coordenacao") || papeis.includes("diretoria");
 }
 
+/**
+ * [v4.5] Espelha o gatilho do banco (`privado.chave_parametro_restrita`, 0029)
+ * para chave NOVA: prefixos `agente_` e `agenda_`. As demais chaves restritas
+ * vêm marcadas no seed da demonstração (`parametros.json`, campo `restrito`);
+ * o teste `parametros-agente.test.ts` confere que as duas listas coincidem.
+ */
+export function chaveDoPrefixoDoAgente(chave: string): boolean {
+  return chave.startsWith("agente_") || chave.startsWith("agenda_");
+}
+
 function negar(motivo: string): never {
   throw new ErroRepositorio("sem_permissao", `demonstração: ${motivo}`);
 }
@@ -68,7 +78,11 @@ export function criarConfiguracoesModuloDemonstracao(
       if (!ehDiretoria(contexto.papeis))
         negar("só a diretoria altera parâmetros");
       const loja = obterLoja();
-      const parametro = loja.parametros.find((p) => p.chave === chave);
+      // Parâmetro do agente: a RLS esconde a linha, então para o app ele não
+      // existe (PRD 6.8 [v4.5]).
+      const parametro = loja.parametros.find(
+        (p) => p.chave === chave && !p.restrito,
+      );
       if (!parametro) {
         throw new ErroRepositorio(
           "nao_encontrado",
@@ -93,6 +107,9 @@ export function criarConfiguracoesModuloDemonstracao(
       if (!ehDiretoria(contexto.papeis))
         negar("só a diretoria cria parâmetros");
       const loja = obterLoja();
+      if (chaveDoPrefixoDoAgente(chave)) {
+        negar("parâmetro do agente é mantido pela equipe de implantação");
+      }
       if (loja.parametros.some((p) => p.chave === chave)) {
         throw new ErroRepositorio(
           "recusado",
@@ -114,6 +131,9 @@ export function criarConfiguracoesModuloDemonstracao(
 
     async historicoParametro(chave) {
       if (!ehDiretoria(contexto.papeis)) return [];
+      if (obterLoja().parametros.some((p) => p.chave === chave && p.restrito)) {
+        return [];
+      }
       return [...(lojaModulo().historicoParametros[chave] ?? [])];
     },
 

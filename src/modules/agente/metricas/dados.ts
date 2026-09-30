@@ -134,9 +134,10 @@ export function periodoPadrao(agora: Date = new Date()): {
 /**
  * Limiar de amostra pequena dos números do mês (DESIGN.md, 11.10), em
  * `parametro.agente_metricas_amostra_minima` (proposta: 20 [confirmar:
- * Leonardo]). O parâmetro ainda não existe no seed: sem ele, ou para quem
- * a RLS não deixa ler `parametro`, volta null e a tela não mostra a nota,
- * em vez de fixar um número no código.
+ * Leonardo]). O parâmetro ainda não existe no seed: sem ele, volta null e a
+ * tela não mostra a nota, em vez de fixar um número no código. [v4.5] O
+ * prefixo `agente_` o torna parâmetro do agente (`parametro.restrito`): o app
+ * não o lê, então hoje volta sempre null (PRD 22.4 O-16).
  */
 export async function obterLimiarAmostra(): Promise<number | null> {
   try {

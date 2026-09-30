@@ -183,6 +183,7 @@ export function criarLoja(agora = Date.now()): LojaDemonstracao {
       chave: p.chave,
       valor: p.valor,
       descricao: p.descricao,
+      restrito: p.restrito ?? false,
       atualizadoEm: isoDaqui(agora, -7 * 24 * 60),
     })),
     mensagensModelo: [

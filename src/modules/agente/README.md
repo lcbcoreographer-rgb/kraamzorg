@@ -17,8 +17,9 @@ conteúdo). Documentação completa da sessão: `docs/sessoes/p27-agente.md`.
   espelha o filtro que `AgenteRepositorio.listarConversas` já aplica).
 - `repositorio.ts`: o que este módulo acrescenta aos repositórios da
   fundação (pausa e retomada do agente numa conversa, resolver
-  transferência com desfecho, modo do agente e números de teste, base de
-  conhecimento, métricas). Cada função diz, no comentário, se já funciona
+  transferência com desfecho, base de conhecimento, métricas). O modo
+  do agente, os números de teste e a janela de retomada não são do app
+  (PRD 6.8 [v4.5], `parametro.restrito`). Cada função diz, no comentário, se já funciona
   contra o Supabase real (grants do P07) ou se espera uma função `api.*`
   ainda não escrita (0012 a 0014, `rpcPendente`).
 - `loja-extra.ts`: loja em memória do modo demonstração só para o que a

@@ -7,12 +7,14 @@
   {
     "chave": "agente_debounce_segundos",
     "valor": 20,
-    "descricao": "PRD 11.3: agrupamento de mensagens, padrão Drop."
+    "descricao": "PRD 11.3: agrupamento de mensagens, padrão Drop.",
+    "restrito": true
   },
   {
     "chave": "agente_followup_horas",
     "valor": 48,
-    "descricao": "[v4.2] PRD 4.1 D-18, 11.3, 6.8: primeiro retorno da Isadora depois de tanto tempo sem resposta. Padrão 48, mínimo 24 (a função de gravação recusa valor menor) [confirmar: Leonardo, valor padrão]."
+    "descricao": "[v4.2] PRD 4.1 D-18, 11.3, 6.8: primeiro retorno da Isadora depois de tanto tempo sem resposta. Padrão 48, mínimo 24 (a função de gravação recusa valor menor) [confirmar: Leonardo, valor padrão].",
+    "restrito": true
   },
   {
     "chave": "agente_janela_envio",
@@ -20,42 +22,50 @@
       "fim": "20:00",
       "inicio": "08:00"
     },
-    "descricao": "PRD 11.3: janela de envio proativo, uma mensagem de conteúdo por dia por família; [confirmar]."
+    "descricao": "PRD 11.3: janela de envio proativo, uma mensagem de conteúdo por dia por família; [confirmar].",
+    "restrito": true
   },
   {
     "chave": "agente_modo",
     "valor": "desligado",
-    "descricao": "PRD 11.3, 22.1 T-01: desligado em produção até a conta do WhatsApp ser restaurada e o adaptador cloud_api estar pronto. Seed local usa teste (ver observação abaixo)."
+    "descricao": "PRD 11.3, 22.1 T-01: desligado em produção até a conta do WhatsApp ser restaurada e o adaptador cloud_api estar pronto. Seed local usa teste (ver observação abaixo).",
+    "restrito": true
   },
   {
     "chave": "agente_pausa_handoff_horas",
     "valor": 48,
-    "descricao": "PRD 11.3: pausa depois de handoff (motivos não comerciais, antes da qualificação); [confirmar]."
+    "descricao": "PRD 11.3: pausa depois de handoff (motivos não comerciais, antes da qualificação); [confirmar].",
+    "restrito": true
   },
   {
     "chave": "agente_pausa_humano_horas",
     "valor": 48,
-    "descricao": "PRD 11.3: pausa quando alguém da equipe digita pelo celular; [confirmar]."
+    "descricao": "PRD 11.3: pausa quando alguém da equipe digita pelo celular; [confirmar].",
+    "restrito": true
   },
   {
     "chave": "agente_whitelist",
     "valor": ["+5511900000001", "+5511900000002"],
-    "descricao": "Números autorizados no modo teste (PRD 11.7). Só dado sintético."
+    "descricao": "Números autorizados no modo teste (PRD 11.7). Só dado sintético.",
+    "restrito": true
   },
   {
     "chave": "alerta_emocional_ativo",
     "valor": false,
-    "descricao": "PRD 6.8, 22.3 K-17: desligado até a Edilaine aprovar o texto alerta_emocional; enquanto isso vale alerta_saude."
+    "descricao": "PRD 6.8, 22.3 K-17: desligado até a Edilaine aprovar o texto alerta_emocional; enquanto isso vale alerta_saude.",
+    "restrito": true
   },
   {
     "chave": "alerta_internacao_ativo",
     "valor": false,
-    "descricao": "PRD 6.8, 22.3 K-16: desligado até a Edilaine aprovar o texto alerta_internacao; enquanto isso vale alerta_saude."
+    "descricao": "PRD 6.8, 22.3 K-16: desligado até a Edilaine aprovar o texto alerta_internacao; enquanto isso vale alerta_saude.",
+    "restrito": true
   },
   {
     "chave": "alerta_saude_sensivel_ativo",
     "valor": false,
-    "descricao": "[v4.2] PRD 6.8, 22.3 K-20: desligado até a Edilaine aprovar; enquanto isso só o aviso interno de prioridade máxima."
+    "descricao": "[v4.2] PRD 6.8, 22.3 K-20: desligado até a Edilaine aprovar; enquanto isso só o aviso interno de prioridade máxima.",
+    "restrito": true
   },
   {
     "chave": "capacidade_alerta_pct",
@@ -84,7 +94,8 @@
       "fuso": "America/Sao_Paulo",
       "inicio": "09:00"
     },
-    "descricao": "PRD 11.4: SLA em horas úteis usa este expediente [confirmar]."
+    "descricao": "PRD 11.4: SLA em horas úteis usa este expediente [confirmar].",
+    "restrito": true
   },
   {
     "chave": "freio_desfazer_segundos",
@@ -98,7 +109,8 @@
       "comercial": "000000000-teste-comercial@g.us",
       "coordenacao_clinica": "000000000-teste-clinico@g.us"
     },
-    "descricao": "PRD 6.8: JIDs dos grupos internos do WhatsApp. Placeholders sintéticos, nunca um JID real."
+    "descricao": "PRD 6.8: JIDs dos grupos internos do WhatsApp. Placeholders sintéticos, nunca um JID real.",
+    "restrito": true
   },
   {
     "chave": "handoff_matriz",
@@ -215,12 +227,14 @@
         "sla_horas_uteis": 4
       }
     ],
-    "descricao": "PRD 11.4: tabela de handoff (situação, motivo, destino, prioridade, SLA), editável sem deploy."
+    "descricao": "PRD 11.4: tabela de handoff (situação, motivo, destino, prioridade, SLA), editável sem deploy.",
+    "restrito": true
   },
   {
     "chave": "horarios_edilaine",
     "valor": null,
-    "descricao": "PRD 6.8, 22.1 T-08: opcional, campo livre de link; sem ferramenta de vídeo definida ainda."
+    "descricao": "PRD 6.8, 22.1 T-08: opcional, campo livre de link; sem ferramenta de vídeo definida ainda.",
+    "restrito": true
   },
   {
     "chave": "janela_dpp_dias",
@@ -238,17 +252,20 @@
       "versao": "2026-03",
       "tamanho_mb": 3
     },
-    "descricao": "PRD 6.8, 22.1 T-04: caminho no storage, nome do arquivo e versão. Placeholder: o PDF real ainda não entra no repositório."
+    "descricao": "PRD 6.8, 22.1 T-04: caminho no storage, nome do arquivo e versão. Placeholder: o PDF real ainda não entra no repositório.",
+    "restrito": true
   },
   {
     "chave": "pdf_reenvio_janela_horas",
     "valor": 0,
-    "descricao": "PRD 6.8, 11.11 item 3, 22.2 C-18: 0 = a apresentação sempre acompanha valor, sem pular reenvio, até o Leonardo decidir o item B dos ajustes."
+    "descricao": "PRD 6.8, 11.11 item 3, 22.2 C-18: 0 = a apresentação sempre acompanha valor, sem pular reenvio, até o Leonardo decidir o item B dos ajustes.",
+    "restrito": true
   },
   {
     "chave": "plantao_telefones",
     "valor": ["+5511900000003"],
-    "descricao": "PRD 6.8: números do plantão para prioridade máxima. Só dado sintético."
+    "descricao": "PRD 6.8: números do plantão para prioridade máxima. Só dado sintético.",
+    "restrito": true
   },
   {
     "chave": "prazos_relatorio",
@@ -332,7 +349,8 @@
   {
     "chave": "taxa_visivel_agente",
     "valor": false,
-    "descricao": "PRD 6.8, 22.2 C-17: a Isadora nunca confirma o valor da taxa de deslocamento, só avisa que existe e passa para o comercial."
+    "descricao": "PRD 6.8, 22.2 C-17: a Isadora nunca confirma o valor da taxa de deslocamento, só avisa que existe e passa para o comercial.",
+    "restrito": true
   },
   {
     "chave": "validador_listas",
@@ -368,6 +386,7 @@
         "imperdível"
       ]
     },
-    "descricao": "PRD 6.8, 11.6, 11.11 item 5: listas lidas pelo validador do fluxo 3, nunca escritas no código (fluxo 3 ainda não existe, fica pronto para o P22 a P25)."
+    "descricao": "PRD 6.8, 11.6, 11.11 item 5: listas lidas pelo validador do fluxo 3, nunca escritas no código (fluxo 3 ainda não existe, fica pronto para o P22 a P25).",
+    "restrito": true
   }
 ]

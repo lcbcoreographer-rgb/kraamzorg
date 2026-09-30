@@ -57,24 +57,24 @@ afterEach(() => {
 describe("parâmetros: só a diretoria, com histórico", () => {
   it("comercial não lê nem grava parâmetros", async () => {
     const comercial = repoComercial();
-    expect(await comercial.historicoParametro("agente_followup_horas")).toEqual(
-      [],
-    );
+    expect(
+      await comercial.historicoParametro("freio_desfazer_segundos"),
+    ).toEqual([]);
     await expect(
-      comercial.atualizarParametro("agente_followup_horas", 72),
+      comercial.atualizarParametro("freio_desfazer_segundos", 20),
     ).rejects.toMatchObject({ codigo: "sem_permissao" });
   });
 
   it("a diretoria atualiza um parâmetro e o histórico registra antes e depois", async () => {
     const diretoria = repoDiretoria();
-    await diretoria.atualizarParametro("agente_followup_horas", 72);
+    await diretoria.atualizarParametro("freio_desfazer_segundos", 20);
     const historico = await diretoria.historicoParametro(
-      "agente_followup_horas",
+      "freio_desfazer_segundos",
     );
     expect(historico).toHaveLength(1);
     expect(historico[0]).toMatchObject({
-      valorAntes: 48,
-      valorDepois: 72,
+      valorAntes: 10,
+      valorDepois: 20,
       usuarioId: DIRETORIA_ID,
     });
   });

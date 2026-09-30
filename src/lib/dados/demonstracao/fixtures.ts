@@ -193,6 +193,8 @@ export const PARAMETROS = parametrosSeed as {
   chave: string;
   valor: Json;
   descricao: string | null;
+  /** Parâmetro do agente (PRD 6.8 [v4.5]): o app não o lê nem o altera. */
+  restrito?: boolean;
 }[];
 
 /** Copiadas do seed (mensagem_modelo), com o status de lá. */

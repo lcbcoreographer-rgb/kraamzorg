@@ -230,8 +230,8 @@ select results_eq(
   'comercial em aal1 lê as duas chaves que pediu, com o valor do banco');
 select set_eq(
   $$ select chave from api.parametros_da_tela() $$,
-  $$ values ('freio_desfazer_segundos'), ('comercial_resposta_no_app'), ('agente_pausa_humano_horas'), ('agente_followup_horas') $$,
-  'comercial, sem lista: as quatro chaves do papel');
+  $$ values ('freio_desfazer_segundos'), ('comercial_resposta_no_app') $$,
+  'comercial, sem lista: as duas chaves do papel (0029: sem parâmetro do agente)');
 select throws_ok($$ select * from api.parametros_da_tela(array['plantao_telefones']) $$,
   '42501', null, 'plantao_telefones (telefone pessoal) fica fora da lista');
 select throws_ok($$ select * from api.parametros_da_tela(array['agente_whitelist']) $$,
@@ -267,8 +267,8 @@ select testes.autenticar_authenticated('a1500000-0000-4000-8000-000000000005', '
 select throws_ok($$ select * from api.parametros_da_tela() $$,
   '42501', null, 'coordenação em aal1 é recusada (perfil exige MFA)');
 select testes.autenticar_authenticated('a1500000-0000-4000-8000-000000000005', 'aal2');
-select is((select valor from api.parametros_da_tela(array['agente_pausa_humano_horas'])), '48'::jsonb,
-  'coordenação em aal2 lê agente_pausa_humano_horas');
+select throws_ok($$ select * from api.parametros_da_tela(array['agente_pausa_humano_horas']) $$,
+  '42501', null, 'coordenação em aal2 não lê agente_pausa_humano_horas (0029: parâmetro do agente)');
 
 select testes.autenticar_authenticated('a1500000-0000-4000-8000-000000000007', 'aal2');
 select throws_ok($$ select * from api.parametros_da_tela() $$,
@@ -279,9 +279,9 @@ select throws_ok($$ select * from api.parametros_da_tela() $$,
 select testes.encerrar();
 
 -- chave da lista que ainda não existe em parametro: não inventa valor
-delete from parametro where chave = 'agente_followup_horas';
+delete from parametro where chave = 'comercial_resposta_no_app';
 select testes.autenticar_authenticated('a1500000-0000-4000-8000-000000000001', 'aal1');
-select is_empty($$ select * from api.parametros_da_tela(array['agente_followup_horas']) $$,
+select is_empty($$ select * from api.parametros_da_tela(array['comercial_resposta_no_app']) $$,
   'chave da lista ausente em parametro: nenhuma linha, nenhum valor inventado');
 select testes.encerrar();
 
