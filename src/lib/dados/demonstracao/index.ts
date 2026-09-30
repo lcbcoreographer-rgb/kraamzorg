@@ -122,6 +122,8 @@ export function criarRepositoriosDemonstracao(
       uf: f.cidade.uf,
       dpp: f.dpp,
       dataNascimento: f.dataNascimento,
+      dataAlta: f.dataAlta,
+      dataInicioEfetivo: f.dataInicioEfetivo,
       estadoSensivel: f.estadoSensivel,
       naoContatar: f.naoContatar,
       gemelar: f.gemelar,

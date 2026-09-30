@@ -68,6 +68,8 @@ export function resumoDaLinha(linha: LinhaFamilia): ResumoFamilia {
     uf: linha.cidade?.uf ?? null,
     dpp: linha.dpp,
     dataNascimento: linha.data_nascimento,
+    dataAlta: linha.data_alta,
+    dataInicioEfetivo: linha.data_inicio_efetivo,
     estadoSensivel: linha.estado_sensivel,
     naoContatar: linha.nao_contatar,
     gemelar: linha.gemelar,

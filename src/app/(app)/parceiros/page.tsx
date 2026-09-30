@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChartColumn, LockKeyhole } from "lucide-react";
-import { ChaveDeCasa } from "@/components/ilustracoes";
+import { SecaoBloco } from "@/components/blocos/secao-bloco";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { Botao } from "@/components/ui/botao";
-import { TileIcone } from "@/components/ui/tile-icone";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { TabelaLista } from "@/components/ui/tabela-lista";
@@ -58,7 +57,7 @@ export default async function PaginaParceiros() {
         titulo="Parceiros médicos"
         subtitulo="Os médicos que conhecem a Kraamzorg, as indicações que chegaram e o contato combinado com cada um."
       />
-      <div className="flex flex-col gap-8 pt-6">
+      <div className="flex flex-col gap-10 pt-6">
         {semMfa ? (
           <div className="rounded-3 bg-superficie shadow-1 flex max-w-[560px] flex-col gap-3 p-5">
             <p className="text-corpo text-texto flex items-start gap-3">
@@ -105,95 +104,97 @@ export default async function PaginaParceiros() {
               {lista.aviso}
             </FaixaAlerta>
             <PainelParceiros parceiros={lista.parceiros} familias={familias} />
-            <section
-              aria-labelledby="relatorio"
-              className="flex flex-col gap-3"
+            <SecaoBloco
+              idTitulo="relatorio"
+              titulo="Relatório de indicações"
+              icone={<ChartColumn />}
+              tom="areia"
+              apoio="Quem indicou, quantas famílias chegaram e quantas viraram contrato. As mesmas indicações entram na origem do marketing."
             >
-              <h2
-                id="relatorio"
-                className="font-titulo text-2 text-texto flex items-center gap-3 font-medium"
-              >
-                <TileIcone tom="areia" forma="quadrado">
-                  <ChartColumn />
-                </TileIcone>
-                Relatório por médico
-              </h2>
               {relatorio && relatorio.porMedico.length > 0 ? (
-                <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
-                  <TabelaLista
-                    rotulo="Indicações por médico parceiro"
-                    colunas={[
-                      { chave: "nome", rotulo: "Médico", principal: true },
-                      { chave: "especialidade", rotulo: "Especialidade" },
-                      {
-                        chave: "indicacoes",
-                        rotulo: "Indicações",
-                        numerica: true,
-                      },
-                      {
-                        chave: "qualificadas",
-                        rotulo: "Qualificadas",
-                        numerica: true,
-                      },
-                      {
-                        chave: "contratos",
-                        rotulo: "Viraram contrato",
-                        numerica: true,
-                      },
-                    ]}
-                    linhas={relatorio.porMedico.map((m) => ({
-                      id: m.medicoId,
-                      valores: {
-                        nome: m.nome,
-                        especialidade: ROTULO_ESPECIALIDADE[m.especialidade],
-                        indicacoes: String(m.indicacoes),
-                        qualificadas: String(m.qualificadas),
-                        contratos: String(m.contratos),
-                      },
-                    }))}
-                  />
+                <div className="grid items-start gap-4 2xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
+                  <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 flex flex-col gap-2 min-[720px]:p-5">
+                    <h3 className="text-3 text-texto font-semibold">
+                      Por médico parceiro
+                    </h3>
+                    <TabelaLista
+                      rotulo="Indicações por médico parceiro"
+                      colunas={[
+                        { chave: "nome", rotulo: "Médico", principal: true },
+                        { chave: "especialidade", rotulo: "Especialidade" },
+                        {
+                          chave: "indicacoes",
+                          rotulo: "Indicações",
+                          numerica: true,
+                        },
+                        {
+                          chave: "qualificadas",
+                          rotulo: "Qualificadas",
+                          numerica: true,
+                        },
+                        {
+                          chave: "contratos",
+                          rotulo: "Viraram contrato",
+                          numerica: true,
+                        },
+                      ]}
+                      linhas={relatorio.porMedico.map((m) => ({
+                        id: m.medicoId,
+                        valores: {
+                          nome: m.nome,
+                          especialidade: ROTULO_ESPECIALIDADE[m.especialidade],
+                          indicacoes: String(m.indicacoes),
+                          qualificadas: String(m.qualificadas),
+                          contratos: String(m.contratos),
+                        },
+                      }))}
+                    />
+                  </div>
+                  {relatorio.porPromotora.length > 0 ? (
+                    <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 flex flex-col gap-2 min-[720px]:p-5">
+                      <h3 className="text-3 text-texto font-semibold">
+                        Por família que indicou
+                      </h3>
+                      <TabelaLista
+                        rotulo="Indicações por família promotora"
+                        colunas={[
+                          {
+                            chave: "nome",
+                            rotulo: "Família",
+                            principal: true,
+                          },
+                          {
+                            chave: "indicacoes",
+                            rotulo: "Indicações",
+                            numerica: true,
+                          },
+                          {
+                            chave: "contratos",
+                            rotulo: "Viraram contrato",
+                            numerica: true,
+                          },
+                        ]}
+                        linhas={relatorio.porPromotora.map((f) => ({
+                          id: f.familiaId,
+                          valores: {
+                            nome: f.nomeExibicao,
+                            indicacoes: String(f.indicacoes),
+                            contratos: String(f.contratos),
+                          },
+                        }))}
+                      />
+                    </div>
+                  ) : null}
                 </div>
               ) : (
                 <EstadoVazio
                   nivelTitulo="h3"
-                  ilustracao={<ChaveDeCasa tamanho={96} />}
+                  variante="tracejado"
                   titulo="Nenhuma indicação de médico ainda"
                   texto="Quando você registrar uma indicação de um médico parceiro, ela aparece aqui e também no relatório de origem do marketing."
                 />
               )}
-              {relatorio && relatorio.porPromotora.length > 0 ? (
-                <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:p-2 lg:px-4 lg:py-3">
-                  <TabelaLista
-                    rotulo="Indicações por família promotora"
-                    colunas={[
-                      {
-                        chave: "nome",
-                        rotulo: "Família que indicou",
-                        principal: true,
-                      },
-                      {
-                        chave: "indicacoes",
-                        rotulo: "Indicações",
-                        numerica: true,
-                      },
-                      {
-                        chave: "contratos",
-                        rotulo: "Viraram contrato",
-                        numerica: true,
-                      },
-                    ]}
-                    linhas={relatorio.porPromotora.map((f) => ({
-                      id: f.familiaId,
-                      valores: {
-                        nome: f.nomeExibicao,
-                        indicacoes: String(f.indicacoes),
-                        contratos: String(f.contratos),
-                      },
-                    }))}
-                  />
-                </div>
-              ) : null}
-            </section>
+            </SecaoBloco>
           </>
         )}
       </div>

@@ -78,6 +78,9 @@ export interface ResumoFamilia {
   uf: string | null;
   dpp: string | null;
   dataNascimento: string | null;
+  /** Fatos (PRD 6.2): a alta e o primeiro dia de atendimento, quando houver. */
+  dataAlta: string | null;
+  dataInicioEfetivo: string | null;
   estadoSensivel: EstadoSensivel;
   naoContatar: boolean;
   gemelar: boolean;

@@ -89,6 +89,36 @@ describe("PaginaTarefas", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("cada tarefa diz por que existe e o que fazer, e a tela explica como as tarefas funcionam", async () => {
+    const { default: PaginaTarefas } = await import("./page");
+    render(await PaginaTarefas());
+
+    expect(screen.getByText("Como as tarefas funcionam")).toBeInTheDocument();
+    const cartoes = screen
+      .getAllByRole("heading", { level: 3 })
+      .map((titulo) => titulo.closest(".rounded-3")!);
+    expect(cartoes.length).toBeGreaterThan(0);
+    for (const cartao of cartoes) {
+      expect(cartao).toHaveTextContent("Por que existe");
+    }
+    // O freio: de onde veio, sem repetir o "o que fazer" que a faixa já diz.
+    const freio = screen
+      .getByRole("heading", {
+        name: "Justificar o freio da Família Teste Bruma",
+      })
+      .closest(".rounded-3")!;
+    expect(freio).toHaveTextContent("Nasceu quando o freio foi acionado");
+    expect(freio).not.toHaveTextContent("O que fazer");
+    // O follow-up: de onde veio e o que fazer.
+    const cedro = screen
+      .getByRole("heading", {
+        name: "Retomar a conversa com a Família Teste Cedro",
+      })
+      .closest(".rounded-3")!;
+    expect(cedro).toHaveTextContent("retorno combinado");
+    expect(cedro).toHaveTextContent("O que fazer");
+  });
+
   it("sem sessão, exigirSessao interrompe a renderização", async () => {
     const modulo = (await import("@/lib/auth/sessao")) as unknown as {
       __definirSessao: (s: SessaoUsuario | null) => void;

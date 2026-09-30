@@ -25,6 +25,14 @@ const TILE_BALDE: Record<
   sem_prazo: { tom: "areia", icone: <ListTodo /> },
 };
 
+/** O que cada grupo de prazo é, em frase (tela Tarefas). */
+const APOIO_BALDE: Record<GrupoTarefasComFreio["balde"], string> = {
+  vencida: "O prazo já passou. Comece por estas.",
+  vence_hoje: "Vencem até o fim do dia.",
+  a_vencer: "Vencem nos próximos dias.",
+  sem_prazo: "Não têm data para vencer. Faça quando der.",
+};
+
 /**
  * Tarefas agrupadas por vencimento (protótipo `comercial-inicio.html`,
  * seção "Tarefas de hoje", com "Feitas" no fim). Guarda as tarefas
@@ -39,6 +47,7 @@ export function ListaTarefas({
   icone,
   tomIcone = "areia",
   colunas = false,
+  detalhada = false,
 }: {
   grupos: GrupoTarefasComFreio[];
   /**
@@ -58,6 +67,12 @@ export function ListaTarefas({
    * duas colunas (no Início a lista mora numa coluna estreita).
    */
   colunas?: boolean;
+  /**
+   * Tela Tarefas (pedido do dono em 30/09): uma tarefa por linha, cada uma
+   * dizendo por que existe e o que fazer, com a ação à direita no
+   * computador; cada grupo de prazo com uma frase que diz o que ele é.
+   */
+  detalhada?: boolean;
 }) {
   const [feitas, setFeitas] = useState<TarefaFeita[]>([]);
   const aoFeita = useCallback((feita: TarefaFeita) => {
@@ -147,9 +162,14 @@ export function ListaTarefas({
                 </span>
               </div>
             )}
+            {detalhada && !umGrupoSo ? (
+              <p className="text-apoio text-texto-2 -mt-1 mb-3">
+                {APOIO_BALDE[grupo.balde]}
+              </p>
+            ) : null}
             <div
               className={
-                colunas
+                colunas && !detalhada
                   ? "grid grid-cols-1 items-start gap-3 lg:grid-cols-2"
                   : "flex flex-col gap-3"
               }
@@ -159,6 +179,7 @@ export function ListaTarefas({
                   key={tarefa.id}
                   tarefa={tarefa}
                   aoFeita={aoFeita}
+                  explicada={detalhada}
                 />
               ))}
             </div>

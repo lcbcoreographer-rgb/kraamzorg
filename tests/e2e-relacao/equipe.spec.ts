@@ -53,6 +53,25 @@ test("indicação de médico entra no relatório por médico e na origem do mark
   ).toContainText("Indicação médica");
 });
 
+test("parceiros: cada médico numa ficha inteira e o cadastro abre quando pedido", async ({
+  page,
+}) => {
+  await entrarComo(page, "Comercial");
+  await page.goto("/parceiros");
+  const cartao = page.locator('[data-parceiro="Dra. Teste Obstetra"]');
+  await expect(cartao.getByText("Indicações", { exact: true })).toBeVisible();
+  await expect(
+    cartao.getByText("Último contato", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Nome", { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Cadastrar um médico" }).click();
+  await expect(page.getByLabel("Nome", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Salvar médico" }),
+  ).toBeVisible();
+  await semRolagemLateral(page);
+});
+
 test("tarefas de relacionamento com o médico viram tarefa da equipe", async ({
   page,
 }) => {
@@ -72,9 +91,21 @@ test("tarefas por equipe: coordenação vê, comercial não", async ({ page }) =
   await expect(
     page.getByRole("heading", { level: 1, name: "Tarefas por equipe" }),
   ).toBeVisible();
+  // Quadro com uma coluna por equipe e, dentro, um bloco por pessoa
+  // (refeito em 30/09; antes, tabelas de números).
+  const quadro = page.getByRole("region", {
+    name: "Tarefas abertas por equipe",
+  });
+  await expect(quadro).toBeVisible();
+  const comercial = quadro.getByRole("region", {
+    name: "Comercial",
+    exact: true,
+  });
+  await expect(comercial).toContainText(/abertas?/);
   await expect(
-    page.getByRole("table", { name: "Tarefas abertas por equipe" }),
+    comercial.getByRole("heading", { level: 3, name: /Sem responsável/ }),
   ).toBeVisible();
+  await expect(comercial.getByText(/^(Até|Venceu em) /).first()).toBeVisible();
   await semRolagemLateral(page);
   await semViolacaoGrave(page);
 
