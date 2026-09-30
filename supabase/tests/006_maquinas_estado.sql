@@ -131,6 +131,14 @@ begin
   elsif maquina = 'visita' then
     insert into visita (acompanhamento_id, profissional_id, dia_numero, data, estado)
       values (v_acomp, pg_temp.fixo('profissional'), 1, '2026-12-10', estado::estado_visita) returning id into v_id;
+    -- 0023: a ficha só fica entregue com o registro assinado da visita; o
+    -- registro existe antes de a transição ser pedida (registrar_atendimento
+    -- grava o registro e só depois anda o estado)
+    if estado = 'ficha_pendente' then
+      insert into registro_atendimento (visita_id, profissional_id, instrumento_versao, dados, resumo_descritivo,
+                                        assinado_em, assinatura)
+        values (v_id, pg_temp.fixo('profissional'), 'v1-2026-09', '{}', 'Registro sintético P06', now(), repeat('c', 64));
+    end if;
   else
     insert into pos_venda (acompanhamento_id, estagio) values (v_acomp, estado::estagio_p4) returning id into v_id;
   end if;

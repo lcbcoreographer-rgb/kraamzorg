@@ -1,4 +1,10 @@
-/** Carregando uma tela do portal: esqueleto na forma do cartão de visita, sem spinner. */
+/**
+ * Carregando uma tela do portal: esqueleto na forma do cartão de visita, sem
+ * spinner. Cada aba tem o próprio `loading.tsx` que reexporta este; a visita
+ * (`/visita/[visitaId]`) fica de fora de propósito: com um `loading.tsx` no
+ * grupo inteiro o Next devolve 200 antes de resolver a página, e a visita de
+ * outra profissional deixaria de responder 404.
+ */
 export default function CarregandoPortal() {
   return (
     <div

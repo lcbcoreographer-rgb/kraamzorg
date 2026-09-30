@@ -1250,10 +1250,13 @@ select ok(not has_table_privilege('authenticated', 'privado.fato_operacao', 'sel
           and not has_table_privilege('anon', 'privado.fato_operacao', 'select')
           and not has_table_privilege('service_role', 'privado.fato_operacao', 'select'),
   'a fila de fatos não tem privilégio nenhum');
-select ok(has_table_privilege('authenticated', 'public.designacao', 'select')
+select ok(has_column_privilege('authenticated', 'public.designacao', 'status', 'select')
+          and has_column_privilege('authenticated', 'public.designacao', 'profissional_id', 'select')
+          and not has_column_privilege('authenticated', 'public.designacao', 'motivo_recusa', 'select')
+          and not has_column_privilege('authenticated', 'public.designacao', 'motivo_direta', 'select')
           and not has_table_privilege('authenticated', 'public.designacao', 'insert')
           and not has_column_privilege('authenticated', 'public.designacao', 'status', 'update'),
-  'designacao: leitura como antes; escrita só pelas funções');
+  'designacao: leitura das linhas sem os motivos em texto livre; escrita só pelas funções');
 select ok(not has_table_privilege('authenticated', 'public.consulta_prenatal', 'select')
           and not has_table_privilege('authenticated', 'public.consulta_prenatal', 'update'),
   'consulta_prenatal continua sem select nem update direto (tabela assistencial)');

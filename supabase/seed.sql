@@ -364,7 +364,7 @@ insert into parametro (chave, valor, descricao) values
   ('contrato_kraamzorg', '{"signatario_nome": "Representante Kraamzorg de Teste", "signatario_email": "assinatura.kraamzorg@exemplo.invalid", "razao_social": "Kraamzorg Brasil", "documento": "CNPJ a confirmar no cadastro da empresa", "endereco": "Endereço a confirmar no cadastro da empresa"}',
    'P31 item 2: quem assina pela Kraamzorg na Autentique e os dados da contratada que o contrato imprime. Fictício no seed; a diretoria preenche com os dados reais [confirmar: Leonardo].'),
   ('cobranca', '{"vencimento_dias": 3, "descricao_item": "Cuidado domiciliar pós-parto", "prenatal_urgente_semanas": 34, "comprovante_max_bytes": 3145728}',
-   'P32: dias até o vencimento da cobrança depois da assinatura, descrição do item enviada à InfinitePay (C-16: cuidado domiciliar pós-parto), semanas a partir das quais o pagamento confirmado vira pré-natal urgente (PRD 7.2) e tamanho máximo do comprovante da baixa manual, em bytes [confirmar: Leonardo, vencimento].');
+   'P32: dias até o vencimento da cobrança depois da assinatura, descrição do item enviada à InfinitePay (C-16: cuidado domiciliar pós-parto), semanas da simulação de pagamento da demonstração (o banco usa parametro.prenatal_semanas_alerta para o pré-natal urgente) e tamanho máximo do comprovante da baixa manual, em bytes [confirmar: Leonardo, vencimento].');
 
 
 -- --- P37 e P38 (0022_agenda_portal): agenda, equipe e portal da enfermeira ---

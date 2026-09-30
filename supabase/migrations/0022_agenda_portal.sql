@@ -50,8 +50,9 @@
 --  12. api.sincronizacao_item() e api.sincronizacao_registrar(): o servidor
 --      de sincronização (POST /api/sync) guarda os itens da fila do
 --      aparelho que já processou, para reenviar o mesmo id nunca reaplicar.
---  13. privado.incrementar_versao() passa a subir a versão uma vez por
---      transação e por linha. Uma gravação lógica que passa por vários
+--  13. privado.incrementar_versao() passa a subir a versão da visita uma vez
+--      por transação e por linha (as outras tabelas seguem uma subida por
+--      update). Uma gravação lógica que passa por vários
 --      updates (chegada: três transições de estado e a hora) é uma só
 --      mudança para quem sincroniza; sem isto, a fila offline do aparelho
 --      (chegada e depois saída, encadeadas por versao_base + 1) geraria
@@ -74,7 +75,11 @@ declare
   v_chave text := tg_table_name || ':' || old.id::text || ':' || pg_catalog.txid_current()::text;
   v_vistos text := coalesce(pg_catalog.current_setting('app.versao_incrementada', true), '');
 begin
-  if pg_catalog.strpos(v_vistos, '|' || v_chave || '|') > 0 then
+  -- Só a visita junta os updates de uma transação numa mudança só (a chegada
+  -- da enfermeira: três transições de estado e a hora). Nas outras tabelas
+  -- (consulta pré-natal, áudio, alerta) cada update sobe a versão: a consulta
+  -- pré-natal grava um campo por chamada e devolve a versão nova ao aparelho.
+  if tg_table_name = 'visita' and pg_catalog.strpos(v_vistos, '|' || v_chave || '|') > 0 then
     -- a linha já subiu de versão nesta transação: é a mesma gravação lógica
     new.versao = old.versao;
   else
@@ -84,7 +89,7 @@ begin
   return new;
 end;
 $$;
-comment on function privado.incrementar_versao() is 'Gatilho BEFORE UPDATE: incrementa a coluna versao uma vez por transação e por linha (PRD 6.10 regra 13). Uma gravação lógica que passa por vários updates (a chegada da enfermeira: três transições de estado e a hora) é uma só mudança para a sincronização offline (15), que encadeia versao_base + 1 por item da fila. A versão enviada pelo cliente é sempre ignorada.';
+comment on function privado.incrementar_versao() is 'Gatilho BEFORE UPDATE: incrementa a coluna versao a cada update e, na visita, uma vez por transação e por linha (PRD 6.10 regra 13). Uma gravação lógica que passa por vários updates (a chegada da enfermeira: três transições de estado e a hora) é uma só mudança para a sincronização offline (15), que encadeia versao_base + 1 por item da fila. A versão enviada pelo cliente é sempre ignorada.';
 
 
 -- =============================================================================
@@ -1761,6 +1766,16 @@ comment on function api.sincronizacao_registrar(uuid, text, uuid, text, jsonb, i
 -- =============================================================================
 -- 11. Privilégios
 -- =============================================================================
+
+-- O motivo do bloqueio é texto livre da coordenação sobre a agenda de uma
+-- profissional ("licença médica", por exemplo) e é dado pessoal dela. A
+-- política `ler` deixa o comercial ver os bloqueios para saber quem está
+-- livre; o motivo não é necessário para isso. As linhas continuam legíveis, a
+-- coluna só chega pelas funções de api (equipe, agenda, portal), que checam o
+-- papel por dentro.
+revoke select on public.bloqueio_agenda from authenticated;
+grant select (id, criado_em, atualizado_em, criado_por, profissional_id, inicio, fim)
+  on public.bloqueio_agenda to authenticated;
 
 revoke execute on function privado.equipe_recusar(text, text)                                 from public, anon, authenticated, service_role;
 revoke execute on function privado.equipe_log(text, text, text, jsonb, jsonb)                 from public, anon, authenticated, service_role;

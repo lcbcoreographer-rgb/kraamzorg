@@ -90,6 +90,35 @@ create unique index alerta_clinico_regra_visita_bebe_unica
 
 create index alerta_clinico_abertos on public.alerta_clinico (familia_id) where fechado_em is null;
 
+-- PRD 7.3: "ficha_entregue" é o servidor ter recebido o registro assistencial
+-- assinado. A transição está marcada como automática na máquina de estados da
+-- visita, mas api.transicionar deixa a enfermeira da visita pedi-la à mão:
+-- sem esta trava, ela daria a ficha por entregue sem nenhum registro, e o
+-- aviso de ficha pendente, o prazo do relatório e a evolução ao médico
+-- contariam com um registro que não existe. Vale para qualquer caminho que
+-- mude o estado (api.transicionar, privado.transicionar, outra função); o
+-- registrar_atendimento grava o registro antes de pedir a transição.
+create function privado.visita_ficha_exige_registro() returns trigger
+  language plpgsql
+  security definer
+  set search_path = ''
+  as $$
+begin
+  if new.estado = 'ficha_entregue' and old.estado is distinct from new.estado
+     and not exists (select 1 from public.registro_atendimento r where r.visita_id = new.id) then
+    raise exception 'checklist:ficha_sem_registro a ficha só fica entregue depois do registro assinado da visita'
+      using errcode = '22023';
+  end if;
+  return new;
+end;
+$$;
+comment on function privado.visita_ficha_exige_registro() is '[P39] Trava do estado ficha_entregue da visita: exige o registro assinado. Gatilho, sem grant.';
+revoke execute on function privado.visita_ficha_exige_registro() from public, anon, authenticated, service_role;
+
+create trigger visita_ficha_exige_registro
+  before update of estado on public.visita
+  for each row execute function privado.visita_ficha_exige_registro();
+
 
 -- =============================================================================
 -- 3. Assinatura: json canônico e hash

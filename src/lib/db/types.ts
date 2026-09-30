@@ -31,6 +31,18 @@ export type Database = {
         };
         Returns: Json;
       };
+      agenda: {
+        Args: { ate: string; desde: string; profissional_id?: string };
+        Returns: Json;
+      };
+      agendar_consulta_prenatal: {
+        Args: {
+          agendada_para: string;
+          conduzida_por?: string;
+          familia_id: string;
+        };
+        Returns: Json;
+      };
       agendar_sessao_venda: {
         Args: {
           agendada_para: string;
@@ -42,8 +54,29 @@ export type Database = {
         };
         Returns: Json;
       };
+      alertas_clinicos: {
+        Args: { familia_id?: string; situacao?: string };
+        Returns: Json;
+      };
+      alocacao_familia: {
+        Args: { familia_id: string };
+        Returns: Json;
+      };
       aprovar_desconto: {
         Args: { oportunidade_id: string };
+        Returns: Json;
+      };
+      atribuir_designacao: {
+        Args: {
+          familia_id: string;
+          motivo: string;
+          papel: Database["public"]["Enums"]["papel_designacao"];
+          profissional_id: string;
+        };
+        Returns: Json;
+      };
+      audio_da_visita_para_ouvir: {
+        Args: { audio_id: string };
         Returns: Json;
       };
       baixar_cobranca_manual: {
@@ -77,6 +110,10 @@ export type Database = {
         Args: never;
         Returns: Json;
       };
+      checklist_visita: {
+        Args: { visita_id: string };
+        Returns: Json;
+      };
       cobranca: {
         Args: { cobranca_id: string };
         Returns: Json;
@@ -92,6 +129,10 @@ export type Database = {
       condutores_sessao_venda: {
         Args: never;
         Returns: { id: string; nome: string }[];
+      };
+      contato_medico_situacao: {
+        Args: { familia_id: string };
+        Returns: Json;
       };
       contrato_situacao: {
         Args: { familia_id: string };
@@ -115,6 +156,14 @@ export type Database = {
       };
       eliminar_titular: {
         Args: { familia_id: string; motivo: string };
+        Returns: Json;
+      };
+      equipe: {
+        Args: { dia?: string; incluir_inativas?: boolean; regiao_id?: string };
+        Returns: Json;
+      };
+      escala_semanal: {
+        Args: { regiao_id?: string; semana?: string };
         Returns: Json;
       };
       familias_do_dia: {
@@ -141,6 +190,10 @@ export type Database = {
           visita_estado: Database["public"]["Enums"]["estado_visita"];
           visita_id: string;
         }[];
+      };
+      fechar_alerta_clinico: {
+        Args: { alerta_id: string; versao_base?: number };
+        Returns: Json;
       };
       ficha_assistencial: {
         Args: { familia_id: string };
@@ -208,6 +261,18 @@ export type Database = {
         Args: { ate: string; desde: string };
         Returns: Json;
       };
+      minhas_ofertas: {
+        Args: never;
+        Returns: Json;
+      };
+      oferecer_designacao: {
+        Args: {
+          familia_id: string;
+          papel: Database["public"]["Enums"]["papel_designacao"];
+          profissional_id: string;
+        };
+        Returns: Json;
+      };
       parametros_da_tela: {
         Args: { chaves?: string[] };
         Returns: { atualizado_em: string; chave: string; valor: Json }[];
@@ -224,12 +289,140 @@ export type Database = {
         };
         Returns: Json;
       };
+      portal_familias: {
+        Args: never;
+        Returns: Json;
+      };
+      portal_hoje: {
+        Args: { dia?: string };
+        Returns: Json;
+      };
+      portal_perfil: {
+        Args: never;
+        Returns: Json;
+      };
+      prenatal_abrir: {
+        Args: { familia_id: string };
+        Returns: Json;
+      };
+      prenatal_concluir: {
+        Args: { consulta_id: string };
+        Returns: Json;
+      };
+      prenatal_consultas: {
+        Args: never;
+        Returns: Json;
+      };
+      prenatal_estado: {
+        Args: { familia_id: string };
+        Returns: Json;
+      };
+      prenatal_salvar_campo: {
+        Args: {
+          bloco: string;
+          campo: string;
+          consulta_id: string;
+          item_id?: string;
+          motivo?: string;
+          progresso?: Json;
+          valor: Json;
+          versao_base?: number;
+        };
+        Returns: Json;
+      };
       proposta: {
         Args: { oportunidade_id: string };
         Returns: Json;
       };
+      radar_nascimentos: {
+        Args: { regiao_id?: string };
+        Returns: Json;
+      };
+      reagendar_cascata: {
+        Args: {
+          acompanhamento_id: string;
+          forcar?: boolean;
+          motivo?: string;
+          nova_data_inicio: string;
+          simular?: boolean;
+        };
+        Returns: Json;
+      };
+      reagendar_visita: {
+        Args: {
+          data: string;
+          forcar?: boolean;
+          hora_prevista?: string;
+          motivo?: string;
+          profissional_id?: string;
+          simular?: boolean;
+          visita_id: string;
+        };
+        Returns: Json;
+      };
       reenviar_notificacao_handoff: {
         Args: { handoff_id: string };
+        Returns: Json;
+      };
+      registrar_acionamento_alerta: {
+        Args: {
+          acionado_em: string;
+          alerta_id: string;
+          conduta_adotada: string;
+          orientacao_medica: string;
+          sinal_identificado: string;
+          versao_base: number;
+        };
+        Returns: Json;
+      };
+      registrar_adendo: {
+        Args: { conteudo: string; motivo: string; registro_id: string };
+        Returns: Json;
+      };
+      registrar_alerta_clinico: {
+        Args: {
+          bebe_id?: string;
+          campo?: string;
+          instrumento_versao: string;
+          manual?: boolean;
+          regra_id: string;
+          valor_observado?: string;
+          visita_id: string;
+        };
+        Returns: Json;
+      };
+      registrar_alta: {
+        Args: {
+          data_alta: string;
+          familia_id: string;
+          periodo?: Database["public"]["Enums"]["periodo_visita"];
+          primeira_visita?: string;
+        };
+        Returns: Json;
+      };
+      registrar_anexo_audio: {
+        Args: { arquivo_path: string; duracao_seg?: number; visita_id: string };
+        Returns: Json;
+      };
+      registrar_atendimento: {
+        Args: {
+          alertas?: Json;
+          assinado_em_ms: number;
+          assinatura: string;
+          dados: Json;
+          instrumento_versao: string;
+          resumo: string;
+          sincronizado_de?: string;
+          visita_id: string;
+        };
+        Returns: Json;
+      };
+      registrar_chegada: {
+        Args: {
+          quando?: string;
+          via_sincronizacao?: boolean;
+          visita_id: string;
+        };
         Returns: Json;
       };
       registrar_contrato_gerado: {
@@ -260,6 +453,27 @@ export type Database = {
         Args: { cobranca_id: string; slug?: string; url: string };
         Returns: Json;
       };
+      registrar_nascimento: {
+        Args: {
+          bebes: Json;
+          data_nascimento: string;
+          familia_id: string;
+          previsao_alta?: string;
+        };
+        Returns: Json;
+      };
+      registrar_previsao_alta: {
+        Args: { familia_id: string; previsao_alta: string };
+        Returns: Json;
+      };
+      registrar_saida: {
+        Args: {
+          quando?: string;
+          via_sincronizacao?: boolean;
+          visita_id: string;
+        };
+        Returns: Json;
+      };
       remarcar_sessao_venda: {
         Args: {
           agendada_para: string;
@@ -269,12 +483,20 @@ export type Database = {
         };
         Returns: Json;
       };
+      remover_bloqueio_agenda: {
+        Args: { id: string };
+        Returns: Json;
+      };
       reservar_envio_contrato: {
         Args: { contrato_id: string };
         Returns: Json;
       };
       resolver_transferencia: {
         Args: { desfecho: string; handoff_id: string };
+        Returns: Json;
+      };
+      responder_designacao: {
+        Args: { aceita: boolean; designacao_id: string; motivo?: string };
         Returns: Json;
       };
       retomar_agente: {
@@ -295,6 +517,43 @@ export type Database = {
       };
       revogar_sessoes: {
         Args: { usuario_id: string };
+        Returns: Json;
+      };
+      salvar_bloqueio_agenda: {
+        Args: {
+          fim: string;
+          id: string;
+          inicio: string;
+          motivo: string;
+          profissional_id: string;
+        };
+        Returns: Json;
+      };
+      salvar_documento_profissional: {
+        Args: {
+          id: string;
+          numero: string;
+          profissional_id: string;
+          tipo: string;
+          validade: string;
+        };
+        Returns: Json;
+      };
+      salvar_profissional: {
+        Args: {
+          adicional_deslocamento_centavos: number;
+          ativa: boolean;
+          conselho_numero: string;
+          conselho_uf: string;
+          funcao: string;
+          id: string;
+          nome: string;
+          regioes: string[];
+          telefone_e164: string;
+          usuario_id?: string;
+          valor_hora_centavos: number;
+          vinculo: Database["public"]["Enums"]["vinculo_profissional"];
+        };
         Returns: Json;
       };
       salvar_proposta: {
@@ -346,6 +605,24 @@ export type Database = {
           status: Database["public"]["Enums"]["status_sessao"];
         }[];
       };
+      sincronizacao_item: {
+        Args: { item_id: string };
+        Returns: Json;
+      };
+      sincronizacao_registrar: {
+        Args: {
+          campo: string;
+          conflito?: Json;
+          criado_no_cliente_em: string;
+          entidade: string;
+          entidade_id: string;
+          item_id: string;
+          payload: Json;
+          status: Database["public"]["Enums"]["status_sync"];
+          versao_base: number;
+        };
+        Returns: undefined;
+      };
       status_cobranca: {
         Args: { familia_id: string };
         Returns: {
@@ -366,6 +643,10 @@ export type Database = {
           profissional_id: string;
           status: Database["public"]["Enums"]["status_profissional"];
         }[];
+      };
+      supervisao_medica_telefone: {
+        Args: never;
+        Returns: string;
       };
       transicionar: {
         Args: {
@@ -418,6 +699,7 @@ export type Database = {
           id: string;
           inicio_efetivo: string | null;
           periodo: Database["public"]["Enums"]["periodo_visita"] | null;
+          previsao_alta: string | null;
         };
         Insert: {
           atualizado_em?: string;
@@ -432,6 +714,7 @@ export type Database = {
           id?: string;
           inicio_efetivo?: string | null;
           periodo?: Database["public"]["Enums"]["periodo_visita"] | null;
+          previsao_alta?: string | null;
         };
         Update: {
           atualizado_em?: string;
@@ -446,6 +729,7 @@ export type Database = {
           id?: string;
           inicio_efetivo?: string | null;
           periodo?: Database["public"]["Enums"]["periodo_visita"] | null;
+          previsao_alta?: string | null;
         };
         Relationships: [
           {
@@ -1062,10 +1346,12 @@ export type Database = {
           familia_id: string;
           ficha: Json;
           id: string;
+          iniciada_em: string | null;
           instrumento_versao: string;
           periodo_preferido:
             Database["public"]["Enums"]["periodo_visita"][] | null;
           plano_cuidado: string | null;
+          progresso: Json;
           realizada_em: string | null;
           status: Database["public"]["Enums"]["status_consulta"];
           urgente: boolean;
@@ -1080,10 +1366,12 @@ export type Database = {
           familia_id: string;
           ficha?: Json;
           id?: string;
+          iniciada_em?: string | null;
           instrumento_versao: string;
           periodo_preferido?:
             Database["public"]["Enums"]["periodo_visita"][] | null;
           plano_cuidado?: string | null;
+          progresso?: Json;
           realizada_em?: string | null;
           status?: Database["public"]["Enums"]["status_consulta"];
           urgente?: boolean;
@@ -1098,10 +1386,12 @@ export type Database = {
           familia_id?: string;
           ficha?: Json;
           id?: string;
+          iniciada_em?: string | null;
           instrumento_versao?: string;
           periodo_preferido?:
             Database["public"]["Enums"]["periodo_visita"][] | null;
           plano_cuidado?: string | null;
+          progresso?: Json;
           realizada_em?: string | null;
           status?: Database["public"]["Enums"]["status_consulta"];
           urgente?: boolean;
@@ -1346,10 +1636,13 @@ export type Database = {
           atualizado_em: string;
           criado_em: string;
           criado_por: string | null;
+          direta: boolean;
           id: string;
+          motivo_direta: string | null;
           motivo_recusa: string | null;
           oferecida_em: string;
           papel: Database["public"]["Enums"]["papel_designacao"];
+          prazo_resposta_em: string | null;
           profissional_id: string;
           respondida_em: string | null;
           status: Database["public"]["Enums"]["status_designacao"];
@@ -1359,10 +1652,13 @@ export type Database = {
           atualizado_em?: string;
           criado_em?: string;
           criado_por?: string | null;
+          direta?: boolean;
           id?: string;
+          motivo_direta?: string | null;
           motivo_recusa?: string | null;
           oferecida_em?: string;
           papel: Database["public"]["Enums"]["papel_designacao"];
+          prazo_resposta_em?: string | null;
           profissional_id: string;
           respondida_em?: string | null;
           status?: Database["public"]["Enums"]["status_designacao"];
@@ -1372,10 +1668,13 @@ export type Database = {
           atualizado_em?: string;
           criado_em?: string;
           criado_por?: string | null;
+          direta?: boolean;
           id?: string;
+          motivo_direta?: string | null;
           motivo_recusa?: string | null;
           oferecida_em?: string;
           papel?: Database["public"]["Enums"]["papel_designacao"];
+          prazo_resposta_em?: string | null;
           profissional_id?: string;
           respondida_em?: string | null;
           status?: Database["public"]["Enums"]["status_designacao"];

@@ -95,12 +95,17 @@
 -- 1. Escrita direta fechada
 -- =============================================================================
 
+-- Nem update nem insert: o contrato nasce em api.salvar_proposta (o banco lê
+-- o preço, a taxa e a condição, faz a conta e exige a aprovação do desconto).
+-- Um insert direto com valor_centavos e desconto_centavos a critério de quem
+-- chama contornaria as duas coisas. O revoke no nível da tabela não tira os
+-- privilégios por coluna dados antes, por isso as colunas vão explícitas.
 revoke insert on public.contrato from authenticated;
 revoke update on public.contrato from authenticated;
-grant insert (id, criado_por, familia_id, pacote_versao_id, contratante_pessoa_id, pagador_pessoa_id,
-              testemunha_pessoa_id, valor_centavos, taxa_deslocamento_centavos, desconto_centavos, parcelas,
-              template_versao)
-  on public.contrato to authenticated;
+revoke insert (id, criado_por, familia_id, pacote_versao_id, contratante_pessoa_id, pagador_pessoa_id,
+               testemunha_pessoa_id, valor_centavos, taxa_deslocamento_centavos, desconto_centavos, parcelas,
+               template_versao)
+  on public.contrato from authenticated;
 
 revoke insert on public.cobranca from authenticated;
 revoke update on public.cobranca from authenticated;
@@ -508,10 +513,9 @@ declare
   v_k       public.contrato;
   v_f       public.familia;
   v_o       public.oportunidade;
-  v_movido  boolean;
+  v_estagio public.estagio_p2;
   v_exec    uuid;
   v_semanas integer;
-  v_limite  numeric;
   v_urgente boolean := false;
   v_tarefa  uuid;
   v_chave   text;
@@ -540,6 +544,13 @@ begin
     return pg_catalog.jsonb_build_object('mudou', false, 'motivo', 'valor_divergente', 'cobranca_id', v_c.id);
   end if;
 
+  -- O estágio do P2 é lido antes do update: o gatilho ao_pagar_cobranca (0021,
+  -- P35) roda dentro dele, já leva o P2 a pagamento_confirmado, cria o
+  -- acompanhamento e abre a consulta pré-natal. Sem esta leitura, o passo do
+  -- P2 daqui deixaria de "andar" e a mensagem à família nunca sairia.
+  v_o := privado.venda_oportunidade(v_f.id);
+  v_estagio := v_o.estagio_p2;
+
   update public.cobranca c
      set status = 'paga',
          valor_pago_centavos = p_valor_pago,
@@ -565,8 +576,8 @@ begin
     pg_catalog.jsonb_build_object('via', p_via, 'valor_pago_centavos', p_valor_pago, 'metodo', p_metodo,
                                   'parcelas_cartao', p_parcelas));
 
-  v_movido := privado.venda_andar_p2(v_f.id, 'cobranca_gerada', 'pagamento_confirmado', 'Pagamento confirmado');
-  if not v_movido then
+  perform privado.venda_andar_p2(v_f.id, 'cobranca_gerada', 'pagamento_confirmado', 'Pagamento confirmado');
+  if v_estagio is distinct from 'cobranca_gerada' then
     return pg_catalog.jsonb_build_object('mudou', true, 'cobranca_id', v_c.id, 'prenatal_urgente', false);
   end if;
 
@@ -575,11 +586,15 @@ begin
   v_exec := privado.venda_automacao_iniciar(v_f.id, 'pagamento_confirmado',
     pg_catalog.jsonb_build_object('cobranca_id', v_c.id, 'via', p_via));
 
-  -- prenatal_urgente: 34 semanas ou mais, gestação em curso
-  v_limite := privado.venda_numero('cobranca', 'prenatal_urgente_semanas');
-  if v_f.dpp is not null and v_f.data_nascimento is null and v_limite is not null then
+  -- Urgência: quem decide é a consulta pré-natal que o gatilho ao_pagar_cobranca
+  -- (0021, P35) abriu neste mesmo pagamento, pelo limite de
+  -- parametro.prenatal_semanas_alerta (mais de 34 semanas, PRD 7.2 e 10.1). É
+  -- ele que cria a tarefa de prioridade máxima e avisa a coordenação
+  -- (prenatal_urgente); aqui só escolhe o texto da mensagem à família.
+  if v_f.dpp is not null and v_f.data_nascimento is null then
     select i.semanas into v_semanas from public.ig(v_f.dpp, v_hoje) as i;
-    v_urgente := v_semanas >= v_limite;
+    v_urgente := coalesce((select cp.urgente from public.consulta_prenatal cp
+                            where cp.familia_id = v_f.id and cp.status in ('pendente', 'agendada', 'realizada')), false);
   end if;
 
   if v_exec is not null then
@@ -597,29 +612,11 @@ begin
     perform privado.venda_automacao_concluir(v_exec);
   end if;
 
-  if v_urgente then
-    v_exec := privado.venda_automacao_iniciar(v_f.id, 'prenatal_urgente',
-      pg_catalog.jsonb_build_object('cobranca_id', v_c.id, 'semanas', v_semanas));
-    if v_exec is not null then
-      insert into public.tarefa (tipo, familia_id, papel_responsavel, prioridade, titulo, payload, vence_em, origem_automacao_id)
-      values ('agendar_prenatal', v_f.id, 'coordenacao', 'maxima',
-              'Marcar o pré-natal online com urgência: ' || v_f.nome_exibicao,
-              pg_catalog.jsonb_build_object('acao', 'prenatal_urgente', 'semanas', v_semanas, 'categoria', 'interna',
-                                            'cobranca_id', v_c.id),
-              pg_catalog.now(), 'prenatal_urgente');
-      insert into public.notificacao (papel, prioridade, titulo, link, canais)
-      values ('coordenacao', 'maxima',
-              'Pagamento confirmado com ' || v_semanas::text || ' semanas: marcar o pré-natal online agora',
-              '/familias/' || v_f.id::text, '{app,push}');
-      perform privado.venda_automacao_concluir(v_exec);
-    end if;
-  end if;
-
   return pg_catalog.jsonb_build_object('mudou', true, 'cobranca_id', v_c.id, 'prenatal_urgente', v_urgente,
                                        'semanas', v_semanas);
 end;
 $$;
-comment on function privado.cobranca_confirmar(uuid, integer, integer, text, text, text, text, text) is '[P32 itens 2 a 4] Único caminho de baixa. Idempotente (cobrança já paga não muda). Recusa, com aviso ao financeiro, pagamento em cobrança cancelada ou estornada e valor abaixo do da cobrança. Grava a baixa, deixa a nota fiscal pendente (P43), anda o P2 para pagamento_confirmado e, na primeira baixa do contrato, cria a tarefa com o texto pagamento_confirmado ou pagamento_confirmado_34s (freio) e, com 34 semanas ou mais em gestação em curso, a tarefa de prioridade máxima e o aviso imediato à coordenação (prenatal_urgente). Sem grant.';
+comment on function privado.cobranca_confirmar(uuid, integer, integer, text, text, text, text, text) is '[P32 itens 2 a 4] Único caminho de baixa. Idempotente (cobrança já paga não muda). Recusa, com aviso ao financeiro, pagamento em cobrança cancelada ou estornada e valor abaixo do da cobrança. Grava a baixa, deixa a nota fiscal pendente (P43), anda o P2 para pagamento_confirmado e, na primeira baixa do contrato, cria a tarefa com o texto pagamento_confirmado ou pagamento_confirmado_34s (freio). A consulta pré-natal, o acompanhamento e o pré-natal urgente (tarefa de prioridade máxima e aviso à coordenação) vêm do gatilho ao_pagar_cobranca (0021, P35). Sem grant.';
 
 
 -- =============================================================================

@@ -597,10 +597,10 @@ select throws_ok(
   '42501', null, 'comercial em aal1 não inclui contrato (financeira, AAL2)');
 select testes.encerrar();
 select testes.autenticar_authenticated(testes.uid('comercial'), 'aal2');
-select lives_ok(
+select throws_ok(
   $s$ insert into contrato (familia_id, pacote_versao_id, valor_centavos, template_versao)
       values ('c7000000-0000-4000-8000-000000000001', 'b7000000-0000-4000-8000-000000000004', 1, 'teste') $s$,
-  'comercial em aal2 inclui contrato');
+  '42501', null, 'comercial em aal2 não inclui contrato direto: o contrato nasce em api.salvar_proposta (0019, preço e desconto do banco)');
 select is((select count(*)::integer from cobranca), 0, 'comercial em aal2 não vê a cobrança direto (só o status, pela função)');
 select testes.encerrar();
 

@@ -509,8 +509,8 @@ select is((select count(*)::integer from tarefa where familia_id = 'c1900000-000
   'uma tarefa de mensagem de pagamento confirmado');
 select alike((select payload ->> 'textoSugerido' from tarefa where familia_id = 'c1900000-0000-4000-8000-000000000001' and payload ->> 'acao' = 'pagamento_confirmado'),
   'Pagamento confirmado, Marina.%', 'a mensagem usa o texto pagamento_confirmado com o nome');
-select is((select count(*)::integer from tarefa where familia_id = 'c1900000-0000-4000-8000-000000000001' and tipo = 'agendar_prenatal'), 0,
-  'gestação longe das 34 semanas: sem pré-natal urgente');
+select is((select count(*)::integer from tarefa where familia_id = 'c1900000-0000-4000-8000-000000000001' and tipo = 'agendar_prenatal' and prioridade = 'maxima'), 0,
+  'gestação longe das 34 semanas: sem pré-natal urgente (a tarefa de agendar, normal, é do gatilho da 0021)');
 
 -- 34 semanas ou mais: prenatal_urgente
 select testes.autenticar_service_role();
@@ -529,8 +529,8 @@ select is((select prioridade::text from tarefa where familia_id = 'c1900000-0000
   'urgente: tarefa de prioridade máxima');
 select is((select papel_responsavel::text from tarefa where familia_id = 'c1900000-0000-4000-8000-000000000002' and tipo = 'agendar_prenatal'), 'coordenacao',
   'urgente: a tarefa é da coordenação');
-select ok(exists (select 1 from notificacao where papel = 'coordenacao' and prioridade = 'maxima' and titulo like 'Pagamento confirmado com 3_ semanas%'),
-  'urgente: aviso imediato à coordenação');
+select ok(exists (select 1 from notificacao where papel = 'coordenacao' and prioridade = 'maxima' and titulo like 'Pré-natal urgente: pagamento com mais de 34 semanas%'),
+  'urgente: aviso imediato à coordenação (aberto pelo gatilho da 0021, P35)');
 select alike((select payload ->> 'textoSugerido' from tarefa where familia_id = 'c1900000-0000-4000-8000-000000000002' and payload ->> 'acao' = 'pagamento_confirmado'),
   '%Como você já está com 34 semanas%', 'urgente: a mensagem é a pagamento_confirmado_34s com as semanas');
 select is((select count(*)::integer from automacao_execucao where automacao_id = 'prenatal_urgente' and familia_id = 'c1900000-0000-4000-8000-000000000002' and status = 'executada'), 1,

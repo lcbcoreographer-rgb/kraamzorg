@@ -127,9 +127,20 @@ insert into privado.auditoria_coluna_sensivel (entidade, coluna, fonte) values
   ('designacao', 'motivo_recusa', 'sessao_p36');
 
 -- Oferta, resposta e atribuição só pelas funções (prazo, papel, backup e
--- aviso andam juntos). A leitura continua como estava.
+-- aviso andam juntos).
 revoke insert on public.designacao from authenticated;
 revoke update on public.designacao from authenticated;
+
+-- A leitura das linhas continua como estava (política `ler`), mas sem as duas
+-- colunas de texto livre: o motivo da recusa e o motivo da atribuição direta
+-- são da coordenação e da própria profissional (chegam pelas funções de api,
+-- que checam o papel). Com a leitura da tabela inteira, o comercial, que vê as
+-- designações para saber quem atende a família, leria o que a enfermeira
+-- escreveu ao recusar e o que a coordenação registrou numa urgência.
+revoke select on public.designacao from authenticated;
+grant select (id, criado_em, atualizado_em, criado_por, acompanhamento_id, profissional_id, papel, status,
+              oferecida_em, respondida_em, prazo_resposta_em, direta)
+  on public.designacao to authenticated;
 
 -- Uma titular e um backup ativos por acompanhamento; a mesma profissional
 -- nunca em dois papéis ativos do mesmo acompanhamento.
