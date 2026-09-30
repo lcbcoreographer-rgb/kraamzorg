@@ -121,8 +121,8 @@ select is(
   (select count(*)::integer from pg_class c join pg_namespace n on n.oid = c.relnamespace
     where n.nspname = 'public' and c.relkind = 'r'
       and c.relname not in (select tabela from excecoes_padrao)),
-  37,
-  'public tem 37 tabelas com colunas padrão (49 do PRD menos as 12 exceções)'
+  39,
+  'public tem 39 tabelas com colunas padrão (51 do PRD menos as 12 exceções; [v4.3] sessao_venda_opcao e consulta_equipe)'
 );
 
 select is_empty(
@@ -153,7 +153,7 @@ select is_empty(
      or a.attnotnull <> es.nao_nulo
      or coalesce(pg_get_expr(d.adbin, d.adrelid), '') <> es.padrao
   $$,
-  'as 37 tabelas têm id uuid default gen_random_uuid(), criado_em e atualizado_em timestamptz not null default now() e criado_por uuid'
+  'as 39 tabelas têm id uuid default gen_random_uuid(), criado_em e atualizado_em timestamptz not null default now() e criado_por uuid'
 );
 
 select is_empty(
@@ -168,7 +168,7 @@ select is_empty(
       where k.conrelid = c.oid and k.contype = 'p' and k.conkey = array[a.attnum]
     )
   $$,
-  'nas 37 tabelas a chave primária é id'
+  'nas 39 tabelas a chave primária é id'
 );
 
 select is_empty(
@@ -184,7 +184,7 @@ select is_empty(
         and k.confrelid = 'public.perfil'::regclass and k.conkey = array[a.attnum]
     )
   $$,
-  'nas 37 tabelas criado_por referencia perfil(id) (P02 item 2)'
+  'nas 39 tabelas criado_por referencia perfil(id) (P02 item 2)'
 );
 
 select hasnt_column('public', 'mensagem', 'atualizado_em', 'mensagem não tem atualizado_em (exceção [v4.2] do PRD 5.2)');
@@ -545,16 +545,16 @@ select ok(
 select is(
   (select count(*)::integer from pg_type t join pg_namespace n on n.oid = t.typnamespace
     where n.nspname = 'public' and t.typtype = 'e'),
-  49,
-  'public tem os 49 enums do PRD 6.0'
+  52,
+  'public tem os 52 enums do PRD 6.0 ([v4.3] origem_agendamento_sessao, tipo_consulta_equipe e status_consulta_equipe)'
 );
 
 select enum_has_labels('public', 'handoff_motivo',
   array['contratar','reuniao','condicao_comercial','cobertura_taxa','reembolso_fiscal','bebe_nasceu',
         'pos_venda_operacao','duvida_sem_resposta','saude','perda','reclamacao','pediu_humano',
         'parceiro_medico','midia_recebida','validacao_resposta','estado_sensivel_escreveu','outro',
-        'audio_nao_transcrito'],
-  'handoff_motivo tem os rótulos do PRD, com audio_nao_transcrito [v4.2] no fim');
+        'audio_nao_transcrito','reuniao_realizada'],
+  'handoff_motivo tem os rótulos do PRD, com audio_nao_transcrito [v4.2] e reuniao_realizada [v4.3] no fim');
 
 select enum_has_labels('public', 'status_profissional',
   array['em_visita','em_atendimento','reservada','backup','oferta_pendente','folga','livre'],

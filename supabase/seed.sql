@@ -254,8 +254,13 @@ insert into parametro (chave, valor, descricao) values
    '"pedido_dado_convite":["e-mail","email"],'
    '"pedido_verbos":["manda","mande","mandar","me manda","passa","passe","passar","me passa","envia","envie","enviar","informa","informe","informar","preciso do","preciso da","qual é o seu","qual o seu","qual é a sua","qual a sua"],'
    '"negar_assistente":["sou humana","sou um humano","sou uma pessoa de verdade","não sou um bot","não sou um robô","não sou robô","não sou uma assistente virtual","não sou assistente virtual","não sou uma ia","não sou inteligência artificial"],'
-   '"palavras_condicao":["desconto","pix","à vista","cupom","parcela","parcelas","parcelamento","parcelado"]}',
-   'PRD 6.8, 11.6, 11.11 item 5: listas lidas pelo validador do fluxo 3 (n8n/src/code/validar-resposta.js, LISTAS_VALIDADOR e pedido_verbos), nunca escritas no código. pedido_dado: CPF, RG, endereço, CEP, data de nascimento, e-mail e documento (11.11 item 5), só quando a oração é pedido (verbo de pedido_verbos ou pergunta) e sem negação logo antes; [v4.3] pedido_dado_convite: termos de pedido_dado liberados só com a ficha em agenda_estado = aguardando_email, o passo do convite da reunião com a Edilaine (11.11 item 5, 11.14), e nunca CPF, RG, endereço, CEP, data de nascimento ou documento; negar_assistente: frases que negam ser assistente virtual (11.6); palavras_condicao: percentual perto delas reprova (desconto, Pix, à vista, cupom, parcela) [confirmar: Leonardo, listas completas].'),
+   '"palavras_condicao":["desconto","pix","à vista","cupom","parcela","parcelas","parcelamento","parcelado"],'
+   '"agenda_contexto":["reunião","reuniao","edilaine","agenda","horário","horario","convite","link","meet"],'
+   '"agenda_confirmacao":["agendada","agendado","marcada","marcado","confirmada","confirmado","prontinho","combinado"],'
+   '"agenda_reserva":["vaga reservada","vaga garantida","reservei a vaga","reservamos a vaga","garantimos a vaga","garante a vaga","garante sua vaga","reserva a vaga","reserva sua vaga","reserva o atendimento","garante o atendimento"],'
+   '"agenda_leonardo_verbos":["vai te chamar","vai chamar","vai entrar em contato","entra em contato","vai retornar","retorna","vai te ligar","vai ligar","te chama","te liga","vai falar com você","vai te procurar","vai responder"],'
+   '"agenda_depois":["depois da reunião","depois da reuniao","depois da conversa","após a reunião","apos a reuniao","depois que vocês conversarem"]}',
+   'PRD 6.8, 11.6, 11.11 item 5: listas lidas pelo validador do fluxo 3 (n8n/src/code/validar-resposta.js, LISTAS_VALIDADOR e pedido_verbos), nunca escritas no código. pedido_dado: CPF, RG, endereço, CEP, data de nascimento, e-mail e documento (11.11 item 5), só quando a oração é pedido (verbo de pedido_verbos ou pergunta) e sem negação logo antes; [v4.3] pedido_dado_convite: termos de pedido_dado liberados só com a ficha em agenda_estado = aguardando_email, o passo do convite da reunião com a Edilaine (11.11 item 5, 11.14), e nunca CPF, RG, endereço, CEP, data de nascimento ou documento; negar_assistente: frases que negam ser assistente virtual (11.6); palavras_condicao: percentual perto delas reprova (desconto, Pix, à vista, cupom, parcela); [v4.3] agenda_contexto, agenda_confirmacao, agenda_reserva, agenda_leonardo_verbos e agenda_depois: item 9 e 10 do 11.11 (horário e confirmação de reunião só com o retorno das ferramentas de agenda, vaga nunca reservada pela reunião, Leonardo nunca promete retorno antes da reunião, anotação obrigatória quando a resposta manda o assunto para depois da reunião) [confirmar: Leonardo, listas completas].'),
   ('score_pesos',
    '{"fit_operacional":{"peso":40,"componentes":{"cidade_atendida":1,"regiao_com_profissional":1,"dpp_com_capacidade":1}},'
    '"fit_comercial":{"peso":35,"componentes":{"interesse":1,"engajamento":1,"sessao_agendada":1,"parceiro_envolvido":1}},'
@@ -274,6 +279,7 @@ insert into parametro (chave, valor, descricao) values
    ('[' ||
    '{"motivo":"contratar","destino":"comercial","prioridade":"alta","sla_horas_uteis":2},' ||
    '{"motivo":"reuniao","destino":"comercial","prioridade":"alta","sla_horas_uteis":2},' ||
+   '{"motivo":"reuniao_realizada","destino":"comercial","prioridade":"normal","sla_dias":1},' ||
    '{"motivo":"condicao_comercial","destino":"comercial","prioridade":"normal","sla_horas_uteis":4},' ||
    '{"motivo":"cobertura_taxa","destino":"comercial","prioridade":"normal","sla_horas_uteis":4},' ||
    '{"motivo":"reembolso_fiscal","destino":"comercial","prioridade":"normal","sla_horas_uteis":4},' ||
@@ -299,7 +305,7 @@ insert into parametro (chave, valor, descricao) values
   ('prazos_relatorio', '{"alerta_dias":1,"escala_coordenacao_dias":2}',
    'PRD 9.5: a enfermeira tem 1 dia útil após o encerramento para emitir a evolução; alerta em D+1, escala em D+2.'),
   ('agente_followup_horas', '48',
-   '[v4.2] PRD 4.1 D-18, 11.3, 6.8: primeiro retorno da Isadora depois de tanto tempo sem resposta. Padrão 48, mínimo 24 (a função de gravação recusa valor menor) [confirmar: Leonardo, valor padrão].'),
+   '[v4.3] Substituída por agente_cadencia_dias (D-21). Fica só como reserva: sem agente_cadencia_dias, vale como o único retorno da Isadora (privado.agente_cadencia). Mínimo 24 (a função de gravação recusa valor menor).'),
   ('acesso_enfermeira_pos_encerramento_dias', '7',
    '[v4.2] PRD 13, 6.8: dias em que a enfermeira designada ainda lê a família depois do encerramento, para fechar a evolução [confirmar: Edilaine, prazo].'),
   ('retencao', '{"chat_memoria_dias":180,"conversa_nao_cliente_meses":24,"log_ip_meses":12}',
@@ -319,7 +325,7 @@ insert into parametro (chave, valor, descricao) values
   ('agente_followup_contexto_mensagens', '6',
    'PRD 19.4 nó 38 (P22): quantas mensagens recentes da própria conversa vão ao prompt do follow-up (isadora-followup.md). 0 = nenhuma.'),
   ('handoff_motivos_legiveis',
-   '{"cobertura_taxa":"DÚVIDA DE ÁREA OU TAXA","reembolso_fiscal":"REEMBOLSO OU NOTA FISCAL","duvida_sem_resposta":"PERGUNTA SEM RESPOSTA NA BASE","pediu_humano":"PEDIU PARA FALAR COM UMA PESSOA","pos_venda_operacao":"HORÁRIO, VISITA OU ENFERMEIRA","reclamacao":"RECLAMAÇÃO","parceiro_medico":"MÉDICO, CLÍNICA OU PARCEIRO","midia_recebida":"FOTO, DOCUMENTO OU VÍDEO","validacao_resposta":"RESPOSTA BARRADA PELO VALIDADOR","audio_nao_transcrito":"ÁUDIO NÃO TRANSCRITO","outro":"OUTRO ASSUNTO PARA A EQUIPE"}',
+   '{"cobertura_taxa":"DÚVIDA DE ÁREA OU TAXA","reembolso_fiscal":"REEMBOLSO OU NOTA FISCAL","duvida_sem_resposta":"PERGUNTA SEM RESPOSTA NA BASE","pediu_humano":"PEDIU PARA FALAR COM UMA PESSOA","pos_venda_operacao":"HORÁRIO, VISITA OU ENFERMEIRA","reclamacao":"RECLAMAÇÃO","parceiro_medico":"MÉDICO, CLÍNICA OU PARCEIRO","midia_recebida":"FOTO, DOCUMENTO OU VÍDEO","validacao_resposta":"RESPOSTA BARRADA PELO VALIDADOR","audio_nao_transcrito":"ÁUDIO NÃO TRANSCRITO","reuniao_realizada":"REUNIÃO REALIZADA","outro":"OUTRO ASSUNTO PARA A EQUIPE"}',
    'PRD 23.3 {motivo_legivel} do grupo_generico (P22), a partir da coluna Situação da 11.4. Motivo sem rótulo aparece pelo código.')
 on conflict (chave) do update set valor = excluded.valor, descricao = excluded.descricao;
 
@@ -335,6 +341,44 @@ insert into parametro (chave, valor, descricao) values
    'P30 item 2, PRD 21.1: versão do consentimento LGPD do formulário do contrato (texto em mensagem_modelo formulario_consentimento) [confirmar: jurídico].'),
   ('contrato_template_versao', '"C-11 provisório"',
    'P30 e P31, PRD 22.2 C-11: versão do modelo de contrato gravada no contrato em rascunho [confirmar: Leonardo, modelo atualizado].')
+on conflict (chave) do update set valor = excluded.valor, descricao = excluded.descricao;
+
+-- --- P25b (0028_agenda_isadora): agenda da reunião inicial e cadência de 1, 3 e 14 dias ---
+-- Faixas de horário vazias no seed de desenvolvimento: sem faixa cadastrada a Isadora não
+-- oferece horário (PRD 6.8). As faixas de teste ficam no preparo do roteiro de homologação (tests/agente/lib/preparo.ts), nunca aqui.
+insert into parametro (chave, valor, descricao) values
+  ('agente_cadencia_dias', '[1,3,14]',
+   '[v4.3] PRD 6.8, 10.1, 11.3, D-21: dias sem resposta da família até cada retorno da Isadora antes da reunião, contados da última mensagem dela (da abertura, se nunca respondeu). O primeiro valor nunca é menor que 1 dia; no máximo 3 valores, cada um com motivo novo [confirmar: Leonardo, ponto de contagem, C-28].'),
+  ('agenda_bloco_minutos', '30',
+   '[v4.3] PRD 6.8: duração da reunião inicial e de cada opção de horário [confirmar: Edilaine, C-20].'),
+  ('agenda_faixas', '{}',
+   '[v4.3] PRD 6.8: dias da semana e faixas de horário liberadas para a reunião inicial, por exemplo {"seg":[["09:00","12:00"]]}. Vazio: a Isadora não oferece horário e abre a consulta horario_edilaine [confirmar: Edilaine, C-20].'),
+  ('agenda_periodos', '{"manha":["06:00","12:00"],"tarde":["12:00","18:00"],"noite":["18:00","24:00"]}',
+   '[v4.3] PRD 6.8, 11.14: limites de manhã, tarde e noite para entender a preferência da família ("sábado de manhã", "à noite") e escolher opções em turnos diferentes [confirmar: Edilaine, C-20].'),
+  ('agenda_antecedencia_horas', '24',
+   '[v4.3] PRD 6.8: antecedência mínima de uma opção de horário [confirmar: Edilaine, C-20].'),
+  ('agenda_intervalo_minutos', '0',
+   '[v4.3] PRD 6.8: folga entre reuniões [confirmar: Edilaine, C-20].'),
+  ('agenda_janela_dias', '14',
+   '[v4.3] PRD 6.8: até onde a agenda é consultada [confirmar: Edilaine, C-20].'),
+  ('agenda_titulo_evento', '"Reunião inicial Kraamzorg"',
+   '[v4.3] PRD 6.8, 11.14: título do evento no Google Calendar, sem o nome da família (o título vira o assunto do convite e o CLAUDE.md proíbe nome de paciente em assunto) [confirmar: Leonardo e Edilaine, C-21].'),
+  ('agenda_descricao_evento', '"Reunião online sem compromisso para conhecer os planos e o passo a passo do atendimento. O link do Google Meet está neste convite."',
+   '[v4.3] PRD 11.14: descrição padrão do evento, sem dado da família [confirmar: Edilaine, C-21].'),
+  ('agenda_convidar_leonardo', 'false',
+   '[v4.3] Treinamento v3, seção 10: se o convite vai só para a família ou também para o Leonardo [confirmar: Leonardo e Edilaine, C-21].'),
+  ('agenda_leonardo_email', 'null',
+   '[v4.3] E-mail do Leonardo para o convite, usado só com agenda_convidar_leonardo ligado. Nunca um e-mail real neste seed.'),
+  ('agenda_condutora_perfil_id', 'null',
+   '[v4.3] PRD 6.8: perfil da Edilaine, que consta como condutora da sessão [confirmar: Edilaine]. O seed de homologação aponta para um perfil de teste.'),
+  ('agenda_lembrete_hora', '"10:00"',
+   '[v4.3] PRD 6.8: hora da véspera em que o lembrete sai, dentro de agente_janela_envio.'),
+  ('agenda_remarcar_apos_falta_horas', '2',
+   '[v4.3] PRD 6.8: espera entre o registro da falta e a mensagem de remarcação da Isadora.'),
+  ('agenda_desfecho_pendente_horas', '24',
+   '[v4.3] PRD 6.8: prazo para a Edilaine registrar o desfecho depois do fim da reunião; passado, nasce a tarefa registrar_desfecho_sessao.'),
+  ('agenda_consulta_horario_dias', '3',
+   '[v4.3] PRD 6.8: prazo da consulta horario_edilaine antes de a tarefa subir para a Edilaine.')
 on conflict (chave) do update set valor = excluded.valor, descricao = excluded.descricao;
 
 
@@ -394,10 +438,47 @@ insert into mensagem_modelo (chave, canal, destinatario, texto, variaveis, statu
    '{nome}, isso precisa ser avaliado agora. Procure um serviço de urgência ou ligue para o SAMU pelo 192. A equipe já está sabendo.',
    array['nome'], 'rascunho', null, null);
 
+
+-- --- 23.1 [v4.3] agenda da reunião inicial (Prompt v6, seção 14; Treinamento v3) ------
+insert into mensagem_modelo (chave, canal, destinatario, texto, variaveis, status) values
+  ('reuniao_confirmada', 'whatsapp', 'familia',
+   'Prontinho, {nome}! Sua reunião com a Edilaine está agendada para {dia}, {data}, às {hora}. O convite com o link chegou no seu e-mail. Na véspera eu te lembro por aqui 😊',
+   array['nome','dia','data','hora'], 'rascunho'),
+  ('horarios_sugeridos', 'whatsapp', 'familia',
+   'Que bom! Olhei a agenda da Edilaine agora e ela tem {opcao_1} ou {opcao_2}. Algum desses fica bom para vocês?',
+   array['opcao_1','opcao_2'], 'rascunho'),
+  ('pedir_email_convite', 'whatsapp', 'familia',
+   'Perfeito, esse horário está livre! Me passa o seu e-mail para eu enviar o convite com o link da reunião?',
+   array[]::text[], 'rascunho'),
+  ('horario_ocupado', 'whatsapp', 'familia',
+   'Acabei de conferir e esse horário acabou de ser preenchido. Posso te oferecer {opcao_1} ou {opcao_2}?',
+   array['opcao_1','opcao_2'], 'rascunho'),
+  ('opcoes_vencidas', 'whatsapp', 'familia',
+   'Oi, {nome}! Conferi a agenda da Edilaine agora e os horários que te passei ontem já não estão disponíveis. Hoje ela tem {opcao_1} ou {opcao_2}. Algum fica bom?',
+   array['nome','opcao_1','opcao_2'], 'rascunho'),
+  ('nenhum_horario_serve', 'whatsapp', 'familia',
+   'Sem problema! Me conta quais dias e períodos ficam melhores para vocês (manhã, tarde ou noite), que eu olho a agenda da Edilaine.',
+   array[]::text[], 'rascunho'),
+  ('aguardando_horario_edilaine', 'whatsapp', 'familia',
+   'Vou ver com a Edilaine se ela consegue abrir um horário nesse período e te retorno por aqui, tá?',
+   array[]::text[], 'rascunho'),
+  ('horario_liberado', 'whatsapp', 'familia',
+   'Oi, {nome}! A Edilaine abriu um horário: {opcao_1}. Fica bom para vocês?',
+   array['nome','opcao_1'], 'rascunho'),
+  ('agenda_falha_evento', 'whatsapp', 'familia',
+   'Vou conferir isso com a equipe e já te retorno por aqui, tá?',
+   array[]::text[], 'rascunho'),
+  ('condicao_depois_da_reuniao', 'whatsapp', 'familia',
+   'As condições de pagamento o Leonardo apresenta depois da reunião com a Edilaine, tá? Já deixei anotado aqui.',
+   array[]::text[], 'rascunho'),
+  ('reuniao_remarcada', 'whatsapp', 'familia',
+   'Prontinho! Sua reunião com a Edilaine mudou para {dia}, {data}, às {hora}. O convite com o link foi atualizado no seu e-mail.',
+   array['dia','data','hora'], 'rascunho');
+
 -- --- 23.2 Para a família, tarefas com texto sugerido enviadas por uma pessoa
 insert into mensagem_modelo (chave, canal, destinatario, texto, variaveis, status) values
   ('followup_d3', 'whatsapp', 'familia',
-   'Oi, {nome}! Se ajudar na decisão, a Edilaine pode conversar com vocês uns 15 minutos e mostrar como o cuidado funciona na rotina de vocês. Me passa dois dias e horários bons que eu vejo com ela?',
+   'Oi, {nome}! Se ajudar na decisão, a Edilaine faz uma reunião online de 30 minutos, sem compromisso, para explicar os planos e como funciona o atendimento. Quer que eu veja os horários dela para você?',
    array['nome'], 'rascunho'),
   ('followup_d14', 'whatsapp', 'familia',
    'Oi, {nome}! Quero respeitar o tempo de vocês 🤍 Prefere que eu te chame mais perto da sua DPP, ou que você fale com a gente quando sentir que é o momento?',
@@ -406,10 +487,10 @@ insert into mensagem_modelo (chave, canal, destinatario, texto, variaveis, statu
    'Oi! Se você ainda quiser saber como funciona a Kraamzorg, vai ser um prazer te explicar por aqui.',
    array[]::text[], 'rascunho'),
   ('lembrete_sessao', 'whatsapp', 'familia',
-   'Oi, {nome}! Amanhã, às {hora}, é a sua conversa com a Edilaine 😊 O acesso é este: {link}. Se precisar mudar o horário, é só me avisar por aqui.',
+   'Oi, {nome}! Amanhã, às {hora}, é a sua reunião com a Edilaine 😊 O link é este: {link}. Se precisar mudar o horário, é só me avisar por aqui.',
    array['nome','hora','link'], 'rascunho'),
   ('nao_compareceu', 'whatsapp', 'familia',
-   'Imagino que tenha surgido algum imprevisto, acontece. Se quiser, a gente remarca. Me passa dois dias e horários que ficam bons para vocês?',
+   'Imagino que tenha surgido algum imprevisto, acontece. Quer que eu veja um novo horário com a Edilaine?',
    array[]::text[], 'rascunho'),
   ('pos_sessao_48h', 'whatsapp', 'familia',
    'Oi, {nome}! Que bom que vocês conversaram com a Edilaine. Ficou alguma dúvida?',
@@ -486,6 +567,21 @@ insert into mensagem_modelo (chave, canal, destinatario, texto, variaveis, statu
   ('grupo_generico', 'whatsapp', 'equipe',
    '💬 {motivo_legivel} / {resumo_interno} / {link_ficha}',
    array['motivo_legivel','resumo_interno','link_ficha'], 'rascunho'),
+  ('grupo_reuniao_agendada', 'whatsapp', 'equipe',
+   '📅 REUNIÃO AGENDADA PELA ISADORA / {dia}, {data}, às {hora} / {resumo_interno} / {link_ficha}',
+   array['dia','data','hora','resumo_interno','link_ficha'], 'rascunho'),
+  ('grupo_consulta', 'whatsapp', 'equipe',
+   '❓ A ISADORA PERGUNTA / {tipo_legivel}: {pergunta} / {resumo_interno} / Responder na ficha: {link_ficha}',
+   array['tipo_legivel','pergunta','resumo_interno','link_ficha'], 'rascunho'),
+  ('grupo_consulta_horario', 'whatsapp', 'equipe',
+   '📅 SEM HORÁRIO COMPATÍVEL / A família prefere {preferencia}. Abra um horário na agenda da Edilaine ou responda na ficha: {link_ficha} / {resumo_interno}',
+   array['preferencia','link_ficha','resumo_interno'], 'rascunho'),
+  ('grupo_reuniao_realizada', 'whatsapp', 'equipe',
+   '✅ REUNIÃO REALIZADA / Agora a conversa é do Leonardo. A Isadora não volta a esta conversa. / Resultado: {resultado} / {resumo_interno} / {link_ficha}',
+   array['resultado','resumo_interno','link_ficha'], 'rascunho'),
+  ('grupo_rodape_isadora_segue', 'whatsapp', 'equipe',
+   'A Isadora segue atendendo esta conversa.',
+   array[]::text[], 'rascunho'),
   -- Complementos [v4.2] do 23.3, montados por agente.registrar_handoff (P22)
   ('grupo_rodape_pausa', 'whatsapp', 'equipe',
    'IA pausada por {pausa_horas} h nesta conversa.',
@@ -534,6 +630,12 @@ insert into mensagem_modelo (chave, canal, destinatario, texto, variaveis, statu
    array[]::text[], 'rascunho'),
   ('instrucao_saude', 'whatsapp', 'agente',
    'A mensagem aprovada já foi enviada pelo sistema e a equipe foi avisada. Responda só [SILENCIO].',
+   array[]::text[], 'rascunho'),
+  ('instrucao_consulta', 'whatsapp', 'agente',
+   'A equipe foi consultada e a conversa continua com você. Diga que vai confirmar com a equipe e que a resposta vem por aqui, sem prometer prazo, e siga atendendo o que puder.',
+   array[]::text[], 'rascunho'),
+  ('instrucao_agenda_indisponivel', 'whatsapp', 'agente',
+   'Não foi possível consultar a agenda agora. Não sugira nem confirme nenhum horário. Diga que vai conferir com a equipe e que a resposta vem por aqui.',
    array[]::text[], 'rascunho'),
   -- Apêndice A [v4.2], sincronizar_memoria papel equipe: prefixo da fala da
   -- equipe na memória do agente (nunca vai à família)
@@ -767,19 +869,33 @@ insert into automacao (id, nome, categoria, executor, gatilho, condicoes, acoes,
    '{"tipo":"dados_minimos_coletados"}', '[]',
    '[{"tipo":"calcular_score"},{"tipo":"classificar_lead"},{"tipo":"mover_pipeline"}]',
    true, 'PRD 10.1: calcula score, classifica quente/morno/frio, move o pipeline.'),
-  ('followup_d1', '[v4.2] Primeiro retorno da Isadora (ID mantido por compatibilidade)', 'conteudo', 'agente',
-   '{"tipo":"sem_resposta_horas","parametro":"agente_followup_horas"}',
-   '[{"condicao":"conversa.agente_encerrado_em is null"},{"condicao":"nenhum handoff aberto"}]',
+  ('followup_d1', '[v4.3] Primeiro retorno da Isadora, 1 dia (ID mantido por compatibilidade)', 'conteudo', 'agente',
+   '{"tipo":"sem_resposta_dias","parametro":"agente_cadencia_dias","etapa":1}',
+   '[{"condicao":"conversa.agente_encerrado_em is null"},{"condicao":"nenhum handoff aberto"},{"condicao":"sem reunião agendada ou realizada"}]',
    '[{"tipo":"mensagem_agente","chaves":["followup_d1_pos_pdf","followup_d1_pos_abertura"]}]',
-   true, 'PRD 10.1, 11.3, D-18: uma mensagem da Isadora, nunca em humano_comercial nem com handoff aberto.'),
-  ('followup_d3_d14', 'Follow-up D+3 e D+14', 'conteudo', 'humano_tarefa',
-   '{"tipo":"sem_resposta_dias","dias":[3,14],"contados_de":"primeiro_retorno"}', '[]',
-   '[{"tipo":"criar_tarefa","tipo_tarefa":"followup_comercial","chaves":["followup_d3","followup_d14"]}]',
-   true, 'PRD 10.1, 22.2 C-12: tarefa para o comercial com texto sugerido, contada do primeiro retorno da Isadora.'),
-  ('lembrete_sessao', 'Lembrete da conversa com a Edilaine', 'operacional', 'humano_tarefa',
-   '{"tipo":"vespera_sessao_venda"}', '[]',
-   '[{"tipo":"criar_tarefa","tipo_tarefa":"agendar_sessao","chave_mensagem":"lembrete_sessao"}]',
-   true, 'PRD 10.1: véspera da sessão de venda.'),
+   true, 'PRD 10.1, 11.3, D-21: uma mensagem da Isadora, nunca com reunião agendada, com transferência aberta nem em humano_comercial.'),
+  ('followup_d3_d14', '[v4.3] Segundo e terceiro retornos da Isadora, 3 e 14 dias', 'conteudo', 'agente',
+   '{"tipo":"sem_resposta_dias","parametro":"agente_cadencia_dias","etapas":[2,3]}',
+   '[{"condicao":"conversa.agente_encerrado_em is null"},{"condicao":"nenhum handoff aberto"},{"condicao":"sem reunião agendada ou realizada"}]',
+   '[{"tipo":"mensagem_agente","chaves":["followup_d3","sem_resposta_abertura_2","followup_d14"]}]',
+   true, 'PRD 10.1, D-21: uma mensagem da Isadora por etapa, com motivo novo (reunião de 30 minutos; respeitar o tempo). Depois da reunião realizada a cadência é do Leonardo.'),
+  ('lembrete_sessao', '[v4.3] Lembrete da reunião inicial com a Edilaine', 'operacional', 'agente',
+   '{"tipo":"vespera_sessao_venda","hora_parametro":"agenda_lembrete_hora"}', '[]',
+   '[{"tipo":"mensagem_agente","chaves":["lembrete_sessao"]}]',
+   true, 'PRD 10.1, 11.14: a Isadora confere o evento no Google Calendar e envia o lembrete com o link. Sessão marcada pela equipe segue como tarefa humana criada no agendamento (P29).'),
+  ('reuniao_falta_remarcar', '[v4.3] Remarcação depois de uma falta', 'conteudo', 'agente',
+   '{"tipo":"sessao_nao_compareceu_horas","parametro":"agenda_remarcar_apos_falta_horas"}',
+   '[{"condicao":"sem nova reunião agendada ou realizada"}]',
+   '[{"tipo":"mensagem_agente","chaves":["nao_compareceu"]}]',
+   true, 'PRD 10.1, 11.14: uma mensagem da Isadora, sem constranger; a conversa segue com ela.'),
+  ('consulta_horario_retomada', '[v4.3] Retomada de horário liberado', 'conteudo', 'agente',
+   '{"tipo":"consulta_horario_edilaine_aberta","verificacao_minutos":30}', '[]',
+   '[{"tipo":"mensagem_agente","chaves":["horario_liberado"]},{"tipo":"criar_tarefa","tipo_tarefa":"responder_consulta_isadora","apos_dias_parametro":"agenda_consulta_horario_dias"}]',
+   true, 'PRD 10.1, 11.14: a Isadora consulta a agenda de novo e oferece as opções; sem horário no prazo, a tarefa sobe para a Edilaine.'),
+  ('desfecho_sessao_pendente', '[v4.3] Desfecho da reunião pendente', 'interna', 'sistema',
+   '{"tipo":"fim_da_reuniao_mais_horas","parametro":"agenda_desfecho_pendente_horas"}', '[]',
+   '[{"tipo":"criar_tarefa","tipo_tarefa":"registrar_desfecho_sessao"}]',
+   true, 'PRD 10.1: tarefa para a Edilaine registrar como foi a reunião; a Isadora não escreve nada.'),
   ('regua_nutricao', 'Nutrição gestacional', 'conteudo', 'humano_tarefa',
    '{"tipo":"diario","hora_utc":"10:00","condicao":"mudou_faixa_regua"}', '[]',
    '[{"tipo":"criar_tarefa","tipo_tarefa":"nutricao_contato","payload":"lista_contatos_e_texto_sugerido"}]',
@@ -864,14 +980,14 @@ insert into automacao (id, nome, categoria, executor, gatilho, condicoes, acoes,
    '{"tipo":"recalculo_diario_acima_limite"}', '[]',
    '[{"tipo":"alerta_diretoria"}]',
    false, 'PRD 10.1, 10.2: motor de capacidade probabilístico, Fase 3.'),
-  ('contratar_sem_transferencia', 'Intenção de contratar parada', 'interna', 'sistema',
+  ('contratar_sem_transferencia', '[v4.3] Intenção de contratar parada (desligada)', 'interna', 'sistema',
    '{"tipo":"marco_quer_contratar_sem_handoff_horas_uteis","horas":2}', '[]',
    '[{"tipo":"abrir_handoff","motivo":"contratar"}]',
-   true, 'PRD 10.1, 11.8: abre o handoff com o que a ficha tiver.'),
-  ('sessao_sem_agenda', 'Interesse na conversa parado', 'interna', 'sistema',
-   '{"tipo":"marco_sessao_interesse_sem_handoff_horas","horas":24}', '[]',
+   false, 'PRD 10.1, 11.14: desligada. Antes da reunião a Isadora não transfere contratar; o marco quer_contratar vai só para o resumo do Leonardo.'),
+  ('sessao_sem_agenda', '[v4.3] Interesse na reunião parado (contingência)', 'interna', 'sistema',
+   '{"tipo":"marco_sessao_interesse_sem_reuniao_horas","horas":24}', '[]',
    '[{"tipo":"criar_tarefa","tipo_tarefa":"agendar_sessao"}]',
-   true, 'PRD 10.1: tarefa agendar_sessao para o comercial.'),
+   true, 'PRD 10.1: tarefa agendar_sessao para o comercial, que agenda pelo P29, quando a Isadora não conseguiu agendar nem tem horário do dia à espera.'),
   ('retencao_diaria', 'Retenção de conversa e memória', 'interna', 'sistema',
    '{"tipo":"diario","executor":"pg_cron"}', '[]',
    '[{"tipo":"apagar_chat_memoria_vencida"},{"tipo":"apagar_ou_anonimizar_conversa_nao_cliente"},{"tipo":"anonimizar_ip_log_auditoria"},{"tipo":"gravar_contagens_no_log"}]',

@@ -4,7 +4,7 @@
 -- Aceite do P04 (PROMPTS.md): "supabase db reset limpo; pgTAP confirma que
 -- todas as tabelas do PRD existem com RLS ligada."
 --
--- Cobertura: as 53 tabelas de negócio do PRD 6.1 a 6.8 inteiro (não só as
+-- Cobertura: as 55 tabelas de negócio do PRD 6.1 a 6.8 inteiro (não só as
 -- que esta migration cria), porque este é o aceite final da trilha de
 -- tabelas (P01 a P04) desta sessão.
 -- =============================================================================
@@ -29,6 +29,8 @@ insert into prd_tabelas (schema_nome, tabela_nome) values
   -- 6.3
   ('public','pacote'), ('public','pacote_versao'), ('public','condicao_comercial'),
   ('public','oportunidade'), ('public','sessao_venda'), ('public','sessao_venda_gravacao'),
+  ('public','sessao_venda_opcao'),   -- [v4.3] 0028
+  ('public','consulta_equipe'),      -- [v4.3] 0028
   ('public','contrato'), ('public','cobranca'), ('public','nota_fiscal'),
   -- 6.4
   ('public','conversa'), ('public','mensagem'), ('public','handoff'),
@@ -49,8 +51,8 @@ insert into prd_tabelas (schema_nome, tabela_nome) values
   ('agente','ingestao_execucao');
 
 select is(
-  (select count(*) from prd_tabelas)::integer, 53,
-  'a lista de conferência tem as 53 tabelas do PRD 6.1 a 6.8 (49 em public, 2 em agente, 2 em agente_n8n)'
+  (select count(*) from prd_tabelas)::integer, 55,
+  'a lista de conferência tem as 55 tabelas do PRD 6.1 a 6.8 (51 em public, 2 em agente, 2 em agente_n8n; [v4.3] sessao_venda_opcao e consulta_equipe)'
 );
 
 -- --- Nenhuma tabela do PRD está faltando -------------------------------------
@@ -68,7 +70,7 @@ select is_empty(
       and c.relkind = 'r'            -- tabela de verdade, não view, índice nem sequência
   )
   $$,
-  'todas as 53 tabelas do PRD (6.1 a 6.8) existem no banco'
+  'todas as 55 tabelas do PRD (6.1 a 6.8) existem no banco'
 );
 
 -- --- Todas com RLS ligada -----------------------------------------------------
@@ -81,7 +83,7 @@ select is_empty(
   join pg_class c on c.relname = pt.tabela_nome and c.relnamespace = n.oid and c.relkind = 'r'
   where not c.relrowsecurity
   $$,
-  'todas as 53 tabelas do PRD têm RLS ligada'
+  'todas as 55 tabelas do PRD têm RLS ligada'
 );
 
 -- --- Nenhuma tabela extra escapou da lista (garante que a lista de

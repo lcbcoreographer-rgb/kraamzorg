@@ -140,6 +140,11 @@ insert into mensagem (conversa_id, direcao, enviado_por, conteudo)
   values ('c7000000-0000-4000-8000-000000000061', 'entrada', 'cliente', 'Mensagem sintética.');
 insert into handoff (conversa_id, familia_id, motivo, destino, prioridade, resumo)
   values ('c7000000-0000-4000-8000-000000000061', 'c7000000-0000-4000-8000-000000000001', 'reuniao', 'comercial', 'normal', 'Resumo sintético.');
+-- [v4.3] uma consulta à equipe e uma opção de horário, para a matriz ter o que ver
+insert into consulta_equipe (conversa_id, familia_id, tipo, pergunta)
+  values ('c7000000-0000-4000-8000-000000000061', 'c7000000-0000-4000-8000-000000000001', 'duvida', 'Pergunta sintética de teste.');
+insert into sessao_venda_opcao (conversa_id, inicio, fim, consultada_em, valida_ate)
+  values ('c7000000-0000-4000-8000-000000000061', now() + interval '3 days', now() + interval '3 days 30 minutes', now(), now() + interval '1 day');
 
 -- Uma tarefa, uma notificação e um item de fila para cada usuário; uma
 -- tarefa de papel (coordenação) sem pessoa.
@@ -283,6 +288,8 @@ insert into matriz values
   ('public.oportunidade',            '{comercial,financeiro,coordenacao,diretoria}', 'perfil'),
   ('public.sessao_venda',            '{comercial,coordenacao,diretoria}', 'perfil'),
   ('public.sessao_venda_gravacao',   '{}', 'nega'),
+  ('public.sessao_venda_opcao',      '{}', 'nega'),   -- [v4.3] 0028: só funções do agente
+  ('public.consulta_equipe',         '{comercial,coordenacao,diretoria}', 'perfil'),   -- [v4.3] 0028
   ('public.contrato',                '{comercial,financeiro,diretoria}', 'aal2'),
   ('public.cobranca',                '{financeiro,diretoria}', 'aal2'),
   ('public.nota_fiscal',             '{financeiro,diretoria}', 'aal2'),
@@ -961,7 +968,8 @@ select set_eq(
             ('api.remarcar_sessao_venda'), ('api.registrar_desfecho_sessao_venda'),
             ('api.registrar_gravacao_sessao_venda'), ('api.salvar_resumo_sessao_venda'),
             ('api.proposta'), ('api.salvar_proposta'), ('api.aprovar_desconto'),
-            ('api.gerar_link_formulario_contrato') $$,
+            ('api.gerar_link_formulario_contrato'),
+            ('api.consultas_equipe'), ('api.responder_consulta_equipe') $$,
   'authenticated executa exatamente a lista do ADR 0002 seção 6');
 
 select is_empty(

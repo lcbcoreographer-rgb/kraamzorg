@@ -199,7 +199,7 @@ select is(
 -- 6. automacao (10.1) e regra_alerta (DOC 3)
 -- =============================================================================
 
-select is((select count(*)::integer from automacao), 29, 'catálogo completo do PRD 10.1');
+select is((select count(*)::integer from automacao), 32, 'catálogo completo do PRD 10.1 ([v4.3] com reuniao_falta_remarcar, consulta_horario_retomada e desfecho_sessao_pendente)');
 select ok((select count(*)::integer from automacao where ativa) >= 12,
   'automações de Fase 1 (comercial e réguas como tarefa humana) ativas');
 select is((select count(*)::integer from automacao where id = 'retencao_diaria' and ativa), 1,
