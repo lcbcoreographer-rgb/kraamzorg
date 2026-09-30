@@ -27,7 +27,7 @@
 
 begin;
 
-select plan(84);
+select plan(85);
 
 
 -- =============================================================================
@@ -205,8 +205,12 @@ select ok((select count(*)::integer from automacao where ativa) >= 12,
 select is((select count(*)::integer from automacao where id = 'retencao_diaria' and ativa), 1,
   'retencao_diaria ativa (proteção de LGPD, O-06, independente de fase)');
 select is((select count(*)::integer from automacao where id in
-    ('alerta_clinico','pesquisa','sobrevenda') and not ativa), 3,
-  'automações de Fase 3 (alertas clínicos, pesquisa, capacidade) inativas até o prompt correspondente');
+    ('alerta_clinico','sobrevenda') and not ativa), 2,
+  'automações de Fase 3 (alertas clínicos, capacidade) inativas até o prompt correspondente');
+-- [P41 e P42] o prazo do relatório, a pesquisa e a classificação do NPS ligam com a migration 0024
+select is((select count(*)::integer from automacao where id in
+    ('prazo_relatorio','pesquisa','classificacao_nps') and ativa), 3,
+  'prazo do relatório, pesquisa e classificação do NPS ativas (P41 e P42)');
 -- [P35 e P36] as automações do pré-natal, da DPP, do nascimento e da alta ligam com as funções da 0021
 select is((select count(*)::integer from automacao where id in
     ('prenatal_urgente','alerta_34s','checkin_dpp','dpp_sem_confirmacao','dpp_sem_contato','nascimento','alta')

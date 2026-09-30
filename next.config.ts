@@ -39,6 +39,18 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // Pesquisa de satisfação da família (P42): o token de uso único está
+        // no caminho. Mesmas regras do formulário do contrato.
+        source: "/pesquisa/:path*",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+          { key: "Cache-Control", value: "no-store, max-age=0" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+        ],
+      },
+      {
         // Retorno do link de pagamento (P32): sem indexação e sem cache.
         source: "/pagamento/:path*",
         headers: [

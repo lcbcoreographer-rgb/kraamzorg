@@ -28,6 +28,12 @@ import {
 } from "./contrato";
 import { criarOperacaoDemonstracao } from "./operacao";
 import { criarAssistencialDemonstracao } from "./assistencial";
+import { criarEvolucaoDemonstracao } from "./evolucao";
+import { criarNotaDemonstracao } from "./nota";
+import {
+  criarOcorrenciaDemonstracao,
+  criarPosVendaDemonstracao,
+} from "./ocorrencia";
 import { criarVendaDemonstracao, dadosContratoDemonstracao } from "./venda";
 
 /**
@@ -785,5 +791,9 @@ export function criarRepositoriosDemonstracao(
     equipe: criarEquipeDemonstracao(contexto),
     portal: criarPortalDemonstracao(contexto),
     assistencial: criarAssistencialDemonstracao(contexto),
+    evolucoes: criarEvolucaoDemonstracao(contexto),
+    ocorrencias: criarOcorrenciaDemonstracao(contexto),
+    posVenda: criarPosVendaDemonstracao(contexto),
+    notas: criarNotaDemonstracao(contexto),
   };
 }

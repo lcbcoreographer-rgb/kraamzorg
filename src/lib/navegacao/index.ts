@@ -49,6 +49,9 @@ export type NomeIcone =
   | "agenda"
   | "cobrancas"
   | "notas"
+  | "evolucoes"
+  | "ocorrencias"
+  | "posVenda"
   | "financeiro"
   | "alertas"
   | "perfil"
@@ -178,6 +181,27 @@ export const ROTAS = {
     dono: "P43",
     casca: "app",
   },
+  evolucoes: {
+    caminho: "/evolucoes",
+    rotulo: "Evoluções",
+    icone: "evolucoes",
+    dono: "P41",
+    casca: "app",
+  },
+  ocorrencias: {
+    caminho: "/ocorrencias",
+    rotulo: "Ocorrências",
+    icone: "ocorrencias",
+    dono: "P42",
+    casca: "app",
+  },
+  posVenda: {
+    caminho: "/pos-venda",
+    rotulo: "Pós-venda",
+    icone: "posVenda",
+    dono: "P42",
+    casca: "app",
+  },
   financeiro: {
     caminho: "/financeiro",
     rotulo: "Financeiro",
@@ -225,6 +249,13 @@ export const ROTAS = {
     rotulo: "Perfil",
     icone: "perfil",
     dono: "P38",
+    casca: "enfermeira",
+  },
+  minhasEvolucoes: {
+    caminho: "/minhas-evolucoes",
+    rotulo: "Evoluções",
+    icone: "evolucoes",
+    dono: "P41",
     casca: "enfermeira",
   },
   ofertas: {
@@ -289,11 +320,13 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
           "sessoesVenda",
           "tarefas",
           "alertasClinicos",
+          "evolucoes",
+          "ocorrencias",
         ],
       },
       {
         titulo: "Experiência",
-        itens: ["familias", "conversas", "transferencias"],
+        itens: ["familias", "conversas", "transferencias", "posVenda"],
       },
       { titulo: "Sistema", itens: ["configuracoes"] },
     ],
@@ -329,7 +362,19 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
       },
       {
         titulo: "Operação",
-        itens: ["radar", "agenda", "equipe", "prenatal", "alertasClinicos"],
+        itens: [
+          "radar",
+          "agenda",
+          "equipe",
+          "prenatal",
+          "alertasClinicos",
+          "evolucoes",
+          "ocorrencias",
+        ],
+      },
+      {
+        titulo: "Experiência",
+        itens: ["posVenda"],
       },
       { titulo: "Gestão", itens: ["financeiro", "cobrancas", "notas"] },
       { titulo: "Sistema", itens: ["agente", "configuracoes", "sessoes"] },
@@ -339,7 +384,7 @@ export const NAVEGACAO: Record<Papel, NavegacaoPapel> = {
   enfermeira: {
     abas: ["hoje", "minhasFamilias", "alertas", "perfil"],
     grupos: [],
-    ocultas: ["ofertas"],
+    ocultas: ["ofertas", "minhasEvolucoes"],
     inicio: "hoje",
   },
 };

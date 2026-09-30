@@ -133,7 +133,7 @@ insert into contrato (id, familia_id, pacote_versao_id, valor_centavos, template
 insert into cobranca (id, contrato_id, valor_centavos, vencimento, external_id, link_pagamento)
   values ('c7000000-0000-4000-8000-000000000051', 'c7000000-0000-4000-8000-000000000041', 100, current_date, 'teste-p07-1',
           'https://exemplo.invalid/link');
-insert into nota_fiscal (cobranca_id, provider, status) values ('c7000000-0000-4000-8000-000000000051', 'teste', 'emitida');
+insert into nota_fiscal (cobranca_id, provider, status, numero, emitida_em) values ('c7000000-0000-4000-8000-000000000051', 'teste', 'emitida', '1', now());
 
 insert into conversa (id, familia_id) values ('c7000000-0000-4000-8000-000000000061', 'c7000000-0000-4000-8000-000000000001');
 insert into mensagem (conversa_id, direcao, enviado_por, conteudo)
@@ -324,6 +324,7 @@ insert into matriz values
   -- P30 (0018): tentativas recusadas do formulário público, lidas só pelas
   -- funções do formulário
   ('privado.formulario_tentativa',   '{}', 'nega'),
+  ('privado.pesquisa_tentativa',     '{}', 'nega'),
   ('privado.fato_operacao',          '{}', 'nega'),
   ('privado.sync_item',              '{}', 'nega');
 
@@ -982,7 +983,16 @@ select set_eq(
             ('api.registrar_alerta_clinico'), ('api.alertas_clinicos'),
             ('api.registrar_acionamento_alerta'), ('api.fechar_alerta_clinico'),
             ('api.registrar_anexo_audio'), ('api.audio_da_visita_para_ouvir'),
-            ('api.contato_medico_situacao'), ('api.supervisao_medica_telefone') $$,
+            ('api.contato_medico_situacao'), ('api.supervisao_medica_telefone'),
+            ('api.base_evolucao'), ('api.evolucoes'), ('api.evolucao'), ('api.salvar_evolucao'),
+            ('api.enviar_evolucao_para_revisao'), ('api.devolver_evolucao'), ('api.aprovar_evolucao'),
+            ('api.dados_envio_evolucao'), ('api.registrar_envio_evolucao'), ('api.pdf_evolucao'),
+            ('api.ocorrencias'), ('api.ocorrencia'), ('api.responsaveis_ocorrencia'),
+            ('api.registrar_ocorrencia'), ('api.atualizar_ocorrencia'),
+            ('api.pos_vendas'), ('api.gerar_link_pesquisa'), ('api.marcar_pesquisa_enviada'),
+            ('api.avancar_pos_venda'),
+            ('api.notas_fiscais'), ('api.nota_fiscal'), ('api.dados_emissao_nota'), ('api.iniciar_emissao_nota'),
+            ('api.registrar_resultado_nota'), ('api.registrar_nota_manual'), ('api.arquivo_da_nota') $$,
   'authenticated executa exatamente a lista do ADR 0002 seção 6');
 
 select is_empty(

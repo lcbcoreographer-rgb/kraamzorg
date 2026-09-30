@@ -58,12 +58,13 @@ enabled = true
 file_size_limit = "50MiB"
 
 # Documentos do contrato e da cobrança (P31 e P32): PDF do contrato em
-# contratos/<id>.pdf e comprovantes da baixa manual em comprovantes/<id>-<código>.<ext>.
+# contratos/<id>.pdf, comprovantes da baixa manual em comprovantes/<id>-<código>.<ext>,
+# evoluções aos médicos em evolucoes/<id>.pdf e notas fiscais em notas/<id>.<pdf|xml>.
 # Privado, sem URL pública; o app abre com URL assinada de 60 segundos.
 [storage.buckets.documentos]
 public = false
 file_size_limit = "4MiB"
-allowed_mime_types = ["application/pdf", "image/png", "image/jpeg"]
+allowed_mime_types = ["application/pdf", "image/png", "image/jpeg", "application/xml"]
 
 [edge_runtime]
 enabled = false

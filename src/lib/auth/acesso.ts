@@ -30,6 +30,9 @@ const PUBLICAS = [
   // Casco do portal da enfermeira sem sinal (P38): página sem dado nenhum,
   // que o service worker guarda para abrir quando não há conexão.
   "/portal-offline",
+  // Pesquisa de satisfação da família (P42): sem sessão, protegida pelo token
+  // de uso único, pela validade, pelo limite de tentativas e pelo Turnstile.
+  "/pesquisa",
 ];
 
 /** Exigem sessão, mas não o AAL2 nem papel (o caminho até o MFA). */

@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ClipboardPen } from "lucide-react";
+import { Botao } from "@/components/ui/botao";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { obterRepositorios } from "@/lib/dados/fabrica";
@@ -29,6 +32,20 @@ export default async function PaginaHoje() {
         lateral={<IndicadorPortal />}
       />
       <HojeCliente inicial={hoje} familias={familias} hoje={hoje.dia} />
+      <div className="pt-6">
+        <Botao
+          asChild
+          variante="secundario"
+          iconeEsquerda={
+            <ClipboardPen
+              className="size-4 max-w-full text-balance whitespace-normal"
+              aria-hidden="true"
+            />
+          }
+        >
+          <Link href="/minhas-evolucoes">Evoluções para os médicos</Link>
+        </Botao>
+      </div>
     </>
   );
 }

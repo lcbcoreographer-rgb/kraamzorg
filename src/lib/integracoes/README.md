@@ -26,3 +26,14 @@ ambiente (duplo local só na demonstração); `links-pagamento.ts` pede e guarda
 o link de cada cobrança sem nunca lançar; `servico-webhooks.ts` é o que os
 dois webhooks fazem no banco, pelas funções `public.contrato_*` e
 `public.cobranca*`, só `service_role`.
+
+P41 e P43 (0024): `fabrica.ts` também escolhe o e-mail (`obterEmail`: na
+demonstração, caixa de saída local com a mesma guarda de assunto e de anexo;
+fora dela, Resend com `RESEND_API_KEY` e `RESEND_FROM_EMAIL`) e o emissor de
+NFS-e (`obterEmissorNfse`: na demonstração, provedor de mentira; fora dela,
+`NFSE_PROVEDOR_BASE_URL` e `NFSE_PROVEDOR_API_KEY`). `nfse/emissao.ts` é o
+caminho comum da tela do financeiro e do servidor (emitir, guardar os arquivos
+do provedor no storage privado, registrar o resultado no banco).
+`servico-webhooks.ts` ganhou `emitirNotaAutomatica`, chamada pelo webhook da
+InfinitePay depois da baixa, em melhor esforço e só com
+`parametro.nfse_emissao.automatica` ligado.

@@ -1,7 +1,11 @@
 import "server-only";
 import type { DadosLinkPagamento } from "@/lib/dados/tipos-contrato";
 import type { Json } from "@/lib/db/types";
+import type { ArmazenamentoPrivado } from "@/lib/armazenamento/tipos";
+import { dadosEmissaoDoBanco } from "@/lib/dados/supabase/nota";
 import type { Cobrador } from "./fabrica";
+import { emitirNota } from "./nfse/emissao";
+import type { AdaptadorNfse } from "./nfse/tipos";
 import { gerarLinksPendentes, type ResultadoLinks } from "./links-pagamento";
 
 /**
@@ -185,4 +189,54 @@ export async function baixarCobranca(
     }),
   );
   return r.mudou === true;
+}
+
+// --- Nota fiscal automática (P43) ---------------------------------------------------------------
+
+export type ResultadoNotaAutomatica =
+  | { emitiu: false; motivo: string }
+  | {
+      emitiu: true;
+      estado: "emitida" | "erro" | "processando";
+      erro: string | null;
+    };
+
+/**
+ * Depois do pagamento confirmado, com `parametro.nfse_emissao.automatica`
+ * ligado: pede ao banco os dados da nota (o banco marca "processando" e
+ * confere o tomador), emite pelo adaptador e devolve o resultado ao banco.
+ * Com a emissão manual, ou sem nota pendente, não faz nada. Quem chama
+ * trata falha aqui como "melhor esforço": a nota fica visível para o
+ * financeiro em /notas e o pagamento já está confirmado.
+ */
+export async function emitirNotaAutomatica(
+  cliente: ClienteRpc,
+  cobrancaId: string,
+  emissor: AdaptadorNfse,
+  armazenamento: Pick<ArmazenamentoPrivado, "salvar">,
+): Promise<ResultadoNotaAutomatica> {
+  const bruto = objeto(
+    await chamar(cliente, "nota_para_emissao_automatica", {
+      p_cobranca_id: cobrancaId,
+    }),
+  );
+  if (bruto.emitir !== true) {
+    return { emitiu: false, motivo: textoOuNulo(bruto.motivo) ?? "manual" };
+  }
+  const dados = dadosEmissaoDoBanco(bruto as Json);
+  const resultado = await emitirNota(dados, {
+    emissor,
+    armazenamento,
+    registrar: (r) =>
+      chamar(cliente, "nota_registrar_resultado", {
+        p_nota_id: dados.notaId,
+        p_estado: r.estado,
+        p_provider_ref: r.providerRef ?? null,
+        p_numero: r.numero ?? null,
+        p_pdf_path: r.pdfPath ?? null,
+        p_xml_path: r.xmlPath ?? null,
+        p_erro: r.erro ?? null,
+      }),
+  });
+  return { emitiu: true, estado: resultado.estado, erro: resultado.erro };
 }
