@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CalendarClock, CalendarDays } from "lucide-react";
 import { z } from "zod";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { Botao } from "@/components/ui/botao";
@@ -11,6 +11,7 @@ import { exigirSessao } from "@/lib/auth/sessao";
 import { obterRepositorios } from "@/lib/dados/fabrica";
 import type { EntrevistaPrenatal } from "@/lib/dados/tipos-operacao";
 import { formatarDataHora } from "@/lib/formatacao";
+import { TituloSecao } from "@/modules/operacao/comum/titulo-secao";
 import { hojeBrasilia } from "@/modules/crm/pipeline/idade-gestacional";
 import { fraseErroOperacao } from "@/modules/operacao/comum/mensagens";
 import { AgendarConsulta } from "@/modules/operacao/prenatal/componentes/agendar-consulta";
@@ -100,12 +101,19 @@ export default async function PaginaEntrevista({
         }
         lateral={voltar}
       />
-      <div className="flex flex-col gap-6 pt-6">
+      <div className="flex flex-col gap-8 pt-6">
         {!realizada ? (
-          <Cartao className="flex flex-col gap-3">
-            <h2 className="font-titulo text-2 text-texto font-medium">
-              {semData ? "Marcar a consulta" : "Remarcar a consulta"}
-            </h2>
+          // Sem data, marcar é o trabalho da vez (branco); com a consulta
+          // marcada, remarcar é assunto de agenda (bloco lavanda).
+          <Cartao
+            variante={semData ? "padrao" : "lavanda"}
+            className="flex flex-col gap-4"
+          >
+            <TituloSecao
+              icone={semData ? <CalendarClock /> : <CalendarDays />}
+              tom={semData ? "dourado" : "lavanda"}
+              titulo={semData ? "Marcar a consulta" : "Remarcar a consulta"}
+            />
             <AgendarConsulta
               familiaId={familiaId}
               remarcar={!semData}
@@ -119,14 +127,23 @@ export default async function PaginaEntrevista({
             <div className="flex flex-col gap-4" data-entrevista-concluida>
               {respostasEmTexto(entrevista.definicao, entrevista.respostas).map(
                 (bloco) => (
-                  <Cartao key={bloco.bloco} className="flex flex-col gap-3">
+                  <Cartao
+                    key={bloco.bloco}
+                    variante="areia-clara"
+                    className="flex flex-col gap-3"
+                  >
                     <h2 className="font-titulo text-2 text-texto font-medium">
                       {bloco.titulo}
                     </h2>
-                    <dl className="text-corpo grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-[minmax(0,14rem)_1fr]">
+                    <dl className="text-corpo flex flex-col gap-2">
                       {bloco.linhas.map((linha) => (
-                        <div key={linha.campo} className="contents">
-                          <dt className="text-texto-2">{linha.rotulo}</dt>
+                        <div
+                          key={linha.campo}
+                          className="rounded-2 bg-superficie grid grid-cols-1 gap-x-4 gap-y-0.5 px-4 py-2.5 sm:grid-cols-[minmax(0,14rem)_1fr]"
+                        >
+                          <dt className="text-apoio text-texto-2">
+                            {linha.rotulo}
+                          </dt>
                           <dd className="text-texto">{linha.texto}</dd>
                         </div>
                       ))}

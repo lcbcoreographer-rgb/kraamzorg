@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
+import { AbasPilula } from "@/components/ui/abas-pilula";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { obterRepositorios } from "@/lib/dados/fabrica";
-import { cn } from "@/lib/utils";
 import {
   ListaDeAlertas,
   VazioDosAlertas,
@@ -42,23 +41,16 @@ export async function PaginaDeAlertas({
   return (
     <div className="flex flex-col gap-6 pb-8">
       <CabecalhoTela titulo={t.titulo} subtitulo={t.subtitulo} />
-      <nav aria-label={textosAlertas.abas.rotulo} className="flex gap-2">
-        {(["abertos", "fechados"] as const).map((s) => (
-          <Link
-            key={s}
-            href={s === "abertos" ? caminho : `${caminho}?situacao=${s}`}
-            aria-current={s === situacao ? "page" : undefined}
-            className={cn(
-              "rounded-pilula text-apoio min-h-toque inline-flex items-center px-4 font-semibold",
-              s === situacao
-                ? "bg-marinho text-texto-inverso"
-                : "bg-marinho-08 text-texto",
-            )}
-          >
-            {textosAlertas.abas[s]}
-          </Link>
-        ))}
-      </nav>
+      <AbasPilula
+        rotulo={textosAlertas.abas.rotulo}
+        ativa={situacao}
+        className="self-start"
+        abas={(["abertos", "fechados"] as const).map((s) => ({
+          valor: s,
+          rotulo: textosAlertas.abas[s],
+          href: s === "abertos" ? caminho : `${caminho}?situacao=${s}`,
+        }))}
+      />
       {alertas.length === 0 ? (
         <VazioDosAlertas situacao={situacao} />
       ) : (

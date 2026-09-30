@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { LockKeyhole } from "lucide-react";
+import { FolhaLupa, SinoCalmo } from "@/components/ilustracoes";
+import { AbasPilula } from "@/components/ui/abas-pilula";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
-import { FiltrosLista } from "@/components/ui/filtros-lista";
 import { Selo } from "@/components/ui/selo";
 import { TabelaLista } from "@/components/ui/tabela-lista";
 import type {
@@ -51,32 +52,37 @@ export function ListaOcorrenciasTela({
 }) {
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-corpo text-texto max-w-[60ch]">
+      <p className="text-3 text-texto max-w-[60ch]">
         {fraseResumoOcorrencias(lista.resumo)}
       </p>
-      <FiltrosLista
+      <AbasPilula
         rotulo="Filtrar ocorrências"
-        itens={[
+        ativa={situacao}
+        className="self-start"
+        abas={[
+          { valor: "abertas", rotulo: "Abertas", href: "/ocorrencias" },
           {
-            rotulo: "Abertas",
-            href: "/ocorrencias",
-            ativo: situacao === "abertas",
-          },
-          {
+            valor: "fechadas",
             rotulo: "Fechadas",
             href: "/ocorrencias?situacao=fechadas",
-            ativo: situacao === "fechadas",
           },
           {
+            valor: "todas",
             rotulo: "Todas",
             href: "/ocorrencias?situacao=todas",
-            ativo: situacao === "todas",
           },
         ]}
       />
       {lista.ocorrencias.length === 0 ? (
         <EstadoVazio
           nivelTitulo="h2"
+          ilustracao={
+            situacao === "abertas" ? (
+              <SinoCalmo tamanho={112} />
+            ) : (
+              <FolhaLupa tamanho={112} />
+            )
+          }
           titulo={
             situacao === "abertas"
               ? "Nenhuma ocorrência aberta"
@@ -85,61 +91,67 @@ export function ListaOcorrenciasTela({
           texto="Quando a equipe abrir uma ocorrência, ou uma pesquisa voltar com nota baixa, ela aparece aqui com o prazo de resposta."
         />
       ) : (
-        <TabelaLista
-          rotulo="Ocorrências"
-          colunas={[
-            { chave: "titulo", rotulo: "Ocorrência", principal: true },
-            { chave: "status", rotulo: "Andamento", canto: true },
-            { chave: "familia", rotulo: "Família" },
-            { chave: "tipo", rotulo: "Tipo" },
-            { chave: "prioridade", rotulo: "Prioridade" },
-            { chave: "responsavel", rotulo: "Responsável" },
-            { chave: "prazo", rotulo: "Prazo de resposta" },
-          ]}
-          linhas={lista.ocorrencias.map((o) => ({
-            id: o.id,
-            valores: {
-              titulo: (
-                <span className="flex flex-wrap items-center gap-2">
-                  <Link
-                    href={`/ocorrencias/${o.id}`}
-                    className="text-texto font-semibold underline-offset-4 hover:underline"
-                  >
-                    {o.titulo}
-                  </Link>
-                  {o.privada ? (
-                    <Selo variante="sensivel" icone={<LockKeyhole />}>
-                      Privada
-                    </Selo>
-                  ) : null}
-                </span>
-              ),
-              status: (
-                <Selo variante={VARIANTE_STATUS[o.status]}>
-                  {ROTULO_STATUS[o.status]}
-                </Selo>
-              ),
-              familia: o.familiaNome ?? o.profissionalNome ?? "Sem família",
-              tipo: ROTULO_TIPO[o.tipo],
-              prioridade: (
-                <Selo variante={VARIANTE_PRIORIDADE[o.prioridade]}>
-                  {ROTULO_PRIORIDADE[o.prioridade]}
-                </Selo>
-              ),
-              responsavel: o.responsavelNome ?? "Sem responsável",
-              prazo: o.slaVenceEm ? (
-                <span className={o.vencida ? "text-alerta font-semibold" : ""}>
-                  {o.vencida ? "Venceu em " : "Até "}
-                  <span className="font-mono">
-                    {formatarDataHora(o.slaVenceEm)}
+        // No computador a tabela mora num bloco branco (o trabalho a
+        // fazer); no celular cada linha já vira o próprio cartão.
+        <div className="min-[720px]:rounded-3 min-[720px]:bg-superficie min-[720px]:shadow-1 min-[720px]:px-3 min-[720px]:py-2">
+          <TabelaLista
+            rotulo="Ocorrências"
+            colunas={[
+              { chave: "titulo", rotulo: "Ocorrência", principal: true },
+              { chave: "status", rotulo: "Andamento", canto: true },
+              { chave: "familia", rotulo: "Família" },
+              { chave: "tipo", rotulo: "Tipo" },
+              { chave: "prioridade", rotulo: "Prioridade" },
+              { chave: "responsavel", rotulo: "Responsável" },
+              { chave: "prazo", rotulo: "Prazo de resposta" },
+            ]}
+            linhas={lista.ocorrencias.map((o) => ({
+              id: o.id,
+              valores: {
+                titulo: (
+                  <span className="flex flex-wrap items-center gap-2">
+                    <Link
+                      href={`/ocorrencias/${o.id}`}
+                      className="text-texto font-semibold underline-offset-4 hover:underline"
+                    >
+                      {o.titulo}
+                    </Link>
+                    {o.privada ? (
+                      <Selo variante="sensivel" icone={<LockKeyhole />}>
+                        Privada
+                      </Selo>
+                    ) : null}
                   </span>
-                </span>
-              ) : (
-                "Sem prazo"
-              ),
-            },
-          }))}
-        />
+                ),
+                status: (
+                  <Selo variante={VARIANTE_STATUS[o.status]}>
+                    {ROTULO_STATUS[o.status]}
+                  </Selo>
+                ),
+                familia: o.familiaNome ?? o.profissionalNome ?? "Sem família",
+                tipo: ROTULO_TIPO[o.tipo],
+                prioridade: (
+                  <Selo variante={VARIANTE_PRIORIDADE[o.prioridade]}>
+                    {ROTULO_PRIORIDADE[o.prioridade]}
+                  </Selo>
+                ),
+                responsavel: o.responsavelNome ?? "Sem responsável",
+                prazo: o.slaVenceEm ? (
+                  <span
+                    className={o.vencida ? "text-alerta font-semibold" : ""}
+                  >
+                    {o.vencida ? "Venceu em " : "Até "}
+                    <span className="font-mono">
+                      {formatarDataHora(o.slaVenceEm)}
+                    </span>
+                  </span>
+                ) : (
+                  "Sem prazo"
+                ),
+              },
+            }))}
+          />
+        </div>
       )}
     </div>
   );

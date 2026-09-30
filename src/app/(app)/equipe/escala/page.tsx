@@ -1,10 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  TriangleAlert,
+  UserRound,
+} from "lucide-react";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
+import { ChaveDeCasa } from "@/components/ilustracoes";
 import { Botao } from "@/components/ui/botao";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
+import { Selo } from "@/components/ui/selo";
+import { TileIcone } from "@/components/ui/tile-icone";
 import {
   eDataValida,
   hojeEmBrasilia,
@@ -115,38 +124,50 @@ export default async function PaginaEscala({
           </FaixaAlerta>
         ) : (
           <>
-            <LegendaSemana />
+            <div className="rounded-3 bg-areia-clara px-5 py-4">
+              <LegendaSemana />
+            </div>
             {tela.escala.profissionais.length === 0 ? (
               <EstadoVazio
                 nivelTitulo="h2"
+                ilustracao={<ChaveDeCasa tamanho={112} />}
                 titulo="Nenhuma enfermeira na escala"
                 texto="Quando houver enfermeiras ativas, cada uma aparece aqui com a semana dela em turnos."
               />
             ) : (
-              <ul className="tablet:grid-cols-2 grid grid-cols-1 gap-4">
+              <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
                 {tela.escala.profissionais.map((linha) => {
                   const sobrecarga = linha.dias.filter((d) => d.sobrecarga);
                   return (
                     <li
                       key={linha.profissionalId}
-                      className="rounded-3 bg-superficie shadow-1 flex min-w-0 flex-col gap-3 p-5"
+                      className="rounded-3 bg-lavanda-clara flex min-w-0 flex-col gap-4 p-4 lg:p-5"
                     >
-                      <h2 className="text-3 text-texto font-semibold">
-                        {linha.nome}
-                      </h2>
+                      <div className="flex items-center gap-3">
+                        <TileIcone tom="argila" tamanho="p">
+                          <UserRound />
+                        </TileIcone>
+                        <h2 className="font-titulo text-2 text-texto font-medium">
+                          {linha.nome}
+                        </h2>
+                      </div>
                       <SemanaEquipe
                         dias={linha.dias}
                         hoje={hoje}
                         nome={linha.nome}
                       />
                       {sobrecarga.length > 0 ? (
-                        <p className="text-apoio text-aviso-texto">
+                        <Selo
+                          variante="aviso"
+                          icone={<TriangleAlert />}
+                          className="self-start py-1 leading-snug whitespace-normal"
+                        >
                           Passa de {tela.escala.limiteVisitasDia} visitas em{" "}
                           {sobrecarga.length === 1
                             ? "um dia"
                             : `${sobrecarga.length} dias`}{" "}
                           desta semana.
-                        </p>
+                        </Selo>
                       ) : null}
                     </li>
                   );

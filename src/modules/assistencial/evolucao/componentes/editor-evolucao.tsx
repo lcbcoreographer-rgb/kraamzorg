@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useActionState } from "react";
-import { FileText, Send } from "lucide-react";
+import { ClipboardPen, FileText, Send, Stethoscope } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
 import { CampoTexto } from "@/components/ui/campo-texto";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
@@ -25,6 +25,7 @@ import {
 } from "../estado-acoes";
 import { CampoEvolucao } from "./campo-evolucao";
 import { PreviaConteudo } from "./previa-conteudo";
+import { TituloSecao } from "@/modules/operacao/comum/titulo-secao";
 
 /**
  * Um documento da evolução (P41): o que falta, o que a enfermeira confirma, o
@@ -198,18 +199,13 @@ export function EditorEvolucao({
               aria-labelledby="grupo-completar"
               className="rounded-3 bg-superficie shadow-1 flex flex-col gap-5 p-5"
             >
-              <div>
-                <h2
-                  id="grupo-completar"
-                  className="text-3 text-texto font-semibold"
-                >
-                  O que o checklist não registra
-                </h2>
-                <p className="text-apoio text-texto-2 mt-1">
-                  Estes dados não vieram do checklist nem do cadastro. Preencha
-                  com o que você viu no período.
-                </p>
-              </div>
+              <TituloSecao
+                id="grupo-completar"
+                icone={<ClipboardPen />}
+                tom="areia"
+                titulo="O que o checklist não registra"
+                texto="Estes dados não vieram do checklist nem do cadastro. Preencha com o que você viu no período."
+              />
               {completar.map((campo) => (
                 <CampoEvolucao
                   key={campo.caminho}
@@ -225,18 +221,13 @@ export function EditorEvolucao({
             aria-labelledby="grupo-julgamento"
             className="rounded-3 bg-superficie shadow-1 flex flex-col gap-5 p-5"
           >
-            <div>
-              <h2
-                id="grupo-julgamento"
-                className="text-3 text-texto font-semibold"
-              >
-                Conclusão e julgamento clínico
-              </h2>
-              <p className="text-apoio text-texto-2 mt-1">
-                O que o período mostrou já vem sugerido. Confirme ou troque; a
-                conclusão é conferida contra os achados antes de seguir.
-              </p>
-            </div>
+            <TituloSecao
+              id="grupo-julgamento"
+              icone={<Stethoscope />}
+              tom="areia"
+              titulo="Conclusão e julgamento clínico"
+              texto="O que o período mostrou já vem sugerido. Confirme ou troque; a conclusão é conferida contra os achados antes de seguir."
+            />
             {julgamento.map((campo) => (
               <CampoEvolucao
                 key={campo.caminho}
@@ -277,11 +268,14 @@ export function EditorEvolucao({
 
       <section
         aria-labelledby="grupo-acoes"
-        className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5"
+        className="rounded-3 bg-dourado-claro flex flex-col gap-4 p-5"
       >
-        <h2 id="grupo-acoes" className="text-3 text-texto font-semibold">
-          Próximo passo
-        </h2>
+        <TituloSecao
+          id="grupo-acoes"
+          icone={<Send />}
+          tom="dourado"
+          titulo="Próximo passo"
+        />
         <div className="flex flex-wrap gap-3">
           {detalhe.status === "rascunho" ? (
             <Botao
@@ -384,11 +378,11 @@ export function EditorEvolucao({
       </section>
 
       {conteudo ? (
-        <details className="rounded-3 bg-superficie shadow-1 p-5" open>
-          <summary className="text-3 text-texto min-h-toque cursor-pointer font-semibold">
+        <details className="rounded-3 bg-areia-clara p-5" open>
+          <summary className="font-titulo text-2 text-texto min-h-toque cursor-pointer font-medium">
             Como o médico vai ler
           </summary>
-          <div className="pt-4">
+          <div className="rounded-2 bg-superficie mt-3 p-5">
             <PreviaConteudo conteudo={conteudo} />
           </div>
         </details>

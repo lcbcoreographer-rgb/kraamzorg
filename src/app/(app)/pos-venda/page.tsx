@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { ListaPosVendaTela } from "@/modules/operacao/ocorrencias/componentes/lista-pos-venda";
@@ -31,24 +32,27 @@ export default async function PaginaPosVenda({
   }
 
   return (
-    <div className="flex flex-col gap-6 pt-2">
-      <h1 className="font-titulo text-display lg:text-display-lg text-texto font-normal">
-        Pós-venda
-      </h1>
-      {!tela ? (
-        <FaixaAlerta variante="erro" titulo="O pós-venda não abriu agora">
-          Confira a conexão e recarregue a página. Nada foi alterado.
-        </FaixaAlerta>
-      ) : tela.situacao === "sem_permissao" ? (
-        <FaixaAlerta
-          variante="info"
-          titulo="O pós-venda não está com o seu papel"
-        >
-          O pós-venda é da coordenação e da diretoria.
-        </FaixaAlerta>
-      ) : (
-        <ListaPosVendaTela lista={tela.lista} situacao={situacao} />
-      )}
-    </div>
+    <>
+      <CabecalhoTela
+        titulo="Pós-venda"
+        subtitulo="A pesquisa de cada família que terminou o acompanhamento, a nota e o que vem depois."
+      />
+      <div className="flex flex-col gap-6 pt-6">
+        {!tela ? (
+          <FaixaAlerta variante="erro" titulo="O pós-venda não abriu agora">
+            Confira a conexão e recarregue a página. Nada foi alterado.
+          </FaixaAlerta>
+        ) : tela.situacao === "sem_permissao" ? (
+          <FaixaAlerta
+            variante="info"
+            titulo="O pós-venda não está com o seu papel"
+          >
+            O pós-venda é da coordenação e da diretoria.
+          </FaixaAlerta>
+        ) : (
+          <ListaPosVendaTela lista={tela.lista} situacao={situacao} />
+        )}
+      </div>
+    </>
   );
 }

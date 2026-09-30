@@ -113,7 +113,7 @@ export function FormularioDesignar({
         </Botao>
       </form>
 
-      <details className="border-linha rounded-3 border p-4">
+      <details className="border-linha rounded-2 bg-superficie border px-4 py-2">
         <summary className="text-corpo text-texto min-h-toque cursor-pointer font-semibold">
           Atribuir direto, em urgência
         </summary>

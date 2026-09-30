@@ -107,7 +107,7 @@ export function PainelCascata({
               {ok.visitas.map((v) => (
                 <li
                   key={v.visitaId}
-                  className="rounded-2 border-linha bg-superficie flex flex-col gap-1 border p-3"
+                  className="rounded-2 bg-lavanda-clara flex flex-col gap-1 px-4 py-3"
                   data-conflito={v.conflitos.length > 0 ? "sim" : undefined}
                 >
                   <p className="text-corpo text-texto flex flex-wrap items-baseline gap-x-2">

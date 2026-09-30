@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Baby, ClipboardPen, ListChecks } from "lucide-react";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { formatarData } from "@/lib/formatacao";
 import { camposVisiveis } from "../campos";
 import type { TelaDocumento } from "../dados";
@@ -47,17 +48,29 @@ export function TelaDocumentoEvolucao({
     <>
       {voltar}
       <div className="flex flex-col gap-6 pt-2">
-        <header className="bg-superficie-2 -mx-4 flex flex-col gap-1 px-4 pt-4 pb-5 lg:-mx-8 lg:px-8">
-          <h1 className="font-titulo text-1 text-texto font-normal">
-            {documento.rotulo}
-          </h1>
-          <p className="text-corpo text-texto-2">
-            {tela.base.familiaNome}
-            {periodo.inicio && periodo.fim
-              ? `, de ${formatarData(periodo.inicio)} a ${formatarData(periodo.fim)}`
-              : ""}
-            .
-          </p>
+        <header className="rounded-3 bg-areia-clara flex items-start gap-4 p-5 lg:p-6">
+          <TileIcone tom="areia" forma="quadrado" tamanho="g">
+            {documento.tipo === "neonatal" ? <Baby /> : <ClipboardPen />}
+          </TileIcone>
+          <div className="flex min-w-0 flex-col gap-1">
+            <h1 className="font-titulo text-1 lg:text-display text-texto font-normal">
+              {documento.rotulo}
+            </h1>
+            <p className="text-corpo text-texto-2">
+              {tela.base.familiaNome}
+              {periodo.inicio && periodo.fim ? (
+                <>
+                  , de{" "}
+                  <span className="font-mono">
+                    {formatarData(periodo.inicio)}
+                  </span>{" "}
+                  a{" "}
+                  <span className="font-mono">{formatarData(periodo.fim)}</span>
+                </>
+              ) : null}
+              .
+            </p>
+          </div>
         </header>
 
         {detalhe ? (
@@ -71,12 +84,17 @@ export function TelaDocumentoEvolucao({
             demonstracao={demonstracao}
           />
         ) : (
-          <div className="flex flex-col gap-5">
-            <p className="text-corpo text-texto max-w-[60ch]">
-              Este documento ainda não foi montado. O rascunho junta o que o
-              checklist registrou em cada visita e o que está no cadastro da
-              família, e deixa em branco o que só a enfermeira pode dizer.
-            </p>
+          <div className="rounded-3 bg-superficie shadow-1 flex flex-col gap-5 p-5 lg:p-6">
+            <div className="flex items-start gap-3">
+              <TileIcone tom="dourado" forma="quadrado">
+                <ListChecks />
+              </TileIcone>
+              <p className="text-corpo text-texto max-w-[60ch] pt-2">
+                Este documento ainda não foi montado. O rascunho junta o que o
+                checklist registrou em cada visita e o que está no cadastro da
+                família, e deixa em branco o que só a enfermeira pode dizer.
+              </p>
+            </div>
             {faltas.length > 0 ? (
               <FaixaAlerta
                 variante="info"

@@ -1,5 +1,18 @@
 import Image from "next/image";
-import { Check, Circle, CircleDot } from "lucide-react";
+import type { ReactNode } from "react";
+import {
+  BookOpen,
+  CalendarDays,
+  Check,
+  CircleDot,
+  ClipboardList,
+  House,
+  MessageSquareText,
+  Phone,
+  UserRound,
+} from "lucide-react";
+import { TileIcone } from "@/components/ui/tile-icone";
+import type { Tom } from "@/components/ui/tons";
 import type {
   ContatoEquipePortal,
   PortalFamilia,
@@ -10,15 +23,20 @@ import {
   formatarDataHora,
   formatarTelefone,
 } from "@/lib/formatacao";
+import { cn } from "@/lib/utils";
 import { montarPassos, type Passo } from "../passos";
 import { BotaoSair } from "./botao-sair";
 
 /**
- * O portal da família (P49), na direção de acolhimento do DESIGN.md 11: chama
- * pelo nome, situa no tempo da família, diz o que vem agora e quem faz, e não
- * finge calor. Datas de fato e estimativa nunca se misturam. Frases que falam
- * com a família vêm de mensagem_modelo (textos do portal); aqui ficam só os
- * rótulos curtos da tela.
+ * O portal da família (P49), na direção "Colo" com a camada de acolhimento
+ * do DESIGN.md 11: abre num bloco colo com o cumprimento pelo nome, situa no
+ * tempo da família, diz o que vem agora e quem faz, e não finge calor. Cada
+ * assunto mora num bloco com a cor do que ele é (o tempo em lavanda, as
+ * pessoas em argila, a família em areia) e o contato com a equipe é o único
+ * bloco forte, em marinho. Datas de fato e estimativa nunca se misturam.
+ * Frases que falam com a família vêm de mensagem_modelo (textos do portal);
+ * aqui ficam só os rótulos curtos da tela. Família em pausa (freio, perda)
+ * vê só o contato, sem tom de apoio.
  */
 
 const ROTULO_ESTADO: Record<Passo["estado"], string> = {
@@ -27,27 +45,63 @@ const ROTULO_ESTADO: Record<Passo["estado"], string> = {
   depois: "Em seguida",
 };
 
-function ContatoDaEquipe({ contato }: { contato: ContatoEquipePortal }) {
+function ContatoDaEquipe({
+  contato,
+  forte,
+}: {
+  contato: ContatoEquipePortal;
+  /** Dentro do bloco marinho: texto creme. */
+  forte: boolean;
+}) {
   return (
     <div className="flex flex-col gap-1">
       {contato.nome ? (
-        <p className="text-3 text-texto">{contato.nome}</p>
+        <p
+          className={cn(
+            "font-titulo text-2 font-medium",
+            forte ? "text-texto-inverso" : "text-texto",
+          )}
+        >
+          {contato.nome}
+        </p>
       ) : null}
       {contato.funcao ? (
-        <p className="text-corpo text-texto-2">{contato.funcao}</p>
+        <p
+          className={cn(
+            "text-corpo",
+            forte ? "text-texto-inverso-2" : "text-texto-2",
+          )}
+        >
+          {contato.funcao}
+        </p>
       ) : null}
       {contato.telefoneE164 ? (
-        <p className="text-corpo text-texto">
+        <p className="pt-2">
           <a
-            className="font-mono underline underline-offset-4"
+            className={cn(
+              "rounded-pilula text-corpo min-h-toque inline-flex items-center gap-2 px-5 font-semibold no-underline",
+              forte
+                ? "bg-creme text-marinho"
+                : "border-borda-campo bg-superficie text-texto border-[1.5px]",
+            )}
             href={`tel:${contato.telefoneE164}`}
           >
-            {formatarTelefone(contato.telefoneE164) ?? contato.telefoneE164}
+            <Phone className="size-5" aria-hidden="true" strokeWidth={1.75} />
+            <span className="font-mono">
+              {formatarTelefone(contato.telefoneE164) ?? contato.telefoneE164}
+            </span>
           </a>
         </p>
       ) : null}
       {contato.horario ? (
-        <p className="text-corpo text-texto-2">{contato.horario}</p>
+        <p
+          className={cn(
+            "text-corpo pt-1",
+            forte ? "text-texto-inverso-2" : "text-texto-2",
+          )}
+        >
+          {contato.horario}
+        </p>
       ) : null}
     </div>
   );
@@ -59,12 +113,13 @@ function ItemPasso({ passo }: { passo: Passo }) {
       ? Check
       : passo.estado === "agora"
         ? CircleDot
-        : Circle;
-  // O que já aconteceu fica quieto (linha simples, sem cartão); o passo de
-  // agora é o único cartão com a borda dourada; o que vem depois fica
-  // tracejado. Assim a família acha o "agora" sem ler a lista inteira.
-  // Com a data da próxima visita já marcada, a frase de espera ("as visitas
-  // aparecem aqui quando a coordenação confirmar") contradiz a data e sai.
+        : ClipboardList;
+  // O que já aconteceu fica quieto, num bloco sálvia baixo (o feito); o passo
+  // de agora é o bloco dourado, maior, com a frase do que acontece; o que vem
+  // depois fica tracejado ("ainda não"). A família acha o "agora" sem ler a
+  // lista inteira. Com a data da próxima visita já marcada, a frase de espera
+  // ("as visitas aparecem aqui quando a coordenação confirmar") contradiz a
+  // data e sai.
   const apoio =
     passo.chave === "visitas" && passo.dataMarcada ? null : passo.apoio;
   return (
@@ -72,24 +127,28 @@ function ItemPasso({ passo }: { passo: Passo }) {
       data-passo={passo.chave}
       data-estado={passo.estado}
       aria-current={passo.estado === "agora" ? "step" : undefined}
-      className={
+      className={cn(
+        "flex items-start gap-3",
         passo.estado === "agora"
-          ? "rounded-3 border-dourado bg-superficie shadow-1 my-2 flex gap-4 border-2 p-4"
+          ? "rounded-3 bg-dourado-claro my-1 p-4"
           : passo.estado === "depois"
-            ? "rounded-3 border-marinho-50 flex gap-4 border-[1.5px] border-dashed p-4"
-            : "border-linha flex gap-4 border-b px-1 py-3"
-      }
+            ? "rounded-2 border-marinho-50 border-[1.5px] border-dashed px-3 py-3"
+            : "rounded-2 bg-salvia-clara px-3 py-2.5",
+      )}
     >
-      <Icone
-        aria-hidden="true"
-        strokeWidth={1.75}
-        className={
-          passo.estado === "feito"
-            ? "text-sucesso mt-0.5 size-5 shrink-0"
-            : "text-texto mt-1 size-5 shrink-0"
+      <TileIcone
+        tom={
+          passo.estado === "agora"
+            ? "dourado"
+            : passo.estado === "feito"
+              ? "salvia"
+              : "branco"
         }
-      />
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        tamanho={passo.estado === "agora" ? "m" : "p"}
+      >
+        <Icone />
+      </TileIcone>
+      <div className="flex min-w-0 flex-1 flex-col gap-1 self-center">
         <p
           className={
             passo.estado === "feito"
@@ -111,13 +170,13 @@ function ItemPasso({ passo }: { passo: Passo }) {
             </span>
           </span>
           {passo.estado === "feito" && passo.data ? (
-            <span className="text-apoio text-texto-2 font-mono">
+            <span className="text-corpo text-texto-2 font-mono">
               {formatarData(passo.data)}
             </span>
           ) : null}
         </p>
         {passo.estado !== "feito" && passo.data ? (
-          <p className="text-corpo text-texto-2 font-mono">
+          <p className="text-corpo text-texto font-mono">
             {passo.dataMarcada ? "Marcada para " : ""}
             {passo.chave === "prenatal" && passo.dataMarcada
               ? formatarDataHora(passo.data)
@@ -135,17 +194,26 @@ function ItemPasso({ passo }: { passo: Passo }) {
 function Secao({
   id,
   titulo,
+  icone,
+  tom,
   children,
 }: {
   id: string;
   titulo: string;
-  children: React.ReactNode;
+  icone: ReactNode;
+  tom: Tom;
+  children: ReactNode;
 }) {
   return (
     <section aria-labelledby={id} className="flex flex-col gap-3">
-      <h2 id={id} className="font-titulo text-2 text-texto font-medium">
-        {titulo}
-      </h2>
+      <div className="flex items-center gap-3">
+        <TileIcone tom={tom} forma="quadrado">
+          {icone}
+        </TileIcone>
+        <h2 id={id} className="font-titulo text-2 text-texto font-medium">
+          {titulo}
+        </h2>
+      </div>
       {children}
     </section>
   );
@@ -198,14 +266,19 @@ function Completo({
 
   return (
     <>
-      <header className="flex flex-col gap-3">
-        <h1 className="font-titulo text-1 text-texto font-normal">
+      <header className="rounded-colo bg-dourado-claro flex flex-col gap-3 px-5 pt-6 pb-12">
+        <h1 className="font-titulo text-display text-texto font-normal">
           {t.titulo}
         </h1>
-        <p className="text-3 text-texto max-w-[60ch]">{t.boas_vindas}</p>
+        <p className="text-3 text-texto max-w-[56ch]">{t.boas_vindas}</p>
       </header>
 
-      <Secao id="passos" titulo={t.passos_titulo ?? "Seus próximos passos"}>
+      <Secao
+        id="passos"
+        titulo={t.passos_titulo ?? "Seus próximos passos"}
+        icone={<ClipboardList />}
+        tom="dourado"
+      >
         <ol className="flex flex-col gap-2">
           {passos.map((p) => (
             <ItemPasso key={p.chave} passo={p} />
@@ -214,31 +287,45 @@ function Completo({
       </Secao>
 
       {datas.length > 0 ? (
-        <Secao id="datas" titulo={t.datas_titulo ?? "Datas"}>
-          <dl className="rounded-3 bg-superficie-2 flex flex-col gap-3 p-5">
-            {datas.map((x) => (
-              <div
-                key={x.chave}
-                className="tablet:flex-row tablet:items-baseline tablet:justify-between tablet:gap-4 flex flex-col gap-0.5"
-              >
-                <dt className="text-corpo text-texto">
-                  {x.rotulo}{" "}
-                  <span className="text-texto-2 italic">
-                    ({x.marca === "estimativa" ? "estimativa" : "confirmado"})
-                  </span>
-                </dt>
-                <dd className="text-corpo text-texto font-mono">
-                  {formatarData(x.valor)}
-                </dd>
-              </div>
-            ))}
-          </dl>
-          <p className="text-corpo text-texto-2 max-w-[60ch]">{t.dpp_nota}</p>
+        <Secao
+          id="datas"
+          titulo={t.datas_titulo ?? "Datas"}
+          icone={<CalendarDays />}
+          tom="lavanda"
+        >
+          <div className="rounded-3 bg-lavanda-clara flex flex-col gap-3 p-3">
+            <dl className="tablet:grid-cols-2 grid grid-cols-1 gap-2">
+              {datas.map((x) => (
+                <div
+                  key={x.chave}
+                  className="rounded-2 bg-superficie flex flex-col gap-1 px-4 py-3"
+                >
+                  <dt className="text-corpo text-texto">
+                    {x.rotulo}{" "}
+                    <span className="text-texto-2 italic">
+                      ({x.marca === "estimativa" ? "estimativa" : "confirmado"})
+                    </span>
+                  </dt>
+                  <dd className="text-3 text-texto font-mono font-medium">
+                    {formatarData(x.valor)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <p className="text-corpo text-texto-2 max-w-[60ch] px-2 pb-1">
+              {t.dpp_nota}
+            </p>
+          </div>
         </Secao>
       ) : null}
 
-      <Secao id="enfermeira" titulo={t.enfermeira_titulo ?? "Sua enfermeira"}>
-        <div className="rounded-3 bg-superficie-2 flex items-center gap-4 p-5">
+      <Secao
+        id="enfermeira"
+        titulo={t.enfermeira_titulo ?? "Sua enfermeira"}
+        icone={<UserRound />}
+        tom="argila"
+      >
+        <div className="rounded-3 bg-argila-clara flex items-center gap-4 p-5">
           {portal.enfermeira?.fotoPath && portal.enfermeira.nome ? (
             <Image
               src="/familia/foto"
@@ -248,7 +335,11 @@ function Completo({
               unoptimized
               className="size-[72px] rounded-full object-cover"
             />
-          ) : null}
+          ) : (
+            <TileIcone tom="argila" tamanho="g">
+              <UserRound />
+            </TileIcone>
+          )}
           <p className="text-3 text-texto max-w-[52ch]">
             {portal.enfermeira === null
               ? t.enfermeira_sem_designacao
@@ -257,17 +348,25 @@ function Completo({
         </div>
       </Secao>
 
-      <Secao id="visitas" titulo={t.visitas_titulo ?? "Visitas em casa"}>
+      <Secao
+        id="visitas"
+        titulo={t.visitas_titulo ?? "Visitas em casa"}
+        icone={<House />}
+        tom="lavanda"
+      >
         {portal.visitas.length === 0 ? (
-          <p className="text-corpo text-texto max-w-[60ch]">
+          <p className="rounded-3 bg-lavanda-clara text-corpo text-texto max-w-[60ch] p-5">
             {t.visitas_vazio}
           </p>
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul className="rounded-3 bg-lavanda-clara flex flex-col gap-2 p-3">
             {portal.visitas.map((v) => (
               <li
                 key={v.dia}
-                className="rounded-3 bg-superficie tablet:grid-cols-[auto_1fr_auto] grid grid-cols-[1fr_auto] items-baseline gap-x-3 gap-y-1 p-4"
+                className={cn(
+                  "rounded-2 grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1 px-4 py-3",
+                  v.feita ? "bg-salvia-clara" : "bg-superficie",
+                )}
               >
                 <span className="text-corpo text-texto font-medium">
                   Dia {v.dia}
@@ -275,10 +374,20 @@ function Completo({
                     ? ` de ${portal.acompanhamento.diasContratados}`
                     : ""}
                 </span>
-                <span className="text-corpo text-texto-2 tablet:order-last text-right">
+                <span
+                  className={cn(
+                    "rounded-pilula text-corpo inline-flex items-center gap-1.5 px-3 py-0.5",
+                    v.feita
+                      ? "bg-salvia-media text-texto"
+                      : "bg-lavanda-clara text-texto",
+                  )}
+                >
+                  {v.feita ? (
+                    <Check className="size-4" aria-hidden="true" />
+                  ) : null}
                   {v.feita ? "Feita" : "Marcada"}
                 </span>
-                <span className="text-corpo text-texto tablet:col-span-1 col-span-2 font-mono">
+                <span className="text-corpo text-texto col-span-2 font-mono">
                   {formatarData(v.data)}
                   {v.hora ? `, ${v.hora}` : ""}
                 </span>
@@ -288,29 +397,46 @@ function Completo({
         )}
       </Secao>
 
-      <Secao id="guia" titulo={t.guia_titulo ?? "Guia de início"}>
-        <p className="text-corpo text-texto max-w-[60ch]">{t.guia_inicio}</p>
+      <Secao
+        id="guia"
+        titulo={t.guia_titulo ?? "Guia de início"}
+        icone={<BookOpen />}
+        tom="areia"
+      >
+        <p className="rounded-3 bg-areia-clara text-corpo text-texto p-5">
+          {t.guia_inicio}
+        </p>
       </Secao>
 
       {portal.evolucoes.ativo ? (
         <Secao
           id="evolucoes"
           titulo={t.evolucoes_titulo ?? "Evoluções de enfermagem"}
+          icone={<ClipboardList />}
+          tom="areia"
         >
           {portal.evolucoes.itens.length === 0 ? (
-            <p className="text-corpo text-texto max-w-[60ch]">
+            <p className="rounded-3 bg-areia-clara text-corpo text-texto p-5">
               {t.evolucoes_vazio}
             </p>
           ) : (
-            <ul className="flex flex-col gap-2">
+            <ul className="rounded-3 bg-areia-clara flex flex-col gap-2 p-3">
               {portal.evolucoes.itens.map((e) => (
-                <li key={e.id} className="text-corpo text-texto">
+                <li
+                  key={e.id}
+                  className="rounded-2 bg-superficie text-corpo text-texto px-4 py-3"
+                >
                   {e.tipo === "neonatal"
                     ? "Evolução do bebê"
                     : "Evolução da mãe"}
-                  {e.enviadoEm
-                    ? `, enviada em ${formatarData(e.enviadoEm)}`
-                    : ""}
+                  {e.enviadoEm ? (
+                    <>
+                      , enviada em{" "}
+                      <span className="font-mono">
+                        {formatarData(e.enviadoEm)}
+                      </span>
+                    </>
+                  ) : null}
                 </li>
               ))}
             </ul>
@@ -318,8 +444,13 @@ function Completo({
         </Secao>
       ) : null}
 
-      <Secao id="pesquisa" titulo={t.pesquisa_titulo ?? "Sua opinião"}>
-        <p className="text-corpo text-texto max-w-[60ch]">
+      <Secao
+        id="pesquisa"
+        titulo={t.pesquisa_titulo ?? "Sua opinião"}
+        icone={<MessageSquareText />}
+        tom="argila"
+      >
+        <p className="rounded-3 bg-argila-clara text-corpo text-texto p-5">
           {portal.pesquisa?.respondida
             ? t.pesquisa_respondida
             : portal.pesquisa?.enviada
@@ -328,14 +459,26 @@ function Completo({
         </p>
       </Secao>
 
-      <Secao id="contato" titulo={t.contato_titulo ?? "Fale com a equipe"}>
-        <div className="rounded-3 bg-superficie-2 flex flex-col gap-3 p-5">
-          <ContatoDaEquipe contato={portal.contato} />
-          <p className="text-corpo text-texto-2 max-w-[56ch]">
-            {t.contato_apoio}
-          </p>
+      <section
+        aria-labelledby="contato"
+        className="rounded-3 bg-marinho flex flex-col gap-4 p-5"
+      >
+        <div className="flex items-center gap-3">
+          <TileIcone tom="branco" forma="quadrado">
+            <Phone />
+          </TileIcone>
+          <h2
+            id="contato"
+            className="font-titulo text-2 text-texto-inverso font-medium"
+          >
+            {t.contato_titulo ?? "Fale com a equipe"}
+          </h2>
         </div>
-      </Secao>
+        <ContatoDaEquipe contato={portal.contato} forte />
+        <p className="text-corpo text-texto-inverso-2 max-w-[56ch]">
+          {t.contato_apoio}
+        </p>
+      </section>
     </>
   );
 }
@@ -346,6 +489,8 @@ function SoContato({
   portal: Exclude<PortalFamilia, { situacao: "ok" }>;
 }) {
   const t = portal.textos;
+  // Família em pausa (freio, perda): creme e branco, sem tom de apoio e sem
+  // bloco forte (DESIGN.md 11.8). Só quem está com eles e como falar.
   return (
     <>
       <header className="flex flex-col gap-3">
@@ -354,11 +499,14 @@ function SoContato({
         </h1>
         <p className="text-3 text-texto max-w-[56ch]">{t.texto}</p>
       </header>
-      <Secao id="contato" titulo={t.contato_titulo ?? "Quem está com vocês"}>
-        <div className="rounded-3 bg-superficie-2 p-5">
-          <ContatoDaEquipe contato={portal.contato} />
+      <section aria-labelledby="contato" className="flex flex-col gap-3">
+        <h2 id="contato" className="font-titulo text-2 text-texto font-medium">
+          {t.contato_titulo ?? "Quem está com vocês"}
+        </h2>
+        <div className="rounded-3 bg-superficie border-linha border p-5">
+          <ContatoDaEquipe contato={portal.contato} forte={false} />
         </div>
-      </Secao>
+      </section>
     </>
   );
 }

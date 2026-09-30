@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Check } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
 import { CampoTexto } from "@/components/ui/campo-texto";
 import {
@@ -81,7 +82,16 @@ export function FormularioEntrar({
       </Botao>
       <div role="status" aria-live="polite" className="flex flex-col gap-2">
         {enviado ? (
-          <p className="text-corpo text-texto" data-teste="link-enviado">
+          <p
+            className="rounded-2 bg-salvia-clara text-corpo text-texto flex items-start gap-3 px-4 py-3"
+            data-teste="link-enviado"
+          >
+            <span
+              aria-hidden="true"
+              className="rounded-pilula bg-salvia-media mt-0.5 inline-flex size-6 shrink-0 items-center justify-center"
+            >
+              <Check className="size-4" strokeWidth={2.25} />
+            </span>
             {textos.enviado}
           </p>
         ) : resultado?.situacao === "limite" ? (

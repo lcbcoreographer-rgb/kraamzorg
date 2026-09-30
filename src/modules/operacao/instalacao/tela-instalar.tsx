@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { Download } from "lucide-react";
+import { Check, Download, Smartphone } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
 import { Cartao } from "@/components/ui/cartao";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { plataformaDoNavegador } from "@/lib/pwa/plataforma";
 import { registrarServiceWorker } from "@/lib/pwa/service-worker";
 import { CONTEUDO, TEXTOS_INSTALAR } from "./textos";
@@ -89,31 +90,44 @@ export function TelaInstalar() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3">
+      <header className="rounded-colo bg-dourado-claro flex flex-col gap-3 px-5 pt-6 pb-12">
         <h1 className="font-titulo text-display text-texto font-normal">
           {TEXTOS_INSTALAR.titulo}
         </h1>
-        <p className="text-corpo text-texto max-w-[52ch]">
+        <p className="text-3 text-texto max-w-[52ch]">
           {TEXTOS_INSTALAR.abertura}
         </p>
-      </div>
+      </header>
 
       <Cartao
-        variante="plano"
         className="flex flex-col gap-4"
         aria-labelledby="instalar-plataforma"
         data-plataforma={plataforma}
       >
-        <h2
-          id="instalar-plataforma"
-          className="font-titulo text-2 text-texto font-medium"
-        >
-          {conteudo.titulo}
-        </h2>
+        <div className="flex items-center gap-3">
+          <TileIcone tom="dourado" forma="quadrado">
+            <Smartphone />
+          </TileIcone>
+          <h2
+            id="instalar-plataforma"
+            className="font-titulo text-2 text-texto font-medium"
+          >
+            {conteudo.titulo}
+          </h2>
+        </div>
         <p className="text-corpo text-texto-2 max-w-[52ch]">{conteudo.texto}</p>
 
         {instaladoAgora ? (
-          <p role="status" className="text-corpo text-sucesso font-medium">
+          <p
+            role="status"
+            className="rounded-2 bg-salvia-clara text-corpo text-texto flex items-center gap-3 px-4 py-3 font-medium"
+          >
+            <span
+              aria-hidden="true"
+              className="rounded-pilula bg-salvia-media inline-flex size-6 shrink-0 items-center justify-center"
+            >
+              <Check className="size-4" strokeWidth={2.25} />
+            </span>
             {TEXTOS_INSTALAR.instaladoAgora}
           </p>
         ) : null}
@@ -164,10 +178,19 @@ export function TelaInstalar() {
             <h3 className="text-apoio text-texto font-semibold">
               {TEXTOS_INSTALAR.passosTitulo}
             </h3>
-            <ol className="text-corpo text-texto flex list-decimal flex-col gap-2 pl-5">
-              {conteudo.passos.map((passo) => (
-                <li key={passo} className="max-w-[52ch] pl-1">
-                  {passo}
+            <ol className="text-corpo text-texto flex flex-col gap-2">
+              {conteudo.passos.map((passo, i) => (
+                <li
+                  key={passo}
+                  className="rounded-2 bg-areia-clara flex items-start gap-3 px-3 py-3"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="rounded-pilula bg-dourado-medio font-titulo text-corpo inline-flex size-8 shrink-0 items-center justify-center font-medium"
+                  >
+                    {i + 1}
+                  </span>
+                  <span className="max-w-[52ch] pt-1">{passo}</span>
                 </li>
               ))}
             </ol>

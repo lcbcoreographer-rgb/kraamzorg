@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, NotebookPen } from "lucide-react";
 import { z } from "zod";
+import { Cartao } from "@/components/ui/cartao";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { obterRepositorios } from "@/lib/dados/fabrica";
+import { TituloSecao } from "@/modules/operacao/comum/titulo-secao";
 import { FormOcorrencia } from "@/modules/operacao/ocorrencias/componentes/form-ocorrencia";
 
 export const metadata: Metadata = { title: "Nova ocorrência · Kraamzorg OS" };
@@ -80,12 +82,20 @@ export default async function PaginaNovaOcorrencia({
           Abrir uma ocorrência
         </h1>
         {dados ? (
-          <FormOcorrencia
-            familias={dados.familias}
-            profissionais={dados.profissionais}
-            responsaveis={dados.responsaveis}
-            familiaInicial={familiaInicial}
-          />
+          <Cartao className="flex max-w-[720px] flex-col gap-5">
+            <TituloSecao
+              icone={<NotebookPen />}
+              tom="dourado"
+              titulo="O que aconteceu"
+              texto="A ocorrência nasce com o prazo de resposta da prioridade escolhida e entra no histórico com o seu nome."
+            />
+            <FormOcorrencia
+              familias={dados.familias}
+              profissionais={dados.profissionais}
+              responsaveis={dados.responsaveis}
+              familiaInicial={familiaInicial}
+            />
+          </Cartao>
         ) : (
           <FaixaAlerta variante="erro" titulo="O formulário não abriu agora">
             Confira a conexão e recarregue a página. Nada foi alterado.

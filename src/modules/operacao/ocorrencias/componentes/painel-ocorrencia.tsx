@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { LockKeyhole } from "lucide-react";
+import { History, LockKeyhole, NotebookPen } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
 import { CampoSelecao } from "@/components/ui/campo-selecao";
 import { CampoTexto } from "@/components/ui/campo-texto";
@@ -15,6 +15,8 @@ import type {
   StatusOcorrencia,
 } from "@/lib/dados/tipos-ocorrencia";
 import { formatarDataHora } from "@/lib/formatacao";
+import { cn } from "@/lib/utils";
+import { TituloSecao } from "../../comum/titulo-secao";
 import { acaoAtualizarOcorrencia } from "../acoes";
 import {
   estadoInicialOcorrencia,
@@ -124,91 +126,144 @@ export function PainelOcorrencia({
     });
   }
 
-  return (
-    <div className="flex flex-col gap-6">
-      <section
-        aria-label="Situação da ocorrência"
-        className="rounded-3 bg-superficie shadow-1 flex flex-col gap-3 p-5"
-      >
-        <div className="flex flex-wrap items-center gap-2">
-          <Selo variante={VARIANTE_STATUS[ocorrencia.status]}>
-            {ROTULO_STATUS[ocorrencia.status]}
-          </Selo>
-          <Selo variante={VARIANTE_PRIORIDADE[ocorrencia.prioridade]}>
-            {ROTULO_PRIORIDADE[ocorrencia.prioridade]}
-          </Selo>
-          <Selo variante="neutro">{ROTULO_TIPO[ocorrencia.tipo]}</Selo>
-          {ocorrencia.privada ? (
-            <Selo variante="sensivel" icone={<LockKeyhole />}>
-              Privada
-            </Selo>
-          ) : null}
-        </div>
-        <p className="text-corpo text-texto whitespace-pre-line">
-          {ocorrencia.descricao}
-        </p>
-        <p className="text-apoio text-texto-2">
-          {ocorrencia.familiaNome ? (
-            <>
-              {ocorrencia.familiaId ? (
-                <Link
-                  href={`/familias/${ocorrencia.familiaId}`}
-                  className="text-texto font-medium underline underline-offset-4"
-                >
-                  {ocorrencia.familiaNome}
-                </Link>
-              ) : (
-                ocorrencia.familiaNome
-              )}
-              .{" "}
-            </>
-          ) : null}
-          {ocorrencia.profissionalNome
-            ? `Profissional ${ocorrencia.profissionalNome}. `
-            : ""}
-          {ocorrencia.responsavelNome
-            ? `Com ${ocorrencia.responsavelNome}. `
-            : "Ainda sem responsável. "}
-          {ocorrencia.resolvidaEm ? (
-            <>
-              Resolvida em{" "}
-              <span className="font-mono">
-                {formatarDataHora(ocorrencia.resolvidaEm)}
-              </span>
-              .
-            </>
-          ) : ocorrencia.slaVenceEm ? (
-            <>
-              {ocorrencia.vencida
-                ? "O prazo de resposta venceu em "
-                : "Responder até "}
-              <span className="font-mono">
-                {formatarDataHora(ocorrencia.slaVenceEm)}
-              </span>
-              .
-            </>
-          ) : null}
-        </p>
-      </section>
+  // Ocorrência privada (nota baixa, assunto pessoal) fica neutra, sem tom
+  // de apoio (DESIGN.md 11.8); as outras usam o tom de cada assunto.
+  const neutra = ocorrencia.privada;
 
-      {ocorrencia.privada ? (
-        <FaixaAlerta
-          variante="sensivel"
-          titulo="Ocorrência privada da coordenação"
+  return (
+    <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,58fr)_minmax(0,42fr)] lg:gap-8">
+      <div className="flex min-w-0 flex-col gap-6">
+        <section
+          aria-label="Situação da ocorrência"
+          className={cn(
+            "rounded-3 flex flex-col gap-3 p-5",
+            neutra ? "bg-superficie border-linha border" : "bg-areia-clara",
+          )}
         >
-          O contato com a família é pessoal, pela coordenação, e nenhuma
-          mensagem automática sai a partir dela.
-        </FaixaAlerta>
-      ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            <Selo variante={VARIANTE_STATUS[ocorrencia.status]}>
+              {ROTULO_STATUS[ocorrencia.status]}
+            </Selo>
+            <Selo variante={VARIANTE_PRIORIDADE[ocorrencia.prioridade]}>
+              {ROTULO_PRIORIDADE[ocorrencia.prioridade]}
+            </Selo>
+            <Selo variante="neutro">{ROTULO_TIPO[ocorrencia.tipo]}</Selo>
+            {ocorrencia.privada ? (
+              <Selo variante="sensivel" icone={<LockKeyhole />}>
+                Privada
+              </Selo>
+            ) : null}
+          </div>
+          <p className="text-3 text-texto whitespace-pre-line">
+            {ocorrencia.descricao}
+          </p>
+          <p className="text-apoio text-texto-2">
+            {ocorrencia.familiaNome ? (
+              <>
+                {ocorrencia.familiaId ? (
+                  <Link
+                    href={`/familias/${ocorrencia.familiaId}`}
+                    className="text-texto font-medium underline underline-offset-4"
+                  >
+                    {ocorrencia.familiaNome}
+                  </Link>
+                ) : (
+                  ocorrencia.familiaNome
+                )}
+                .{" "}
+              </>
+            ) : null}
+            {ocorrencia.profissionalNome
+              ? `Profissional ${ocorrencia.profissionalNome}. `
+              : ""}
+            {ocorrencia.responsavelNome
+              ? `Com ${ocorrencia.responsavelNome}. `
+              : "Ainda sem responsável. "}
+            {ocorrencia.resolvidaEm ? (
+              <>
+                Resolvida em{" "}
+                <span className="font-mono">
+                  {formatarDataHora(ocorrencia.resolvidaEm)}
+                </span>
+                .
+              </>
+            ) : ocorrencia.slaVenceEm ? (
+              <>
+                {ocorrencia.vencida
+                  ? "O prazo de resposta venceu em "
+                  : "Responder até "}
+                <span className="font-mono">
+                  {formatarDataHora(ocorrencia.slaVenceEm)}
+                </span>
+                .
+              </>
+            ) : null}
+          </p>
+        </section>
+
+        {ocorrencia.privada ? (
+          <FaixaAlerta
+            variante="sensivel"
+            titulo="Ocorrência privada da coordenação"
+          >
+            O contato com a família é pessoal, pela coordenação, e nenhuma
+            mensagem automática sai a partir dela.
+          </FaixaAlerta>
+        ) : null}
+
+        <section aria-labelledby="historico" className="flex flex-col gap-3">
+          <TituloSecao
+            id="historico"
+            icone={<History />}
+            tom={neutra ? "neutro" : "lavanda"}
+            titulo="Histórico"
+          />
+          {ocorrencia.historico.length === 0 ? (
+            <p className="text-corpo text-texto-2">
+              O histórico começa quando a ocorrência recebe o primeiro registro.
+            </p>
+          ) : (
+            <ol className="flex flex-col gap-2">
+              {[...ocorrencia.historico].reverse().map((e, i) => (
+                <li
+                  key={`${e.em}-${i}`}
+                  className={cn(
+                    "rounded-2 flex flex-col gap-0.5 px-4 py-3",
+                    neutra
+                      ? "bg-superficie border-linha border"
+                      : "bg-lavanda-clara",
+                  )}
+                >
+                  <p className="text-apoio text-texto-2 font-mono">
+                    {formatarDataHora(e.em)}
+                  </p>
+                  <p className="text-corpo text-texto">{descreverEvento(e)}</p>
+                  {e.por && !UUID.test(e.por) ? (
+                    <p className="text-apoio text-texto-2">Por {e.por}</p>
+                  ) : null}
+                  {e.nota ? (
+                    <p className="text-corpo text-texto mt-1 whitespace-pre-line">
+                      {e.nota}
+                    </p>
+                  ) : null}
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+      </div>
 
       {ocorrencia.podeGerir || !encerrada ? (
         <section
           aria-labelledby="andamento"
-          className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5"
+          className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5 lg:sticky lg:top-24"
         >
-          <h2 id="andamento" className="text-3 text-texto font-semibold">
-            Andamento
-          </h2>
+          <TituloSecao
+            id="andamento"
+            icone={<NotebookPen />}
+            tom={neutra ? "neutro" : "dourado"}
+            titulo="Andamento"
+          />
           {encerrada ? (
             <p className="text-corpo text-texto-2">
               Esta ocorrência foi encerrada e não muda mais. Se o assunto
@@ -304,39 +359,6 @@ export function PainelOcorrencia({
           )}
         </section>
       ) : null}
-
-      <section
-        aria-labelledby="historico"
-        className="rounded-3 bg-superficie shadow-1 flex flex-col gap-3 p-5"
-      >
-        <h2 id="historico" className="text-3 text-texto font-semibold">
-          Histórico
-        </h2>
-        {ocorrencia.historico.length === 0 ? (
-          <p className="text-corpo text-texto-2">
-            O histórico começa quando a ocorrência recebe o primeiro registro.
-          </p>
-        ) : (
-          <ol className="flex flex-col gap-4">
-            {[...ocorrencia.historico].reverse().map((e, i) => (
-              <li key={`${e.em}-${i}`} className="border-linha border-l-2 pl-4">
-                <p className="text-apoio text-texto-2 font-mono">
-                  {formatarDataHora(e.em)}
-                </p>
-                <p className="text-corpo text-texto">{descreverEvento(e)}</p>
-                {e.por && !UUID.test(e.por) ? (
-                  <p className="text-apoio text-texto-2">Por {e.por}</p>
-                ) : null}
-                {e.nota ? (
-                  <p className="text-corpo text-texto mt-1 whitespace-pre-line">
-                    {e.nota}
-                  </p>
-                ) : null}
-              </li>
-            ))}
-          </ol>
-        )}
-      </section>
     </div>
   );
 }

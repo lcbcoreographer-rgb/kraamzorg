@@ -22,7 +22,7 @@ function LinhaBloqueio({
     estadoInicialEquipe,
   );
   return (
-    <li className="border-linha flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b pb-3">
+    <li className="rounded-2 bg-lavanda-clara flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
       <div className="min-w-0">
         <p className="text-corpo text-texto font-medium">{bloqueio.motivo}</p>
         <p className="text-apoio text-texto-2 font-mono">

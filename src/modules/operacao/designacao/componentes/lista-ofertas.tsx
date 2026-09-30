@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { MantaDobrada } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import type { Oferta } from "@/lib/dados/tipos-operacao";
 import { CartaoOferta } from "./cartao-oferta";
@@ -33,6 +34,7 @@ export function ListaOfertas({ ofertas }: { ofertas: Oferta[] }) {
     return (
       <EstadoVazio
         nivelTitulo="h2"
+        ilustracao={<MantaDobrada tamanho={112} />}
         titulo="Nenhuma oferta esperando resposta"
         texto="Quando a coordenação oferecer uma família, ela aparece aqui com o prazo para você responder."
       />

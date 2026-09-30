@@ -1,16 +1,20 @@
 "use client";
 
 import * as React from "react";
-import { Copy } from "lucide-react";
+import { Copy, House, MessageSquareText, Send, Hourglass } from "lucide-react";
+import { MantaDobrada } from "@/components/ilustracoes";
+import { AbasPilula } from "@/components/ui/abas-pilula";
 import { Botao } from "@/components/ui/botao";
 import { CampoTexto } from "@/components/ui/campo-texto";
+import { CartaoResumo } from "@/components/ui/cartao-resumo";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
-import { FiltrosLista } from "@/components/ui/filtros-lista";
 import { Cartao } from "@/components/ui/cartao";
 import { Selo } from "@/components/ui/selo";
+import { TileIcone } from "@/components/ui/tile-icone";
 import type { ListaPosVenda, PosVendaItem } from "@/lib/dados/tipos-ocorrencia";
 import { formatarData, formatarDataHora } from "@/lib/formatacao";
+import { cn } from "@/lib/utils";
 import {
   acaoAvancarPosVenda,
   acaoGerarLinkPesquisa,
@@ -64,10 +68,32 @@ function ItemPosVenda({ item }: { item: PosVendaItem }) {
   }
 
   const bloqueada = item.bloqueio !== null;
+  // A cor diz a etapa (direção "Colo"): esperando a família é tempo
+  // (lavanda), a ação feita é sálvia, o resto é trabalho (branco). Família
+  // em estado sensível e nota baixa ficam neutras, sem tom (DESIGN.md 11.8).
+  const neutra = bloqueada || item.classificacao === "detrator";
+  const variante = neutra
+    ? "plano"
+    : item.estagio === "pesquisa_enviada"
+      ? "lavanda"
+      : item.estagio === "acao_executada" || item.estagio === "arquivado"
+        ? "salvia"
+        : "padrao";
+  const tomTile =
+    variante === "lavanda"
+      ? "lavanda"
+      : variante === "salvia"
+        ? "salvia"
+        : "areia";
 
   return (
-    <Cartao className="flex flex-col gap-4">
+    <Cartao variante={variante} className="flex h-full flex-col gap-4">
       <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
+        {neutra ? null : (
+          <TileIcone tom={tomTile}>
+            <House />
+          </TileIcone>
+        )}
         <div className="min-w-0 flex-1">
           <h2 className="font-titulo text-2 text-texto font-medium">
             {item.familiaNome}
@@ -108,20 +134,33 @@ function ItemPosVenda({ item }: { item: PosVendaItem }) {
       </div>
 
       {item.nps !== null ? (
-        <p className="text-corpo text-texto">
-          Nota <span className="font-mono">{item.nps}</span> de 10.
-          {item.classificacao === "detrator"
-            ? " A resposta virou uma ocorrência privada da coordenação, com contato pessoal e sem mensagem automática."
-            : item.classificacao
-              ? ` Classificação: ${ROTULO_CLASSIFICACAO[item.classificacao].toLowerCase()}.`
+        <div
+          className={cn(
+            "rounded-2 flex flex-col gap-1 px-4 py-3",
+            neutra ? "border-linha border" : "bg-superficie",
+          )}
+        >
+          <p className="text-corpo text-texto flex items-baseline gap-1.5">
+            Nota{" "}
+            <span className="font-titulo text-numero-sm font-medium tabular-nums">
+              {item.nps}
+            </span>{" "}
+            de 10.
+          </p>
+          <p className="text-apoio text-texto-2">
+            {item.classificacao === "detrator"
+              ? "A resposta virou uma ocorrência privada da coordenação, com contato pessoal e sem mensagem automática."
+              : item.classificacao
+                ? `Classificação: ${ROTULO_CLASSIFICACAO[item.classificacao].toLowerCase()}.`
+                : ""}
+            {item.depoimentoAutorizado === true
+              ? " Autorizou o uso do depoimento."
               : ""}
-          {item.depoimentoAutorizado === true
-            ? " Autorizou o uso do depoimento."
-            : ""}
-          {item.autorizacaoImagem === true
-            ? " Autorizou o uso de imagens."
-            : ""}
-        </p>
+            {item.autorizacaoImagem === true
+              ? " Autorizou o uso de imagens."
+              : ""}
+          </p>
+        </div>
       ) : (
         <p className="text-corpo text-texto">
           {fraseProximoPasso(item.estagio)}
@@ -182,7 +221,7 @@ function ItemPosVenda({ item }: { item: PosVendaItem }) {
         </div>
       ) : null}
 
-      <div className="flex flex-wrap gap-3">
+      <div className="mt-auto flex flex-wrap gap-3">
         {item.podeGerarLink && !bloqueada ? (
           <Botao
             className="max-w-full text-balance whitespace-normal"
@@ -239,32 +278,66 @@ export function ListaPosVendaTela({
 }) {
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-corpo text-texto max-w-[60ch]">
-        {fraseResumoPosVenda(lista.resumo)}
-      </p>
-      <FiltrosLista
+      <div className="tablet:grid-cols-3 grid grid-cols-2 gap-2 lg:gap-3">
+        <CartaoResumo
+          destaque
+          className="tablet:col-span-1 col-span-2"
+          tom="dourado"
+          icone={<Send />}
+          valor={lista.resumo.aguardandoEnvio}
+          rotulo={
+            lista.resumo.aguardandoEnvio === 1
+              ? "pesquisa a enviar"
+              : "pesquisas a enviar"
+          }
+          contexto="a coordenação gera o link e manda"
+        />
+        <CartaoResumo
+          tom="lavanda"
+          icone={<Hourglass />}
+          valor={lista.resumo.aguardandoResposta}
+          rotulo={
+            lista.resumo.aguardandoResposta === 1
+              ? "espera a família"
+              : "esperam a família"
+          }
+          contexto="a família responde pelo link"
+        />
+        <CartaoResumo
+          tom="salvia"
+          icone={<MessageSquareText />}
+          valor={lista.resumo.respondidas}
+          rotulo={lista.resumo.respondidas === 1 ? "respondida" : "respondidas"}
+          contexto={
+            lista.resumo.respondidas === 0
+              ? "nenhuma resposta ainda"
+              : `${lista.resumo.promotores} ${lista.resumo.promotores === 1 ? "promotor" : "promotores"}, ${lista.resumo.neutros} ${lista.resumo.neutros === 1 ? "neutro" : "neutros"}, ${lista.resumo.detratores} ${lista.resumo.detratores === 1 ? "detrator" : "detratores"}${lista.resumo.nps !== null ? `. NPS de ${lista.resumo.nps} pontos` : ""}`
+          }
+        />
+      </div>
+      <p className="sr-only">{fraseResumoPosVenda(lista.resumo)}</p>
+      <AbasPilula
         rotulo="Filtrar pós-venda"
-        itens={[
+        ativa={situacao}
+        className="self-start"
+        abas={[
+          { valor: "abertos", rotulo: "Em aberto", href: "/pos-venda" },
           {
-            rotulo: "Em aberto",
-            href: "/pos-venda",
-            ativo: situacao === "abertos",
-          },
-          {
+            valor: "todos",
             rotulo: "Todos",
             href: "/pos-venda?situacao=todos",
-            ativo: situacao === "todos",
           },
         ]}
       />
       {lista.itens.length === 0 ? (
         <EstadoVazio
           nivelTitulo="h2"
+          ilustracao={<MantaDobrada tamanho={112} />}
           titulo="Nenhum pós-venda em andamento"
           texto="Quando uma família terminar o último dia contratado, o pós-venda dela abre aqui com a pesquisa a enviar."
         />
       ) : (
-        <ul className="flex flex-col gap-4">
+        <ul className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
           {lista.itens.map((item) => (
             <li key={item.id}>
               <ItemPosVenda item={item} />

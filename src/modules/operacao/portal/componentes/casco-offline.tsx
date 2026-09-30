@@ -2,7 +2,9 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Bell, CalendarCheck, User, Users } from "lucide-react";
+import { House, Siren, UserRound, Users } from "lucide-react";
+import { NuvemSemSinal } from "@/components/ilustracoes";
+import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { AbasInferiores } from "@/components/ui/abas-inferiores";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
@@ -67,16 +69,9 @@ function ConteudoDoCasco() {
       <main
         id="conteudo"
         tabIndex={-1}
-        className="max-w-portal mx-auto w-full px-4 pb-[calc(88px+env(safe-area-inset-bottom))]"
+        className="max-w-portal mx-auto w-full px-4 pb-[calc(var(--altura-abas)+24px+env(safe-area-inset-bottom))]"
       >
-        <header className="bg-fundo border-linha sticky top-0 z-[var(--z-barra)] -mx-4 flex min-h-16 flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-2">
-          <h1 className="font-titulo text-display text-texto font-normal">
-            {titulo}
-          </h1>
-          <div className="ml-auto">
-            <IndicadorPortal />
-          </div>
-        </header>
+        <CabecalhoTela titulo={titulo} lateral={<IndicadorPortal />} />
 
         {aba === "hoje" ? (
           <HojeCliente inicial={null} familias={[]} hoje={null} />
@@ -102,6 +97,7 @@ function ConteudoDoCasco() {
           <div className="pt-6">
             <EstadoVazio
               nivelTitulo="h2"
+              ilustracao={<NuvemSemSinal tamanho={112} />}
               titulo="Os alertas abrem com sinal"
               texto="Sem conexão, o aplicativo mostra o Hoje e as famílias guardadas neste aparelho. Os alertas voltam quando o sinal voltar."
             />
@@ -125,25 +121,25 @@ function ConteudoDoCasco() {
           {
             rotulo: "Hoje",
             href: "/portal-offline?de=hoje",
-            icone: <CalendarCheck aria-hidden="true" />,
+            icone: <House aria-hidden="true" strokeWidth={1.75} />,
             ativo: aba === "hoje",
           },
           {
             rotulo: "Famílias",
             href: "/portal-offline?de=minhas-familias",
-            icone: <Users aria-hidden="true" />,
+            icone: <Users aria-hidden="true" strokeWidth={1.75} />,
             ativo: aba === "minhas-familias",
           },
           {
             rotulo: "Alertas",
             href: "/portal-offline?de=alertas",
-            icone: <Bell aria-hidden="true" />,
+            icone: <Siren aria-hidden="true" strokeWidth={1.75} />,
             ativo: aba === "alertas",
           },
           {
             rotulo: "Perfil",
             href: "/portal-offline?de=perfil",
-            icone: <User aria-hidden="true" />,
+            icone: <UserRound aria-hidden="true" strokeWidth={1.75} />,
             ativo: aba === "perfil",
           },
         ]}

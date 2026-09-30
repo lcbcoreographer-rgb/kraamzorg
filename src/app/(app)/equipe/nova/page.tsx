@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, UserRoundPlus } from "lucide-react";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
+import { Cartao } from "@/components/ui/cartao";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
 import type { Regiao } from "@/lib/dados/tipos";
+import { TituloSecao } from "@/modules/operacao/comum/titulo-secao";
 import { FormularioProfissional } from "@/modules/operacao/equipe/componentes/formulario-profissional";
 import { listarRegioesParaCadastro } from "@/modules/operacao/equipe/dados";
 
@@ -32,7 +34,15 @@ export default async function PaginaNovaProfissional() {
       </Link>
       <div className="max-w-leitura pt-4">
         {regioes ? (
-          <FormularioProfissional regioes={regioes} />
+          <Cartao className="flex flex-col gap-5">
+            <TituloSecao
+              icone={<UserRoundPlus />}
+              tom="argila"
+              titulo="Quem entra na equipe"
+              texto="Com o cadastro salvo, ela já aparece na equipe e na escala. Documentos e bloqueios entram depois, no cadastro dela."
+            />
+            <FormularioProfissional regioes={regioes} />
+          </Cartao>
         ) : (
           <FaixaAlerta variante="erro" titulo="O cadastro não abriu agora">
             As regiões não carregaram. Nada foi alterado; recarregue a página.

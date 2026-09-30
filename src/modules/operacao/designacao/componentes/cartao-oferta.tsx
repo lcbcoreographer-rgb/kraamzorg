@@ -1,11 +1,13 @@
 "use client";
 
+import { CalendarDays, Hourglass, House, MapPin, Package } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
 import { Cartao } from "@/components/ui/cartao";
 import { CampoTexto } from "@/components/ui/campo-texto";
 import { EscolhaUnica } from "@/components/ui/escolha-unica";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
+import { TileIcone } from "@/components/ui/tile-icone";
 import type { Oferta } from "@/lib/dados/tipos-operacao";
 import { formatarData, formatarDataHora } from "@/lib/formatacao";
 import {
@@ -61,40 +63,69 @@ export function CartaoOferta({
   const respondida = Boolean(estado.sucesso);
 
   return (
-    <Cartao className="flex flex-col gap-4" data-oferta={o.designacaoId}>
-      <div className="flex flex-wrap items-center gap-2">
-        <h3 className="font-titulo text-2 text-texto font-medium">
-          {o.familia}
-        </h3>
-        <Selo variante="destaque">{ROTULO_PAPEL_DESIGNACAO[o.papel]}</Selo>
-        {o.gemelar ? <Selo variante="neutro">Gemelar</Selo> : null}
-        {o.vencida ? <Selo variante="alerta">Prazo vencido</Selo> : null}
+    <Cartao
+      variante="dourado"
+      className="flex flex-col gap-4"
+      data-oferta={o.designacaoId}
+    >
+      <div className="flex items-start gap-3">
+        <TileIcone tom="dourado" forma="quadrado">
+          <House />
+        </TileIcone>
+        <div className="flex min-w-0 flex-col gap-2">
+          <h3 className="font-titulo text-1 text-texto font-medium">
+            {o.familia}
+          </h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <Selo variante="destaque">{ROTULO_PAPEL_DESIGNACAO[o.papel]}</Selo>
+            {o.gemelar ? <Selo variante="neutro">Gemelar</Selo> : null}
+            {o.vencida ? <Selo variante="alerta">Prazo vencido</Selo> : null}
+          </div>
+        </div>
       </div>
-      <dl className="text-corpo grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
-        <dt className="text-texto-2">Onde</dt>
-        <dd className="text-texto">
-          {[o.bairro, o.cidade].filter(Boolean).join(", ") || "não informado"}
-          {o.uf ? `, ${o.uf}` : ""}
-        </dd>
-        <dt className="text-texto-2">Parto provável</dt>
-        <dd className="text-texto font-mono">
-          {o.dpp ? (formatarData(o.dpp) ?? o.dpp) : "sem data"}
-          {o.dpp ? (
-            <span className="text-texto-2 font-sans italic"> estimativa</span>
-          ) : null}
-        </dd>
-        <dt className="text-texto-2">Pacote</dt>
-        <dd className="text-texto">
-          {o.dias} dias, {o.horasPorVisita} h por visita
-          {o.periodo ? `, de ${ROTULO_PERIODO[o.periodo].toLowerCase()}` : ""}
-        </dd>
+      <dl className="tablet:grid-cols-3 grid grid-cols-1 gap-2">
+        <div className="rounded-2 bg-superficie flex flex-col gap-0.5 px-3 py-2.5">
+          <dt className="text-mini text-texto-2 flex items-center gap-1.5">
+            <MapPin className="size-4 shrink-0" aria-hidden="true" />
+            Onde
+          </dt>
+          <dd className="text-corpo text-texto">
+            {[o.bairro, o.cidade].filter(Boolean).join(", ") || "não informado"}
+            {o.uf ? `, ${o.uf}` : ""}
+          </dd>
+        </div>
+        <div className="rounded-2 bg-superficie flex flex-col gap-0.5 px-3 py-2.5">
+          <dt className="text-mini text-texto-2 flex items-center gap-1.5">
+            <CalendarDays className="size-4 shrink-0" aria-hidden="true" />
+            Parto provável
+          </dt>
+          <dd className="text-corpo text-texto font-mono">
+            {o.dpp ? (formatarData(o.dpp) ?? o.dpp) : "sem data"}
+            {o.dpp ? (
+              <span className="text-texto-2 font-sans italic"> estimativa</span>
+            ) : null}
+          </dd>
+        </div>
+        <div className="rounded-2 bg-superficie flex flex-col gap-0.5 px-3 py-2.5">
+          <dt className="text-mini text-texto-2 flex items-center gap-1.5">
+            <Package className="size-4 shrink-0" aria-hidden="true" />
+            Pacote
+          </dt>
+          <dd className="text-corpo text-texto">
+            {o.dias} dias, {o.horasPorVisita} h por visita
+            {o.periodo ? `, de ${ROTULO_PERIODO[o.periodo].toLowerCase()}` : ""}
+          </dd>
+        </div>
         {o.prazoRespostaEm ? (
-          <>
-            <dt className="text-texto-2">Responder até</dt>
-            <dd className="text-texto font-mono">
+          <div className="rounded-2 bg-dourado-medio tablet:col-span-3 flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-2.5">
+            <dt className="text-apoio text-texto flex items-center gap-2">
+              <Hourglass className="size-5 shrink-0" aria-hidden="true" />
+              Responder até
+            </dt>
+            <dd className="text-corpo text-texto font-mono font-semibold">
               {formatarDataHora(o.prazoRespostaEm) ?? ""}
             </dd>
-          </>
+          </div>
         ) : null}
       </dl>
 

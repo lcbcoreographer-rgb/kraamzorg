@@ -53,7 +53,7 @@ export function SecaoDocumentos({
           {documentos.map((d) => (
             <li
               key={d.id}
-              className="border-linha flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b pb-3"
+              className="rounded-2 bg-areia-clara flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3"
             >
               <div className="min-w-0">
                 <p className="text-corpo text-texto font-medium">{d.tipo}</p>

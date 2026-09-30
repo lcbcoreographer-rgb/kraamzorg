@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CalendarDays, CalendarSync } from "lucide-react";
 import { z } from "zod";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
+import { FolhaLupa } from "@/components/ilustracoes";
+import { Cartao } from "@/components/ui/cartao";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { formatarData } from "@/lib/formatacao";
+import { TituloSecao } from "@/modules/operacao/comum/titulo-secao";
 import { PainelReagendar } from "@/modules/operacao/equipe/componentes/painel-reagendar";
 import {
   carregarVisita,
@@ -74,6 +78,7 @@ export default async function PaginaReagendarVisita({
         <div className="pt-4">
           <EstadoVazio
             nivelTitulo="h2"
+            ilustracao={<FolhaLupa tamanho={112} />}
             titulo="Não achamos esta visita"
             texto="Ela pode ter sido apagada ou estar fora dos dias que a agenda mostra. Volte à agenda e abra de novo."
           />
@@ -91,39 +96,55 @@ export default async function PaginaReagendarVisita({
       />
       {voltar}
       <div className="max-w-leitura flex flex-col gap-5 pt-4">
-        <div className="rounded-3 bg-superficie-2 flex flex-col gap-1 p-5">
-          <p className="text-corpo text-texto">
-            Está marcada para{" "}
-            <span className="font-mono font-semibold">
-              {formatarData(v.data)}
-            </span>
-            {v.horaPrevista ? (
-              <>
-                {" "}
-                às{" "}
-                <span className="font-mono font-semibold">
-                  {v.horaPrevista}
-                </span>
-              </>
-            ) : null}
-            {v.turno ? `, de ${ROTULO_TURNO[v.turno]}` : ""}, com{" "}
-            {v.profissionalNome}.
-          </p>
-          <p className="text-apoio text-texto-2">
-            <Selo variante="neutro">{ROTULO_ESTADO_VISITA[v.estado]}</Selo>
-          </p>
-        </div>
+        <section
+          aria-label="Como está marcada"
+          className="rounded-3 bg-lavanda-clara flex items-start gap-4 p-5"
+        >
+          <TileIcone tom="lavanda" forma="quadrado">
+            <CalendarDays />
+          </TileIcone>
+          <div className="flex flex-col gap-2">
+            <p className="text-corpo text-texto">
+              Está marcada para{" "}
+              <span className="font-mono font-semibold">
+                {formatarData(v.data)}
+              </span>
+              {v.horaPrevista ? (
+                <>
+                  {" "}
+                  às{" "}
+                  <span className="font-mono font-semibold">
+                    {v.horaPrevista}
+                  </span>
+                </>
+              ) : null}
+              {v.turno ? `, de ${ROTULO_TURNO[v.turno]}` : ""}, com{" "}
+              {v.profissionalNome}.
+            </p>
+            <p className="text-apoio text-texto-2">
+              <Selo variante="neutro">{ROTULO_ESTADO_VISITA[v.estado]}</Selo>
+            </p>
+          </div>
+        </section>
 
         {v.movivel ? (
-          <PainelReagendar
-            visitaId={v.visitaId}
-            acompanhamentoId={v.acompanhamentoId}
-            dataAtual={v.data}
-            horaAtual={v.horaPrevista}
-            profissionalAtualId={v.profissionalId}
-            profissionais={profissionais}
-            hoje={hoje}
-          />
+          <Cartao className="flex flex-col gap-5">
+            <TituloSecao
+              icone={<CalendarSync />}
+              tom="dourado"
+              titulo="Para quando vai"
+              texto="A agenda confere os conflitos a cada mudança, antes de salvar."
+            />
+            <PainelReagendar
+              visitaId={v.visitaId}
+              acompanhamentoId={v.acompanhamentoId}
+              dataAtual={v.data}
+              horaAtual={v.horaPrevista}
+              profissionalAtualId={v.profissionalId}
+              profissionais={profissionais}
+              hoje={hoje}
+            />
+          </Cartao>
         ) : (
           <FaixaAlerta
             variante="info"

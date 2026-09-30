@@ -3,6 +3,8 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { z } from "zod";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
+import { JanelaManha } from "@/components/ilustracoes";
+import { AbasPilula } from "@/components/ui/abas-pilula";
 import { Botao } from "@/components/ui/botao";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
@@ -14,8 +16,10 @@ import {
 } from "@/lib/agenda/datas";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { formatarData } from "@/lib/formatacao";
-import { cn } from "@/lib/utils";
-import { ListaAgenda } from "@/modules/operacao/equipe/componentes/lista-agenda";
+import {
+  ListaAgenda,
+  SemanaEmBlocos,
+} from "@/modules/operacao/equipe/componentes/lista-agenda";
 import { rotuloSemana } from "@/modules/operacao/equipe/componentes/semana-equipe";
 import {
   carregarAgenda,
@@ -34,31 +38,6 @@ const FEITO: Record<string, string> = {
   cascata:
     "Visitas reagendadas. As datas novas já aparecem abaixo e no Hoje da enfermeira.",
 };
-
-function Chip({
-  href,
-  ativo,
-  children,
-}: {
-  href: string;
-  ativo: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      aria-current={ativo ? "true" : undefined}
-      className={cn(
-        "rounded-pilula text-apoio min-h-toque inline-flex items-center border-[1.5px] px-4 font-medium no-underline",
-        ativo
-          ? "border-acao bg-acao text-acao-texto"
-          : "border-borda-campo bg-superficie text-texto hover:bg-marinho-08",
-      )}
-    >
-      {children}
-    </Link>
-  );
-}
 
 /**
  * Agenda (P37 item 2): as visitas de todas as enfermeiras, ou de uma, por
@@ -137,15 +116,22 @@ export default async function PaginaAgenda({
 
         <nav aria-label="Período e enfermeira" className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Chip href={ligacao({ visao: "dia" })} ativo={visao === "dia"}>
-              Dia
-            </Chip>
-            <Chip
-              href={ligacao({ visao: "semana" })}
-              ativo={visao === "semana"}
-            >
-              Semana
-            </Chip>
+            <AbasPilula
+              rotulo="Ver por dia ou por semana"
+              ativa={visao}
+              abas={[
+                {
+                  valor: "dia",
+                  rotulo: "Dia",
+                  href: ligacao({ visao: "dia" }),
+                },
+                {
+                  valor: "semana",
+                  rotulo: "Semana",
+                  href: ligacao({ visao: "semana" }),
+                },
+              ]}
+            />
             <span className="ml-auto flex flex-wrap items-center gap-2">
               <Botao
                 asChild
@@ -175,25 +161,33 @@ export default async function PaginaAgenda({
             </span>
           </div>
           {tela && tela.profissionais.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <Chip
-                href={ligacao({ profissional: null })}
-                ativo={!profissionalId}
-              >
-                Todas as enfermeiras
-              </Chip>
-              {tela.profissionais.map((p) => (
-                <Chip
-                  key={p.id}
-                  href={ligacao({ profissional: p.id })}
-                  ativo={profissionalId === p.id}
-                >
-                  {p.nome}
-                </Chip>
-              ))}
-            </div>
+            <AbasPilula
+              rotulo="Enfermeira"
+              ativa={profissionalId ?? ""}
+              className="self-start"
+              abas={[
+                {
+                  valor: "",
+                  rotulo: "Todas as enfermeiras",
+                  href: ligacao({ profissional: null }),
+                },
+                ...tela.profissionais.map((p) => ({
+                  valor: p.id,
+                  rotulo: p.nome,
+                  href: ligacao({ profissional: p.id }),
+                })),
+              ]}
+            />
           ) : null}
         </nav>
+
+        {tela && visao === "semana" ? (
+          <SemanaEmBlocos
+            dias={Array.from({ length: 7 }, (_, i) => somarDias(desde, i))}
+            visitas={tela.agenda.visitas}
+            hoje={hoje}
+          />
+        ) : null}
 
         {!tela ? (
           <FaixaAlerta variante="erro" titulo="A agenda não abriu agora">
@@ -204,6 +198,7 @@ export default async function PaginaAgenda({
           tela.sessoesDeVenda.length === 0 ? (
           <EstadoVazio
             nivelTitulo="h2"
+            ilustracao={<JanelaManha tamanho={112} />}
             titulo="Nada marcado neste período"
             texto="Quando houver visitas, elas aparecem aqui por dia, com os conflitos marcados. Use as setas para ver outro dia ou outra semana."
           />

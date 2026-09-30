@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { Baby, ChevronRight, ClipboardPen, House } from "lucide-react";
+import { MantaDobrada } from "@/components/ilustracoes";
 import { Cartao } from "@/components/ui/cartao";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
+import { TileIcone } from "@/components/ui/tile-icone";
 import type {
   AcompanhamentoEvolucao,
   ListaEvolucoes,
@@ -48,8 +50,11 @@ function Documento({
     <li>
       <Link
         href={href}
-        className="min-h-toque hover:bg-marinho-08 rounded-2 -mx-2 flex items-center gap-3 px-2 py-2 text-inherit no-underline"
+        className="rounded-2 bg-superficie ease-estado hover:bg-marinho-08 flex min-h-16 flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 text-inherit no-underline transition-colors duration-140"
       >
+        <TileIcone tom="areia" forma="quadrado" tamanho="p">
+          {documento.tipo === "neonatal" ? <Baby /> : <ClipboardPen />}
+        </TileIcone>
         <span className="text-corpo text-texto min-w-0 flex-1 font-medium">
           {rotulo}
         </span>
@@ -86,6 +91,7 @@ export function ListaEvolucoesTela({
   if (lista.acompanhamentos.length === 0) {
     return (
       <EstadoVazio
+        ilustracao={<MantaDobrada tamanho={112} />}
         titulo={
           filtro === "abertas"
             ? "Nenhuma evolução pendente"
@@ -101,11 +107,17 @@ export function ListaEvolucoesTela({
   }
 
   return (
-    <ul className="flex flex-col gap-4">
+    <ul className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
       {lista.acompanhamentos.map((a) => (
         <li key={a.acompanhamentoId}>
-          <Cartao className="flex flex-col gap-4">
+          <Cartao
+            variante={a.situacao === "concluida" ? "salvia" : "padrao"}
+            className="flex flex-col gap-4"
+          >
             <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
+              <TileIcone tom={a.situacao === "concluida" ? "salvia" : "areia"}>
+                <House />
+              </TileIcone>
               <div className="min-w-0 flex-1">
                 <h2 className="font-titulo text-2 text-texto font-medium">
                   {a.familiaNome}
@@ -149,7 +161,13 @@ export function ListaEvolucoesTela({
                 ficha.
               </FaixaAlerta>
             ) : null}
-            <ul className="border-linha flex flex-col border-t pt-2">
+            <ul
+              className={
+                a.situacao === "concluida"
+                  ? "flex flex-col gap-2"
+                  : "rounded-3 bg-areia-clara -mx-2 flex flex-col gap-2 p-2 lg:-mx-1"
+              }
+            >
               {a.documentos.map((d) => (
                 <Documento
                   key={`${d.tipo}-${d.bebeId ?? "mae"}`}
