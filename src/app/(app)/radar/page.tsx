@@ -153,6 +153,7 @@ export default async function PaginaRadar({
             <CartaoResumo
               destaque
               className="tablet:col-span-1 col-span-2"
+              fundo="marinho"
               tom="dourado"
               icone={<CalendarClock />}
               valor={grupos.naJanela.length}
@@ -173,6 +174,7 @@ export default async function PaginaRadar({
               href={grupos.naJanela.length > 0 ? "#na-janela" : undefined}
             />
             <CartaoResumo
+              fundo="medio"
               tom="lavanda"
               icone={<CalendarDays />}
               valor={grupos.adiante.length}
@@ -185,7 +187,8 @@ export default async function PaginaRadar({
               href={grupos.adiante.length > 0 ? "#adiante" : undefined}
             />
             <CartaoResumo
-              tom="areia"
+              fundo="medio"
+              tom="salvia"
               icone={<Hospital />}
               valor={visivel.nasceram.length}
               rotulo={

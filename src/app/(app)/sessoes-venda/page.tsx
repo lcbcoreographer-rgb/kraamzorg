@@ -73,8 +73,8 @@ export default async function PaginaSessoesVenda() {
       {/* A frase da agenda num bloco de tempo (DESIGN.md, 2.5: lavanda é a
           agenda), com o calendário num tile: é a primeira coisa que a
           pessoa lê ao abrir a tela. */}
-      <div className="rounded-3 bg-lavanda-clara mt-3 flex items-start gap-4 p-5 lg:p-6">
-        <TileIcone tom="lavanda" forma="quadrado" tamanho="g">
+      <div className="rounded-3 bg-lavanda-media mt-3 flex items-start gap-4 p-5 lg:p-6">
+        <TileIcone tom="branco" forma="quadrado" tamanho="g">
           <CalendarDays />
         </TileIcone>
         <p className="text-3 text-texto max-w-leitura self-center">

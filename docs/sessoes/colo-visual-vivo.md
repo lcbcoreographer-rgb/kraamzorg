@@ -97,3 +97,52 @@ Roteiro manual em `http://127.0.0.1:4710`: `/design-system` (vitrine "Colo" e "V
 - `lint_slop.py` (interface-2026) nos componentes, nas telas-piloto e no `globals.css`: nenhum achado.
 - Capturas 390 x 844 e 1280 x 800, antes e depois, em `scratchpad/visual-vivo/piloto/antes` e `.../depois` (fora do repositório): design system, Hoje, checklist (etapas 1 a 3, lista de etapas, resumo, registro assinado), Início do comercial, da coordenação e da diretoria, e Pipeline. Nenhuma tela rola de lado.
 - Não rodados nesta sessão: `supabase test db` (nada de banco mudou) e `node --test n8n/build.test.mjs` (nada do n8n mudou).
+
+## Polimento
+
+Data: 30/09/2026. Mesma branch, sem migration, sem função de banco nova. Só apresentação: nenhuma regra, permissão, enum ou contrato de dados mudou.
+
+Crítica que abriu esta passada: o visual ainda estava tímido (quase tudo em areia e tons lavados, muito branco); a resposta escolhida no checklist não ficava inconfundível; a barra de ações e a navegação cobriam conteúdo no fim da página; o Início da coordenação e o da diretoria ainda diziam "em construção".
+
+### O que mudou por tela
+
+- **Sistema.** `CartaoResumo` ganhou `fundo="medio"` e `fundo="marinho"`, e o padrão mudou: sem `fundo`, o número principal (`destaque`) sai em marinho com tile dourado e os outros no tom médio do assunto com tile branco. `AbasPilula` e as abas da ficha: aba ativa em marinho com texto creme. Nova forma `encaixe-aba` (utilitário em `globals.css`, só forma, cor pela variável `--cor-aba`) e novo componente `BlocoAba` (`src/components/ui/bloco-aba.tsx`): título numa aba do mesmo tom, colada no bloco, com a curva côncava na junção; `tom="neutro"` para assunto sensível. `CabecalhoSaudacao`: o cumprimento mora numa aba em cima do bloco colo; o indicador lateral passou para a linha do título.
+- **Checklist da enfermeira.** Resposta escolhida em marinho cheio com check; as outras recuam (sem fundo, borda fina, texto de apoio), em sim ou não, escolha única (ganhou o check) e escala de 0 a 10. O bloco da etapa traz o anel da visita inteira num disco branco encaixado, com a porcentagem das perguntas respondidas em número grande e a legenda "da visita" (texto para leitor de tela: "N% da visita respondida"). A navegação em pílula se esconde dentro de `/visita/...`; a barra de ações desce para 12 px do fundo, e o fim da página reserva a altura dela: em 390 x 844, o último cartão termina a 32 px acima da barra (antes sobravam 232 px vazios, e a pílula e a barra empilhadas ocupavam cerca de 330 px do fim da tela).
+- **Hoje da enfermeira.** Trio: visitas de hoje em marinho, ficha pendente em argila médio, amanhã em lavanda médio. Cumprimento em aba.
+- **Início do comercial.** Trio: transferências esperando em marinho, com a equipe em sálvia médio, tarefas em lavanda médio; os tiles das seções seguem o tom do cartão que aponta para elas.
+- **Início da coordenação** (novo, `src/app/(app)/inicio/inicio-gestao.tsx` e `textos-gestao.ts`, com teste). Frase "Equipe agora: ..."; trio com visitas de hoje (marinho, "com N enfermeiras"), fichas sem assinatura (argila médio, as visitas em `ficha_pendente` da agenda desta semana) e ofertas sem resposta (lavanda médio, "a mais antiga há 18 h"). Blocos com aba: alertas clínicos abertos (neutro: frase calma, o que espera registro do acionamento, até quatro famílias com o selo da severidade), visitas de hoje por enfermeira (argila: uma linha por enfermeira, barra em pílulas contra o limite do dia, horas e famílias), radar da semana (lavanda: nasceram e esperam alta, datas prováveis de hoje até domingo, sempre ditas estimativa) e conversas de orientação que esperam registro (argila).
+- **Início da diretoria** (novo). Frase do mês do painel executivo; trio com contratos assinados no mês contra a meta (marinho), famílias em atendimento com quantas começaram no mês (argila médio) e visitas realizadas contra o mês anterior (lavanda médio). Blocos: alertas clínicos (neutro), visitas de hoje por enfermeira (argila), capacidade (lavanda: a frase do resumo e as semanas em atenção ou sobrevenda) e o atalho do painel executivo. Sem AAL2, o trio volta a ser o do dia e o bloco do painel diz que os números pedem a verificação em duas etapas.
+- **Radar.** Trio: na janela do parto em marinho, próximas semanas em lavanda médio, já nasceram em sálvia médio.
+- **Agenda.** Hoje em marinho (o único bloco marinho da tela), dia com visita em lavanda médio, dia vazio em lavanda claro.
+- **Sessões de venda.** A frase da agenda num bloco lavanda médio com tile branco.
+- **Portal da família.** O passo de agora em dourado médio com tile branco.
+- **Captação.** O bloco da conversa em argila médio com o tile encaixado na borda de cima.
+- **Pipeline, Ficha e Conversas.** Aba ativa em marinho (pipeline 1 e 2, abas da ficha); o resto já estava no padrão.
+- Momentos sensíveis continuam sem tom de apoio e sem ilustração: freio, perda e intercorrência seguem com `semTom`; o bloco de alertas clínicos do Início é neutro, com a aba de borda e sem curva.
+
+### Decisões
+
+- Um bloco marinho por tela, no máximo quatro tons contando o marinho. Dentro do bloco `dourado-claro`, "família" usa argila: `areia` (o tom médio da areia) e `dourado-claro` têm o mesmo valor e o cartão sumia.
+- Fichas sem assinatura contam a semana corrente da agenda (segunda a domingo), porque não existe leitura de "fichas pendentes" da equipe inteira sem janela; nenhum prazo novo entrou no código. A tela diz "nesta semana".
+- Os alertas do Início vêm de `api.alertas_clinicos` (mesma leitura da tela de alertas, que grava o log de leitura); o Início mostra só família, dia, severidade e se falta o registro do acionamento, nunca o achado nem a conduta.
+- O teste "tela sem módulo" do acolhimento (`tests/e2e/acolhimento/acolhimento.spec.ts`) usava o Início da diretoria como exemplo de tela em construção; passou para o Início do financeiro, que continua em construção. O que ele prova não mudou.
+- `obterFraseEquipe` (`src/modules/operacao/equipe/dados.ts`) saiu: o Início agora lê a equipe junto com a agenda.
+
+### O que ficou de fora
+
+- Início do financeiro e do marketing continuam "em construção".
+- Os títulos de seção do Hoje, das Sessões e do Portal continuam tile e título soltos; o `BlocoAba` pode entrar nelas numa próxima passada.
+- O anel do checklist conta etapas nos segmentos e perguntas no número; se a enfermeira estranhar, o número pode virar "etapas completas".
+
+### Capturas
+
+`scratchpad/visual-vivo/polimento/antes` e `.../depois` (fora do repositório), 390 x 844 e 1280 x 800: hoje, checklist (topo, fim da página e resposta escolhida), inicio (comercial), inicio-coord, inicio-dir, pipeline, ficha, sessoes, conversas, agenda, radar, portal-familia e captacao. Nenhuma tela rola de lado.
+
+### Resultado dos comandos
+
+- `pnpm lint`: 0 erros. `pnpm format:check`: tudo no padrão. `pnpm typecheck`: sem erro.
+- `pnpm test`: 3.108 testes passando, 80 pulados (já eram pulados). Novo: `src/app/(app)/inicio/textos-gestao.test.ts`.
+- `pnpm e2e --workers=2`: 244 passando, 2 pulados (já eram pulados).
+- `pnpm e2e:equipe-portal --workers=2`: 30 passando. `pnpm e2e:offline`: 5 passando (invariante 4).
+- `gitleaks detect --no-banner`: nenhum vazamento. `lint_slop.py` (interface-2026) nos arquivos novos: nenhum achado.
+- Não rodados: `supabase test db` (nada de banco mudou) e `node --test n8n/build.test.mjs` (nada do n8n mudou).

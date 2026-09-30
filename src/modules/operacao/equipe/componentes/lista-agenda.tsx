@@ -61,8 +61,9 @@ const DIAS_CURTOS = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"] as const;
 /**
  * A semana em sete blocos (direção "Colo"; referência: o calendário de
  * estudo em blocos): o dia da semana, a data e quantas visitas tem, em
- * número grande. Hoje fica no bloco dourado (o agora); os outros dias em
- * lavanda (o tempo). Dia com visita é link para a lista daquele dia.
+ * número grande. Hoje fica no bloco marinho [polimento]; os outros dias em
+ * lavanda (o tempo), médio com visita e claro sem. Dia com visita é link
+ * para a lista daquele dia.
  */
 export function SemanaEmBlocos({
   dias,
@@ -85,30 +86,61 @@ export function SemanaEmBlocos({
         const frase = `${formatarDiaSemanaEData(`${dia}T12:00:00-03:00`) ?? dia}: ${
           doDia.length === 1 ? "1 visita" : `${doDia.length} visitas`
         }${conflito ? ", com conflito" : ""}${ehHoje ? ", hoje" : ""}`;
+        // [polimento] Hoje em marinho (o único bloco marinho da tela, texto
+        // creme); dia com visita no lavanda médio, dia vazio no claro. Sobre
+        // tom médio o texto é só marinho (PRD 20.2).
+        const cheio = doDia.length > 0;
         const visual = (
           <span aria-hidden="true" className="contents">
-            <span className="text-mini text-texto-2">
+            <span
+              className={cn(
+                "text-mini",
+                ehHoje
+                  ? "text-texto-inverso-2"
+                  : cheio
+                    ? "text-texto"
+                    : "text-texto-2",
+              )}
+            >
               {DIAS_CURTOS[diaDaSemanaDesdeSegunda(dia)]}
             </span>
-            <span className="text-dado text-texto font-mono">
+            <span
+              className={cn(
+                "text-dado font-mono",
+                ehHoje ? "text-texto-inverso" : "text-texto",
+              )}
+            >
               {dia.slice(8, 10)}
             </span>
             <span
               className={cn(
                 "font-titulo text-numero-sm mt-1 font-medium tabular-nums",
-                doDia.length > 0 ? "text-texto" : "text-texto-2",
+                ehHoje
+                  ? "text-texto-inverso"
+                  : cheio
+                    ? "text-texto"
+                    : "text-texto-2",
               )}
             >
               {doDia.length}
             </span>
             {conflito ? (
-              <TriangleAlert className="text-aviso-texto mt-0.5 size-4" />
+              <TriangleAlert
+                className={cn(
+                  "mt-0.5 size-4",
+                  ehHoje ? "text-dourado" : "text-aviso-texto",
+                )}
+              />
             ) : null}
           </span>
         );
         const classes = cn(
           "rounded-2 flex min-h-[92px] flex-col items-center px-1 py-2 text-center no-underline",
-          ehHoje ? "bg-dourado-claro ring-dourado ring-2" : "bg-lavanda-clara",
+          ehHoje
+            ? "bg-marinho"
+            : cheio
+              ? "bg-lavanda-media"
+              : "bg-lavanda-clara",
         );
         return (
           <li key={dia} aria-current={ehHoje ? "date" : undefined}>

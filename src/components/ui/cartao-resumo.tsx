@@ -2,7 +2,7 @@ import * as React from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { TileIcone } from "./tile-icone";
-import { FUNDO_CLARO, type Tom } from "./tons";
+import { FUNDO_CLARO, FUNDO_MEDIO, type Tom } from "./tons";
 
 /**
  * Cartão-resumo com número grande (DESIGN.md, 2.3 e 2.6; referência: os
@@ -26,8 +26,16 @@ export interface CartaoResumoProps {
   href?: string;
   /** "pilha" (padrão): tile, número e rótulo empilhados. "linha": tile à esquerda, para ocupar a largura. */
   arranjo?: "pilha" | "linha";
-  /** "tom" (padrão): bloco no tom claro. "branco": dentro de um bloco de tom (o cabeçalho do dia). */
-  fundo?: "tom" | "branco";
+  /**
+   * "tom" (padrão): bloco no tom claro, tile no tom médio. "medio"
+   * [polimento]: bloco no tom médio do assunto, com o tile branco; é o
+   * cartão-resumo dentro do bloco de abertura, que precisa de presença
+   * contra o dourado-claro. "marinho": o número principal da tela, em
+   * bloco marinho com texto creme e tile dourado (um por tela). "branco":
+   * cartão branco dentro de um bloco de tom. Sem valor: "marinho" com
+   * `destaque`, "medio" sem.
+   */
+  fundo?: "tom" | "medio" | "marinho" | "branco";
   /**
    * O número principal do trio: no celular ocupa a linha inteira, com o
    * tile e o número à esquerda e o rótulo ao lado; a partir de 600 px
@@ -45,24 +53,54 @@ export function CartaoResumo({
   contexto,
   href,
   arranjo = "pilha",
-  fundo = "tom",
+  fundo: fundoPedido,
   destaque = false,
   className,
 }: CartaoResumoProps) {
+  // [polimento] Sem `fundo`, o trio ganha presença: o número principal
+  // (`destaque`) em marinho e os outros no tom médio do assunto.
+  const fundo = fundoPedido ?? (destaque ? "marinho" : "medio");
+  // Sobre marinho, texto creme (13,6:1) e contexto creme-62 (6,7:1); sobre
+  // tom médio, só marinho (9,0 a 9,9:1), nunca texto-2 (PRD 20.2 [v4.4]).
+  const escuro = fundo === "marinho";
   const conteudo = (
     <>
-      <TileIcone tom={tom} tamanho="p">
+      <TileIcone
+        tom={escuro ? "dourado" : fundo === "medio" ? "branco" : tom}
+        tamanho={destaque ? "m" : "p"}
+      >
         {icone}
       </TileIcone>
       <span className="flex min-w-0 flex-col gap-1">
-        <span className="font-titulo text-numero text-texto font-medium tabular-nums">
+        <span
+          className={cn(
+            "font-titulo text-numero font-medium tabular-nums",
+            escuro ? "text-texto-inverso" : "text-texto",
+          )}
+        >
           {valor}
         </span>
-        <span className="text-apoio text-texto leading-snug font-semibold">
+        <span
+          className={cn(
+            "text-apoio leading-snug font-semibold",
+            escuro ? "text-texto-inverso" : "text-texto",
+          )}
+        >
           {rotulo}
         </span>
         {contexto ? (
-          <span className="text-mini text-texto-2">{contexto}</span>
+          <span
+            className={cn(
+              "text-mini",
+              escuro
+                ? "text-texto-inverso-2"
+                : fundo === "medio"
+                  ? "text-texto"
+                  : "text-texto-2",
+            )}
+          >
+            {contexto}
+          </span>
         ) : null}
       </span>
     </>
@@ -74,7 +112,13 @@ export function CartaoResumo({
       : arranjo === "pilha"
         ? "flex-col gap-3"
         : "items-start gap-4",
-    fundo === "tom" ? FUNDO_CLARO[tom] : "bg-superficie",
+    fundo === "tom"
+      ? FUNDO_CLARO[tom]
+      : fundo === "medio"
+        ? FUNDO_MEDIO[tom]
+        : fundo === "marinho"
+          ? "bg-marinho"
+          : "bg-superficie",
     href &&
       "text-inherit no-underline transition-[transform,box-shadow] duration-140 ease-estado hover:shadow-1 active:scale-[0.985]",
     className,

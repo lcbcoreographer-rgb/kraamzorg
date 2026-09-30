@@ -97,14 +97,16 @@ Diagnóstico em uma frase. O problema não era de cor: tudo morava em cartão br
 - **Raio, quatro degraus**: `raio-1` 6 px (caixa de seleção, marca pequena), `raio-2` 16 px (campo, faixa, item de lista, bloco da régua), `raio-3` 28 px (cartão, bloco, folha inferior, painel), `raio-pilula` (botão, aba, seletor, selo, navegação). O que se toca é pílula ou círculo; o que contém é 16 ou 28.
 - **Colo** (`rounded-colo`): bloco com os cantos de cima em 28 px e a base inteira em arco raso (40 px de flecha), como a curva do símbolo. Um por tela, no bloco de abertura (cumprimento do dia, etapa do checklist, comemoração). Pede 40 px de respiro embaixo.
 - **Encaixe**: tile, anel ou pílula que se apoia na borda entre dois blocos, ou um bloco de tom médio dentro de um claro (o tile do ícone dentro do cartão-resumo). Forma que encaixa em outra, nunca cartão dentro de cartão branco.
+- **Aba** [polimento] (`encaixe-aba`, `BlocoAba`): o título do bloco mora numa aba no mesmo tom, colada no canto de cima à esquerda, e a junção fecha numa curva côncava de 20 px (a cor da curva vem de `--cor-aba`). O cumprimento das telas de abertura usa a mesma aba em cima do bloco colo. No bloco neutro (assunto sensível), a aba ganha a borda do bloco e perde a curva.
 - **Sombra**: `sombra-1` só no que é trabalho a fazer (pergunta sem resposta, cartão tocável); bloco de tom não leva sombra. `sombra-2` para a navegação flutuante, a barra de ação e a folha inferior.
 
 ### 2.5 Blocos de cor
 
 | Bloco | Fundo | Texto | Onde |
 | :-- | :-- | :-- | :-- |
-| Abertura do dia | `dourado-claro`, forma colo | marinho e `marinho-72` | Topo do Hoje e do Início |
-| Cartão-resumo | tom claro do assunto, tile no tom médio | número em marinho, contexto em `marinho-72` | Trio de números abaixo da abertura |
+| Abertura do dia | `dourado-claro`, forma colo, cumprimento em aba | marinho e `marinho-72` | Topo do Hoje e do Início |
+| Cartão-resumo [polimento] | o número principal em marinho (tile dourado); os outros no tom médio do assunto, tile branco | sobre marinho, creme e `creme-62`; sobre tom médio, só marinho | Trio de números dentro da abertura e no topo das listas |
+| Bloco com aba [polimento] | tom claro do assunto, conteúdo em cartões brancos | marinho | Início da coordenação e da diretoria |
 | Pergunta sem resposta | branco, `sombra-1` | marinho | Checklist, formulário da enfermeira |
 | Pergunta respondida | `areia-clara`, sem sombra, marca de check em `salvia-media` | marinho | Checklist |
 | Coluna do pipeline | `areia-clara` | marinho | Pipeline no computador |
@@ -112,7 +114,7 @@ Diagnóstico em uma frase. O problema não era de cor: tudo morava em cartão br
 | Feito | `salvia-clara` | marinho | Comemoração, tarefa concluída |
 | Bloco forte | marinho cheio | creme e `creme-62` | Navegação, um destaque por tela no máximo |
 
-Regras: texto sobre tom claro em marinho ou `marinho-72`; sobre tom médio, só marinho; `marinho-62` nunca sobre tom (PRD 20.2). No máximo quatro tons diferentes por viewport. Estado (alerta, aviso, sucesso, sensível) continua com lavado, borda, ícone e palavra, e nunca é pintado com tom de apoio.
+Regras: texto sobre tom claro em marinho ou `marinho-72`; sobre tom médio, só marinho; `marinho-62` nunca sobre tom (PRD 20.2). No máximo quatro tons diferentes por viewport, contando o marinho, e um bloco marinho por tela. Dentro do bloco `dourado-claro`, o tom médio da areia some (os dois têm o mesmo valor): ali o assunto "família" usa argila. Estado (alerta, aviso, sucesso, sensível) continua com lavado, borda, ícone e palavra, e nunca é pintado com tom de apoio.
 
 ### 2.6 Tipografia com números grandes
 
@@ -131,7 +133,8 @@ Jost carrega número e frase humana (PRD 20.2: "números grandes"); IBM Plex Mon
 
 ### 2.8 Progresso
 
-- **Anel segmentado** (`AnelProgresso`): um segmento por etapa, feito em marinho, atual em dourado, a fazer na trilha `marinho-14`, com o número no centro em Jost. Substitui a rosca contínua: cada segmento é uma etapa real. Usado no checklist (etapas completas da visita).
+- **Anel segmentado** (`AnelProgresso`): um segmento por etapa, feito em marinho, atual em dourado, a fazer na trilha `marinho-14`, com o número no centro em Jost. Substitui a rosca contínua: cada segmento é uma etapa real. Usado no checklist (etapas completas da visita). [polimento] O bloco da etapa traz o anel da visita inteira, encaixado num disco branco, com a porcentagem das perguntas respondidas em número grande e a legenda "da visita".
+- **Resposta escolhida** [polimento]: a opção escolhida fica em marinho cheio com o check; as outras recuam (sem fundo, borda `marinho-14`, texto `marinho-72`). Vale para sim ou não, escolha única e escala de 0 a 10. Sem resposta, todas iguais: nada sugerido.
 - **Barra em pílula** (`BarraProgresso`): trilha de 10 px, preenchimento marinho com a ponta redonda, e a frase ao lado ("5 de 9 respondidas"). Completa, ganha o check e a frase "Tudo respondido nesta etapa".
 - **Blocos segmentados** (régua de dias, `ProgressoEtapas`): continuam para tempo (D1 a D12) e para a trilha das etapas.
 - Nunca anel ou barra decorativa: todo progresso conta uma coisa que a pessoa faz.
@@ -140,7 +143,8 @@ Jost carrega número e frase humana (PRD 20.2: "números grandes"); IBM Plex Mon
 
 - **Celular**: pílula marinho flutuante, 64 px, a 12 px das bordas e do fundo, sombra `sombra-2`. Ícone de 22 px e rótulo de 13 px em todas as abas; a aba ativa vira uma pílula creme com ícone e rótulo em marinho. Contador em `alerta` só para alerta clínico ou transferência vencendo.
 - **Computador**: barra lateral marinho de 248 px, solta 12 px das bordas, com raio 28. Item ativo em pílula creme com o ícone marinho; os outros em `creme-62`.
-- **Abas de conteúdo**: `AbasPilula`, trilha areia e a aba ativa em pílula branca com sombra leve (pipeline, filtros, períodos).
+- **Abas de conteúdo**: `AbasPilula`, trilha areia e a aba ativa em pílula marinho com texto creme [polimento; antes branca, sumia na trilha] (pipeline, filtros, períodos, abas da ficha).
+- **Checklist** [polimento]: dentro de `/visita/...` a navegação em pílula se esconde e fica só a barra de ações, a 12 px do fundo; o fim da página reserva a altura dela, e o último cartão aparece inteiro acima da barra em 390 px. A saída é a seta de voltar do cabeçalho.
 
 ### 2.10 Estados vazios
 

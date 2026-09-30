@@ -81,6 +81,8 @@ export function Escala0a10({
         {OPCOES.map((numero) => {
           const idOpcao = `${idGrupo}-${numero}`;
           const marcado = valorAtual === numero;
+          // [polimento] Com uma nota escolhida, as outras recuam.
+          const recua = valorAtual !== undefined && !marcado;
           return (
             <span key={numero} className="relative">
               <input
@@ -98,6 +100,7 @@ export function Escala0a10({
                 className={cn(
                   "min-h-toque-campo rounded-2 border-borda-campo bg-superficie text-texto text-3 flex cursor-pointer items-center justify-center border-[1.5px] font-mono font-medium select-none",
                   "hover:bg-marinho-08",
+                  recua && "border-marinho-14 text-texto-2 bg-transparent",
                   "peer-checked:border-acao peer-checked:bg-acao peer-checked:text-acao-texto",
                   "peer-focus-visible:outline-foco peer-focus-visible:shadow-[0_0_0_5px_var(--foco-halo)] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2",
                   disabled &&

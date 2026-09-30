@@ -85,6 +85,10 @@ export function NavegacaoInferior({
   sempre = false,
 }: Pick<NavegacaoAppProps, "abas"> & { sempre?: boolean }) {
   const caminho = usePathname();
+  // [polimento] Dentro do checklist da visita a navegação em pílula se
+  // esconde: fica só a barra de ações da etapa, e a saída é a seta de
+  // voltar do cabeçalho (DESIGN.md, 2.9).
+  if (sempre && caminho?.startsWith("/visita/")) return null;
   return (
     <AbasInferiores
       rotulo="Navegação principal"

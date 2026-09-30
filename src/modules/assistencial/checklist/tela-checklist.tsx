@@ -731,9 +731,39 @@ function Edicao({
     etapa.porBebe ? (bebeAtivo ?? c.bebes[0]?.id) : undefined,
   );
   const IconeEtapa = ICONE_DA_ETAPA[etapa.id] ?? ClipboardList;
+  // [polimento] A visita inteira no anel do bloco da etapa: perguntas
+  // respondidas de todas as etapas (nas etapas por bebê, de cada bebê).
+  const daVisita = etapas.reduce(
+    (soma, e) => {
+      const alvos: (string | undefined)[] =
+        e.porBebe && c.bebes.length > 0
+          ? c.bebes.map((b) => b.id)
+          : [undefined];
+      for (const alvo of alvos) {
+        const parcial = contagemDaEtapa(
+          e,
+          definicao,
+          rascunho.respostas,
+          contexto,
+          alvo,
+        );
+        soma.respondidas += parcial.respondidas;
+        soma.total += parcial.total;
+      }
+      return soma;
+    },
+    { respondidas: 0, total: 0 },
+  );
+  const pctVisita =
+    daVisita.total > 0
+      ? Math.round((daVisita.respondidas / daVisita.total) * 100)
+      : 0;
 
   return (
-    <div className="pb-60">
+    // Fim da página: a <main> da casca já reserva 100 px; os 56 px daqui
+    // completam a altura da barra de ações (112 px a 12 px do fundo) com
+    // folga, e o último cartão fica inteiro acima dela em 390 px.
+    <div className="pb-14">
       <header className="bg-fundo sticky top-0 z-[var(--z-barra)] -mx-4 px-4 pt-3 pb-3">
         <div className="flex items-center gap-2">
           <Link
@@ -833,7 +863,7 @@ function Edicao({
             >
               <IconeEtapa />
             </TileIcone>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-apoio text-texto-2 font-medium">
                 {textos.etapa(indice + 1, etapas.length)}
               </p>
@@ -846,6 +876,32 @@ function Edicao({
                 {etapa.rotulo}
               </h2>
             </div>
+            {daVisita.total > 0 ? (
+              <div className="flex shrink-0 flex-col items-center gap-1">
+                {/* O anel encaixado num disco branco: a trilha neutra e o
+                    dourado da etapa atual aparecem sobre o branco, não
+                    sobre o dourado do bloco. */}
+                <span className="rounded-pilula bg-superficie p-1.5">
+                  <AnelProgresso
+                    segmentos={segmentos}
+                    tamanho={80}
+                    espessura={7}
+                    centro={
+                      <span className="font-titulo text-numero-sm text-texto font-medium tabular-nums">
+                        {pctVisita}
+                        <span className="text-apoio">%</span>
+                      </span>
+                    }
+                  />
+                </span>
+                <span className="text-mini text-texto font-medium">
+                  <span className="sr-only">
+                    {textos.visitaRespondida(pctVisita)}
+                  </span>
+                  <span aria-hidden="true">{textos.daVisita}</span>
+                </span>
+              </div>
+            ) : null}
           </div>
           {!ehResumo && contagem.total > 0 ? (
             <BarraProgresso
@@ -882,12 +938,15 @@ function Edicao({
         ) : null}
       </div>
 
-      {/* Barra de ação, na zona do polegar, logo acima da navegação em
-          pílula (DESIGN.md, 2.9). */}
+      {/* Barra de ação, na zona do polegar (DESIGN.md, 2.9). Dentro do
+          checklist a navegação em pílula se esconde [polimento] e a barra
+          desce para o lugar dela; o espaço que ela ocupa fica reservado no
+          fim da página (pb do contêiner), para o último cartão aparecer
+          inteiro acima dela. */}
       <div
-        className="fixed inset-x-0 z-[var(--z-barra)] px-3 pb-2"
+        className="fixed inset-x-0 z-[var(--z-barra)] px-3"
         style={{
-          bottom: "calc(var(--altura-abas) + env(safe-area-inset-bottom))",
+          bottom: "calc(12px + env(safe-area-inset-bottom))",
         }}
       >
         <div className="max-w-portal rounded-3 bg-superficie shadow-2 mx-auto flex flex-col gap-1 p-2">

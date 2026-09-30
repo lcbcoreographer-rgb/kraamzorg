@@ -37,6 +37,7 @@ export function ListaTarefas({
   titulo,
   idTitulo,
   icone,
+  tomIcone = "areia",
   colunas = false,
 }: {
   grupos: GrupoTarefasComFreio[];
@@ -50,6 +51,8 @@ export function ListaTarefas({
   idTitulo?: string;
   /** Ícone do assunto no tile ao lado do título (direção "Colo", DESIGN.md 2.7). */
   icone?: ReactNode;
+  /** Tom do tile do título: o mesmo do cartão-resumo que aponta para a seção. */
+  tomIcone?: Tom;
   /**
    * Tela própria das tarefas: no computador, os cartões de cada grupo em
    * duas colunas (no Início a lista mora numa coluna estreita).
@@ -81,7 +84,7 @@ export function ListaTarefas({
       {titulo ? (
         <div className="-mb-5 flex items-center gap-3">
           {icone ? (
-            <TileIcone tom="areia" forma="quadrado">
+            <TileIcone tom={tomIcone} forma="quadrado">
               {icone}
             </TileIcone>
           ) : null}

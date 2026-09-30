@@ -35,26 +35,28 @@ export function CabecalhoSaudacao({
   className?: string;
 }) {
   const Titulo = nivelTitulo;
+  // [polimento] O cumprimento mora numa aba que encaixa no bloco (a curva
+  // côncava de `encaixe-aba` fecha a junção), como a pasta das referências.
+  // A aba e o bloco são a mesma superfície: lê-se como uma peça só.
   return (
-    <header
-      className={cn(
-        "rounded-colo bg-dourado-claro mt-3 flex flex-col px-5 pt-5 pb-12 lg:mt-6 lg:px-8 lg:pt-7",
-        className,
-      )}
-    >
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-        <p className="text-3 text-texto font-medium">{saudacao}</p>
-        {lateral ? (
-          <div className="flex flex-wrap items-center gap-2">{lateral}</div>
+    <header className={cn("mt-3 flex flex-col lg:mt-6", className)}>
+      <p className="encaixe-aba rounded-t-3 bg-dourado-claro text-3 text-texto self-start px-5 pt-3 pb-1 font-medium lg:px-8">
+        {saudacao}
+      </p>
+      <div className="rounded-colo bg-dourado-claro flex flex-col rounded-tl-none px-5 pt-3 pb-12 lg:px-8 lg:pt-4">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <Titulo className="font-titulo text-display lg:text-display-lg text-texto font-normal">
+            {titulo}
+          </Titulo>
+          {lateral ? (
+            <div className="flex flex-wrap items-center gap-2">{lateral}</div>
+          ) : null}
+        </div>
+        {frase ? (
+          <p className="text-3 text-texto mt-2 max-w-[52ch]">{frase}</p>
         ) : null}
+        {children ? <div className="mt-5">{children}</div> : null}
       </div>
-      <Titulo className="font-titulo text-display lg:text-display-lg text-texto mt-1 font-normal">
-        {titulo}
-      </Titulo>
-      {frase ? (
-        <p className="text-3 text-texto mt-2 max-w-[52ch]">{frase}</p>
-      ) : null}
-      {children ? <div className="mt-5">{children}</div> : null}
     </header>
   );
 }

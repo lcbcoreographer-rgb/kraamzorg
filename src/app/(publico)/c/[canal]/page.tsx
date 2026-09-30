@@ -60,15 +60,19 @@ export default async function PaginaCaptacao({
         </h1>
         <p className="text-3 text-texto max-w-[60ch]">{textos.abertura}</p>
       </header>
-      <section className="rounded-3 bg-argila-clara flex flex-col gap-5 p-5">
-        <div className="flex items-start gap-3">
-          <TileIcone tom="argila" forma="quadrado">
-            <MessageCircle />
-          </TileIcone>
-          <p className="text-corpo text-texto max-w-[60ch] pt-2">
-            {textos.como_funciona}
-          </p>
-        </div>
+      {/* [polimento] O bloco da conversa em argila médio, com o tile da
+          conversa encaixado na borda de cima (DESIGN.md, 2.4: encaixe). */}
+      <section className="rounded-3 bg-argila-media mt-6 flex flex-col gap-5 p-5 pt-0">
+        <TileIcone
+          tom="branco"
+          tamanho="g"
+          className="ring-fundo -mt-7 ring-[6px]"
+        >
+          <MessageCircle />
+        </TileIcone>
+        <p className="text-corpo text-texto -mt-1 max-w-[60ch]">
+          {textos.como_funciona}
+        </p>
         <BotaoWhatsApp
           canal={canal}
           utm={utm}

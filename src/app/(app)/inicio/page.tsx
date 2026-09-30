@@ -6,7 +6,6 @@ import { TelaEmConstrucao } from "@/components/shell/tela-em-construcao";
 import { CartaoResumo } from "@/components/ui/cartao-resumo";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { TileIcone } from "@/components/ui/tile-icone";
-import type { Papel } from "@/lib/auth/papeis";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { formatarDiaSemanaEData } from "@/lib/formatacao";
 import { papelPrincipal } from "@/lib/navegacao";
@@ -17,9 +16,9 @@ import {
 } from "@/modules/agente/transferencias/dados";
 import { DESTINO_DO_PAPEL } from "@/modules/agente/tipos";
 import type { TransferenciaTela } from "@/modules/agente/tipos";
-import { obterFraseEquipe } from "@/modules/operacao/equipe/dados";
 import { ListaTarefas } from "@/modules/mensageria/tarefas/componentes/lista-tarefas";
 import { fraseDoDia, resumoDoInicio } from "./frase-do-dia";
+import { InicioCoordenacao, InicioDiretoria } from "./inicio-gestao";
 import {
   listarTarefasTela,
   type TarefasTela,
@@ -28,17 +27,15 @@ import {
 export const metadata: Metadata = { title: "Início · Kraamzorg OS" };
 
 /**
- * O que o Início de cada papel vai mostrar (PRD 20.4), no molde do estado
- * "ainda em construção" (DESIGN.md, 11.7; voz.md, seção 5).
+ * O que o Início dos papéis ainda sem resumo próprio vai mostrar (PRD
+ * 20.4), no molde do estado "ainda em construção" (DESIGN.md, 11.7;
+ * voz.md, seção 5). Coordenação e diretoria já têm o Início montado
+ * [polimento] (`inicio-gestao.tsx`).
  */
 const INICIO_POR_PAPEL: Record<
-  Exclude<Papel, "enfermeira" | "comercial">,
+  "financeiro" | "marketing",
   { texto: string; acao?: { rotulo: string; href: string } }
 > = {
-  coordenacao: {
-    texto:
-      "Aqui você vai ver primeiro o que pede a sua decisão: alertas clínicos abertos, fichas sem assinatura e ofertas sem resposta.",
-  },
   financeiro: {
     texto:
       "Aqui você vai ver o que pede atenção no financeiro: cobranças vencendo, pagamentos confirmados e notas com erro.",
@@ -48,17 +45,13 @@ const INICIO_POR_PAPEL: Record<
     texto:
       "Aqui você vai ver os leads por origem e por estágio, sempre em número agregado, sem dado de família.",
   },
-  diretoria: {
-    texto:
-      "Aqui você vai ver, uma linha para cada, como estão vendas, operação, equipe, financeiro e alertas, comparados com o período anterior.",
-    acao: { rotulo: "Abrir o painel executivo", href: "/painel" },
-  },
 };
 
 /**
  * Dono: P18 (fila e tarefas do comercial) e P27 (transferências); cada
  * papel ganha o próprio Início no módulo dele (coordenação P36, financeiro
- * P46, marketing P47, diretoria P52).
+ * P46, marketing P47, diretoria P52). Coordenação e diretoria: montados no
+ * polimento da direção "Colo", com as leituras que já existiam.
  */
 export default async function PaginaInicio() {
   const sessao = await exigirSessao();
@@ -67,33 +60,24 @@ export default async function PaginaInicio() {
   if (principal === "comercial") {
     return <InicioComercial usuarioId={sessao.usuarioId} nome={sessao.nome} />;
   }
-
-  const conteudo =
-    INICIO_POR_PAPEL[
-      principal && principal !== "enfermeira" ? principal : "diretoria"
-    ];
-  // Coordenação e diretoria abrem o dia com a síntese da equipe (P37, fluxo
-  // C): "3 em visita agora, 1 livre, 2 reservadas para esta semana...".
-  const fraseEquipe =
-    principal === "coordenacao" || principal === "diretoria"
-      ? await obterFraseEquipe()
-      : null;
-  // Tela de abertura: o título é o dia (DESIGN.md, 11.4); a aba e o
-  // <title> continuam "Início".
-  return (
-    <TelaEmConstrucao
-      titulo={formatarDiaSemanaEData(new Date()) ?? "Início"}
-      abertura
-      saudacao={saudacao(sessao.nome)}
-      subtitulo={fraseEquipe ? `Equipe agora: ${fraseEquipe}` : undefined}
-      texto={conteudo.texto}
-      acao={
-        fraseEquipe && principal === "coordenacao"
-          ? { rotulo: "Ver a equipe", href: "/equipe" }
-          : conteudo.acao
-      }
-    />
-  );
+  if (principal === "coordenacao") {
+    return <InicioCoordenacao sessao={sessao} />;
+  }
+  if (principal === "financeiro" || principal === "marketing") {
+    const conteudo = INICIO_POR_PAPEL[principal];
+    // Tela de abertura: o título é o dia (DESIGN.md, 11.4); a aba e o
+    // <title> continuam "Início".
+    return (
+      <TelaEmConstrucao
+        titulo={formatarDiaSemanaEData(new Date()) ?? "Início"}
+        abertura
+        saudacao={saudacao(sessao.nome)}
+        texto={conteudo.texto}
+        acao={conteudo.acao}
+      />
+    );
+  }
+  return <InicioDiretoria sessao={sessao} />;
 }
 
 /**
@@ -169,7 +153,7 @@ async function InicioComercial({
             <CartaoResumo
               destaque
               className="tablet:col-span-1 col-span-2"
-              fundo="branco"
+              fundo="marinho"
               tom="argila"
               icone={<Inbox />}
               valor={contagem!.transferenciasEsperando}
@@ -178,7 +162,7 @@ async function InicioComercial({
               href="#inicio-transferencias"
             />
             <CartaoResumo
-              fundo="branco"
+              fundo="medio"
               tom="salvia"
               icone={<UserCheck />}
               valor={contagem!.transferenciasComEquipe}
@@ -187,8 +171,8 @@ async function InicioComercial({
               href="/transferencias"
             />
             <CartaoResumo
-              fundo="branco"
-              tom="areia"
+              fundo="medio"
+              tom="lavanda"
               icone={<ListTodo />}
               valor={contagem!.tarefasHoje + contagem!.tarefasAtrasadas}
               rotulo={numeros.tarefas.rotulo}
@@ -204,7 +188,7 @@ async function InicioComercial({
           className="scroll-mt-4"
         >
           <div className="mb-3 flex items-center gap-3">
-            <TileIcone tom="argila" forma="quadrado">
+            <TileIcone tom="marinho" forma="quadrado">
               <Inbox />
             </TileIcone>
             <h2
@@ -239,6 +223,7 @@ async function InicioComercial({
               titulo="Tarefas de hoje"
               idTitulo="inicio-tarefas"
               icone={<ListTodo />}
+              tomIcone="lavanda"
             />
           ) : (
             <>

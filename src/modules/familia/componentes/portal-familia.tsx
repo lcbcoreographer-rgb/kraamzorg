@@ -130,7 +130,7 @@ function ItemPasso({ passo }: { passo: Passo }) {
       className={cn(
         "flex items-start gap-3",
         passo.estado === "agora"
-          ? "rounded-3 bg-dourado-claro my-1 p-4"
+          ? "rounded-3 bg-dourado-medio my-1 p-4"
           : passo.estado === "depois"
             ? "rounded-2 border-marinho-50 border-[1.5px] border-dashed px-3 py-3"
             : "rounded-2 bg-salvia-clara px-3 py-2.5",
@@ -139,7 +139,7 @@ function ItemPasso({ passo }: { passo: Passo }) {
       <TileIcone
         tom={
           passo.estado === "agora"
-            ? "dourado"
+            ? "branco"
             : passo.estado === "feito"
               ? "salvia"
               : "branco"

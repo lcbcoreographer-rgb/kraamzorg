@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEstadoControlavel } from "@/lib/hooks/estado-controlavel";
 
@@ -68,6 +69,9 @@ export function EscolhaUnica({
         {opcoes.map((opcao) => {
           const idOpcao = `${idGrupo}-${opcao.valor}`;
           const marcado = valorAtual === opcao.valor;
+          // [polimento] Escolhida: marinho cheio com check; as outras
+          // recuam (sem fundo, borda fina, texto de apoio).
+          const recua = Boolean(valorAtual) && !marcado;
           return (
             <span key={opcao.valor} className="relative">
               <input
@@ -87,6 +91,7 @@ export function EscolhaUnica({
                   "rounded-pilula border-borda-campo bg-superficie text-texto flex cursor-pointer items-center gap-2 border-[1.5px] px-4 font-medium select-none",
                   tamanho === "checklist" ? "min-h-toque-campo" : "min-h-toque",
                   "hover:bg-marinho-08",
+                  recua && "border-marinho-14 text-texto-2 bg-transparent",
                   "peer-checked:border-acao peer-checked:bg-acao peer-checked:text-acao-texto",
                   // Selecionada e sob o cursor continua escura: sem isto o
                   // hover clareava o fundo e o texto creme sumia (contraste
@@ -97,7 +102,11 @@ export function EscolhaUnica({
                     "bg-marinho-08 text-marinho-62 cursor-not-allowed",
                 )}
               >
-                {opcao.icone}
+                {marcado ? (
+                  <Check className="size-4 shrink-0" aria-hidden="true" />
+                ) : (
+                  opcao.icone
+                )}
                 {opcao.rotulo}
               </label>
             </span>

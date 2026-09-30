@@ -48,7 +48,7 @@ export default async function PaginaHoje() {
           <CartaoResumo
             destaque
             className="tablet:col-span-1 col-span-2"
-            fundo="branco"
+            fundo="marinho"
             tom="dourado"
             icone={<MapPin />}
             valor={hoje.visitas.length}
@@ -57,15 +57,15 @@ export default async function PaginaHoje() {
             href="#visitas-de-hoje"
           />
           <CartaoResumo
-            fundo="branco"
-            tom="areia"
+            fundo="medio"
+            tom="argila"
             icone={<ClipboardPen />}
             valor={hoje.fichasPendentes.length}
             rotulo={resumo.fichas.rotulo}
             contexto={resumo.fichas.contexto}
           />
           <CartaoResumo
-            fundo="branco"
+            fundo="medio"
             tom="lavanda"
             icone={<CalendarDays />}
             valor={amanha.length}

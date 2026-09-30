@@ -40,7 +40,7 @@ export function AbasFicha({
             className={cn(
               "text-apoio min-h-toque rounded-pilula ease-estado tablet:flex-none flex flex-1 shrink-0 items-center justify-center px-4 font-semibold whitespace-nowrap no-underline transition-[background-color,box-shadow,color] duration-140",
               ehAtiva
-                ? "bg-superficie text-texto shadow-1"
+                ? "bg-marinho text-texto-inverso shadow-1"
                 : "text-texto-2 hover:bg-areia-clara hover:text-texto",
             )}
           >

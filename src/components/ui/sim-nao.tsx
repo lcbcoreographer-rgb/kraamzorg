@@ -61,8 +61,13 @@ export function SimNao({
     onMudar,
   );
 
+  // [polimento] Com uma resposta dada, a outra recua: sem fundo, borda
+  // fina e texto de apoio. A escolhida fica inconfundível: marinho cheio
+  // com o check. Sem resposta, as duas ficam iguais (nada sugerido).
+  const respondida = valorAtual !== undefined;
   function opcao(rotulo: string, valorOpcao: "sim" | "nao") {
     const marcado = valorAtual === valorOpcao;
+    const recua = respondida && !marcado;
     const idOpcao = `${idPergunta}-${valorOpcao}`;
     return (
       <span className={cn("relative", cartao && "flex")}>
@@ -84,6 +89,8 @@ export function SimNao({
               ? "min-h-toque-grande text-corpo w-full flex-1"
               : "min-h-toque-campo",
             "hover:bg-marinho-08 active:scale-[0.96]",
+            recua &&
+              "border-marinho-14 text-texto-2 bg-transparent font-medium",
             "peer-checked:border-acao peer-checked:bg-acao peer-checked:text-acao-texto peer-checked:hover:bg-acao-hover",
             "peer-focus-visible:outline-foco peer-focus-visible:shadow-[0_0_0_5px_var(--foco-halo)] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2",
             disabled && "cursor-not-allowed opacity-60",

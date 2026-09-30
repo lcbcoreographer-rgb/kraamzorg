@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils";
 
 /**
  * Abas em pílula (DESIGN.md, 2.9; referência: "Weekly / Month" e
- * "Creator / Collector"). Trilha areia com a aba ativa numa pílula branca
- * de sombra leve; 44 px de alvo. Serve para trocar de visão dentro da
+ * "Creator / Collector"). Trilha areia com a aba ativa numa pílula marinho
+ * com texto creme [polimento: antes branca, sumia no areia]; 44 px de alvo. Serve para trocar de visão dentro da
  * mesma tela (pipeline 1 e 2, período, filtro rápido).
  *
  * Cada aba é um link (`href`, navega e o estado mora na URL) ou um botão
@@ -63,7 +63,7 @@ export function AbasPilula({
             "tablet:flex-none tablet:whitespace-nowrap flex-1 py-1.5 text-center leading-tight",
           !larga && "whitespace-nowrap",
           selecionada
-            ? "bg-superficie text-texto shadow-1"
+            ? "bg-marinho text-texto-inverso shadow-1"
             : "text-texto-2 hover:bg-areia-clara hover:text-texto",
         );
         const conteudo = (

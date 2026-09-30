@@ -19,6 +19,9 @@ export const textos = {
       ? `${n} de 1 pergunta respondida`
       : `${n} de ${total} respondidas`,
   etapaRespondida: "Tudo respondido nesta etapa",
+  /** Legenda do anel da visita inteira, no bloco da etapa [polimento]. */
+  daVisita: "da visita",
+  visitaRespondida: (pct: number) => `${pct}% da visita respondida`,
   etapasAjuda:
     "Toque numa etapa para ir direto a ela. Dá para avançar com pendências; o que falta aparece na última etapa.",
   estadoDaEtapa: {

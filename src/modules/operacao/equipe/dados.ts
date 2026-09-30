@@ -11,7 +11,6 @@ import type {
   VisitaAgenda,
 } from "@/lib/dados/tipos-equipe";
 import type { SessaoVenda } from "@/lib/dados/tipos-venda";
-import { fraseSinteseEquipe } from "./textos";
 
 /**
  * Dados das telas de equipe, escala e agenda (P37). Tudo passa pelo
@@ -133,20 +132,6 @@ export async function carregarAgenda(filtro: {
       .filter((p) => p.atendeVisitas)
       .map((p) => ({ id: p.id, nome: p.nome })),
   };
-}
-
-/**
- * A frase da equipe para o Início da coordenação e da diretoria. Falha de
- * leitura não derruba o Início: devolve null.
- */
-export async function obterFraseEquipe(): Promise<string | null> {
-  try {
-    const { equipe } = await obterRepositorios();
-    const visao = await equipe.obterEquipe({ dia: hojeEmBrasilia() });
-    return fraseSinteseEquipe(visao.resumo);
-  } catch {
-    return null;
-  }
 }
 
 // --- Reagendar uma visita e a cascata de uma família -------------------------------
