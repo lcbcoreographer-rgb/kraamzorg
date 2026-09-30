@@ -159,6 +159,12 @@ export interface Parametro {
   valor: Json;
   descricao: string | null;
   atualizadoEm: string;
+  /**
+   * Parâmetro do agente (PRD 6.8 [v4.5]). No banco a RLS nunca entrega a
+   * linha; só a loja da demonstração a guarda (o agente simulado a lê), e os
+   * repositórios a escondem de todo papel, como a RLS faria.
+   */
+  restrito?: boolean;
 }
 
 export interface MensagemModelo {

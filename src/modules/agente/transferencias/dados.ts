@@ -12,9 +12,10 @@ import type { TransferenciaTela } from "../tipos";
 /**
  * Telefone do plantão (`parametro.plantao_telefones`, PRD 6.8), para
  * "Ligar para a coordenação" quando a transferência não é do papel de
- * quem vê (crítica do CRM, P0 item 4). A RLS de `parametro` só deixa a
- * diretoria ler fora da demonstração (ADR 0002); para os demais papéis
- * a função devolve null e o cartão não mostra o link `tel:`.
+ * quem vê (crítica do CRM, P0 item 4). [v4.5] `plantao_telefones` é
+ * parâmetro do agente (`parametro.restrito`): nenhum papel do app o lê, então
+ * a função devolve null e o cartão não mostra o link `tel:`. O telefone do
+ * plantão segue com a equipe de implantação.
  */
 export async function obterTelefonePlantao(): Promise<string | null> {
   try {

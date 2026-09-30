@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BookOpen, ChartColumn, Clock3, Power } from "lucide-react";
+import { BookOpen, ChartColumn, Clock3, Settings2 } from "lucide-react";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
 import { TileIcone } from "@/components/ui/tile-icone";
 import type { Tom } from "@/components/ui/tons";
@@ -14,8 +14,6 @@ import {
   periodoPadrao,
 } from "@/modules/agente/metricas/dados";
 import { PainelMetricas } from "@/modules/agente/metricas/componentes/painel-metricas";
-import { obterModoAgenteTela } from "@/modules/agente/modo/dados";
-import { PainelModo } from "@/modules/agente/modo/componentes/painel-modo";
 import { obterRegraRetomadaTela } from "@/modules/agente/regras-retomada/dados";
 import { PainelRegraRetomada } from "@/modules/agente/regras-retomada/componentes/painel-regra-retomada";
 
@@ -23,7 +21,7 @@ export const metadata: Metadata = { title: "Isadora · Kraamzorg OS" };
 
 /**
  * Cada assunto da Isadora num bloco com a cor do que ele é (DESIGN.md,
- * 2.5): o modo é o agora (dourado), a retomada é tempo (lavanda), os
+ * 2.5): os ajustes são o agora (dourado), a retomada é tempo (lavanda), os
  * números são das conversas (argila), a base é o que já foi guardado
  * (areia). O título leva o assunto num tile.
  */
@@ -75,24 +73,18 @@ function Secao({
 }
 
 /**
- * Painel da Isadora no CRM (P27 itens 1, 3, 4 e 5; PRD 11.3, 11.4, 11.12 e
- * 20.5): regras de retomada, modo do agente, base de conhecimento e
- * métricas. Conversas e transferências ficam em `/conversas` e
+ * Painel da Isadora no CRM (P27 itens 1, 4 e 5; PRD 11.3, 11.4, 11.12 e
+ * 20.5): textos de retomada, base de conhecimento e métricas. [v4.5] O modo,
+ * a lista de teste, as pausas e a janela de retomada são parâmetros do
+ * agente, mantidos pela equipe de implantação: a tela só explica isso. Conversas e transferências ficam em `/conversas` e
  * `/transferencias`, rotas próprias (item 1 e 2). Dono: P27.
  */
 export default async function PaginaAgente() {
   const sessao = await exigirSessao("/agente");
   const ehDiretoria = sessao.papeis.includes("diretoria");
 
-  const [regraR, configuracaoR, baseR, metricasR] = await Promise.all([
+  const [regraR, baseR, metricasR] = await Promise.all([
     obterRegraRetomadaTela().then(
-      (v) => ({ ok: true as const, v }),
-      () => ({ ok: false as const, v: null }),
-    ),
-    // `parametro` só é lido pela diretoria (RLS, PRD 13): para os demais
-    // papéis o modo nem é pedido, e a tela diz de quem é a decisão em vez
-    // de mostrar um valor que o banco não entregou.
-    (ehDiretoria ? obterModoAgenteTela() : Promise.resolve(null)).then(
       (v) => ({ ok: true as const, v }),
       () => ({ ok: false as const, v: null }),
     ),
@@ -109,17 +101,15 @@ export default async function PaginaAgente() {
     ),
   ]);
   const regra = regraR.v;
-  const configuracao = configuracaoR.v;
   const base = baseR.v;
   const metricas = metricasR.v;
-  const carregouTudo =
-    regraR.ok && configuracaoR.ok && baseR.ok && metricasR.ok;
+  const carregouTudo = regraR.ok && baseR.ok && metricasR.ok;
 
   return (
     <>
       <CabecalhoTela
         titulo="Isadora"
-        subtitulo="Modo, retomada, base de conhecimento e os números do mês."
+        subtitulo="Retomada, base de conhecimento e os números do mês."
       />
       <div className="flex flex-col gap-6 pt-6">
         {!carregouTudo ? (
@@ -131,20 +121,17 @@ export default async function PaginaAgente() {
 
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
           <Secao
-            icone={<Power />}
+            icone={<Settings2 />}
             tom="dourado"
-            titulo="Modo da Isadora"
-            texto="Desligada, em teste (só responde à lista) ou em produção."
+            titulo="Ajustes da Isadora"
+            texto="Quando ela responde, a lista de teste, as pausas, a retomada e a agenda."
           >
-            {!ehDiretoria ? (
-              <PainelModo configuracao={null} podeEditar={false} />
-            ) : configuracao ? (
-              <PainelModo configuracao={configuracao} podeEditar />
-            ) : (
-              <p className="text-apoio text-texto-2">
-                Não foi possível carregar o modo agora.
-              </p>
-            )}
+            <p className="text-corpo text-texto">
+              Esses ajustes são feitos pela equipe de implantação, fora do
+              aplicativo, para a Isadora nunca falar com uma família por um
+              número trocado sem querer. Para pedir uma mudança, fale com a
+              equipe de implantação.
+            </p>
           </Secao>
 
           <Secao
@@ -154,7 +141,7 @@ export default async function PaginaAgente() {
             texto="A Isadora manda uma única mensagem de retomada. D+3 e D+14 continuam como tarefa humana."
           >
             {regra ? (
-              <PainelRegraRetomada regra={regra} podeEditar={ehDiretoria} />
+              <PainelRegraRetomada regra={regra} />
             ) : (
               <p className="text-apoio text-texto-2">
                 Não foi possível carregar esta regra agora.

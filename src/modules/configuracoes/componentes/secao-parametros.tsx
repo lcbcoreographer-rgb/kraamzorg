@@ -1,4 +1,5 @@
 import { EstadoVazio } from "@/components/ui/estado-vazio";
+import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
 import { TabelaLista } from "@/components/ui/tabela-lista";
 import { obterRepositorios } from "@/lib/dados/fabrica";
@@ -24,8 +25,29 @@ function resumoValor(valor: unknown): string {
 }
 
 /**
+ * Aviso de que os ajustes da Isadora não moram aqui (PRD 6.8 e 13 [v4.5]):
+ * a linha do parâmetro do agente nunca chega a esta tela, e quem entra
+ * procurando o modo, a pausa ou a agenda precisa saber com quem falar.
+ */
+function AvisoAjustesDaIsadora() {
+  return (
+    <FaixaAlerta
+      variante="info"
+      titulo="Os ajustes da Isadora ficam com a equipe de implantação"
+      className="mb-4"
+    >
+      Quando ela responde, a lista de teste, as pausas, a retomada e a agenda da
+      Edilaine são feitos fora do aplicativo, para nenhuma mudança por engano
+      chegar às famílias. Para pedir uma alteração, fale com a equipe de
+      implantação.
+    </FaixaAlerta>
+  );
+}
+
+/**
  * Parâmetros (P13, "Fazer" item 1): validação por tipo e histórico vindo
- * do log de auditoria. Só a diretoria (PRD 13).
+ * do log de auditoria. Só a diretoria (PRD 13), e nenhum parâmetro do
+ * agente: o banco não os entrega (`parametro.restrito`, [v4.5]).
  */
 export async function SecaoParametros() {
   const { configuracoes } = await obterRepositorios();
@@ -34,10 +56,13 @@ export async function SecaoParametros() {
 
   if (parametros.length === 0) {
     return (
-      <EstadoVazio
-        titulo="Nenhum parâmetro visível"
-        texto="Parâmetros aparecem aqui só para a diretoria. Se você é da diretoria e a lista está vazia, confira a sessão e o MFA."
-      />
+      <>
+        <AvisoAjustesDaIsadora />
+        <EstadoVazio
+          titulo="Nenhum parâmetro visível"
+          texto="Parâmetros aparecem aqui só para a diretoria. Se você é da diretoria e a lista está vazia, confira a sessão e o MFA."
+        />
+      </>
     );
   }
 
@@ -52,48 +77,54 @@ export async function SecaoParametros() {
   );
 
   return (
-    <TabelaLista
-      rotulo="Parâmetros do sistema"
-      colunas={[
-        { chave: "chave", rotulo: "Chave", principal: true },
-        { chave: "tipo", rotulo: "Tipo", canto: true },
-        { chave: "valor", rotulo: "Valor" },
-        { chave: "atualizado", rotulo: "Atualizado", numerica: true },
-        { chave: "acao", rotulo: "Ação" },
-      ]}
-      linhas={comHistorico.map(({ parametro, historico }) => ({
-        id: parametro.chave,
-        valores: {
-          chave: (
-            <span className="flex flex-col">
-              <span className="text-texto font-mono font-semibold wrap-anywhere">
-                {parametro.chave}
-              </span>
-              {parametro.descricao ? (
-                <span className="text-apoio text-texto-2 font-normal">
-                  {parametro.descricao}
+    <>
+      <AvisoAjustesDaIsadora />
+      <TabelaLista
+        rotulo="Parâmetros do sistema"
+        colunas={[
+          { chave: "chave", rotulo: "Chave", principal: true },
+          { chave: "tipo", rotulo: "Tipo", canto: true },
+          { chave: "valor", rotulo: "Valor" },
+          { chave: "atualizado", rotulo: "Atualizado", numerica: true },
+          { chave: "acao", rotulo: "Ação" },
+        ]}
+        linhas={comHistorico.map(({ parametro, historico }) => ({
+          id: parametro.chave,
+          valores: {
+            chave: (
+              <span className="flex flex-col">
+                <span className="text-texto font-mono font-semibold wrap-anywhere">
+                  {parametro.chave}
                 </span>
-              ) : null}
-            </span>
-          ),
-          tipo: <Selo variante="neutro">{ROTULO_TIPO[parametro.tipo]}</Selo>,
-          valor: (
-            // wrap-anywhere: valor em JSON não tem espaço para quebrar e
-            // empurrava a página para o lado (390 px e 1280 px).
-            <span className="text-apoio font-mono wrap-anywhere">
-              {resumoValor(parametro.valor)}
-            </span>
-          ),
-          atualizado: (
-            <span className="font-mono">
-              {formatarDataHora(parametro.atualizadoEm)}
-            </span>
-          ),
-          acao: (
-            <FormularioParametro parametro={parametro} historico={historico} />
-          ),
-        },
-      }))}
-    />
+                {parametro.descricao ? (
+                  <span className="text-apoio text-texto-2 font-normal">
+                    {parametro.descricao}
+                  </span>
+                ) : null}
+              </span>
+            ),
+            tipo: <Selo variante="neutro">{ROTULO_TIPO[parametro.tipo]}</Selo>,
+            valor: (
+              // wrap-anywhere: valor em JSON não tem espaço para quebrar e
+              // empurrava a página para o lado (390 px e 1280 px).
+              <span className="text-apoio font-mono wrap-anywhere">
+                {resumoValor(parametro.valor)}
+              </span>
+            ),
+            atualizado: (
+              <span className="font-mono">
+                {formatarDataHora(parametro.atualizadoEm)}
+              </span>
+            ),
+            acao: (
+              <FormularioParametro
+                parametro={parametro}
+                historico={historico}
+              />
+            ),
+          },
+        }))}
+      />
+    </>
   );
 }

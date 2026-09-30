@@ -10,8 +10,6 @@ import { reiniciarLojaExtra, obterLojaExtra } from "./loja-extra";
 import {
   acaoAprovarItemBaseConhecimento,
   acaoSalvarItemBaseConhecimento,
-  acaoSalvarModoAgente,
-  acaoSalvarRegraRetomada,
 } from "./admin-acoes";
 
 vi.mock("@/lib/auth/sessao", () => {
@@ -72,98 +70,20 @@ function formulario(campos: Record<string, string>) {
   return f;
 }
 
-describe("acaoSalvarModoAgente (P27 item 3, PRD 11.3, 11.7)", () => {
-  it("diretoria salva o modo e a lista de números de teste", async () => {
-    const resultado = await acaoSalvarModoAgente(
-      {},
-      formulario({
-        modo: "producao",
-        numerosTeste: "+5511900000001\n+5511900000002",
-      }),
-    );
-    expect(resultado.sucesso).toBeTruthy();
-    const l = obterLojaExtra();
-    expect(l.modo).toBe("producao");
-    expect(l.numerosTeste).toEqual(["+5511900000001", "+5511900000002"]);
+describe("parâmetros do agente fora do app (PRD 6.8 e 13 [v4.5])", () => {
+  it("o app não tem mais ação para salvar modo, lista de teste nem janela de retomada", async () => {
+    const acoes = await import("./admin-acoes");
+    expect(Object.keys(acoes).sort()).toEqual([
+      "acaoAprovarItemBaseConhecimento",
+      "acaoSalvarItemBaseConhecimento",
+    ]);
   });
 
-  it("comercial não altera o modo (só a diretoria, RLS de parametro)", async () => {
-    await logarComo("Perfil Teste Comercial");
-    const resultado = await acaoSalvarModoAgente(
-      {},
-      formulario({ modo: "desligado", numerosTeste: "" }),
-    );
-    expect(resultado.erro).toBeTruthy();
-    expect(obterLojaExtra().modo).not.toBe("desligado");
-  });
-
-  it("modo inválido é recusado pela validação", async () => {
-    const resultado = await acaoSalvarModoAgente(
-      {},
-      formulario({ modo: "qualquer-coisa", numerosTeste: "" }),
-    );
-    expect(resultado.erro).toBeTruthy();
-  });
-  it("número fora do E.164 é recusado, citando qual, sem gravar nada", async () => {
-    const antes = [...obterLojaExtra().numerosTeste];
-    const resultado = await acaoSalvarModoAgente(
-      {},
-      formulario({
-        modo: "teste",
-        numerosTeste: "+5511900000001\n11 9000-0002",
-      }),
-    );
-    expect(resultado.erro).toContain("1190000002");
-    expect(obterLojaExtra().numerosTeste).toEqual(antes);
-  });
-
-  it("aceita número com espaço ou traço e grava normalizado, sem repetir", async () => {
-    const resultado = await acaoSalvarModoAgente(
-      {},
-      formulario({
-        modo: "teste",
-        numerosTeste: "+55 11 90000-0001\n+5511900000001",
-      }),
-    );
-    expect(resultado.sucesso).toBeTruthy();
-    expect(obterLojaExtra().numerosTeste).toEqual(["+5511900000001"]);
-  });
-
-  it("modo teste com a lista vazia é recusado (a Isadora não responderia a ninguém)", async () => {
-    const resultado = await acaoSalvarModoAgente(
-      {},
-      formulario({ modo: "teste", numerosTeste: "" }),
-    );
-    expect(resultado.erro).toBeTruthy();
-  });
-});
-
-describe("acaoSalvarRegraRetomada (telas.md C6)", () => {
-  it("diretoria salva a janela de retomada", async () => {
-    const resultado = await acaoSalvarRegraRetomada(
-      {},
-      formulario({ horas: "72" }),
-    );
-    expect(resultado.sucesso).toBeTruthy();
-    expect(obterLojaExtra().followupHoras).toBe(72);
-  });
-
-  it("horas abaixo do mínimo (24) é recusado", async () => {
-    const resultado = await acaoSalvarRegraRetomada(
-      {},
-      formulario({ horas: "12" }),
-    );
-    expect(resultado.erro).toBeTruthy();
-    expect(obterLojaExtra().followupHoras).not.toBe(12);
-  });
-
-  it("coordenação não altera (só diretoria)", async () => {
-    await logarComo("Perfil Teste Coordenacao");
-    const resultado = await acaoSalvarRegraRetomada(
-      {},
-      formulario({ horas: "36" }),
-    );
-    expect(resultado.erro).toBeTruthy();
+  it("a demonstração não guarda modo nem lista de teste do agente no módulo", () => {
+    const l = obterLojaExtra() as unknown as Record<string, unknown>;
+    expect(l).not.toHaveProperty("modo");
+    expect(l).not.toHaveProperty("numerosTeste");
+    expect(l).not.toHaveProperty("followupHoras");
   });
 });
 

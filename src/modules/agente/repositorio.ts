@@ -8,15 +8,12 @@ import { modoDados } from "@/lib/dados/modo";
 import { rpcPendente } from "@/lib/dados/supabase/comum";
 import type { ClassificacaoContato, EnviadoPor } from "@/lib/dados/tipos";
 import { obterLoja } from "@/lib/dados/demonstracao/loja";
-import { obterLojaExtra, configuracaoDaLoja } from "./loja-extra";
+import { obterLojaExtra } from "./loja-extra";
 import type {
   ClassificacaoNaoLead,
-  ConfiguracaoAgente,
   ItemBaseConhecimento,
   MetricasAgente,
-  ModoAgente,
   PedidoItemBaseConhecimento,
-  RegraRetomada,
   UltimaIngestao,
 } from "./tipos";
 
@@ -90,115 +87,6 @@ function horaCurta(data: Date): string {
   }).format(data);
 }
 
-// --- Modo do agente e números de teste (item 3) -----------------------------
-
-export async function obterConfiguracaoAgente(): Promise<ConfiguracaoAgente> {
-  if (modoDados() === "demonstracao") {
-    return configuracaoDaLoja(obterLojaExtra());
-  }
-  const { configuracoes } = await obterRepositorios();
-  const [modo, whitelist] = await Promise.all([
-    configuracoes.lerParametro("agente_modo"),
-    configuracoes.lerParametro("agente_whitelist"),
-  ]);
-  const modoValor =
-    typeof modo?.valor === "string" ? (modo.valor as ModoAgente) : "desligado";
-  const numeros = Array.isArray(whitelist?.valor)
-    ? (whitelist.valor as unknown[]).filter(
-        (v): v is string => typeof v === "string",
-      )
-    : [];
-  return {
-    modo: modoValor,
-    numerosTeste: numeros,
-    atualizadoEm: modo?.atualizadoEm ?? null,
-  };
-}
-
-async function salvarParametro(chave: string, valor: unknown): Promise<string> {
-  const cliente = await criarClienteServidor();
-  const resposta = await cliente
-    .from("parametro")
-    .update({ valor: valor as never })
-    .eq("chave", chave)
-    .select("atualizado_em")
-    .maybeSingle();
-  if (resposta.error) {
-    throw traduzirErroBanco(resposta.error, `parâmetro ${chave}`);
-  }
-  return resposta.data?.atualizado_em ?? new Date().toISOString();
-}
-
-export interface PedidoConfiguracaoAgente {
-  modo: ModoAgente;
-  numerosTeste: string[];
-}
-
-/** Diretoria altera o modo e a lista de teste (PRD 11.3, 11.7). */
-export async function salvarConfiguracaoAgente(
-  pedido: PedidoConfiguracaoAgente,
-): Promise<ConfiguracaoAgente> {
-  const sessao = await obterSessao();
-  exigirDiretoria(sessao);
-
-  if (modoDados() === "demonstracao") {
-    const l = obterLojaExtra();
-    l.modo = pedido.modo;
-    l.numerosTeste = [...pedido.numerosTeste];
-    l.configAtualizadaEm = new Date().toISOString();
-    return configuracaoDaLoja(l);
-  }
-
-  const [em] = await Promise.all([
-    salvarParametro("agente_modo", pedido.modo),
-    salvarParametro("agente_whitelist", pedido.numerosTeste),
-  ]);
-  return {
-    modo: pedido.modo,
-    numerosTeste: pedido.numerosTeste,
-    atualizadoEm: em,
-  };
-}
-
-// --- Regra de retomada (item 1, PRD 11.3, telas.md C6) ----------------------
-
-export async function obterRegraRetomada(): Promise<RegraRetomada> {
-  if (modoDados() === "demonstracao") {
-    const l = obterLojaExtra();
-    return { horas: l.followupHoras, atualizadoEm: l.followupAtualizadoEm };
-  }
-  const { configuracoes } = await obterRepositorios();
-  const parametro = await configuracoes.lerParametro("agente_followup_horas");
-  // Sem valor inventado: fora da diretoria a RLS de `parametro` devolve
-  // nada, e a tela diz que a janela é da diretoria em vez de mostrar um
-  // número que pode não ser o do banco.
-  const horas = typeof parametro?.valor === "number" ? parametro.valor : null;
-  return { horas, atualizadoEm: parametro?.atualizadoEm ?? null };
-}
-
-/** Só a diretoria (protótipo `comercial-agente-regras.html`). Mínimo 24h (PRD 11.3). */
-export async function salvarRegraRetomada(
-  horas: number,
-): Promise<RegraRetomada> {
-  const sessao = await obterSessao();
-  exigirDiretoria(sessao);
-  if (!Number.isFinite(horas) || horas < 24) {
-    throw new ErroRepositorio(
-      "recusado",
-      "a janela mínima de retomada é 24 horas",
-    );
-  }
-
-  if (modoDados() === "demonstracao") {
-    const l = obterLojaExtra();
-    l.followupHoras = horas;
-    l.followupAtualizadoEm = new Date().toISOString();
-    return { horas, atualizadoEm: l.followupAtualizadoEm };
-  }
-  const em = await salvarParametro("agente_followup_horas", horas);
-  return { horas, atualizadoEm: em };
-}
-
 // --- Marcar como não lead (funcional hoje: classificacao é gravável) -------
 
 export async function marcarNaoLead(
@@ -234,9 +122,10 @@ export async function marcarNaoLead(
 
 /**
  * `agente_pausa_humano_horas` (PRD 11.3, 6.8): por quanto tempo a Isadora
- * fica calada depois que alguém da equipe assume ou pausa. Só a diretoria
- * lê `parametro` pela RLS; para os demais papéis devolve null e a tela fala
- * da pausa sem citar horas.
+ * fica calada depois que alguém da equipe assume ou pausa. [v4.5] É
+ * parâmetro do agente (`parametro.restrito`): nenhum papel do app o lê, então
+ * devolve null e a tela fala da pausa sem citar horas. Quem decide a duração
+ * é `api.pausar_conversa`, que lê o valor no banco.
  */
 export async function obterHorasPausaHumano(): Promise<number | null> {
   const { configuracoes } = await obterRepositorios();

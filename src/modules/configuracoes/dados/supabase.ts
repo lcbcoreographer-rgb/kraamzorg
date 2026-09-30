@@ -56,7 +56,10 @@ export function criarConfiguracoesModuloSupabase({
   return {
     // --- Parâmetros ---------------------------------------------------------
     async atualizarParametro(chave, valor) {
-      exigir(
+      // A RLS de `parametro` só entrega e só altera linha que a diretoria
+      // enxerga e que não é restrita (PRD 6.8 [v4.5]). Sem linha de volta, o
+      // parâmetro não existe para este papel: nunca um sucesso em silêncio.
+      const linha = exigir(
         await cliente
           .from("parametro")
           .update({ valor, atualizado_por: usuarioId })
@@ -65,6 +68,9 @@ export function criarConfiguracoesModuloSupabase({
           .maybeSingle(),
         `parâmetro ${chave}`,
       );
+      if (!linha) {
+        throw new ErroRepositorio("nao_encontrado", `parâmetro ${chave}`);
+      }
     },
 
     async criarParametro(chave, valor, descricao) {

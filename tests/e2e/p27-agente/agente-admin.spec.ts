@@ -7,49 +7,38 @@ import {
 import { porProjeto } from "../p13-configuracoes/apoio";
 
 /**
- * P27 itens 3, 4 e 5 · Painel da Isadora (`/agente`), modo demonstração:
- * regra de retomada, modo do agente e números de teste (só diretoria
- * altera), base de conhecimento (cadastro do comercial, aprovação da
- * diretoria) e métricas do 11.12.
+ * P27 itens 4 e 5 · Painel da Isadora (`/agente`), modo demonstração: base de
+ * conhecimento (cadastro do comercial, aprovação da diretoria) e métricas do
+ * 11.12. [v4.5] O modo do agente, os números de teste e a janela de retomada
+ * são parâmetros do agente, mantidos pela equipe de implantação: a tela não
+ * tem mais campo para eles, nem para a diretoria.
  */
-test("diretoria vê e altera o modo do agente; comercial só lê", async ({
+test("a tela da Isadora explica que os ajustes são da equipe de implantação e não traz campo de modo nem de retomada", async ({
   page,
 }) => {
-  await entrarComo(page, "Diretoria");
-  await page.goto("/agente");
+  for (const papel of ["Diretoria", "Comercial"]) {
+    await entrarComo(page, papel);
+    await page.goto("/agente");
 
-  await expect(
-    page.getByRole("heading", { level: 1, name: "Isadora" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Modo da Isadora" }),
-  ).toBeVisible();
-  await expect(page.getByRole("radio", { name: /Em teste/ })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Isadora" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Ajustes da Isadora" }),
+    ).toBeVisible();
+    await expect(page.getByText(/equipe de implantação/).first()).toBeVisible();
 
-  await semRolagemLateral(page);
-  await semViolacaoGrave(page);
-});
+    // nenhum controle de modo, de lista de teste nem de janela de retomada
+    await expect(page.getByRole("radio", { name: /Em teste/ })).toHaveCount(0);
+    await expect(page.getByLabel("Números de teste")).toHaveCount(0);
+    await expect(page.getByRole("radio", { name: /72 h/ })).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: /Salvar (modo|regra)/ }),
+    ).toHaveCount(0);
 
-test("comercial não vê o formulário de edição do modo (só a diretoria altera)", async ({
-  page,
-}) => {
-  await entrarComo(page, "Comercial");
-  await page.goto("/agente");
-
-  await expect(
-    page.getByText("Só a diretoria altera o modo da Isadora"),
-  ).toBeVisible();
-  await expect(page.getByRole("radio", { name: /Em teste/ })).toHaveCount(0);
-});
-
-test("diretoria salva a janela de retomada", async ({ page }) => {
-  await entrarComo(page, "Diretoria");
-  await page.goto("/agente");
-
-  await page.getByRole("radio", { name: /72 h/ }).check();
-  await page.getByRole("button", { name: "Salvar regra de retomada" }).click();
-
-  await expect(page.getByText(/Regra de retomada salva/)).toBeVisible();
+    await semRolagemLateral(page);
+    await semViolacaoGrave(page);
+  }
 });
 
 test("comercial cadastra item na base de conhecimento; diretoria aprova", async ({

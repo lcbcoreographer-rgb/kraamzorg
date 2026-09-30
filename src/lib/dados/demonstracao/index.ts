@@ -585,13 +585,16 @@ export function criarRepositoriosDemonstracao(
   const configuracoes: ConfiguracoesRepositorio = {
     async lerParametro(chave) {
       if (!tem("diretoria") || bloqueadoPorMfa()) return null;
-      return loja().parametros.find((p) => p.chave === chave) ?? null;
+      // [v4.5] Parâmetro do agente: nem a diretoria lê (RLS de parametro).
+      return (
+        loja().parametros.find((p) => p.chave === chave && !p.restrito) ?? null
+      );
     },
     async listarParametros() {
       if (!tem("diretoria") || bloqueadoPorMfa()) return [];
-      return [...loja().parametros].sort((a, b) =>
-        a.chave.localeCompare(b.chave),
-      );
+      return loja()
+        .parametros.filter((p) => !p.restrito)
+        .sort((a, b) => a.chave.localeCompare(b.chave));
     },
     async obterMensagemModelo(chave) {
       if (bloqueadoPorMfa() || contexto.papeis.length === 0) return null;

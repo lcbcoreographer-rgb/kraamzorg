@@ -151,32 +151,6 @@ export interface TransferenciaTela extends Transferencia {
   pausaVenceu?: boolean;
 }
 
-// --- Modo do agente e regra de retomada (item 3, item 1 do P27) -----------
-
-export type ModoAgente = "desligado" | "teste" | "producao";
-
-export const ROTULO_MODO_AGENTE: Record<ModoAgente, string> = {
-  desligado: "Desligada",
-  teste: "Em teste",
-  producao: "Em produção",
-};
-
-export interface ConfiguracaoAgente {
-  modo: ModoAgente;
-  /** E.164 (PRD 11.7: números autorizados a receber resposta em modo teste). */
-  numerosTeste: string[];
-  atualizadoEm: string | null;
-}
-
-export const JANELAS_RETOMADA_HORAS = [24, 36, 48, 72] as const;
-export type JanelaRetomadaHoras = (typeof JANELAS_RETOMADA_HORAS)[number];
-
-export interface RegraRetomada {
-  /** null quando o papel não lê `parametro` (RLS: só a diretoria). */
-  horas: number | null;
-  atualizadoEm: string | null;
-}
-
 // --- Base de conhecimento (item 4) -----------------------------------------
 
 export type TipoConteudoBase =
