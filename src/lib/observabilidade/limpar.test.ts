@@ -53,6 +53,20 @@ describe("limparUrl", () => {
       `https://app.exemplo.invalid/formulario/${OCULTO}/enviar`,
     );
   });
+  it("esconde o token de uso único da pesquisa de satisfação (P42, P53)", () => {
+    // Token sintético (o real tem 32 bytes aleatórios em base64url).
+    const token = "token_sintetico_da_pesquisa_de_teste";
+    expect(limparUrl(`/pesquisa/${token}`)).toBe(`/pesquisa/${OCULTO}`);
+    expect(limparUrl(`https://app.exemplo.invalid/pesquisa/${token}`)).toBe(
+      `https://app.exemplo.invalid/pesquisa/${OCULTO}`,
+    );
+    const migalha = limparMigalha({
+      category: "navigation",
+      data: { from: "/", to: `/pesquisa/${token}`, url: `/pesquisa/${token}` },
+      message: `/pesquisa/${token}`,
+    });
+    expect(JSON.stringify(migalha)).not.toContain(token);
+  });
   it("URL que não dá para ler vira [oculto]", () => {
     expect(limparUrl("http://[")).toBe(OCULTO);
   });

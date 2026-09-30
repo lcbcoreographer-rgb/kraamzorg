@@ -28,6 +28,8 @@ scripts/iniciar.sh    # sobe o Postgres local (initdb na primeira vez, idempoten
 scripts/resetar.sh    # recria o banco: camada-supabase.sql + supabase/migrations/*.sql em ordem + seeds de [db.seed] em supabase/config.toml
 scripts/testar.sh     # reseta e roda pg_prove em supabase/tests/*.sql; código de saída != 0 se algum teste falhar
 scripts/parar.sh      # para o servidor (não apaga o banco)
+scripts/restaurar-teste.sh  # ensaio da restauração do runbook: backup, cópia sem agendador, conferência e HMAC (P53)
+scripts/carga-agente.sh     # 20 mensagens simultâneas de números diferentes no caminho de banco do agente (P53)
 ```
 
 Fluxo normal de uma sessão que escreve migration: `iniciar.sh` uma vez,

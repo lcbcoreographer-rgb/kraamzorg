@@ -13,8 +13,8 @@
  * 2. Texto: toda cadeia que sobra (mensagem, valor da exceção, migalhas)
  *    passa por `mascararTexto`, que troca e-mail, CPF, telefone e número longo.
  * 3. Endereço: a URL perde query string e fragmento, e os trechos do caminho
- *    que são segredo de uso único (token do formulário do contrato, segredo do
- *    webhook) viram `[oculto]`.
+ *    que são segredo de uso único (token do formulário do contrato e da
+ *    pesquisa de satisfação, segredo do webhook) viram `[oculto]`.
  *
  * Limite conhecido: o nome de uma pessoa dentro de uma mensagem de exceção
  * não se detecta por expressão regular. A regra do código é a de sempre: erro
@@ -43,6 +43,8 @@ export function mascararTexto(texto: string): string {
 /** Caminhos cujo trecho seguinte é segredo de uso único. */
 const PREFIXOS_SEGREDO = [
   "/formulario/",
+  // Pesquisa de satisfação (P42): token de uso único no caminho (P53).
+  "/pesquisa/",
   "/api/webhooks/autentique/",
   "/auth/",
 ];

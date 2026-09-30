@@ -101,3 +101,24 @@ Uma linha por teste, no mesmo dia. Sem nome de paciente.
 | Mês                              | Data | Quem executou | Backup restaurado (data e hora) | RTO medido | Itens 1 a 4 | Vault/HMAC | Projeto temporário apagado | Problemas e o que foi feito |
 | :------------------------------- | :--- | :------------ | :------------------------------ | :--------- | :---------- | :--------- | :------------------------- | :-------------------------- |
 | (primeiro teste ainda não feito) |      |               |                                 |            |             |            |                            |                             |
+
+## 8. Ensaio local (sem dado real)
+
+Antes do primeiro teste com o backup de produção, o roteiro das seções 2 e 3 roda inteiro na máquina de desenvolvimento, com o seed sintético, pelo script `supabase/sem-docker/scripts/restaurar-teste.sh`:
+
+1. `supabase/sem-docker/scripts/resetar.sh` recria o banco do zero (camada, migrations e seed).
+2. O script faz o backup (`pg_dump`), restaura num banco novo `<banco>_restauracao` (o "projeto temporário"), sem o pg_cron, para a cópia não agendar nada.
+3. Roda a lista de conferência (`supabase/sem-docker/restauracao/conferencia.sql`, as consultas da seção 3 mais contagem de funções de `api` e de políticas) na origem e na cópia, e exige resultado idêntico.
+4. Confere a Vault e o HMAC do log: a cópia calcula o mesmo HMAC que a origem e uma mudança de teste grava log com HMAC (desfeita no rollback).
+5. Apaga o banco temporário e o arquivo de backup ao sair, e mostra o tempo total.
+
+```bash
+PGDATA=/tmp/kz-pg PGPORT=54329 supabase/sem-docker/scripts/resetar.sh
+PGDATA=/tmp/kz-pg PGPORT=54329 supabase/sem-docker/scripts/restaurar-teste.sh
+```
+
+O ensaio não substitui o teste mensal: ele não passa pelo backup do plano Pro, a camada sem Docker não tem `supabase_migrations.schema_migrations` (item 4) e a Vault local é um stub que guarda a chave dentro do banco, então o HMAC igual aqui não responde a pergunta da Vault real da seção 3.
+
+| Data       | Quem              | Resultado                                                                                                                                                    |
+| :--------- | :---------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 30/09/2026 | Drop (sessão P53) | Aprovado: 88/88 tabelas com RLS, contagens da seção 3 iguais, 189 funções de `api` e 156 políticas iguais, agendador fora da cópia, HMAC igual, cerca de 1 s |

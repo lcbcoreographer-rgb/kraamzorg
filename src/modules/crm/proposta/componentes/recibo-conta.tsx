@@ -74,7 +74,7 @@ export function ReciboConta({
                 : "Desconto"}
             </dt>
             <dd className="text-texto-2 pl-4 text-right font-mono tabular-nums">
-              − {formatarMoeda(conta.descontoCentavos)}
+              {formatarMoeda(-conta.descontoCentavos)}
             </dd>
           </>
         ) : null}

@@ -92,7 +92,7 @@ Aceite do P14: "produção configurada sem nenhum dado de família". Isso se pro
 
 ## 5. Cloudflare
 
-- **Registro do app:** `CNAME` do endereço do app para o alvo que a Vercel indica, em modo **DNS only** (nuvem cinza). Sem proxy: a Vercel já entrega TLS e os cabeçalhos de segurança do app não podem ser alterados no meio do caminho.
+- **Registro do app:** `CNAME` do endereço do app para o alvo que a Vercel indica, em modo **DNS only** (nuvem cinza). Sem proxy: a Vercel já entrega TLS e os cabeçalhos de segurança do app não podem ser alterados no meio do caminho. Também é por isso que o limite de tentativas dos formulários públicos pode confiar no primeiro `x-forwarded-for`, que a borda da Vercel reescreve: com outro proxy na frente, esse IP passa a ser forjável (revisão final P53, REV-05).
 - **Resend:** os registros SPF, DKIM e (se indicado) DMARC do domínio remetente, exatamente como o painel do Resend mostra.
 - **Turnstile:** um widget por ambiente, cada um com o domínio do respectivo ambiente. Os formulários públicos (contrato, pesquisa, captação) recusam envio sem token válido.
 - **HSTS:** o app envia `Strict-Transport-Security` por um ano com subdomínios. Incluir o domínio na lista de pré-carga dos navegadores é decisão da diretoria, porque é difícil de desfazer [confirmar: Leonardo].
