@@ -76,8 +76,13 @@ test("Início abre pelo dia, com a frase de estado em vez da palavra da aba (DES
       name: /^(Domingo|Segunda|Terça|Quarta|Quinta|Sexta|Sábado), \d{2}\/\d{2}$/,
     }),
   ).toBeVisible();
+  // A frase de estado é um parágrafo; o trio de cartões-resumo logo abaixo
+  // (direção "Colo", v4.4) também junta "transferências" e "atrasada" no
+  // texto do bloco, então o seletor olha só o parágrafo da frase.
   await expect(
-    page.getByText(/transferências?.*(vencem? hoje|atrasadas?|nenhuma tarefa)/),
+    page.locator("p").filter({
+      hasText: /transferências?.*(vencem? hoje|atrasadas?|nenhuma tarefa)/,
+    }),
   ).toBeVisible();
   await expect(page).toHaveTitle(/^Início/);
   await semRolagemLateral(page);

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Broto } from "@/components/ilustracoes";
 import { Botao } from "@/components/ui/botao";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
+import { CabecalhoSaudacao } from "./cabecalho-saudacao";
 import { CabecalhoTela } from "./cabecalho-tela";
 
 /** Título fixo do estado "ainda em construção" (DESIGN.md, 11.7). */
@@ -21,6 +23,7 @@ export function TelaEmConstrucao({
   acao,
   abertura,
   subtitulo,
+  saudacao,
 }: {
   titulo: string;
   texto: ReactNode;
@@ -28,17 +31,28 @@ export function TelaEmConstrucao({
   /** Tela de abertura do dia (o título é o dia, DESIGN.md 11.4). */
   abertura?: boolean;
   subtitulo?: ReactNode;
+  /** Tela de abertura com cumprimento ("Bom dia, Beatriz"): o cabeçalho vira o bloco do dia (DESIGN.md, 2.13). */
+  saudacao?: string;
 }) {
   return (
     <>
-      <CabecalhoTela
-        titulo={titulo}
-        abertura={abertura}
-        subtitulo={subtitulo}
-      />
+      {abertura && saudacao ? (
+        <CabecalhoSaudacao
+          saudacao={saudacao}
+          titulo={titulo}
+          frase={subtitulo}
+        />
+      ) : (
+        <CabecalhoTela
+          titulo={titulo}
+          abertura={abertura}
+          subtitulo={subtitulo}
+        />
+      )}
       <div className="pt-6">
         <EstadoVazio
           nivelTitulo="h2"
+          ilustracao={<Broto tamanho={112} />}
           titulo={TITULO_EM_CONSTRUCAO}
           texto={texto}
           acao={

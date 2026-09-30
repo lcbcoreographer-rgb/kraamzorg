@@ -36,6 +36,12 @@ export interface CampoInstrumentoProps {
   aoMudar: (valor: ValorCampo | null, salvar: boolean) => void;
   /** Texto mostrado em campo `automatico` (ex: nome de quem coleta, IG calculada). */
   valorAutomatico?: string;
+  /**
+   * "cartao" [v4.4]: o campo mora no cartão da pergunta (checklist da
+   * enfermeira): sim ou não com a pergunta em cima e as respostas em
+   * pílulas de 56 px dividindo a largura.
+   */
+  arranjo?: "linha" | "cartao";
 }
 
 /** Id do elemento do campo no DOM (também usado para levar o foco de volta ao campo onde a pessoa parou). */
@@ -95,9 +101,17 @@ export function CampoInstrumento({
   valor,
   aoMudar,
   valorAutomatico,
+  arranjo = "linha",
 }: CampoInstrumentoProps) {
   const id = idDom(endereco);
-  const rotulo = rotuloCom(campo);
+  // No cartão da pergunta, o rótulo tem o tamanho de pergunta (17 px, 500),
+  // igual ao do sim ou não, em todo tipo de campo.
+  const rotulo =
+    arranjo === "cartao" ? (
+      <span className="text-3 font-medium">{rotuloCom(campo)}</span>
+    ) : (
+      rotuloCom(campo)
+    );
 
   switch (campo.tipo) {
     case "texto":
@@ -135,6 +149,7 @@ export function CampoInstrumento({
             name={id}
             rotuloSim={t.sim}
             rotuloNao={t.nao}
+            arranjo={arranjo}
             valor={
               typeof valor === "boolean" ? (valor ? "sim" : "nao") : undefined
             }
@@ -162,6 +177,7 @@ export function CampoInstrumento({
             name={id}
             rotuloSim={t.sim}
             rotuloNao={t.nao}
+            arranjo={arranjo}
             valor={atual ? (atual.resposta ? "sim" : "nao") : undefined}
             onMudar={(v) => {
               // O texto complementar só acompanha a resposta que o pede

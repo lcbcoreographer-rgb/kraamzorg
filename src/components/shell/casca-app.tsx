@@ -34,11 +34,10 @@ async function comContadorInicio(
 }
 
 /**
- * Casca do painel (P10 item 3; DESIGN.md seções 3 e 6; protótipo
- * comercial-inicio.html e coordenacao-inicio.html). No celular: uma
- * coluna, margem de 16 px e abas inferiores fixas. No computador (1024 px
- * ou mais): barra lateral marinho de 248 px com os grupos do papel e o
- * conteúdo até 1240 px com margem de 32 px.
+ * Casca do painel (P10 item 3; DESIGN.md seções 2.9, 3 e 6). No celular:
+ * uma coluna, margem de 16 px e a navegação em pílula flutuante. No
+ * computador (1024 px ou mais): barra lateral marinho solta das bordas,
+ * na coluna de 248 px, e o conteúdo até 1240 px com margem de 32 px.
  *
  * A casca não sabe de que módulo é a tela: cada rota preenche só o próprio
  * conteúdo (src/app/(app)/<rota>/page.tsx).
@@ -75,7 +74,7 @@ export async function CascaApp({
         <main
           id="conteudo"
           tabIndex={-1}
-          className="max-w-conteudo mx-auto w-full px-4 pb-[calc(88px+env(safe-area-inset-bottom))] lg:px-8 lg:pb-12"
+          className="max-w-conteudo mx-auto w-full px-4 pb-[calc(var(--altura-abas)+24px+env(safe-area-inset-bottom))] lg:px-8 lg:pb-12"
         >
           {children}
         </main>
@@ -109,7 +108,7 @@ export function CascaEnfermeira({
       <main
         id="conteudo"
         tabIndex={-1}
-        className="max-w-portal mx-auto w-full px-4 pb-[calc(88px+env(safe-area-inset-bottom))]"
+        className="max-w-portal mx-auto w-full px-4 pb-[calc(var(--altura-abas)+24px+env(safe-area-inset-bottom))]"
       >
         {children}
       </main>

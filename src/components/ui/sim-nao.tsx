@@ -30,6 +30,13 @@ export interface SimNaoProps {
   /** Pinta a pergunta de alerta quando a resposta disparou uma regra. */
   estado?: "normal" | "alerta-clinico";
   disabled?: boolean;
+  /**
+   * "linha" (padrão): pergunta à esquerda e pílulas de 52 px à direita,
+   * com a divisória embaixo. "cartao" [v4.4]: dentro do cartão da
+   * pergunta (checklist), a pergunta em cima e as duas respostas em
+   * pílulas redondas de 56 px dividindo a largura, sem divisória.
+   */
+  arranjo?: "linha" | "cartao";
   className?: string;
 }
 
@@ -43,8 +50,10 @@ export function SimNao({
   rotuloNao,
   estado = "normal",
   disabled,
+  arranjo = "linha",
   className,
 }: SimNaoProps) {
+  const cartao = arranjo === "cartao";
   const idPergunta = React.useId();
   const [valorAtual, definirValorAtual] = useEstadoControlavel(
     valor,
@@ -56,7 +65,7 @@ export function SimNao({
     const marcado = valorAtual === valorOpcao;
     const idOpcao = `${idPergunta}-${valorOpcao}`;
     return (
-      <span className="relative">
+      <span className={cn("relative", cartao && "flex")}>
         <input
           type="radio"
           id={idOpcao}
@@ -70,9 +79,12 @@ export function SimNao({
         <label
           htmlFor={idOpcao}
           className={cn(
-            "min-h-toque-campo rounded-pilula border-borda-campo bg-superficie text-texto ease-estado flex min-w-[76px] cursor-pointer items-center justify-center gap-1.5 border-[1.5px] px-4 font-semibold transition-[background-color,color,transform] duration-140 select-none",
+            "rounded-pilula border-borda-campo bg-superficie text-texto ease-estado flex min-w-[76px] cursor-pointer items-center justify-center gap-1.5 border-[1.5px] px-4 font-semibold transition-[background-color,color,transform] duration-140 select-none",
+            cartao
+              ? "min-h-toque-grande text-corpo w-full flex-1"
+              : "min-h-toque-campo",
             "hover:bg-marinho-08 active:scale-[0.96]",
-            "peer-checked:border-acao peer-checked:bg-acao peer-checked:text-acao-texto",
+            "peer-checked:border-acao peer-checked:bg-acao peer-checked:text-acao-texto peer-checked:hover:bg-acao-hover",
             "peer-focus-visible:outline-foco peer-focus-visible:shadow-[0_0_0_5px_var(--foco-halo)] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2",
             disabled && "cursor-not-allowed opacity-60",
           )}
@@ -89,7 +101,9 @@ export function SimNao({
   return (
     <div
       className={cn(
-        "border-linha grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 border-b py-3",
+        cartao
+          ? "flex flex-col gap-3"
+          : "border-linha grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 border-b py-3",
         className,
       )}
     >
@@ -97,7 +111,8 @@ export function SimNao({
         id={idPergunta}
         data-estado={estado}
         className={cn(
-          "text-corpo leading-snug font-medium",
+          "leading-snug font-medium",
+          cartao ? "text-3" : "text-corpo",
           estado === "alerta-clinico" ? "text-alerta" : "text-texto",
         )}
       >
@@ -106,7 +121,10 @@ export function SimNao({
       <div
         role="radiogroup"
         aria-labelledby={idPergunta}
-        className="inline-grid grid-cols-2 gap-2"
+        className={cn(
+          "grid-cols-2 gap-2",
+          cartao ? "grid w-full" : "inline-grid",
+        )}
       >
         {opcao(rotuloSim, "sim")}
         {opcao(rotuloNao, "nao")}

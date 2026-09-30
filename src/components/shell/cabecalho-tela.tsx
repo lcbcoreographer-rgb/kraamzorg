@@ -4,8 +4,10 @@ import { cn } from "@/lib/utils";
 /**
  * Cabeçalho de tela (protótipo, `.cab-tela`): título único da tela em
  * Jost (t-display, 32 px no celular e 40 px no computador), preso no topo
- * com o fundo creme e uma divisória fina. À direita, o que a tela precisar
- * (indicador de sincronização, ação principal no computador).
+ * com o fundo creme, sem divisória: o espaço separa (direção "Colo",
+ * DESIGN.md 2.3). À direita, o que a tela precisar (indicador de
+ * sincronização, ação principal no computador). As telas que abrem o dia
+ * (Hoje, Início) usam `CabecalhoSaudacao`.
  *
  * `abertura` (DESIGN.md, 11.4): nas telas que abrem o dia (Hoje da
  * enfermeira, Início de cada papel), o título é o dia ("Terça, 29/09") e a
@@ -29,7 +31,7 @@ export function CabecalhoTela({
 }) {
   return (
     <>
-      <header className="bg-fundo border-linha sticky top-0 z-[var(--z-barra)] -mx-4 flex min-h-16 flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-2 lg:-mx-8 lg:px-8 lg:py-3">
+      <header className="bg-fundo sticky top-0 z-[var(--z-barra)] -mx-4 flex min-h-16 flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-3 pb-2 lg:-mx-8 lg:px-8 lg:pt-5">
         <h1 className="font-titulo text-display lg:text-display-lg text-texto font-normal">
           {titulo}
         </h1>

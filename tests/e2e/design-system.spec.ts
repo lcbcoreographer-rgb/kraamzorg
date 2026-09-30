@@ -10,7 +10,7 @@ test.describe("/design-system", () => {
     await page.goto("/design-system");
 
     await expect(
-      page.getByRole("heading", { name: "Caderneta de visita", level: 1 }),
+      page.getByRole("heading", { name: "Colo", level: 1 }),
     ).toBeVisible();
   });
 

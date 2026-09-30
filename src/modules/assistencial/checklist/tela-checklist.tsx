@@ -6,9 +6,21 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
+  Baby,
+  BookOpen,
   CircleCheck,
+  ClipboardList,
+  Droplet,
+  House,
+  PenLine,
+  Sprout,
+  Thermometer,
   TriangleAlert,
+  UserRound,
 } from "lucide-react";
+import { AbasPilula } from "@/components/ui/abas-pilula";
+import { AnelProgresso } from "@/components/ui/anel-progresso";
+import { BarraProgresso } from "@/components/ui/barra-progresso";
 import { Botao } from "@/components/ui/botao";
 import { BotaoFreio } from "@/components/ui/botao-freio";
 import {
@@ -22,7 +34,9 @@ import {
   IndicadorSincronizacao,
   type EstadoSincronizacao,
 } from "@/components/ui/indicador-sincronizacao";
-import { ProgressoEtapas } from "@/components/ui/progresso-etapas";
+import { Comemoracao } from "@/components/ui/comemoracao";
+import { Selo } from "@/components/ui/selo";
+import { TileIcone } from "@/components/ui/tile-icone";
 import {
   caminhosDoInstrumento,
   sinaisDoSeletor,
@@ -56,6 +70,7 @@ import type { ChecklistVisita } from "@/lib/dados/tipos-assistencial";
 import {
   acharCampo,
   campoVisivel,
+  estaRespondido,
   lerValor,
   separarCaminho,
   type EnderecoCampo,
@@ -200,6 +215,57 @@ function ChecklistComInstrumento({
 }
 
 type Controle = ReturnType<typeof useChecklist>;
+
+/**
+ * Ícone do assunto de cada etapa, no tile do bloco da etapa (DESIGN.md,
+ * 2.7). Só identifica a etapa; estado continua na faixa e no selo.
+ */
+const ICONE_DA_ETAPA: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
+  chegada: House,
+  puerpera: UserRound,
+  sinais_vitais: Thermometer,
+  mamas: Droplet,
+  bebe: Baby,
+  orientacoes: BookOpen,
+  emocional: Sprout,
+  resumo: PenLine,
+};
+
+/**
+ * Perguntas respondidas e perguntas visíveis da etapa (a barra "5 de 9
+ * respondidas"). Na etapa por bebê, conta o bebê da aba aberta. Campo
+ * automático e o bloco da assinatura não contam: ninguém responde a eles.
+ */
+function contagemDaEtapa(
+  etapa: EtapaMontada,
+  definicao: NonNullable<ChecklistVisita["instrumento"]>["definicao"],
+  respostas: import("@/lib/instrumentos/respostas").RespostasFormulario,
+  contexto: { ultimo_dia: boolean },
+  bebe: string | undefined,
+): { respondidas: number; total: number } {
+  let respondidas = 0;
+  let total = 0;
+  for (const bloco of etapa.blocosDaDefinicao) {
+    if (bloco.id === "assinatura") continue;
+    const alvo = bloco.repete_por_bebe ? bebe : undefined;
+    for (const campo of bloco.campos) {
+      if (campo.tipo === "automatico") continue;
+      const ambiente = { definicao, respostas, contexto, bebe: alvo };
+      if (!campoVisivel(campo, ambiente)) continue;
+      total += 1;
+      const valor = lerValor(respostas, {
+        bloco: bloco.id,
+        campo: campo.id,
+        bebe: alvo,
+      });
+      if (estaRespondido(campo, valor)) respondidas += 1;
+    }
+  }
+  return { respondidas, total };
+}
 
 // ---------------------------------------------------------------------------
 // Sincronização
@@ -532,6 +598,7 @@ function Edicao({
               ? textoAutomatico(campo, checklist)
               : undefined
           }
+          semTom={semTom}
         />
         {doCampo.map((a, i) => (
           <FaixaDoAlerta
@@ -553,17 +620,19 @@ function Edicao({
       <section
         key={`${bloco.id}-${bebe ?? ""}`}
         aria-labelledby={`bloco-${bloco.id}-${bebe ?? "g"}`}
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-3"
       >
-        <div>
+        <div className="pt-2">
           <h3
             id={`bloco-${bloco.id}-${bebe ?? "g"}`}
-            className="font-titulo text-2 text-texto font-medium"
+            className="font-titulo text-2 text-texto flex items-baseline gap-2 font-medium"
           >
             {numerado ? (
-              <span className="text-texto-2 mr-2 font-mono">{bloco.id}</span>
+              <span className="rounded-pilula bg-areia text-apoio text-texto inline-flex min-h-7 items-center px-2.5 font-mono font-medium">
+                {bloco.id}
+              </span>
             ) : null}
-            {bloco.titulo}
+            <span>{bloco.titulo}</span>
           </h3>
           {bloco.ajuda ? (
             <p className="text-apoio text-texto-2 mt-1">{bloco.ajuda}</p>
@@ -593,29 +662,13 @@ function Edicao({
       return (
         <div className="flex flex-col gap-6">
           {c.bebes.length > 1 ? (
-            <div
-              role="tablist"
-              aria-label={textos.abasBebes}
-              className="flex flex-wrap gap-2"
-            >
-              {c.bebes.map((b) => (
-                <button
-                  key={b.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={b.id === ativo.id}
-                  onClick={() => definirBebeAtivo(b.id)}
-                  className={cn(
-                    "rounded-pilula min-h-toque border-[1.5px] px-4 font-semibold",
-                    b.id === ativo.id
-                      ? "border-acao bg-acao text-acao-texto"
-                      : "border-borda-campo bg-superficie text-texto",
-                  )}
-                >
-                  {b.rotulo}
-                </button>
-              ))}
-            </div>
+            <AbasPilula
+              rotulo={textos.abasBebes}
+              ativa={ativo.id}
+              aoEscolher={definirBebeAtivo}
+              abas={c.bebes.map((b) => ({ valor: b.id, rotulo: b.rotulo }))}
+              className="self-start"
+            />
           ) : (
             <p className="text-apoio text-texto-2">{ativo.rotulo}</p>
           )}
@@ -649,23 +702,52 @@ function Edicao({
   }
 
   const freioAtivo = familia.estadoSensivel !== "normal" || freioLigado;
+  // Família em freio, perda ou intercorrência: nada de tom de apoio (PRD
+  // 20.2 [v4.4], regra 3). O bloco da etapa e as perguntas respondidas
+  // ficam em branco.
+  const semTom = sensivel || freioAtivo;
 
-  const idsEtapas = etapas.map((e) => e.id);
+  const estadosDasEtapas = etapas.map((e) =>
+    estadoDaEtapa({
+      etapa: e,
+      respostas: rascunho.respostas,
+      bebes: c.bebes,
+      pendencias,
+      blocosComAlerta,
+    }),
+  );
+  const segmentos = etapas.map((_, i) =>
+    i === indice
+      ? ("atual" as const)
+      : estadosDasEtapas[i] === "completa"
+        ? ("feito" as const)
+        : ("futuro" as const),
+  );
+  const contagem = contagemDaEtapa(
+    etapa,
+    definicao,
+    rascunho.respostas,
+    contexto,
+    etapa.porBebe ? (bebeAtivo ?? c.bebes[0]?.id) : undefined,
+  );
+  const IconeEtapa = ICONE_DA_ETAPA[etapa.id] ?? ClipboardList;
 
   return (
-    <div className="pb-48">
-      <header className="bg-fundo border-linha sticky top-0 z-[var(--z-barra)] -mx-4 border-b px-4 pt-3 pb-2">
+    <div className="pb-60">
+      <header className="bg-fundo sticky top-0 z-[var(--z-barra)] -mx-4 px-4 pt-3 pb-3">
         <div className="flex items-center gap-2">
           <Link
             href={voltarPara}
             aria-label={textos.voltarParaHoje}
-            className="size-toque rounded-pilula text-texto hover:bg-marinho-08 flex shrink-0 items-center justify-center"
+            className="size-toque rounded-pilula bg-superficie shadow-1 text-texto hover:bg-areia-clara flex shrink-0 items-center justify-center"
           >
-            <ArrowLeft className="size-6" aria-hidden="true" />
+            <ArrowLeft className="size-5" aria-hidden="true" />
           </Link>
-          <p className="text-3 text-texto min-w-0 flex-1 truncate font-medium">
-            <span>{familia.nomeExibicao}</span>{" "}
-            <span className="font-mono">
+          <p className="min-w-0 flex-1">
+            <span className="text-3 text-texto block truncate leading-tight font-semibold">
+              {familia.nomeExibicao}
+            </span>
+            <span className="text-apoio text-texto-2 font-mono">
               {textos.diaDeTotal(
                 checklist.visita.diaNumero,
                 checklist.diasContratados,
@@ -681,17 +763,20 @@ function Edicao({
             </BotaoFreio>
           ) : null}
         </div>
-        <div className="mt-2">
+        <div className="mt-3 flex items-center justify-between gap-2">
           <Sincronizacao c={c} />
+          <button
+            type="button"
+            onClick={() => definirListaAberta(true)}
+            aria-label={textos.verEtapas(indice + 1, etapas.length)}
+            className="rounded-pilula bg-superficie shadow-1 min-h-toque hover:bg-areia-clara ease-estado inline-flex shrink-0 items-center gap-2 py-1 pr-4 pl-1 transition-colors duration-140"
+          >
+            <AnelProgresso segmentos={segmentos} tamanho={36} espessura={4} />
+            <span className="text-apoio text-texto font-semibold">
+              {textos.etapas}
+            </span>
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => definirListaAberta(true)}
-          aria-label={textos.verEtapas(indice + 1, etapas.length)}
-          className="mt-2 block w-full py-1"
-        >
-          <ProgressoEtapas etapas={idsEtapas} atual={indice} />
-        </button>
       </header>
 
       <AvisoSemSinal c={c} />
@@ -727,19 +812,54 @@ function Edicao({
       <h1 className="sr-only">
         {textos.paginaTitulo(checklist.visita.diaNumero)}
       </h1>
-      <div className="mt-6 flex flex-col gap-6">
-        <div>
-          <p className="text-apoio text-texto-2">
-            {textos.etapa(indice + 1, etapas.length)}
-          </p>
-          <h2
-            ref={tituloRef}
-            tabIndex={-1}
-            className="font-titulo text-display text-texto outline-none"
-          >
-            {etapa.rotulo}
-          </h2>
-        </div>
+      <div className="mt-3 flex flex-col gap-4">
+        {/* Bloco da etapa (DESIGN.md, 2.5): o agora em dourado-claro, em
+            forma colo, com o assunto no tile e a barra das perguntas. */}
+        <section
+          aria-labelledby="titulo-etapa"
+          className={cn(
+            "flex flex-col gap-4 px-5 pt-5",
+            semTom
+              ? "rounded-3 bg-superficie border-linha border pb-5"
+              : "rounded-colo bg-dourado-claro pb-11",
+          )}
+        >
+          <div className="flex items-start gap-4">
+            <TileIcone
+              tom={semTom ? "branco" : "dourado"}
+              forma="quadrado"
+              tamanho="g"
+              className={semTom ? "border-linha border" : undefined}
+            >
+              <IconeEtapa />
+            </TileIcone>
+            <div className="min-w-0">
+              <p className="text-apoio text-texto-2 font-medium">
+                {textos.etapa(indice + 1, etapas.length)}
+              </p>
+              <h2
+                id="titulo-etapa"
+                ref={tituloRef}
+                tabIndex={-1}
+                className="font-titulo text-display text-texto outline-none"
+              >
+                {etapa.rotulo}
+              </h2>
+            </div>
+          </div>
+          {!ehResumo && contagem.total > 0 ? (
+            <BarraProgresso
+              valor={contagem.respondidas}
+              total={contagem.total}
+              trilha={semTom ? "neutra" : "dourada"}
+              texto={textos.respondidasNaEtapa(
+                contagem.respondidas,
+                contagem.total,
+              )}
+              textoCompleta={textos.etapaRespondida}
+            />
+          ) : null}
+        </section>
 
         {conteudoDaEtapa()}
 
@@ -757,16 +877,20 @@ function Edicao({
             semBebe={semBebe}
             aoAssinar={() => definirAssinarAberto(true)}
             renderBloco={renderBloco}
+            comemorar={!semTom && alertas.length === 0}
           />
         ) : null}
       </div>
 
-      {/* Barra inferior, na zona do polegar, acima das abas */}
+      {/* Barra de ação, na zona do polegar, logo acima da navegação em
+          pílula (DESIGN.md, 2.9). */}
       <div
-        className="bg-fundo border-linha fixed inset-x-0 z-[var(--z-barra)] border-t px-4 pt-2 pb-2"
-        style={{ bottom: "calc(60px + env(safe-area-inset-bottom))" }}
+        className="fixed inset-x-0 z-[var(--z-barra)] px-3 pb-2"
+        style={{
+          bottom: "calc(var(--altura-abas) + env(safe-area-inset-bottom))",
+        }}
       >
-        <div className="max-w-portal mx-auto flex flex-col gap-2">
+        <div className="max-w-portal rounded-3 bg-superficie shadow-2 mx-auto flex flex-col gap-1 p-2">
           <Botao
             variante="fantasma"
             tamanho="compacto"
@@ -806,13 +930,8 @@ function Edicao({
         >
           <ul className="flex flex-col gap-2">
             {etapas.map((e, i) => {
-              const estado = estadoDaEtapa({
-                etapa: e,
-                respostas: rascunho.respostas,
-                bebes: c.bebes,
-                pendencias,
-                blocosComAlerta,
-              });
+              const estado = estadosDasEtapas[i]!;
+              const Icone = ICONE_DA_ETAPA[e.id] ?? ClipboardList;
               return (
                 <li key={e.id}>
                   <button
@@ -822,26 +941,43 @@ function Edicao({
                       c.irParaEtapa(i);
                       definirListaAberta(false);
                     }}
-                    className="rounded-2 min-h-toque border-linha bg-superficie flex w-full items-center justify-between gap-3 border px-4 py-3 text-left"
+                    className={cn(
+                      "rounded-2 min-h-toque ease-estado flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors duration-140",
+                      i === indice
+                        ? "bg-dourado-claro"
+                        : "bg-superficie shadow-1 hover:bg-areia-clara",
+                      semTom &&
+                        i === indice &&
+                        "bg-superficie border-dourado border-2",
+                    )}
                   >
-                    <span className="text-corpo text-texto">
-                      <span className="text-texto-2 mr-2 font-mono">
-                        {i + 1}
-                      </span>
+                    <TileIcone
+                      tom={
+                        estado === "completa" && !semTom ? "salvia" : "areia"
+                      }
+                      forma="quadrado"
+                      tamanho="p"
+                    >
+                      <Icone />
+                    </TileIcone>
+                    <span className="text-corpo text-texto min-w-0 flex-1 font-medium">
                       {e.rotulo}
                     </span>
-                    <span
-                      className={cn(
-                        "text-mini font-semibold",
-                        estado === "com_alerta" && !sensivel && "text-alerta",
-                        estado === "com_alerta" && sensivel && "text-sensivel",
-                        estado === "com_pendencia" && "text-aviso-texto",
-                        estado === "completa" && "text-sucesso",
-                        estado === "nao_iniciada" && "text-texto-2",
-                      )}
+                    <Selo
+                      variante={
+                        estado === "com_alerta"
+                          ? sensivel
+                            ? "sensivel"
+                            : "alerta"
+                          : estado === "com_pendencia"
+                            ? "aviso"
+                            : estado === "completa"
+                              ? "sucesso"
+                              : "contorno"
+                      }
                     >
                       {textos.estadoDaEtapa[estado]}
-                    </span>
+                    </Selo>
                   </button>
                 </li>
               );
@@ -1011,6 +1147,7 @@ function ResumoEAssinatura({
   irParaEtapa,
   semBebe,
   aoAssinar,
+  comemorar,
 }: {
   checklist: ChecklistVisita;
   c: Controle;
@@ -1024,6 +1161,8 @@ function ResumoEAssinatura({
   semBebe: boolean;
   aoAssinar: () => void;
   renderBloco: (b: Bloco, bebe?: string) => React.ReactNode;
+  /** Sem alerta na visita e sem estado sensível: o checklist completo ganha a comemoração (DESIGN.md, 2.11). */
+  comemorar: boolean;
 }) {
   const indiceDaEtapa = (bloco: string) =>
     etapas.findIndex((e) => e.blocos.includes(bloco));
@@ -1041,76 +1180,121 @@ function ResumoEAssinatura({
         armazem={c.aparelho?.armazem}
       />
 
-      <div className="flex flex-col gap-3">
-        <h3 id="falta-titulo" className="text-3 text-texto font-semibold">
-          {textos.resumo.faltaParaAssinar}
-        </h3>
-        {falta === 0 && semRegistro.length === 0 ? (
-          <p
-            className="text-corpo text-sucesso flex items-center gap-2"
-            role="status"
-          >
-            <CircleCheck className="size-5" aria-hidden="true" />
+      {falta === 0 && semRegistro.length === 0 ? (
+        <>
+          <h3 id="falta-titulo" className="sr-only">
             {textos.resumo.tudoRespondido}
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {semBebe ? (
-              <li className="text-corpo text-texto">{textos.resumo.semBebe}</li>
-            ) : null}
-            {pendencias.map((p) => {
-              const alvo = indiceDaEtapa(p.bloco);
-              return (
-                <li key={`${p.bloco}.${p.campo}.${p.bebe ?? ""}`}>
-                  <button
-                    type="button"
-                    onClick={() => alvo >= 0 && irParaEtapa(alvo)}
-                    className="rounded-2 min-h-toque text-corpo text-texto border-linha bg-superficie w-full border px-4 py-2 text-left underline-offset-4 hover:underline"
-                    aria-label={textos.resumo.irPara(
-                      `${p.rotulo}${p.rotuloBebe ? `, ${p.rotuloBebe}` : ""}`,
-                    )}
-                  >
-                    {p.rotulo}
-                    {p.rotuloBebe ? ` (${p.rotuloBebe})` : ""}
-                    <span className="text-texto-2 text-apoio block">
-                      {p.rotuloBloco}
-                    </span>
-                  </button>
+          </h3>
+          {comemorar ? (
+            <Comemoracao
+              titulo={textos.resumo.completoTitulo(checklist.visita.diaNumero)}
+              texto={textos.resumo.completoTexto}
+              acao={
+                <Botao
+                  disabled={!podeAssinar}
+                  onClick={aoAssinar}
+                  aria-describedby="falta-titulo"
+                  className="whitespace-normal"
+                >
+                  {textos.resumo.assinar(checklist.visita.diaNumero)}
+                </Botao>
+              }
+            />
+          ) : (
+            <>
+              <p
+                className="text-corpo text-sucesso flex items-center gap-2"
+                role="status"
+              >
+                <CircleCheck className="size-5" aria-hidden="true" />
+                {textos.resumo.tudoRespondido}
+              </p>
+              <Botao
+                largaTotal
+                disabled={!podeAssinar}
+                onClick={aoAssinar}
+                aria-describedby="falta-titulo"
+              >
+                {textos.resumo.assinar(checklist.visita.diaNumero)}
+              </Botao>
+            </>
+          )}
+        </>
+      ) : (
+        <>
+          <div className="flex flex-col gap-3">
+            <h3
+              id="falta-titulo"
+              className="text-3 text-texto flex items-center gap-2 font-semibold"
+            >
+              {textos.resumo.faltaParaAssinar}
+              {falta > 0 ? (
+                <span className="rounded-pilula bg-areia text-apoio inline-flex min-h-7 min-w-7 items-center justify-center px-2 font-mono font-medium">
+                  <span className="sr-only">: </span>
+                  {falta}
+                </span>
+              ) : null}
+            </h3>
+            <ul className="flex flex-col gap-2">
+              {semBebe ? (
+                <li className="text-corpo text-texto">
+                  {textos.resumo.semBebe}
                 </li>
-              );
-            })}
-            {aguardando.map((e) => {
-              const campo = campoDe(e);
-              const alvo = indiceDaEtapa(e.bloco);
-              return (
-                <li key={`agu-${e.bloco}.${e.campo}.${e.bebe ?? ""}`}>
-                  <button
-                    type="button"
-                    onClick={() => alvo >= 0 && irParaEtapa(alvo)}
-                    className="rounded-2 min-h-toque text-corpo text-texto border-dourado bg-dourado-lavado w-full border-2 border-dashed px-4 py-2 text-left"
-                  >
-                    {textos.resumo.textoAguardando(campo?.rotulo ?? e.campo)}
-                  </button>
+              ) : null}
+              {pendencias.map((p) => {
+                const alvo = indiceDaEtapa(p.bloco);
+                return (
+                  <li key={`${p.bloco}.${p.campo}.${p.bebe ?? ""}`}>
+                    <button
+                      type="button"
+                      onClick={() => alvo >= 0 && irParaEtapa(alvo)}
+                      className="rounded-2 min-h-toque text-corpo text-texto bg-superficie shadow-1 hover:bg-areia-clara ease-estado w-full px-4 py-2.5 text-left transition-colors duration-140"
+                      aria-label={textos.resumo.irPara(
+                        `${p.rotulo}${p.rotuloBebe ? `, ${p.rotuloBebe}` : ""}`,
+                      )}
+                    >
+                      {p.rotulo}
+                      {p.rotuloBebe ? ` (${p.rotuloBebe})` : ""}
+                      <span className="text-texto-2 text-apoio block">
+                        {p.rotuloBloco}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+              {aguardando.map((e) => {
+                const campo = campoDe(e);
+                const alvo = indiceDaEtapa(e.bloco);
+                return (
+                  <li key={`agu-${e.bloco}.${e.campo}.${e.bebe ?? ""}`}>
+                    <button
+                      type="button"
+                      onClick={() => alvo >= 0 && irParaEtapa(alvo)}
+                      className="rounded-2 min-h-toque text-corpo text-texto border-dourado bg-dourado-lavado w-full border-2 border-dashed px-4 py-2 text-left"
+                    >
+                      {textos.resumo.textoAguardando(campo?.rotulo ?? e.campo)}
+                    </button>
+                  </li>
+                );
+              })}
+              {semRegistro.map((a) => (
+                <li key={`al-${a.chave}`} className="text-apoio text-texto-2">
+                  {textos.resumo.alertaSemRegistro(a.regraId)}
                 </li>
-              );
-            })}
-            {semRegistro.map((a) => (
-              <li key={`al-${a.chave}`} className="text-apoio text-texto-2">
-                {textos.resumo.alertaSemRegistro(a.regraId)}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+              ))}
+            </ul>
+          </div>
 
-      <Botao
-        largaTotal
-        disabled={!podeAssinar}
-        onClick={aoAssinar}
-        aria-describedby="falta-titulo"
-      >
-        {textos.resumo.assinar(checklist.visita.diaNumero)}
-      </Botao>
+          <Botao
+            largaTotal
+            disabled={!podeAssinar}
+            onClick={aoAssinar}
+            aria-describedby="falta-titulo"
+          >
+            {textos.resumo.assinar(checklist.visita.diaNumero)}
+          </Botao>
+        </>
+      )}
     </section>
   );
 }
@@ -1179,14 +1363,20 @@ function AguardandoEnvio({
   const erro = c.fila.registro?.estado === "erro";
   return (
     <div className="flex flex-col gap-6 pt-4 pb-8">
-      <header className="flex flex-col gap-2">
-        <Link href={voltarPara} className="text-apoio text-texto underline">
+      <header className="flex flex-col gap-3">
+        <Link
+          href={voltarPara}
+          className="rounded-pilula bg-superficie shadow-1 text-apoio text-texto min-h-toque hover:bg-areia-clara inline-flex items-center gap-2 self-start pr-4 pl-3 font-semibold"
+        >
+          <ArrowLeft className="size-4" aria-hidden="true" />
           {textos.voltarParaHoje}
         </Link>
         <h1 className="font-titulo text-display text-texto">
           {textos.paginaTitulo(checklist.visita.diaNumero)}
         </h1>
-        <Sincronizacao c={c} />
+        <div className="flex">
+          <Sincronizacao c={c} />
+        </div>
       </header>
       <AvisoSemSinal c={c} />
       <FaixaAlerta
@@ -1207,6 +1397,7 @@ function AguardandoEnvio({
         respostas={rascunho.respostas}
         bebes={c.bebes}
         contexto={{ ultimo_dia: checklist.ultimoDia }}
+        semTom={checklist.familia.estadoSensivel !== "normal"}
       />
     </div>
   );
@@ -1283,23 +1474,31 @@ function VisaoAssinada({
 
   return (
     <div className="flex flex-col gap-6 pt-4 pb-8">
-      <header className="flex flex-col gap-2">
-        <Link href={voltarPara} className="text-apoio text-texto underline">
+      <header className="flex flex-col gap-3">
+        <Link
+          href={voltarPara}
+          className="rounded-pilula bg-superficie shadow-1 text-apoio text-texto min-h-toque hover:bg-areia-clara inline-flex items-center gap-2 self-start pr-4 pl-3 font-semibold"
+        >
+          <ArrowLeft className="size-4" aria-hidden="true" />
           {textos.voltarParaHoje}
         </Link>
-        <h1 className="font-titulo text-display text-texto">
-          {textos.paginaTitulo(checklist.visita.diaNumero)}
-        </h1>
-        <p className="text-corpo text-texto-2">
-          {checklist.familia.nomeExibicao} ·{" "}
-          <span className="font-mono">
-            {textos.diaDeTotal(
-              checklist.visita.diaNumero,
-              checklist.diasContratados,
-            )}
-          </span>
-        </p>
-        <Sincronizacao c={c} />
+        <div>
+          <h1 className="font-titulo text-display text-texto">
+            {textos.paginaTitulo(checklist.visita.diaNumero)}
+          </h1>
+          <p className="text-corpo text-texto-2">
+            {checklist.familia.nomeExibicao},{" "}
+            <span className="font-mono">
+              {textos.diaDeTotal(
+                checklist.visita.diaNumero,
+                checklist.diasContratados,
+              )}
+            </span>
+          </p>
+        </div>
+        <div className="flex">
+          <Sincronizacao c={c} />
+        </div>
       </header>
       <AvisoSemSinal c={c} />
 
@@ -1324,7 +1523,10 @@ function VisaoAssinada({
         ) : null}
       </div>
 
-      <section aria-labelledby="resumo-lido" className="flex flex-col gap-2">
+      <section
+        aria-labelledby="resumo-lido"
+        className="rounded-3 bg-superficie shadow-1 flex flex-col gap-2 p-4"
+      >
         <h2 id="resumo-lido" className="text-3 text-texto font-semibold">
           {textos.leitura.resumoDescritivo}
         </h2>
@@ -1338,6 +1540,7 @@ function VisaoAssinada({
         respostas={respostas}
         bebes={c.bebes}
         contexto={{ ultimo_dia: checklist.ultimoDia }}
+        semTom={checklist.familia.estadoSensivel !== "normal"}
       />
 
       {alertasDaVisita.length > 0 ? (

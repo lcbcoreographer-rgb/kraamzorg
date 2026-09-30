@@ -99,7 +99,9 @@ export function FiltrosPipelineCelular({
           >
             Filtros
             {ligados > 0 ? (
-              <span className="font-mono tabular-nums">· {ligados}</span>
+              <span className="rounded-pilula bg-areia text-mini inline-flex min-w-6 items-center justify-center px-1.5 font-mono tabular-nums">
+                {ligados}
+              </span>
             ) : null}
           </Botao>
         </DialogoGatilho>

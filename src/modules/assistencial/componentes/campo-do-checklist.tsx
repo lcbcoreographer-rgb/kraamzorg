@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Clock } from "lucide-react";
+import { Check, Clock } from "lucide-react";
 import { Botao } from "@/components/ui/botao";
 import { CampoTexto } from "@/components/ui/campo-texto";
 import { CampoInstrumento } from "@/components/instrumentos";
@@ -31,6 +31,13 @@ import { textos } from "../checklist/textos";
  * - Campo que disparou alerta ganha o contorno do estado (vermelho, ou
  *   ameixa na família em luto ou intercorrência).
  * - Botões de consulta do DOC 4 (LATCH, NTS, laserterapia) junto do campo.
+ *
+ * Direção "Colo" [v4.4] (DESIGN.md, 2.5): uma pergunta por cartão. Sem
+ * resposta, o cartão é branco com sombra leve (o trabalho que falta);
+ * respondida, ele assenta em `areia-clara`, sem sombra, com a marca de
+ * check. Com alerta, o cartão ganha a borda e o lavado do estado. Família
+ * em estado sensível (`semTom`): nada de tom de apoio, o cartão
+ * respondido fica branco e plano.
  */
 export interface CampoDoChecklistProps {
   campo: Campo;
@@ -53,6 +60,8 @@ export interface CampoDoChecklistProps {
   /** Nomes de outras famílias que estão neste aparelho (colagem vigiada). */
   nomesDeOutrasFamilias: string[];
   valorAutomatico?: string;
+  /** Família em estado sensível: sem tom de apoio (PRD 20.2 [v4.4]). */
+  semTom?: boolean;
 }
 
 export function CampoDoChecklist({
@@ -71,6 +80,7 @@ export function CampoDoChecklist({
   nomeDaFamilia,
   nomesDeOutrasFamilias,
   valorAutomatico,
+  semTom = false,
 }: CampoDoChecklistProps) {
   const [colado, definirColado] = React.useState<string | null>(null);
 
@@ -104,17 +114,31 @@ export function CampoDoChecklist({
     <div
       onPaste={vigiarColagem}
       data-alerta={alerta ?? undefined}
+      data-respondido={respondido ? "true" : undefined}
       className={cn(
-        "flex flex-col gap-2",
-        alerta &&
-          "rounded-2 -mx-2 border-2 px-2 py-2 " +
-            (alerta === "sensivel"
-              ? "border-sensivel-borda bg-sensivel-lavado"
-              : alerta === "imediato"
-                ? "border-alerta bg-alerta-lavado"
-                : "border-aviso bg-aviso-lavado"),
+        "rounded-3 ease-estado relative flex flex-col gap-3 p-4 transition-[background-color,box-shadow] duration-220",
+        alerta
+          ? "border-2 " +
+              (alerta === "sensivel"
+                ? "border-sensivel-borda bg-sensivel-lavado"
+                : alerta === "imediato"
+                  ? "border-alerta bg-alerta-lavado"
+                  : "border-aviso bg-aviso-lavado")
+          : respondido || campo.tipo === "automatico"
+            ? semTom
+              ? "bg-superficie border-linha border"
+              : "bg-areia-clara"
+            : "bg-superficie shadow-1",
       )}
     >
+      {respondido && !alerta ? (
+        <span
+          aria-hidden="true"
+          className="rounded-pilula bg-salvia-media text-texto ring-fundo absolute -top-2 right-4 inline-flex size-6 items-center justify-center ring-2"
+        >
+          <Check className="size-4" strokeWidth={2.25} />
+        </span>
+      ) : null}
       {trazido ? (
         <TextoTrazidoPainel
           campo={campo}
@@ -130,6 +154,7 @@ export function CampoDoChecklist({
           valor={valor}
           aoMudar={aoMudar}
           valorAutomatico={valorAutomatico}
+          arranjo="cartao"
         />
       )}
 

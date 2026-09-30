@@ -30,7 +30,7 @@ export function FiltrosPipeline({
       <form
         method="get"
         action="/pipeline"
-        className="border-linha tablet:flex hidden flex-col gap-4 border-b pb-4"
+        className="rounded-3 bg-areia-clara tablet:flex hidden flex-col gap-4 p-4"
       >
         <input type="hidden" name="pipeline" value={pipeline} />
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">

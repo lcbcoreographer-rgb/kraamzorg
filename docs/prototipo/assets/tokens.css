@@ -1,6 +1,6 @@
 /*
   Kraamzorg OS · tokens do protótipo
-  Direção: "Caderneta de visita" (ver docs/design/DESIGN.md).
+  Direção: "Colo" [v4.4] (ver docs/design/DESIGN.md, seção 2). Antes: "Caderneta de visita".
   Fonte da verdade no produto: src/app/globals.css (@theme do Tailwind v4), PRD 20.2 e CLAUDE.md.
   Este arquivo espelha aqueles valores para o protótipo estático. Nenhuma tela declara cor, fonte,
   raio ou sombra fora daqui.
@@ -92,6 +92,17 @@
   --sensivel-borda: color-mix(in srgb, var(--sensivel) 40%, var(--branco));
   --sucesso-borda: color-mix(in srgb, var(--sucesso) 40%, var(--branco));
 
+  /* 2b. Tons de apoio [v4.4] (PRD 20.2): superfície, nunca estado, nunca em momento sensível. */
+  --dourado-claro: color-mix(in srgb, var(--dourado) 30%, var(--creme));   /* #E9DCC2 · marinho 12,2:1 */
+  --dourado-medio: color-mix(in srgb, var(--dourado) 55%, var(--creme));   /* #D9C59E · só marinho, 9,8:1 */
+  --areia-clara: color-mix(in srgb, var(--areia) 55%, var(--creme));       /* #F1E8D7 · marinho 13,6:1 */
+  --salvia-clara: color-mix(in srgb, var(--sucesso) 18%, var(--creme));    /* #DCE0D2 · marinho 12,3:1 */
+  --salvia-media: color-mix(in srgb, var(--sucesso) 40%, var(--creme));    /* #B5C3B1 · só marinho, 9,0:1 */
+  --lavanda-clara: color-mix(in srgb, var(--sensivel) 18%, var(--branco)); /* #E3E0E7 · marinho 12,7:1 */
+  --lavanda-media: color-mix(in srgb, var(--sensivel) 36%, var(--branco)); /* #C7C2CF · só marinho, 9,5:1 */
+  --argila-clara: color-mix(in srgb, var(--alerta) 14%, var(--creme));     /* #EFDFD4 · marinho 12,7:1 */
+  --argila-media: color-mix(in srgb, var(--alerta) 30%, var(--creme));     /* #E0C2B7 · só marinho, 9,9:1 */
+
   /* 3. Semânticos. Componentes consomem só estes. */
   --fundo: var(--creme);
   --superficie: var(--branco);
@@ -122,6 +133,8 @@
   --tam-corpo: 1rem;        /* 16 · corpo, campos */
   --tam-apoio: 0.875rem;    /* 14 · rótulo, ajuda, metadado */
   --tam-mini: 0.8125rem;    /* 13 · menor texto permitido */
+  --tam-numero: 2.75rem;    /* 44 · número do cartão-resumo, Jost [v4.4] */
+  --tam-numero-p: 1.5rem;   /* 24 · número no anel e na coluna */
 
   --entre-titulo: 1.12;
   --entre-corpo: 1.5;
@@ -133,10 +146,11 @@
   --margem-tela: 16px;
 
   /* Raio: quatro degraus, comprometidos */
-  --raio-1: 4px;      /* marca pequena, caixa de seleção */
-  --raio-2: 12px;     /* campo, faixa, bloco da régua */
-  --raio-3: 20px;     /* cartão, folha inferior */
-  --raio-pilula: 999px; /* botão, selo, seletor sim ou não, aba */
+  --raio-1: 6px;      /* marca pequena, caixa de seleção */
+  --raio-2: 16px;     /* campo, faixa, item de lista, bloco da régua */
+  --raio-3: 28px;     /* cartão, bloco, folha inferior */
+  --raio-pilula: 999px; /* botão, selo, seletor, aba, navegação */
+  --raio-colo: 28px 28px 50% 50% / 28px 28px 40px 40px; /* bloco de abertura, base em arco */
 
   /* Sombra: duas, com a cor do marinho */
   --sombra-1: 0 1px 2px color-mix(in srgb, var(--marinho) 6%, transparent), 0 6px 16px -10px color-mix(in srgb, var(--marinho) 18%, transparent);
@@ -149,6 +163,7 @@
   /* Toque e densidade */
   --toque: 44px;          /* mínimo absoluto */
   --toque-campo: 52px;    /* linha de resposta da enfermeira */
+  --toque-grande: 56px;   /* resposta do checklist em cartão [v4.4] */
   --linha-tabela: 48px;   /* coordenação no computador, com ponteiro fino cai para 40px */
 
   /* Movimento */

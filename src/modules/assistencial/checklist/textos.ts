@@ -14,6 +14,11 @@ export const textos = {
   verEtapas: (atual: number, total: number) =>
     `Etapa ${atual} de ${total}. Ver todas as etapas`,
   etapas: "Etapas",
+  respondidasNaEtapa: (n: number, total: number) =>
+    total === 1
+      ? `${n} de 1 pergunta respondida`
+      : `${n} de ${total} respondidas`,
+  etapaRespondida: "Tudo respondido nesta etapa",
   etapasAjuda:
     "Toque numa etapa para ir direto a ela. Dá para avançar com pendências; o que falta aparece na última etapa.",
   estadoDaEtapa: {
@@ -181,6 +186,8 @@ export const textos = {
     titulo: "Resumo e assinatura",
     faltaParaAssinar: "Falta para assinar",
     tudoRespondido: "Tudo o que é obrigatório está respondido.",
+    completoTitulo: (dia: number) => `Checklist do D${dia} completo.`,
+    completoTexto: "Falta só a sua assinatura.",
     irPara: (rotulo: string) => `Ir para ${rotulo}`,
     textoAguardando: (rotulo: string) =>
       `${rotulo}: confirme ou apague o texto trazido do dia anterior`,

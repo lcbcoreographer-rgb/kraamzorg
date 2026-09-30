@@ -1,3 +1,4 @@
+import { SinoCalmo } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import type { DestinoHandoff } from "@/lib/dados/tipos";
 import type { TransferenciaTela } from "../../tipos";
@@ -23,6 +24,7 @@ export function FilaTransferencias({
     return (
       <EstadoVazio
         nivelTitulo="h2"
+        ilustracao={<SinoCalmo tamanho={104} />}
         titulo="Nenhuma conversa esperando você"
         texto="A Isadora continua a triagem e avisa aqui quando alguém quiser contratar, marcar a conversa ou falar com uma pessoa."
       />

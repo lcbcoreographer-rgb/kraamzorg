@@ -52,6 +52,50 @@ export function fraseDoDia(
   return `${quantas} ${substantivo}, ${turnos.map((t) => ROTULO_TURNO[t]).join(" e ")}.`;
 }
 
+/** "às 09:00" para uma visita, "a primeira às 09:00" para várias. */
+function primeiraHora(horas: readonly (string | null)[]): string | null {
+  const ordenadas = horas.filter((h): h is string => Boolean(h)).sort();
+  if (ordenadas.length === 0) return null;
+  return horas.length === 1
+    ? `às ${ordenadas[0]}`
+    : `a primeira às ${ordenadas[0]}`;
+}
+
+/**
+ * Rótulo e contexto do trio de números do Hoje (DESIGN.md, 2.2): nenhum
+ * número sozinho, cada um com a frase que diz o que fazer com ele.
+ */
+export function resumoDoHoje(
+  hoje: {
+    visitas: readonly Pick<VisitaPortal, "horaPrevista">[];
+    fichasPendentes: readonly unknown[];
+  },
+  amanha: readonly { horaPrevista: string | null }[],
+): Record<
+  "visitas" | "fichas" | "amanha",
+  { rotulo: string; contexto: string }
+> {
+  const fichas = hoje.fichasPendentes.length;
+  return {
+    visitas: {
+      rotulo: hoje.visitas.length === 1 ? "visita hoje" : "visitas hoje",
+      contexto:
+        primeiraHora(hoje.visitas.map((v) => v.horaPrevista)) ??
+        (hoje.visitas.length > 0 ? "sem hora marcada" : "dia sem visita"),
+    },
+    fichas: {
+      rotulo: fichas === 1 ? "ficha pendente" : "fichas pendentes",
+      contexto: fichas === 0 ? "tudo em dia" : "falta o registro",
+    },
+    amanha: {
+      rotulo: amanha.length === 1 ? "visita amanhã" : "visitas amanhã",
+      contexto:
+        primeiraHora(amanha.map((v) => v.horaPrevista)) ??
+        (amanha.length > 0 ? "sem hora marcada" : "nada marcado ainda"),
+    },
+  };
+}
+
 export function enderecoEmTexto(
   endereco: EnderecoAtendimento | null,
   cidade: string | null,

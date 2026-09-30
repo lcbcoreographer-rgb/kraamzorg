@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Users } from "lucide-react";
 import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
+import { AbasPilula } from "@/components/ui/abas-pilula";
 import { Botao } from "@/components/ui/botao";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { exigirSessao } from "@/lib/auth/sessao";
@@ -100,32 +101,25 @@ export default async function PaginaPipeline({
         }
       />
 
-      <div
-        role="tablist"
-        aria-label="Pipelines"
-        className="border-linha mt-4 flex gap-1 border-b"
-      >
-        {(
-          [
-            { valor: 1, rotulo: "Entrada e qualificação" },
-            { valor: 2, rotulo: "Venda e pré-atendimento" },
-          ] as const
-        ).map((aba) => (
-          <Link
-            key={aba.valor}
-            href={`/pipeline?pipeline=${aba.valor}`}
-            role="tab"
-            aria-selected={pipeline === aba.valor}
-            className={`min-h-toque rounded-t-2 text-apoio -mb-px inline-flex items-center border-b-2 px-4 font-medium ${
-              pipeline === aba.valor
-                ? "border-marinho text-texto"
-                : "text-texto-2 hover:bg-marinho-08 border-transparent"
-            }`}
-          >
-            {aba.rotulo}
-          </Link>
-        ))}
-      </div>
+      {/* Abas em pílula (DESIGN.md, 2.9): as duas etapas do funil. */}
+      <AbasPilula
+        rotulo="Pipelines"
+        ativa={String(pipeline)}
+        larga="celular"
+        className="mt-2"
+        abas={[
+          {
+            valor: "1",
+            rotulo: "Entrada e qualificação",
+            href: "/pipeline?pipeline=1",
+          },
+          {
+            valor: "2",
+            rotulo: "Venda e pré-atendimento",
+            href: "/pipeline?pipeline=2",
+          },
+        ]}
+      />
 
       <div className="pt-4">
         <FiltrosPipeline

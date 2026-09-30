@@ -4,20 +4,20 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * Barra lateral (DESIGN.md, seção 6). Computador, marinho, 248 px, símbolo
- * e nome do sistema no topo. Grupos com título em frase, itens de 44 px,
- * ativo em marinho-claro com ícone dourado. Mostra só o que o papel pode
- * abrir.
+ * Barra lateral (DESIGN.md, 2.9 e seção 6). Computador, marinho, solta 12
+ * px das bordas com raio 28, como um bloco que segura a navegação. Símbolo
+ * e nome do sistema no topo; grupos com título em frase; itens de 44 px em
+ * pílula; o ativo vira uma pílula creme com o ícone e o texto em marinho.
+ * Mostra só o que o papel pode abrir.
  *
  * Este componente é estático (sem papel): os grupos e itens vêm sempre por
  * propriedade. Os grupos por papel (Comercial, Operação, Experiência,
- * Gestão, Sistema) são da casca do app, depois do P07.
+ * Gestão, Sistema) são da casca do app.
  *
- * A visibilidade por tamanho de tela (`hidden lg:flex`) não mora mais aqui:
- * a casca decide isso (`visivelEm`), porque um componente que já esconde a
- * si mesmo deixa uma caixa vazia de 248 px quando alguém, como a vitrine do
- * design system, precisa mostrá-lo fora do computador (achado da auditoria
- * da P10 parcial).
+ * A visibilidade por tamanho de tela (`hidden lg:flex`) não mora aqui: a
+ * casca decide isso (`visivelEm`), porque um componente que já esconde a
+ * si mesmo deixa uma caixa vazia quando alguém, como a vitrine do design
+ * system, precisa mostrá-lo fora do computador.
  */
 export interface ItemBarraLateral {
   rotulo: string;
@@ -48,6 +48,8 @@ export interface BarraLateralProps {
   rodape?: React.ReactNode;
   /** Quando mostrar a barra: "sempre" (padrão) ou só a partir do computador. */
   visivelEm?: "sempre" | "computador";
+  /** "fixa" (padrão) presa na lateral da tela; "solta" dentro do fluxo (vitrine). */
+  posicao?: "fixa" | "solta";
   className?: string;
 }
 
@@ -58,19 +60,29 @@ export function BarraLateral({
   rotulo,
   rodape,
   visivelEm = "sempre",
+  posicao = "fixa",
   className,
 }: BarraLateralProps) {
   return (
     <nav
       aria-label={rotulo}
       className={cn(
-        "w-lateral bg-marinho text-texto-inverso sticky top-0 flex h-dvh flex-col gap-6 overflow-y-auto px-4 py-6",
+        "bg-marinho text-texto-inverso rounded-3 shadow-2 flex flex-col gap-6 overflow-y-auto px-3 py-6",
+        posicao === "fixa" &&
+          "sticky top-3 m-3 h-[calc(100dvh-24px)] w-[calc(var(--container-lateral)-24px)]",
         visivelEm === "computador" && "hidden lg:flex",
         className,
       )}
     >
-      <div className="flex items-center gap-3 px-2">
-        <Image src={simboloSrc} alt="" width={36} height={31} priority />
+      <div className="flex items-center gap-3 px-3">
+        <Image
+          src={simboloSrc}
+          alt=""
+          width={36}
+          height={31}
+          priority
+          style={{ height: "auto" }}
+        />
         <span className="font-titulo text-marca font-medium">{nomeMarca}</span>
       </div>
 
@@ -80,7 +92,7 @@ export function BarraLateral({
           <div key={grupo.titulo} className="flex flex-col gap-0.5">
             <span
               id={idGrupo}
-              className="text-mini text-texto-inverso-2 px-3 pb-1"
+              className="text-mini text-texto-inverso-2 px-4 pb-1"
             >
               {grupo.titulo}
             </span>
@@ -91,11 +103,11 @@ export function BarraLateral({
                     href={item.href}
                     aria-current={item.ativo ? "page" : undefined}
                     className={cn(
-                      "min-h-toque rounded-pilula text-apoio text-texto-inverso ease-estado flex items-center gap-3 px-3 font-medium no-underline transition-colors duration-140",
-                      "[&>svg]:text-texto-inverso-2 [&>svg]:size-5",
+                      "min-h-toque rounded-pilula text-apoio ease-estado flex items-center gap-3 px-4 font-medium no-underline transition-colors duration-140",
+                      "[&>svg]:size-5",
                       item.ativo
-                        ? "bg-marinho-claro [&>svg]:text-destaque font-semibold"
-                        : "hover:bg-lateral-hover",
+                        ? "bg-creme text-marinho [&>svg]:text-marinho font-semibold"
+                        : "text-texto-inverso hover:bg-lateral-hover [&>svg]:text-texto-inverso-2",
                     )}
                   >
                     {item.icone}
@@ -108,7 +120,7 @@ export function BarraLateral({
                           item.contadorAlerta
                             ? "rounded-pilula bg-areia text-marinho px-2"
                             : item.ativo
-                              ? "text-texto-inverso"
+                              ? "text-marinho"
                               : "text-texto-inverso-2",
                         )}
                       >
@@ -127,7 +139,7 @@ export function BarraLateral({
       })}
 
       {rodape ? (
-        <div className="border-marinho-claro text-apoio mt-auto border-t pt-3">
+        <div className="border-marinho-claro text-apoio mt-auto border-t px-1 pt-4">
           {rodape}
         </div>
       ) : null}

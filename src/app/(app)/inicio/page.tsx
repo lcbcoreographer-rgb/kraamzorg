@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
-import { CabecalhoTela } from "@/components/shell/cabecalho-tela";
+import { Inbox, ListTodo, UserCheck } from "lucide-react";
+import { CabecalhoSaudacao } from "@/components/shell/cabecalho-saudacao";
+import { saudacao } from "@/components/shell/saudacao";
 import { TelaEmConstrucao } from "@/components/shell/tela-em-construcao";
+import { CartaoResumo } from "@/components/ui/cartao-resumo";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
+import { TileIcone } from "@/components/ui/tile-icone";
 import type { Papel } from "@/lib/auth/papeis";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { formatarDiaSemanaEData } from "@/lib/formatacao";
@@ -15,7 +19,7 @@ import { DESTINO_DO_PAPEL } from "@/modules/agente/tipos";
 import type { TransferenciaTela } from "@/modules/agente/tipos";
 import { obterFraseEquipe } from "@/modules/operacao/equipe/dados";
 import { ListaTarefas } from "@/modules/mensageria/tarefas/componentes/lista-tarefas";
-import { fraseDoDia } from "./frase-do-dia";
+import { fraseDoDia, resumoDoInicio } from "./frase-do-dia";
 import {
   listarTarefasTela,
   type TarefasTela,
@@ -61,7 +65,7 @@ export default async function PaginaInicio() {
   const principal = papelPrincipal(sessao.papeis);
 
   if (principal === "comercial") {
-    return <InicioComercial usuarioId={sessao.usuarioId} />;
+    return <InicioComercial usuarioId={sessao.usuarioId} nome={sessao.nome} />;
   }
 
   const conteudo =
@@ -80,6 +84,7 @@ export default async function PaginaInicio() {
     <TelaEmConstrucao
       titulo={formatarDiaSemanaEData(new Date()) ?? "Início"}
       abertura
+      saudacao={saudacao(sessao.nome)}
       subtitulo={fraseEquipe ? `Equipe agora: ${fraseEquipe}` : undefined}
       texto={conteudo.texto}
       acao={
@@ -92,12 +97,19 @@ export default async function PaginaInicio() {
 }
 
 /**
- * Início do comercial (fluxo E e C1 do telas.md; protótipo
- * `comercial-inicio.html`): a fila de transferências e as tarefas que
- * vencem hoje, com a frase-resumo do dia. No computador, fila e tarefas
- * lado a lado, 62/38 (crítica do CRM, P0 item 1).
+ * Início do comercial (fluxo E e C1 do telas.md; direção "Colo", DESIGN.md
+ * 2.2 e 2.13): o bloco de abertura com o cumprimento, o dia, a frase do dia
+ * e o trio de números (transferências esperando, com a equipe, tarefas de
+ * hoje); depois a fila de transferências e as tarefas que vencem hoje. No
+ * computador, fila e tarefas lado a lado, 62/38 (crítica do CRM, P0 item 1).
  */
-async function InicioComercial({ usuarioId }: { usuarioId: string }) {
+async function InicioComercial({
+  usuarioId,
+  nome,
+}: {
+  usuarioId: string;
+  nome: string;
+}) {
   let fila: TransferenciaTela[] | null = null;
   let tela: TarefasTela | null = null;
   let telefonePlantao: string | null = null;
@@ -116,9 +128,9 @@ async function InicioComercial({ usuarioId }: { usuarioId: string }) {
     tela?.grupos.filter(
       (g) => g.balde === "vencida" || g.balde === "vence_hoje",
     ) ?? [];
-  const resumo =
+  const contagem =
     fila && tela
-      ? fraseDoDia({
+      ? {
           transferenciasEsperando: fila.filter((t) => t.status === "aberto")
             .length,
           transferenciasComEquipe: fila.filter((t) => t.status === "assumido")
@@ -128,27 +140,80 @@ async function InicioComercial({ usuarioId }: { usuarioId: string }) {
           tarefasHoje:
             gruposHoje.find((g) => g.balde === "vence_hoje")?.tarefas.length ??
             0,
-        })
+        }
       : null;
+  const resumo = contagem ? fraseDoDia(contagem) : null;
+  const numeros = contagem
+    ? resumoDoInicio(contagem, {
+        maxima: fila!.filter(
+          (t) => t.status === "aberto" && t.prioridade === "maxima",
+        ).length,
+        comVoce: fila!.filter(
+          (t) => t.status === "assumido" && t.assumidoPor === usuarioId,
+        ).length,
+      })
+    : null;
 
   return (
     <>
-      {/* Tela de abertura: o dia como título e a frase de estado logo
-          abaixo, em marinho (DESIGN.md, 11.4). A aba e o <title>
-          continuam "Início". */}
-      <CabecalhoTela
+      {/* Tela de abertura: o cumprimento, o dia como título e a frase de
+          estado logo abaixo, em marinho (DESIGN.md, 2.2 e 11.4). A aba e o
+          <title> continuam "Início". */}
+      <CabecalhoSaudacao
+        saudacao={saudacao(nome)}
         titulo={formatarDiaSemanaEData(new Date()) ?? "Início"}
-        subtitulo={resumo}
-        abertura
-      />
-      <div className="grid grid-cols-1 gap-8 pt-6 lg:grid-cols-[62fr_38fr]">
-        <section aria-labelledby="inicio-transferencias">
-          <h2
-            id="inicio-transferencias"
-            className="font-titulo text-2 text-texto mb-3"
-          >
-            Transferências
-          </h2>
+        frase={resumo}
+      >
+        {numeros ? (
+          <div className="tablet:grid-cols-3 grid grid-cols-2 gap-2 lg:max-w-[720px] lg:gap-3">
+            <CartaoResumo
+              destaque
+              className="tablet:col-span-1 col-span-2"
+              fundo="branco"
+              tom="argila"
+              icone={<Inbox />}
+              valor={contagem!.transferenciasEsperando}
+              rotulo={numeros.esperando.rotulo}
+              contexto={numeros.esperando.contexto}
+              href="#inicio-transferencias"
+            />
+            <CartaoResumo
+              fundo="branco"
+              tom="salvia"
+              icone={<UserCheck />}
+              valor={contagem!.transferenciasComEquipe}
+              rotulo={numeros.comEquipe.rotulo}
+              contexto={numeros.comEquipe.contexto}
+              href="/transferencias"
+            />
+            <CartaoResumo
+              fundo="branco"
+              tom="areia"
+              icone={<ListTodo />}
+              valor={contagem!.tarefasHoje + contagem!.tarefasAtrasadas}
+              rotulo={numeros.tarefas.rotulo}
+              contexto={numeros.tarefas.contexto}
+              href="#inicio-tarefas"
+            />
+          </div>
+        ) : null}
+      </CabecalhoSaudacao>
+      <div className="grid grid-cols-1 gap-8 pt-8 lg:grid-cols-[62fr_38fr]">
+        <section
+          aria-labelledby="inicio-transferencias"
+          className="scroll-mt-4"
+        >
+          <div className="mb-3 flex items-center gap-3">
+            <TileIcone tom="argila" forma="quadrado">
+              <Inbox />
+            </TileIcone>
+            <h2
+              id="inicio-transferencias"
+              className="font-titulo text-2 text-texto"
+            >
+              Transferências
+            </h2>
+          </div>
           {fila ? (
             <FilaTransferencias
               fila={fila}
@@ -167,12 +232,13 @@ async function InicioComercial({ usuarioId }: { usuarioId: string }) {
           )}
         </section>
 
-        <section aria-labelledby="inicio-tarefas">
+        <section aria-labelledby="inicio-tarefas" className="scroll-mt-4">
           {tela ? (
             <ListaTarefas
               grupos={gruposHoje}
               titulo="Tarefas de hoje"
               idTitulo="inicio-tarefas"
+              icone={<ListTodo />}
             />
           ) : (
             <>

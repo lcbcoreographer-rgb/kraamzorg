@@ -41,6 +41,15 @@ const CORES_DO_TEMA = [
   "sucesso-borda",
   "alerta-hover",
   "lateral-hover",
+  "dourado-claro",
+  "dourado-medio",
+  "areia-clara",
+  "salvia-clara",
+  "salvia-media",
+  "lavanda-clara",
+  "lavanda-media",
+  "argila-clara",
+  "argila-media",
   "fundo",
   "superficie",
   "superficie-2",
@@ -72,15 +81,17 @@ const TAMANHOS_DE_TEXTO = [
   "dado",
   "dado-lg",
   "marca",
+  "numero",
+  "numero-sm",
 ] as const;
 
 const mesclarClasses = extendTailwindMerge({
   extend: {
     theme: {
       color: [...CORES_DO_TEMA],
-      radius: ["1", "2", "3", "pilula"],
+      radius: ["1", "2", "3", "pilula", "colo"],
       shadow: ["1", "2", "anel-hoje"],
-      spacing: ["toque", "toque-campo", "margem-tela"],
+      spacing: ["toque", "toque-campo", "toque-grande", "margem-tela"],
       container: ["conteudo", "leitura", "lateral", "portal", "acesso"],
       ease: ["saida", "estado"],
       font: ["titulo"],

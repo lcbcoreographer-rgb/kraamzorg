@@ -59,6 +59,8 @@ import {
   BarraLateral,
   type GrupoBarraLateral,
 } from "@/components/ui/barra-lateral";
+import { JanelaManha } from "@/components/ilustracoes";
+import { VitrineColo } from "./vitrine-colo";
 import {
   formatarData,
   formatarDataHora,
@@ -242,36 +244,41 @@ const LINHAS_TABELA: LinhaTabela[] = [
 ];
 
 const ITENS_ABAS: ItemAbaInferior[] = [
-  { rotulo: "Hoje", href: "#", icone: <House />, ativo: true },
-  { rotulo: "Famílias", href: "#", icone: <Users /> },
+  { rotulo: "Hoje", href: "#exemplo-hoje", icone: <House />, ativo: true },
+  { rotulo: "Famílias", href: "#exemplo-familias", icone: <Users /> },
   {
     rotulo: "Alertas",
-    href: "#",
+    href: "#exemplo-alertas",
     icone: <Siren />,
     contador: 2,
     rotuloContador: "2 alertas",
   },
-  { rotulo: "Perfil", href: "#", icone: <UserRound /> },
+  { rotulo: "Perfil", href: "#exemplo-perfil", icone: <UserRound /> },
 ];
 
 const GRUPOS_LATERAL: GrupoBarraLateral[] = [
   {
     titulo: "Comercial",
     itens: [
-      { rotulo: "Início", href: "#", icone: <House />, ativo: true },
-      { rotulo: "Pipeline", href: "#", icone: <Kanban /> },
-      { rotulo: "Famílias", href: "#", icone: <Users /> },
+      {
+        rotulo: "Início",
+        href: "#exemplo-inicio",
+        icone: <House />,
+        ativo: true,
+      },
+      { rotulo: "Pipeline", href: "#exemplo-pipeline", icone: <Kanban /> },
+      { rotulo: "Famílias", href: "#exemplo-familias", icone: <Users /> },
     ],
   },
   {
     titulo: "Operação",
     itens: [
-      { rotulo: "Radar", href: "#", icone: <Radar /> },
-      { rotulo: "Agenda", href: "#", icone: <CalendarDays /> },
-      { rotulo: "Equipe", href: "#", icone: <UserCheck /> },
+      { rotulo: "Radar", href: "#exemplo-radar", icone: <Radar /> },
+      { rotulo: "Agenda", href: "#exemplo-agenda", icone: <CalendarDays /> },
+      { rotulo: "Equipe", href: "#exemplo-equipe", icone: <UserCheck /> },
       {
         rotulo: "Alertas",
-        href: "#",
+        href: "#exemplo-alertas",
         icone: <Siren />,
         contador: 2,
         contadorAlerta: true,
@@ -284,7 +291,7 @@ const GRUPOS_LATERAL: GrupoBarraLateral[] = [
     itens: [
       {
         rotulo: "Design system",
-        href: "#",
+        href: "#exemplo-design-system",
         icone: <LayoutDashboard />,
         ativo: false,
       },
@@ -317,14 +324,19 @@ export function VitrineDesignSystem() {
           /design-system · fora do ar em produção
         </p>
         <h1 className="font-titulo text-display text-texto lg:text-display-lg">
-          Caderneta de visita
+          Colo
         </h1>
         <p className="text-corpo text-texto-2 max-w-[64ch]">
-          Componentes de src/components/ui com dados fictícios (famílias
-          &ldquo;Família Teste&rdquo;, equipe com nome inventado, DESIGN.md
-          seção 9). Tokens só de src/app/globals.css.
+          A direção visual do Kraamzorg OS (DESIGN.md, seção 2): a informação em
+          blocos macios com a cor do que ela é, números grandes, pílula para
+          tudo que se toca e silêncio nos momentos difíceis. Componentes de
+          src/components com dados fictícios (famílias &ldquo;Família
+          Teste&rdquo;, equipe com nome inventado). Tokens só de
+          src/app/globals.css.
         </p>
       </header>
+
+      <VitrineColo />
 
       <Secao
         id="s-cores"
@@ -854,22 +866,28 @@ export function VitrineDesignSystem() {
         descricao="Diz o que é, por que está vazio e a próxima ação."
       >
         <EstadoVazio
+          ilustracao={<JanelaManha tamanho={112} />}
           titulo="Nenhuma visita marcada para hoje"
-          texto="Quando a coordenação oferecer uma família, a oferta aparece aqui para você aceitar ou recusar."
-          acao={<Botao variante="secundario">Ver famílias atribuídas</Botao>}
+          texto="Quando a coordenação marcar uma visita, ela aparece aqui com o endereço e o horário."
+          acao={<Botao variante="secundario">Ver minha semana</Botao>}
+        />
+        <EstadoVazio
+          variante="tracejado"
+          titulo="Ainda sem registro neste dia"
+          texto="O tracejado fica para o que ainda não aconteceu dentro de outro bloco, sem ilustração."
         />
       </Secao>
 
       <Secao
         id="s-abas-inferiores"
-        titulo="Abas inferiores"
-        descricao="Celular e tablet. Estática nesta sessão: os itens vêm por propriedade (a navegação por papel é do P07 em diante)."
+        titulo="Navegação inferior em pílula"
+        descricao="Celular e tablet: pílula marinho flutuante, a aba ativa em pílula creme. Os itens vêm por propriedade; a navegação por papel é da casca."
       >
-        <div className="rounded-3 border-linha relative h-24 max-w-sm overflow-hidden border">
+        <div className="max-w-sm">
           <AbasInferiores
             rotulo="Exemplo de navegação"
             itens={ITENS_ABAS}
-            className="!absolute inset-x-0 bottom-0"
+            posicao="solta"
           />
         </div>
       </Secao>
@@ -877,10 +895,11 @@ export function VitrineDesignSystem() {
       <Secao
         id="s-barra-lateral"
         titulo="Barra lateral"
-        descricao="Computador, 248 px, agrupada. Estática nesta sessão, mesma ressalva das abas inferiores."
+        descricao="Computador: bloco marinho solto das bordas, com raio 28, agrupado; o item ativo em pílula creme."
       >
-        <div className="rounded-3 border-linha relative h-[420px] max-w-xs overflow-hidden border">
+        <div className="max-w-[248px]">
           <BarraLateral
+            posicao="solta"
             nomeMarca="Kraamzorg OS"
             simboloSrc="/brand/simbolo-provisorio.png"
             grupos={GRUPOS_LATERAL}
@@ -899,7 +918,6 @@ export function VitrineDesignSystem() {
                 </div>
               </div>
             }
-            className="!absolute inset-y-0 left-0 !h-full !w-full"
           />
         </div>
         <p className="text-apoio text-texto-2 flex items-center gap-2">

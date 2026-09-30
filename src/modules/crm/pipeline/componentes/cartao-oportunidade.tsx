@@ -69,7 +69,7 @@ export function CartaoOportunidadePipeline({
       <div className="flex flex-col gap-2">
         <Link
           href={`/familias/${cartao.familiaId}`}
-          className="text-corpo min-h-toque inline-flex items-center font-semibold hover:underline"
+          className="font-titulo text-3 min-h-toque inline-flex items-center font-medium underline-offset-4 hover:underline"
         >
           {cartao.nomeFamilia}
         </Link>

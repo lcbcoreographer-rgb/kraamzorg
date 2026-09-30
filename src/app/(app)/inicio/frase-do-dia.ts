@@ -89,3 +89,48 @@ export function fraseDoDia({
   const segunda = separador === ". " ? maiuscula(tarefas) : tarefas;
   return `${maiuscula(transferencias)}${separador}${segunda}.`;
 }
+
+/**
+ * Rótulo e contexto do trio de números do Início do comercial (DESIGN.md,
+ * 2.2): nenhum número sozinho, cada um com a frase do que fazer com ele.
+ */
+export function resumoDoInicio(
+  contagem: ContagemDoDia,
+  extra: { maxima: number; comVoce: number },
+): Record<
+  "esperando" | "comEquipe" | "tarefas",
+  { rotulo: string; contexto: string }
+> {
+  const tarefas = contagem.tarefasHoje + contagem.tarefasAtrasadas;
+  return {
+    esperando: {
+      rotulo: plural(
+        contagem.transferenciasEsperando,
+        "transferência esperando",
+        "transferências esperando",
+      ),
+      contexto:
+        extra.maxima > 0
+          ? `${extra.maxima} com prioridade máxima`
+          : contagem.transferenciasEsperando > 0
+            ? "por ordem de prazo"
+            : "fila em dia",
+    },
+    comEquipe: {
+      rotulo: "com a equipe",
+      contexto:
+        extra.comVoce > 0 ? `${extra.comVoce} com você` : "nenhuma com você",
+    },
+    tarefas: {
+      rotulo: plural(tarefas, "tarefa para hoje", "tarefas para hoje"),
+      contexto:
+        contagem.tarefasAtrasadas > 0
+          ? plural(
+              contagem.tarefasAtrasadas,
+              "1 atrasada",
+              `${contagem.tarefasAtrasadas} atrasadas`,
+            )
+          : "nenhuma atrasada",
+    },
+  };
+}

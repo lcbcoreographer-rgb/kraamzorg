@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { CircleCheck } from "lucide-react";
+import { XicaraQuente } from "@/components/ilustracoes";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
+import { TileIcone } from "@/components/ui/tile-icone";
 import type { GrupoTarefasComFreio } from "../dados";
 import { CartaoTarefa, type TarefaFeita } from "./cartao-tarefa";
 
@@ -17,6 +19,7 @@ export function ListaTarefas({
   grupos,
   titulo,
   idTitulo,
+  icone,
 }: {
   grupos: GrupoTarefasComFreio[];
   /**
@@ -27,6 +30,8 @@ export function ListaTarefas({
    */
   titulo?: string;
   idTitulo?: string;
+  /** Ícone do assunto no tile ao lado do título (direção "Colo", DESIGN.md 2.7). */
+  icone?: ReactNode;
 }) {
   const [feitas, setFeitas] = useState<TarefaFeita[]>([]);
   const aoFeita = useCallback((feita: TarefaFeita) => {
@@ -51,21 +56,30 @@ export function ListaTarefas({
   return (
     <div className="flex flex-col gap-8">
       {titulo ? (
-        <h2
-          id={idTitulo}
-          className="font-titulo text-2 text-texto -mb-5 flex items-baseline gap-2"
-        >
-          {titulo}
-          {umGrupoSo ? (
-            <span className="text-texto-2 font-mono text-[length:inherit] tabular-nums">
-              · {visiveis[0]!.tarefas.length}
-            </span>
+        <div className="-mb-5 flex items-center gap-3">
+          {icone ? (
+            <TileIcone tom="areia" forma="quadrado">
+              {icone}
+            </TileIcone>
           ) : null}
-        </h2>
+          <h2
+            id={idTitulo}
+            className="font-titulo text-2 text-texto flex items-center gap-2"
+          >
+            {titulo}
+            {umGrupoSo ? (
+              <span className="rounded-pilula bg-areia text-apoio text-texto inline-flex min-h-7 min-w-7 items-center justify-center px-2 font-mono tabular-nums">
+                <span className="sr-only">, </span>
+                {visiveis[0]!.tarefas.length}
+              </span>
+            ) : null}
+          </h2>
+        </div>
       ) : null}
       {visiveis.length === 0 ? (
         <EstadoVazio
           nivelTitulo={titulo ? "h3" : "h2"}
+          ilustracao={<XicaraQuente tamanho={104} />}
           titulo={
             feitas.length > 0 ? "Tudo feito por agora" : "Nenhuma tarefa agora"
           }

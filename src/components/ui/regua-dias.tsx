@@ -3,8 +3,9 @@ import { OctagonPause, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * Régua de dias (DESIGN.md, seção 2 e 6): a forma assinatura da direção
- * "Caderneta de visita". Um segmento por dia, "D4" em mono e a data curta.
+ * Régua de dias (DESIGN.md, seções 2.8 e 6): a forma do tempo, que veio
+ * da direção "Caderneta de visita" e continua na direção "Colo". Um
+ * segmento por dia, "D4" em mono e a data curta.
  * Toda noção de tempo do produto herda desta forma (acompanhamento D1 a
  * D12, progresso do checklist, semana da equipe, prazo de SLA).
  *

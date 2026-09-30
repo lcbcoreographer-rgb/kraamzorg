@@ -1,6 +1,6 @@
 # DESIGN.md · Kraamzorg OS
 
-Direção visual e de experiência do Kraamzorg OS. Vale para todas as telas do app (enfermeira, comercial, coordenação, diretoria, financeiro). Tokens em `docs/prototipo/assets/tokens.css`; componentes em `docs/prototipo/assets/base.css`; vitrine em `docs/prototipo/_kit.html`. No produto, a fonte de tokens continua sendo `src/app/globals.css` (PRD 20.1): este arquivo diz o que entra lá. A camada de acolhimento, que vale sobre toda a direção, está na seção 11; voz e microcopy, em `docs/design/voz.md`.
+Direção visual e de experiência do Kraamzorg OS. Vale para todas as telas do app (enfermeira, comercial, coordenação, diretoria, financeiro). Tokens em `docs/prototipo/assets/tokens.css`; componentes em `docs/prototipo/assets/base.css`; vitrine em `docs/prototipo/_kit.html`. No produto, a fonte de tokens continua sendo `src/app/globals.css` (PRD 20.1): este arquivo diz o que entra lá. A camada de acolhimento, que vale sobre toda a direção, está na seção 11; voz e microcopy, em `docs/design/voz.md`. [v4.4] A direção passou de "Caderneta de visita" para "Colo" (seção 2); o que mudou em token está na seção 4, as ilustrações na 5.1, os componentes novos na 6 e o guia para aplicar numa tela na 6.1.
 
 Leitura de contexto em três linhas. O PRD trava paleta, fontes e regras de acessibilidade; o que faltava era direção, hierarquia e padrão de componente. O arquivo de clima atual citado pela skill interface-2026 não existe nesta sessão, então a direção foi decidida por princípio (vocabulário estético, leis visuais), sem inventar tendência. O launcher da Impeccable não rodou (baixa binário); PRODUCT.md e este arquivo foram escritos lendo o projeto direto, e o sorteio de direção (`concept-seed`) não aconteceu.
 
@@ -57,47 +57,122 @@ Modo de redesign (protocolo Taste 11 e Impeccable): **overhaul visual com preser
 
 ---
 
-## 2. Direção: Caderneta de visita
+## 2. Direção: Colo [v4.4]
 
-**Família estética.** Print-tech, papel com dado (interface-2026, família 2), em registro contido para app de trabalho (Impeccable, modo Operate, cor Restrained). Descartadas por escrito: Suave orgânico (a leitura óbvia de "saúde materna", raio alto e blob, cansa em uso diário e dilui o alerta clínico); Instrumento de precisão em quase-preto (contradiz a marca creme e o quarto claro de dia); Editorial impresso com serifa (bonito para a apresentação, lento para formulário e proibido como padrão pela Taste); Vasto e quieto (espaço demais para uma tela de polegar).
+Esta seção substitui a direção "Caderneta de visita" (25/09). Pedido do dono do projeto em 30/09: o visual tinha ficado com cara de IA, genérico e burocrático; ele quer um app mais vivo, mais acolhedor e mais gostoso de usar, com formas suaves, blocos de cor e informação muito mais bem dividida, seguindo as referências que mandou e sem sair da identidade da Kraamzorg. É um CRM interno, e o acolhimento precisa estar no dia de quem atende, principalmente no checklist que a enfermeira responde na casa da família.
 
-**Termos concretos.** Fundo creme de papel; régua de dias D1 a D12 em pílulas; dado em mono tabular (datas, IG, temperatura, códigos PU-01); rótulo em frase, nunca em caixa alta; um acento dourado por tela, só para "hoje", "ativo" e "atual"; cor semântica só quando há estado clínico ou operacional; hachura para o que é provável e ainda não é fato; tracejado para o que ainda não aconteceu; cabeçalho da família como faixa de areia que vira ameixa com o freio.
+Leitura de contexto. O arquivo de clima da interface-2026 continua ausente; a direção sai por princípio e pelas cinco referências do dono (lidas uma a uma, abaixo). A paleta, as fontes e o logo são da marca (PRD 20.2) e não mudam: a vivacidade vem dos tons de apoio [v4.4] e da forma. Modo Operate da Impeccable (a pessoa está numa tarefa), com cor Committed nas telas de abertura (Hoje, Início) e Restrained nas telas densas (tabelas, formulários da coordenação).
 
-**Referência que ancora.** A própria planilha do DOC 2, com os dias lado a lado, e a caderneta de saúde que toda família brasileira leva para casa: papel, colunas por data, anotação curta, carimbo de quem atendeu. A tela é a caderneta da visita de hoje, não um painel.
+Diagnóstico em uma frase. O problema não era de cor: tudo morava em cartão branco igual, com o mesmo peso, sobre creme; nada dizia onde começa uma coisa e termina outra, nenhum número tinha tamanho de número e o checklist era uma planilha de linhas finas.
 
-**Intenção em uma frase.** A enfermeira abre, vê em que dia está, responde com o polegar e só vê cor quando algo pede ação. A seção 11 acrescenta o acolhimento: chamar pelo nome, situar no tempo da família, dizer o próximo passo e baixar o volume nos momentos difíceis.
+### 2.1 Nome, âncora e intenção
 
-**Dispositivos de repertório escolhidos.**
+**Colo.** O símbolo da marca desenha um colo: a curva dourada segura as duas figuras. A direção herda o gesto, sem redesenhar o símbolo: todo conteúdo mora num bloco macio que o segura, com cantos generosos e uma base que às vezes se curva como a do símbolo. A informação se divide em blocos que encaixam uns nos outros, cada um com a cor do que ele é.
 
-1. _Régua de dias_ (forma assinatura, derivada de "progresso em blocos segmentados"): toda noção de tempo do produto herda dela. Acompanhamento D1 a D12, progresso dos blocos do checklist, semana da equipe em turnos, prazo de SLA. Feito em marinho cheio, hoje com borda dourada, ficha pendente hachurada, futuro tracejado, alerta em alerta, sensível em ameixa.
-2. _Estado desenhado, não omitido_ (repertório 1.4): o que falta aparece como forma tracejada no lugar onde vai estar; o que é provável (reserva, janela de DPP) aparece hachurado.
-3. _Cabeçalho que muda de estado_ (variação da inversão, repertório 1.2): a faixa de areia com nome, quatro datas e freio vira ameixa inteira quando o freio está puxado. Um bloco de cor por tela, e ele significa algo.
+**Intenção.** Quem abre o app sente que alguém arrumou o dia para ela: o nome no topo, o dia, o que espera por ela em números grandes, cada assunto no seu bloco, e o que falta fazer com cara de coisa gostosa de completar. Nos momentos difíceis, a tela fica quieta.
 
-**O que a direção recusa, por escrito.**
+**Família estética.** Suave estruturado em registro de app de trabalho: blocos de tom chapados (sem gradiente, sem vidro, sem textura), pílula e círculo para tudo que se toca, sombra quase imperceptível. Descartadas por escrito: o pastel saturado das referências (roxo, rosa, laranja de outras marcas), o 3D de mascote, o modo escuro, e a volta ao cartão branco em grade.
 
-- Moldura de canvas com app flutuante de raio alto (rouba área útil no celular).
-- Painel de KPIs em grade de quatro, número sem comparação, anel de progresso, gráfico decorativo.
-- Rótulo pequeno em caixa alta acima de título (kicker). Numeração de seção 01, 02, 03.
-- Gradiente, vidro fosco, blob, anéis decorativos, foto de banco.
-- Glifo Unicode ou emoji como ícone. Mistura de bibliotecas de ícone.
-- Cor por humor. Verde e vermelho como único uso de cor. Vermelho para luto.
-- Dourado como cor de texto no claro (2,5:1). Branco sobre dourado.
-- Sombra como separador. Borda colorida grossa à esquerda de cartão ou alerta.
-- Modal como primeira ideia. Confirmação em lote ("marcar tudo como normal").
-- Texto com travessão, "Ops!", ponto de exclamação em sucesso, jargão técnico para a família.
+### 2.2 O que levamos de cada referência
 
-**Contrato de direção (Impeccable, para quem revisa).**
+| Referência | O que tem | Como entra na Kraamzorg |
+| :-- | :-- | :-- |
+| App de estudos em três telas (verde, amarelo, coral) | "Hi, Elizabeth" e a data no topo; três números grandes em tiles com o ícone num círculo colorido (44 total, 12 concluídas, 34 a seguir); abas "Weekly / Month" em pílula; blocos de cor com borda recortada e uma aba no meio da borda | Cumprimento pelo primeiro nome e o dia no topo do Hoje e do Início ("Bom dia, Talita" e "Hoje, quarta 30/09"). Trio de cartões-resumo com número grande: no Hoje, visitas de hoje, fichas pendentes e visitas de amanhã; no Início do comercial, transferências esperando, tarefas de hoje e conversas com a equipe. Abas do pipeline em pílula. |
+| Painel com personagem e cartões pastel | Cartões de número com o ícone num quadradinho de cor, lista de tarefas em que cada linha tem o seu tile de cor e um selo de estado | Cartão-resumo com tile; lista em blocos (tarefas, evoluções, a agenda de amanhã) com tile por assunto e selo de estado à direita. Sem personagem e sem "You're doing great". |
+| Coleção de telas de app (check-in diário, parabéns, planos) | Grade de check-in com rótulo pequeno e valor grande (Sono 9 h, Energia 1850); abas segmentadas; tela de conclusão com ilustração e uma ação | O resumo do checklist em grade de etapas, cada uma com o estado; a comemoração do checklist completo com a ilustração do caderno de visita e uma ação só ("Assinar registro do D4"), sem "Parabéns". |
+| Quiz com personagem amarelo | Uma pergunta por tela, respostas em botões grandes e redondos, barra de progresso gorda com a porcentagem, blocos de número ("237 minutos", "78%") | Uma pergunta por cartão no checklist, com Sim e Não em pílulas de 56 px lado a lado; barra de progresso da etapa ("5 de 9 respondidas") e anel das etapas da visita. |
+| Painel escuro de coleções | Abas em pílula no topo, cartões com a borda de cima em onda, botão de ação com o valor dentro de uma pílula | A forma "colo" (bloco com a base curva) no bloco de abertura do dia e no bloco da etapa do checklist. O escuro fica de fora: o marinho aparece como um bloco forte por tela, não como tema. |
 
-- THESIS: a tela é a caderneta da visita de hoje; recusa o painel de SaaS com lateral cheia e grade de KPIs.
-- OWN-WORLD: creme de papel, marinho de tinta, dourado só para "agora", areia para a família, ameixa para o luto; pílulas para tudo que se toca e para os dias; mono para tudo que é medida.
-- STORY: a enfermeira entende em que dia está, responde com uma mão e confia que nada se perdeu; a coordenação vê primeiro o que pede decisão.
-- FIRST VIEWPORT (enfermeira, Hoje): título "Hoje, quinta 24/09" em Jost 32; indicador de sincronização à direita; cartão da próxima visita com régua de dias e o botão "Cheguei, iniciar visita" na metade inferior; abas inferiores.
-- FORM: caderneta (lista 1 de 7 candidatos: caderneta de saúde, planilha DOC 2, prontuário, kraamdossier holandês, agenda de papel, quadro de escala, carimbo de visita). Sem chave de sorteio: launcher indisponível.
-- FINISH: esta entrega termina no kit revisado e nestes documentos; cada tela construída depois passa por captura 390 e 1280, lint e revisão contra este arquivo.
+### 2.3 Princípios
+
+1. **Blocos, não linhas.** Cada assunto mora num bloco com fundo de tom, cantos de 28 px e espaço em volta. Divisória fina só dentro de tabela. Se dois assuntos dividem um cartão, viram dois blocos.
+2. **A cor diz o que é.** Tom pelo papel, nunca por humor: `dourado-claro` é o agora (o dia, a visita em curso, a etapa atual); `areia-clara` é a família e o que já foi guardado; `salvia-clara` é o que está feito; `lavanda-clara` é o tempo (amanhã, a semana, a agenda); `argila-clara` são as pessoas e as conversas. Branco é o trabalho que ainda falta: a pergunta sem resposta, o cartão da tarefa. O marinho é a ação e o único bloco forte da tela.
+3. **Número com tamanho de número.** Contagem de resumo em Jost de 44 px, com o contexto embaixo em frase ("manhã e tarde", "a primeira vence às 14:00"). Nenhum número sozinho.
+4. **Tudo que se toca é redondo.** Botão, aba, seletor, filtro e navegação em pílula ou círculo, com 44 px no mínimo e 56 px nas respostas do checklist.
+5. **Completar é gostoso.** Progresso aparece onde há algo a completar (etapas da visita, perguntas da etapa, fichas da semana), em anel segmentado e em barra de pílula, e fecha com a comemoração do checklist completo.
+6. **Silêncio no difícil.** Em freio, perda, intercorrência e alerta clínico a tela perde tom, ilustração e movimento: fica creme, branco, ameixa e alerta, como na seção 11.8.
+
+### 2.4 Formas
+
+- **Raio, quatro degraus**: `raio-1` 6 px (caixa de seleção, marca pequena), `raio-2` 16 px (campo, faixa, item de lista, bloco da régua), `raio-3` 28 px (cartão, bloco, folha inferior, painel), `raio-pilula` (botão, aba, seletor, selo, navegação). O que se toca é pílula ou círculo; o que contém é 16 ou 28.
+- **Colo** (`rounded-colo`): bloco com os cantos de cima em 28 px e a base inteira em arco raso (40 px de flecha), como a curva do símbolo. Um por tela, no bloco de abertura (cumprimento do dia, etapa do checklist, comemoração). Pede 40 px de respiro embaixo.
+- **Encaixe**: tile, anel ou pílula que se apoia na borda entre dois blocos, ou um bloco de tom médio dentro de um claro (o tile do ícone dentro do cartão-resumo). Forma que encaixa em outra, nunca cartão dentro de cartão branco.
+- **Sombra**: `sombra-1` só no que é trabalho a fazer (pergunta sem resposta, cartão tocável); bloco de tom não leva sombra. `sombra-2` para a navegação flutuante, a barra de ação e a folha inferior.
+
+### 2.5 Blocos de cor
+
+| Bloco | Fundo | Texto | Onde |
+| :-- | :-- | :-- | :-- |
+| Abertura do dia | `dourado-claro`, forma colo | marinho e `marinho-72` | Topo do Hoje e do Início |
+| Cartão-resumo | tom claro do assunto, tile no tom médio | número em marinho, contexto em `marinho-72` | Trio de números abaixo da abertura |
+| Pergunta sem resposta | branco, `sombra-1` | marinho | Checklist, formulário da enfermeira |
+| Pergunta respondida | `areia-clara`, sem sombra, marca de check em `salvia-media` | marinho | Checklist |
+| Coluna do pipeline | `areia-clara` | marinho | Pipeline no computador |
+| Agenda e amanhã | `lavanda-clara` | marinho e `marinho-72` | Hoje (amanhã), Perfil (semana) |
+| Feito | `salvia-clara` | marinho | Comemoração, tarefa concluída |
+| Bloco forte | marinho cheio | creme e `creme-62` | Navegação, um destaque por tela no máximo |
+
+Regras: texto sobre tom claro em marinho ou `marinho-72`; sobre tom médio, só marinho; `marinho-62` nunca sobre tom (PRD 20.2). No máximo quatro tons diferentes por viewport. Estado (alerta, aviso, sucesso, sensível) continua com lavado, borda, ícone e palavra, e nunca é pintado com tom de apoio.
+
+### 2.6 Tipografia com números grandes
+
+| Nível | Fonte | Tamanho | Uso |
+| :-- | :-- | :-- | :-- |
+| `text-numero` | Jost 500, -0,02em, tabular | 44 px / 1 | Número do cartão-resumo (2 visitas, 4 tarefas) |
+| `text-numero-sm` | Jost 500, -0,01em | 24 px / 1 | Número dentro do anel, contagem da coluna do pipeline |
+| `t-display` | Jost 400 | 32 px celular, 40 px computador | O dia no bloco de abertura, o nome da etapa |
+| `saudacao` | Inter 500 | 17 px (`text-3`) | "Bom dia, Talita" acima do dia |
+
+Jost carrega número e frase humana (PRD 20.2: "números grandes"); IBM Plex Mono continua só em medida de linha (hora, data, D4, R$, código PU-01). O número do cartão-resumo usa algarismos tabulares da Jost para não pular quando muda.
+
+### 2.7 Ícone em tile
+
+`TileIcone`: o ícone Lucide (traço 1,75, marinho) dentro de um círculo ou de um quadradinho de raio 16, no tom médio do assunto. Três tamanhos: 36, 44 e 56 px. O tile diz o assunto (visita, tarefa, conversa, agenda); estado continua com o ícone próprio na faixa (sirene, octógono), sem tile. Ícone de estado nunca vai num tile alegre.
+
+### 2.8 Progresso
+
+- **Anel segmentado** (`AnelProgresso`): um segmento por etapa, feito em marinho, atual em dourado, a fazer na trilha `marinho-14`, com o número no centro em Jost. Substitui a rosca contínua: cada segmento é uma etapa real. Usado no checklist (etapas completas da visita).
+- **Barra em pílula** (`BarraProgresso`): trilha de 10 px, preenchimento marinho com a ponta redonda, e a frase ao lado ("5 de 9 respondidas"). Completa, ganha o check e a frase "Tudo respondido nesta etapa".
+- **Blocos segmentados** (régua de dias, `ProgressoEtapas`): continuam para tempo (D1 a D12) e para a trilha das etapas.
+- Nunca anel ou barra decorativa: todo progresso conta uma coisa que a pessoa faz.
+
+### 2.9 Navegação
+
+- **Celular**: pílula marinho flutuante, 64 px, a 12 px das bordas e do fundo, sombra `sombra-2`. Ícone de 22 px e rótulo de 13 px em todas as abas; a aba ativa vira uma pílula creme com ícone e rótulo em marinho. Contador em `alerta` só para alerta clínico ou transferência vencendo.
+- **Computador**: barra lateral marinho de 248 px, solta 12 px das bordas, com raio 28. Item ativo em pílula creme com o ícone marinho; os outros em `creme-62`.
+- **Abas de conteúdo**: `AbasPilula`, trilha areia e a aba ativa em pílula branca com sombra leve (pipeline, filtros, períodos).
+
+### 2.10 Estados vazios
+
+Estado vazio é um bloco `areia-clara` com uma das ilustrações da casa (seção 5.1), o título que diz o que é, o texto que diz quando algo aparece ali e a próxima ação. Tipos e ilustração: sem tarefas (xícara quente), sem visitas hoje (janela com sol da manhã), sem conversas (sino calmo), busca sem resultado (folha e lupa), sem sinal (nuvem sem sinal), sem famílias atribuídas (chave de casa), ainda em construção (broto), dia tranquilo de plantão (lua e nuvem). O texto continua o da seção 11.7: fala do que a pessoa vai ter, nunca dos componentes da tela.
+
+### 2.11 Comemoração do checklist completo
+
+Quando a última pergunta obrigatória da visita é respondida e não há alerta na visita, o resumo abre um bloco `salvia-clara` em forma colo com a ilustração do caderno de visita: o traço se desenha em 700 ms, o check aparece por último, e para. Texto calmo, sem exclamação e sem "parabéns": "Checklist do D4 completo. Falta só a sua assinatura." Com `prefers-reduced-motion`, a ilustração aparece pronta. Com alerta na visita ou família em estado sensível, não há comemoração: fica a linha "Tudo respondido" em texto.
+
+### 2.12 O que nunca fazer
+
+- Cor ou tom fora do `globals.css`; roxo, rosa, laranja ou azul de outra marca; gradiente; vidro; textura.
+- Tom de apoio, ilustração ou movimento em freio, perda, intercorrência ou alerta clínico.
+- Tom de apoio para dizer estado; lavanda ao lado do ameixa ou argila ao lado do alerta no mesmo bloco.
+- Mascote, rosto de bebê, coração, mãe desenhada, confete, estrela, emoji; imagem gerada por IA ou de banco.
+- Grade de cartões iguais como estrutura da tela; cartão branco dentro de cartão branco; número sem contexto; anel ou barra sem uma tarefa real por trás.
+- "Parabéns", "Ótimo trabalho", exclamação ou elogio dito pela interface.
+- Rótulo em caixa alta acima de título, numeração decorativa, travessão.
+- Raio fora da escala; sombra que se nota antes do conteúdo.
+
+### 2.13 Contrato de direção (Impeccable, para quem revisa)
+
+- THESIS: o app segura o dia de quem cuida em blocos macios, com cor pelo papel; recusa a grade de cartões brancos iguais.
+- OWN-WORLD: creme de fundo, marinho de tinta e de ação, dourado-claro para o agora, areia para a família, sálvia para o feito, lavanda para o tempo, argila para as pessoas, ameixa para o luto; pílula e círculo para o toque; Jost para número e frase humana, mono para medida.
+- STORY: a enfermeira chega na casa, responde uma pergunta por cartão com o polegar, vê a visita se completar e assina; o comercial abre o dia e vê em três números o que espera por ele.
+- FIRST VIEWPORT (enfermeira, Hoje): bloco colo dourado com "Bom dia, Talita", "Hoje, quarta 30/09" e a frase do dia; trio de cartões-resumo; a próxima visita com a régua de dias e "Cheguei"; navegação em pílula.
+- FORM: colo (bloco de base curva) e encaixe (tile e anel apoiados na borda do bloco).
+- FINISH: telas-piloto (checklist, Hoje, Início do comercial, Pipeline) capturadas em 390 e 1280 px; as outras telas seguem o guia da seção 6.1.
 
 ### Modo escuro: não, nesta fase
 
-Cena de uso: as visitas acontecem de manhã ou à tarde (não existe atendimento noturno, PRD 3.2), em ambiente interno claro; a coordenação e o comercial usam o celular de dia e no começo da noite. O quarto do bebê às vezes está na penumbra, mas ali o problema é brilho, que o próprio aparelho resolve. As cores semânticas (alerta, aviso, sensível) foram calibradas e medidas sobre fundo claro; um segundo tema dobraria a verificação de contraste de cada estado clínico, com risco real de um alerta perder leitura. Decisão: um tema claro, `color-scheme: light`, sem seguir a preferência escura do sistema. Os tokens são semânticos (`--fundo`, `--texto`, `--superficie`), então um tema escuro futuro troca uma camada. Revisitar se a coordenação passar a operar alertas de madrugada com frequência.
+Cena de uso: as visitas acontecem de manhã ou à tarde (não existe atendimento noturno, PRD 3.2), em ambiente interno claro; a coordenação e o comercial usam o celular de dia e no começo da noite. As cores semânticas (alerta, aviso, sensível) e os tons de apoio foram medidos sobre fundo claro; um segundo tema dobraria a verificação de contraste de cada estado clínico, com risco real de um alerta perder leitura. Decisão: um tema claro, `color-scheme: light`, sem seguir a preferência escura do sistema.
 
 ---
 
@@ -150,10 +225,30 @@ Precisam entrar no `@theme` do `globals.css` com estes nomes; é a única amplia
 
 Regra de uso: um acento dourado por tela. Cor semântica só com texto e ícone ao lado, nunca sozinha.
 
+### Tons de apoio [v4.4] (PRD 20.2)
+
+A paleta base não muda. Tons misturados das cores da marca, com versão clara (fundo de bloco) e média (tile, trilha, preenchimento). Superfície, nunca estado; nunca em momento sensível.
+
+| Token           | Receita               | Uso                                                      | Texto por cima                               |
+| :-------------- | :-------------------- | :------------------------------------------------------- | :------------------------------------------- |
+| `dourado-claro` | dourado 30% + creme   | O agora: abertura do dia, etapa atual, hora da visita    | marinho 12,2:1 · `marinho-72` 5,0:1          |
+| `dourado-medio` | dourado 55% + creme   | Tile e trilha dentro do bloco dourado                    | só marinho, 9,8:1                            |
+| `areia-clara`   | areia 55% + creme     | Família, pergunta respondida, coluna, lista, estado vazio | marinho 13,6:1 · `marinho-72` 5,6:1          |
+| `salvia-clara`  | sucesso 18% + creme   | Feito: comemoração, etapa completa                       | marinho 12,3:1 · `marinho-72` 5,1:1          |
+| `salvia-media`  | sucesso 40% + creme   | Tile e marca de check do feito                           | só marinho, 9,0:1                            |
+| `lavanda-clara` | sensivel 18% + branco | Tempo: amanhã, semana, agenda                            | marinho 12,7:1 · `marinho-72` 5,2:1          |
+| `lavanda-media` | sensivel 36% + branco | Tile da agenda                                           | só marinho, 9,5:1                            |
+| `argila-clara`  | alerta 14% + creme    | Pessoas e conversas: contato, transferências             | marinho 12,7:1 · `marinho-72` 5,2:1          |
+| `argila-media`  | alerta 30% + creme    | Tile de pessoas e conversas                              | só marinho, 9,9:1                            |
+
+`marinho-62` nunca vai sobre tom de apoio (3,6 a 4,1:1). Texto de estado (`sucesso`, `aviso-texto`, `alerta`) sobre tom de apoio vai numa pílula com o lavado do próprio estado: `sucesso` direto sobre `areia-clara` fica em 4,4:1.
+
 ### Tipografia
 
 | Nível       | Fonte                      | Tamanho / entrelinha                   | Uso                                                          |
 | :---------- | :------------------------- | :------------------------------------- | :----------------------------------------------------------- |
+| `numero`    | Jost 500, -0,02em, tabular | 44 / 1                                 | Número do cartão-resumo [v4.4]                               |
+| `numero-sm` | Jost 500, -0,01em          | 24 / 1                                 | Número no anel e na contagem [v4.4]                          |
 | `t-display` | Jost 400, -0,02em          | 32 px celular, 40 px computador / 1,05 | Um por tela: "Hoje, quinta 24/09", "Pipeline", "Equipe"      |
 | `t-1`       | Jost 500, -0,015em         | 26 / 1,12                              | Nome da família, título de etapa ou bloco                    |
 | `t-2`       | Jost 500, -0,01em          | 20 / 1,2                               | Título de seção, título do cabeçalho de tela                 |
@@ -168,7 +263,8 @@ Justificativa escrita para Inter (o lint da interface-2026 marca como ALTA e a T
 ### Espaço, raio, sombra, borda
 
 - Espaço: 4, 8, 12, 16, 20, 24, 32, 40, 48, 64. Margem de tela 16 px no celular, 32 px no computador.
-- Raio, quatro degraus: `raio-1` 4 px (caixa de seleção, turno da escala), `raio-2` 12 px (campo, faixa, dia da régua), `raio-3` 20 px (cartão, folha inferior), `raio-pilula` 999 px (botão, selo, seletor sim ou não, aba). Regra: o que se toca é pílula; o que contém é 12 ou 20.
+- Raio, quatro degraus [v4.4]: `raio-1` 6 px (caixa de seleção, turno da escala), `raio-2` 16 px (campo, faixa, item de lista, dia da régua), `raio-3` 28 px (cartão, bloco, folha inferior), `raio-pilula` 999 px (botão, selo, seletor, aba, navegação). Mais a forma `colo` (seção 2.4), um por tela. Regra: o que se toca é pílula ou círculo; o que contém é 16 ou 28. Antes da v4.4 eram 4, 12 e 20 px.
+- Toque: 44 px no mínimo; 52 px na linha de resposta; 56 px (`toque-grande`) nas respostas em cartão do checklist e em "Cheguei".
 - Sombra, duas, tingidas de marinho: `sombra-1` para cartão (quase imperceptível), `sombra-2` para barra inferior, folha e aviso efêmero. Se a sombra é a primeira coisa que se nota, está errada.
 - Borda: divisória 1 px `marinho-14`; campo e controle 1,5 px `marinho-50`; estado 2 px na cor do estado; tracejado só para "ainda não" e "confirme".
 
@@ -188,7 +284,7 @@ Justificativa escrita para Inter (o lint da interface-2026 marca como ALTA e a T
 | Alerta clínico       |                                                             | borda alerta 2 px, fundo `alerta-lavado`, faixa logo abaixo             | pergunta em alerta, faixa logo abaixo      |
 | Copiado, a confirmar |                                                             | borda dourada tracejada, fundo `dourado-lavado`, bloco "Vale para hoje" |                                            |
 
-Movimento: 140 ms para resposta de controle, 220 ms para entrada de aviso, curva de saída suave. Nada de mola, rotação de entrada ou sequência de carregamento. `prefers-reduced-motion` desliga tudo e o esqueleto vira fundo parado.
+Movimento: 140 ms para resposta de controle, 220 ms para entrada de aviso e para o preenchimento da barra de progresso, curva de saída suave. Nada de mola, rotação de entrada ou sequência de carregamento. A única animação autoral é a comemoração do checklist completo (`animate-desenhar`, 700 ms, uma vez). `prefers-reduced-motion` desliga tudo, o esqueleto vira fundo parado e a ilustração aparece pronta.
 
 ### Densidade por papel
 
@@ -221,6 +317,25 @@ Lucide (lucide-static 1.48.0, ISC), traço 1,75, 20 px ao lado de texto de 14 a 
 | Hoje, Famílias, Alertas, Perfil                         | `house`, `users`, `siren`, `user-round`                    |
 | Pipeline, Radar, Agenda, Equipe                         | `kanban`, `radar`, `calendar-days`, `user-check`           |
 
+### 5.1 Ilustrações [v4.4]
+
+Decisão do dono do projeto (PRD 20.2): um conjunto pequeno de ilustrações próprias, quase como ícones. Desenhadas à mão em SVG, em `src/components/ilustracoes` (nunca imagem gerada por IA, nunca banco de imagem). Traço contínuo e arredondado em marinho, com a espessura dos ícones (1,75 px na tela, em qualquer tamanho, por `vector-effect`); uma mancha de fundo num tom claro e uma ou duas formas de destaque em dourado ou tom médio, um pouco fora do traço, como um carimbo. Sem rosto, sem coração, sem bebê, sem pessoa.
+
+| Peça                      | Componente        | Onde entra                                       |
+| :------------------------ | :---------------- | :----------------------------------------------- |
+| Xícara quente             | `XicaraQuente`    | Sem tarefas para hoje                            |
+| Janela com sol da manhã   | `JanelaManha`     | Sem visitas hoje                                 |
+| Sino calmo                | `SinoCalmo`       | Sem conversas, nenhum alerta aberto              |
+| Folha e lupa              | `FolhaLupa`       | Busca ou filtro sem resultado                    |
+| Nuvem sem sinal           | `NuvemSemSinal`   | Sem sinal, com o registro guardado no aparelho   |
+| Caderno de visita         | `CadernoDeVisita` | Comemoração do checklist completo                |
+| Manta dobrada             | `MantaDobrada`    | Dia tranquilo, nenhuma família num estágio       |
+| Chave de casa             | `ChaveDeCasa`     | Primeira vez, nenhuma família atribuída ainda    |
+| Lua e nuvem               | `LuaENuvem`       | Plantão tranquilo, nada pendente até amanhã      |
+| Broto no vaso             | `Broto`           | Parte ainda em construção                        |
+
+Regras: decorativa (`aria-hidden`) quando o título do estado vazio já diz o que é; com `titulo`, vira `role="img"`. Tamanho de 96 a 120 px. Uma por tela. Nunca em alerta clínico, perda, freio ou intercorrência. O catálogo (`ILUSTRACOES`) diz o uso de cada uma: a mesma ilustração conta sempre a mesma coisa.
+
 ---
 
 ## 6. Componentes
@@ -237,7 +352,23 @@ Nomes de classe de `base.css` entre crases. Todo componente interativo tem repou
 
 **Marcação múltipla** (`marcas`). Chips para "o que foi feito hoje" nos blocos de orientação (4, 5, 6, 8), se a coordenação clínica aprovar a troca de sim ou não item a item (ver `fluxos.md`).
 
-**Cartão** (`cartao`, `--plano`, `--areia`, `--tocavel`). Branco, raio 20, `sombra-1`, padding 20. Cartão tocável inteiro é link. Nunca cartão dentro de cartão.
+**Cartão** (`Cartao`, variantes `padrao`, `plano`, `areia` e, [v4.4], os tons `dourado`, `areia-clara`, `salvia`, `lavanda`, `argila`; `forma="colo"`; `tocavel`). Branco com `sombra-1` para o trabalho que falta; bloco de tom sem sombra para o que o assunto é. Raio 28, padding 20. Cartão tocável inteiro é link. Nunca cartão branco dentro de cartão branco.
+
+**Cartão-resumo** [v4.4] (`CartaoResumo`, `src/components/ui/cartao-resumo.tsx`). Tile do assunto, número em Jost de 44 px, rótulo em frase e contexto ("a primeira às 09:00"). `fundo="branco"` dentro do bloco de abertura; `destaque` ocupa a linha no celular. Com `href`, o cartão inteiro é o link.
+
+**Ícone em tile** [v4.4] (`TileIcone`, `tile-icone.tsx`). Círculo ou quadrado de raio 16, 36, 44 ou 56 px, no tom médio do assunto, ícone marinho. Nunca para estado.
+
+**Abas em pílula** [v4.4] (`AbasPilula`, `abas-pilula.tsx`). Trilha areia, aba ativa em pílula branca com `sombra-1`; link ou botão, com `role="tab"`. `larga="celular"` ocupa a linha abaixo de 600 px e deixa o rótulo quebrar.
+
+**Anel segmentado** [v4.4] (`AnelProgresso`, `anel-progresso.tsx`) e **barra em pílula** (`BarraProgresso`, `barra-progresso.tsx`). Seção 2.8. O anel é `aria-hidden`; a barra lê pela frase.
+
+**Lista em blocos** [v4.4] (`ListaBlocos`, `ItemBloco`, `lista-blocos.tsx`). Item de raio 16 e 64 px, tile à esquerda, título e apoio, seta ou selo à direita; branco (trabalho) ou no tom do assunto.
+
+**Comemoração** [v4.4] (`Comemoracao`, `comemoracao.tsx`). Seção 2.11. Quem usa decide quando: nunca com alerta na visita, nunca em estado sensível.
+
+**Cabeçalho com cumprimento** [v4.4] (`CabecalhoSaudacao`, `src/components/shell/cabecalho-saudacao.tsx`, com `saudacao()` de `saudacao.ts`). Bloco colo `dourado-claro` com "Bom dia, Talita" pela hora de Brasília, o dia em `h1` e a frase do dia; o trio de cartões-resumo entra como filho. Telas de abertura (Hoje, Início).
+
+**Pergunta em cartão** [v4.4] (`SimNao arranjo="cartao"`, `CampoInstrumento arranjo="cartao"`, `CampoDoChecklist`). Uma pergunta por cartão no checklist: pergunta em 17 px em cima, Sim e Não em pílulas de 56 px dividindo a largura. Sem resposta, branco com sombra; respondida, `areia-clara` sem sombra, com a marca de check `salvia-media` apoiada na borda de cima; com alerta, borda e lavado do estado; família em estado sensível, branco e plano.
 
 **Selo de estado** (`selo`, `--sucesso`, `--aviso`, `--alerta`, `--sensivel`, `--marinho`, `--destaque`, `--contorno`). Pílula de 28 px, 13 px em 600, ícone de 16 quando o estado é de risco. Sempre texto. `--destaque` (dourado com texto marinho) só para "Oferta pendente" e "Quente".
 
@@ -257,7 +388,7 @@ Nomes de classe de `base.css` entre crases. Todo componente interativo tem repou
 
 **Conversa** (`conversa`, `bolha--familia`, `bolha--isadora`, `bolha--pessoa`, `evento-conversa`). Família à esquerda em branco; Isadora à direita em areia com "Isadora (IA)" e ícone de robô; pessoa da equipe à direita em marinho com nome. Eventos do sistema centralizados ("Transferida ao comercial às 14:02. A IA não volta a responder nesta conversa.").
 
-**Estado vazio** (`vazio`). Contorno tracejado no lugar do conteúdo, título que diz o que é, texto que diz por que está vazio e o que vai aparecer, e a próxima ação como botão. Três tipos com texto diferente (dia tranquilo, primeira vez, ainda em construção), na seção 11.7; o texto fala do que a pessoa vai ter, nunca dos componentes da tela.
+**Estado vazio** (`EstadoVazio`). [v4.4] Bloco `areia-clara` de raio 28 com uma ilustração da seção 5.1, título que diz o que é, texto que diz por que está vazio e o que vai aparecer, e a próxima ação como botão. `variante="tracejado"` guarda o contorno tracejado para o lugar de algo que ainda não aconteceu dentro de outro bloco, sem ilustração. Três tipos com texto diferente (dia tranquilo, primeira vez, ainda em construção), na seção 11.7; o texto fala do que a pessoa vai ter, nunca dos componentes da tela.
 
 **Carregando** (`esqueleto`). Blocos no formato do conteúdo que vem. Nunca spinner no meio da tela.
 
@@ -265,11 +396,26 @@ Nomes de classe de `base.css` entre crases. Todo componente interativo tem repou
 
 **Folha inferior** (`folha`). Para confirmação que protege algo irreversível (assinar, reverter freio, recusar oferta com motivo). No computador vira diálogo centralizado de 520 px. Nunca para tarefa comum.
 
-**Abas inferiores** (`abas-inf`). PRD 20.4 por papel, 4 ou 5 itens, 56 px, ícone 24 e rótulo 13. Ativa em marinho 600 com marca dourada de 3 px em cima. Contador em alerta só para alerta clínico ou transferência vencendo.
+**Abas inferiores** (`AbasInferiores`). PRD 20.4 por papel, 4 ou 5 itens. [v4.4] Pílula marinho flutuante de 64 px, a 8 px das laterais e 12 px do fundo, ícone 22 e rótulo 13 em todas; a ativa vira pílula creme com ícone e rótulo em marinho. O conteúdo sobe `--altura-abas`. Contador em alerta só para alerta clínico ou transferência vencendo.
 
-**Barra lateral** (`lateral`). Computador, marinho, 248 px, símbolo provisório e "Kraamzorg OS" em Jost. Grupos do PRD 20.4 (Comercial, Operação, Experiência, Gestão, Sistema) com título em frase, itens de 44 px, ativo em `marinho-claro` com ícone dourado. Mostra só o que o papel pode abrir.
+**Barra lateral** (`BarraLateral`). Computador, marinho, na coluna de 248 px, símbolo provisório e "Kraamzorg OS" em Jost. [v4.4] Bloco solto 12 px das bordas, raio 28; itens de 44 px em pílula; o ativo vira pílula creme com ícone e texto em marinho. Grupos do PRD 20.4 (Comercial, Operação, Experiência, Gestão, Sistema) com título em frase. Mostra só o que o papel pode abrir.
 
-**Abas de conteúdo** (`abas`). Dentro da ficha: Linha do tempo, Comercial, Conversas, Pré-natal, Atendimento, Financeiro, conforme o papel. Sublinhado dourado de 2 px na ativa. Rolam de lado no celular.
+**Abas de conteúdo** (`abas`). Dentro da ficha: Linha do tempo, Comercial, Conversas, Pré-natal, Atendimento, Financeiro, conforme o papel. Sublinhado dourado de 2 px na ativa. Rolam de lado no celular. [v4.4] Troca de visão curta (duas a quatro opções) usa `AbasPilula`; a ficha passa para `AbasPilula` quando a tela dela for refeita.
+
+### 6.1 Como aplicar o sistema numa tela [v4.4]
+
+Para quem refaz as outras telas. Telas-piloto de referência: checklist (`src/modules/assistencial/checklist/tela-checklist.tsx`), Hoje (`src/app/(enfermeira)/hoje`), Início do comercial (`src/app/(app)/inicio`) e Pipeline (`src/app/(app)/pipeline`).
+
+1. Leia o que a tela responde e para quem. Divida em assuntos: cada assunto é um bloco, e cada bloco tem um título que diz o que é.
+2. Tela que abre o dia usa `CabecalhoSaudacao` com o trio de `CartaoResumo` (o primeiro com `destaque`). As outras usam `CabecalhoTela` com o nome da tela.
+3. Escolha o tom de cada bloco pelo papel (seção 2.5), não por variedade: agora é dourado, família e guardado é areia, feito é sálvia, tempo é lavanda, pessoas e conversas é argila, trabalho a fazer é branco. No máximo quatro tons por viewport e um bloco forte (marinho) por tela.
+4. Título de seção: `TileIcone` quadrado no tom do assunto mais `h2` em Jost 20; contagem numa pílula areia com o número em mono.
+5. Número que resume vira `CartaoResumo` com contexto; lista vira `ListaBlocos`; troca de visão vira `AbasPilula`; progresso de uma tarefa real vira `BarraProgresso` ou `AnelProgresso`.
+6. Estado vazio ganha a ilustração do catálogo (`ILUSTRACOES`) que corresponde ao caso; ainda em construção usa `TelaEmConstrucao`, que já traz o broto.
+7. Família em estado sensível (freio, perda, intercorrência) ou alerta clínico: tire o tom de apoio e a ilustração daquele bloco; fica branco, creme, ameixa ou alerta (seção 11.8). Passe `semTom` onde o componente aceita.
+8. Não crie cor, raio ou sombra: só `globals.css`. Não use valor arbitrário de cor. Texto sobre tom médio é sempre marinho.
+9. Preserve os seletores dos testes: `rounded-3` continua sendo a classe do cartão, e `data-*` que os testes leem não mudam.
+10. Capture em 390 e 1280 px, rode axe (`semViolacaoGrave`) e confira que nada rola de lado.
 
 ---
 
@@ -298,12 +444,13 @@ Regras completas por público, glossário e pares antes e depois em `docs/design
 - Vermelho (`alerta`) para luto, perda ou freio.
 - Pré-preencher resposta clínica, botão "tudo normal", copiar ficha de outra família, colar bloco inteiro de outro dia.
 - Modal para tarefa comum; confirmação sem nome da ação.
-- Ícone que não seja Lucide; emoji como ícone; ícone sem texto significando estado.
+- Ícone que não seja Lucide; emoji como ícone; ícone sem texto significando estado. Ilustração que não seja do catálogo da seção 5.1.
 - Rótulo em caixa alta, kicker acima de título, numeração decorativa de seção.
-- KPI sem comparação, anel de progresso, barra padrão de biblioteca.
+- KPI sem comparação, anel ou barra decorativa (sem tarefa real por trás), barra padrão de biblioteca.
 - Dado real de qualquer paciente, médico ou profissional em protótipo, seed ou captura.
 - Relógio, contagem regressiva, vermelho ou ação comercial na tela de uma família em luto ou em intercorrência (seção 11.8).
-- Coração, bebê desenhado, confete, emoji, "parabéns" ou exclamação ditos pela interface; foto de banco e imagem gerada (seção 11.6).
+- Coração, bebê desenhado, confete, emoji, "parabéns" ou exclamação ditos pela interface; foto de banco e imagem gerada (seção 11.6). [v4.4] As ilustrações da seção 5.1 são a única imagem desenhada, e só em estado vazio e na comemoração.
+- [v4.4] Tom de apoio para dizer estado; tom de apoio, ilustração ou movimento em freio, perda, intercorrência ou alerta clínico.
 - Estado vazio que descreve os componentes da tela em vez do que a pessoa vai ter.
 
 ---
@@ -316,8 +463,13 @@ Regras completas por público, glossário e pares antes e depois em `docs/design
 - Ícones Lucide escolhidos por esta direção (a Taste prefere outra biblioteca; o briefing pediu Lucide).
 - Nomes fictícios: famílias "Família Teste Aurora" a "Família Teste Horizonte", enfermeiras Talita Moreno, Rosana Vieira, Priscila Andrade, Marta Quintela e Joana Bastos, coordenação Beatriz Falcão, comercial Otávio Lemos.
 - Registro das direções usadas (`claude/interface-direcoes-usadas.md`) não existe nesta sessão: registrar "25/09/2026 · Kraamzorg OS · Print-tech papel com dado (Operate) · régua de dias · blocos segmentados".
+- [v4.4] Registro da direção nova, pelo mesmo motivo: "30/09/2026, Kraamzorg OS, Colo (suave estruturado em Operate), dispositivo: bloco de base curva e encaixe, forma de gráfico: anel segmentado e barra em pílula".
+- [v4.4] O protótipo estático (`docs/prototipo`) recebeu só os tokens novos em `tokens.css`; as telas dele continuam na direção anterior e servem de referência de estrutura, não de visual.
+- [v4.4] A vitalidade das telas de abertura depende do primeiro nome da pessoa; no modo demonstração o nome dos perfis de teste é "Perfil Teste ..." e a tela diz "Bom dia, Perfil".
 
 ## 10. Verificação feita
+
+- [v4.4] Direção "Colo": `lint_slop.py` da interface-2026 em `src/components`, telas-piloto e `globals.css`: nenhum achado. Tons medidos pela fórmula WCAG 2.x (tabela da seção 4). Capturas 390 x 844 e 1280 x 800 das telas-piloto, antes e depois, fora do repositório; nenhuma rola de lado. Axe e testes de ponta a ponta do checklist, do pipeline, da navegação, do acolhimento e do design system: resultado em `docs/sessoes/colo-visual-vivo.md`.
 
 - `lint_slop.py` em `docs/prototipo`: seis achados ALTA, todos a declaração de Inter em `tokens.css`, justificada na seção 4. Nenhum travessão, emoji, gradiente, `outline: none` ou raio fora da escala.
 - Kit capturado em 390 x 844 e 1280 x 800, duas rodadas. Corrigidos na segunda: botão do aviso efêmero espremido, régua de 12 dias apertada no celular (virou duas semanas), frases inteiras em mono (prazo, "D4 de 6", rótulos da lista), cartão tocável sem espaçamento interno.
@@ -373,7 +525,7 @@ Leitura de contexto. O arquivo de clima da interface-2026 continua ausente; a di
 
 ### 11.3 Superfície e cor
 
-Cada token ganha um papel de acolhimento. Nenhuma cor nova, nenhum rosa, azul-bebê, pastel, gradiente ou textura: o creme já é o papel.
+Cada token ganha um papel de acolhimento. Nenhuma cor nova, nenhum rosa, azul-bebê, gradiente ou textura: o creme já é o papel. [v4.4] Os tons de apoio (seção 4) acrescentam blocos claros derivados da marca, com papel fixo (seção 2.5); eles não entram na tela de uma família em estado sensível, onde esta tabela vale sozinha.
 
 | Token               | Papel no acolhimento                                                                                                     | Nunca                                                                  |
 | :------------------ | :----------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------- |
@@ -406,8 +558,8 @@ Fundo lavado só atrás do bloco que tem o estado, nunca atrás da tela inteira.
 - **Uma ação por cartão.** Em lista (Conversas, Pipeline, Tarefas, Transferências) o cartão mostra a ação principal e, quando o fluxo pede, a confirmação dela ("Abrir no WhatsApp" e "Enviei"); as outras vão para o menu de três pontos com nome acessível ("Mais ações para Família Teste Aurora").
 - **Espaço em volta do que é sensível.** Bloco sensível tem 32 px acima e abaixo e, no computador, nenhum cartão comercial ao lado na mesma linha.
 - **Filtro recolhido.** No celular, busca e um botão "Filtros" com a contagem dos ativos, que abre a folha inferior. A lista começa na primeira dobra.
-- **Forma.** Os quatro raios da seção 4 não mudam. Tracejado quer dizer "ainda não" ou "confirme" e por isso nunca aparece em luto, onde nada está pendente. Superfícies da família usam `raio-3` nos contêineres e pílula nas ações.
-- **Movimento.** Nenhuma animação de celebração. A faixa de alerta entra uma vez (220 ms) e para. Nada pulsa, nada pisca.
+- **Forma.** Os quatro raios da seção 4 (6, 16, 28 e pílula, v4.4). Tracejado quer dizer "ainda não" ou "confirme" e por isso nunca aparece em luto, onde nada está pendente. Superfícies da família usam `raio-3` nos contêineres e pílula nas ações.
+- **Movimento.** [v4.4] Uma animação de celebração só, a do checklist completo (seção 2.11), e nunca numa família em estado sensível nem numa visita com alerta. A faixa de alerta entra uma vez (220 ms) e para. Nada pulsa, nada pisca.
 
 ### 11.6 Ícones e imagem
 
@@ -415,13 +567,13 @@ Lucide com traço 1,75, como na seção 5. Ícone serve para identificar.
 
 - `baby` só onde separa o bebê da puérpera (abas do checklist, linha da pessoa). `heart`, `sparkles`, `party-popper`, `smile`, `gift` e `star` ficam fora.
 - Perda e intercorrência usam `octagon-pause`, o mesmo do freio. `siren`, `triangle-alert`, `clock-alert` e `hourglass` nunca aparecem numa família em luto.
-- Estado vazio sem ícone grande e sem ilustração.
+- [v4.4] Estado vazio com uma das ilustrações da seção 5.1 (decisão do dono do projeto); nunca em momento sensível.
 
 Imagem: só os arquivos de `/public/brand` (logo e símbolo provisórios) ou nada.
 
 - O logo entra em: entrar, topo do formulário público da família (uma vez), cabeçalho do PDF, portal da família (fase 3). O símbolo entra na barra lateral e no ícone do app.
-- Fora de: estado vazio, tela de sucesso, cartão, e-mail (que é texto puro).
-- Foto e ilustração: nenhuma nesta fase. Nada de banco de imagem e nada gerado por IA (pé de bebê na palma da mão, barriga em contraluz dourado, mãos em coração): é o visual que a anti-ai-slop-visual aponta como padrão de IA e que a família reconhece como anúncio. Se um dia entrar foto, ela é da Kraamzorg, real, com autorização de imagem registrada, e a decisão é do cliente.
+- Fora de: estado vazio, tela de sucesso, cartão, e-mail (que é texto puro). O estado vazio leva a ilustração da seção 5.1, não o logo.
+- Foto: nenhuma nesta fase. Ilustração: só as da seção 5.1 [v4.4]. Nada de banco de imagem e nada gerado por IA (pé de bebê na palma da mão, barriga em contraluz dourado, mãos em coração): é o visual que a anti-ai-slop-visual aponta como padrão de IA e que a família reconhece como anúncio. Se um dia entrar foto, ela é da Kraamzorg, real, com autorização de imagem registrada, e a decisão é do cliente.
 
 ### 11.7 Estados
 
@@ -440,6 +592,8 @@ Filtro sem resultado diz qual filtro está ligado e oferece "Limpar filtros".
 **Erro.** O título diz a ação que falhou ("O aviso ao grupo não saiu", "O código não confere"); o texto diz o que está a salvo e o que fazer. "Não deu certo", "Algo não saiu como esperado" e "Erro" sozinhos saem. Erro não culpa: "8 bpm parece um dígito a menos" no lugar de "valor inválido".
 
 **Sucesso.** Uma linha, sem exclamação: o fato e a consequência. "Assinado às 11:42. Sobe quando houver sinal." Marcos da família (nascimento registrado, alta registrada, contrato assinado, último dia assinado) entram na linha do tempo com a data em mono e a consequência operacional ("Nascimento registrado em 18/09/2026. A designação da enfermeira passa a ser urgente.").
+
+**Checklist completo** [v4.4]. Quando tudo o que é obrigatório está respondido e a visita não teve alerta, o resumo mostra a comemoração da seção 2.11 ("Checklist do D4 completo. Falta só a sua assinatura."), com o botão de assinar dentro dela. Com alerta ou em estado sensível, fica a linha "Tudo o que é obrigatório está respondido."
 
 **Fim do acompanhamento.** Quando o último dia é assinado, o cartão da família fecha com a régua completa em marinho e uma linha: "Acompanhamento da Família Teste Aurora concluído em 26/09/2026. A evolução final vai para a revisão da coordenação." Sem agradecimento automático e sem festa: o reconhecimento à enfermeira vem da coordenação, pessoa para pessoa.
 
@@ -519,7 +673,7 @@ Com a skill dataviz e a interface-2026:
 ### 11.12 O que esta camada recusa
 
 - Coração, bebê desenhado, cegonha, confete, estrela e emoji na interface. Emoji fica só nos textos aprovados de mensagem, no limite do PRD 11.6.
-- Rosa, azul-bebê, pastel, gradiente, textura, foto de banco e imagem gerada.
+- Rosa, azul-bebê, gradiente, textura, foto de banco e imagem gerada. [v4.4] Os tons de apoio e as ilustrações da casa são a exceção decidida, com as regras da seção 2 e do PRD 20.2.
 - "Parabéns", "Que alegria", "Ótimo trabalho", exclamação e adjetivo de entusiasmo ditos pela interface.
 - Relógio, contagem regressiva e vermelho em qualquer tela de família em luto ou em intercorrência.
 - Ação comercial visível ao lado de relato de saúde, perda ou intercorrência.

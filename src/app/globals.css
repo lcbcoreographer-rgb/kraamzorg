@@ -7,9 +7,9 @@
  * componente declara cor em hexadecimal, rgb() ou hsl() fora daqui
  * (conferido pelo teste em tests/tokens/sem-cor-solta.test.ts).
  *
- * Direção "Caderneta de visita" (docs/design/DESIGN.md, seção 4). Os
- * valores espelham docs/prototipo/assets/tokens.css; qualquer mudança de
- * token muda os dois lugares.
+ * Direção "Colo" [v4.4] (docs/design/DESIGN.md, seções 2 e 4; PRD 20.2).
+ * Os valores espelham docs/prototipo/assets/tokens.css; qualquer mudança
+ * de token muda os dois lugares.
  *
  * Camadas: 1) primitivos da marca (os nove tokens do PRD 20.2), 2)
  * derivados (misturas fixas, nenhum matiz novo), 3) semânticos (o que os
@@ -102,6 +102,59 @@
   );
   --anel-hoje: 0 0 0 3px var(--dourado-lavado);
 
+  /* 2b. Tons de apoio [v4.4] (PRD 20.2): misturas das cores da marca,
+         nenhum matiz de fora. São superfície (bloco, tile, trilha,
+         preenchimento de ilustração), nunca estado, e nunca aparecem em
+         momento sensível (freio, perda, intercorrência, alerta clínico).
+         Sobre tom claro, texto marinho (12,2 a 13,6:1) ou marinho-72
+         (5,0 a 5,6:1); sobre tom médio, só marinho (9,0 a 9,9:1).
+         marinho-62 nunca vai sobre tom de apoio. */
+  --dourado-claro: color-mix(
+    in srgb,
+    var(--dourado) 30%,
+    var(--creme)
+  ); /* #E9DCC2: o agora */
+  --dourado-medio: color-mix(
+    in srgb,
+    var(--dourado) 55%,
+    var(--creme)
+  ); /* #D9C59E: tile e trilha do agora */
+  --areia-clara: color-mix(
+    in srgb,
+    var(--areia) 55%,
+    var(--creme)
+  ); /* #F1E8D7: a família, o que já foi guardado */
+  --salvia-clara: color-mix(
+    in srgb,
+    var(--sucesso) 18%,
+    var(--creme)
+  ); /* #DCE0D2: o que está feito */
+  --salvia-media: color-mix(
+    in srgb,
+    var(--sucesso) 40%,
+    var(--creme)
+  ); /* #B5C3B1: tile e preenchimento do feito */
+  --lavanda-clara: color-mix(
+    in srgb,
+    var(--sensivel) 18%,
+    var(--branco)
+  ); /* #E3E0E7: o tempo, a agenda */
+  --lavanda-media: color-mix(
+    in srgb,
+    var(--sensivel) 36%,
+    var(--branco)
+  ); /* #C7C2CF: tile da agenda */
+  --argila-clara: color-mix(
+    in srgb,
+    var(--alerta) 14%,
+    var(--creme)
+  ); /* #EFDFD4: pessoas e conversas */
+  --argila-media: color-mix(
+    in srgb,
+    var(--alerta) 30%,
+    var(--creme)
+  ); /* #E0C2B7: tile de pessoas e conversas */
+
   /* 3. Semânticos. Componentes consomem estes nomes, não os primitivos. */
   --fundo: var(--creme);
   --superficie: var(--branco);
@@ -137,6 +190,12 @@
   --z-aviso: 60;
   --dur-rapida: 140ms;
   --dur-media: 220ms;
+  --dur-desenho: 700ms; /* traço da ilustração da comemoração */
+
+  /* Navegação inferior em pílula flutuante [v4.4]: 64 px de altura, a
+     12 px do fundo. O conteúdo e a barra de ação do checklist sobem esta
+     altura (mais a área segura do aparelho). */
+  --altura-abas: 76px;
   --curva-saida: cubic-bezier(0.16, 1, 0.3, 1);
   --curva-estado: cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -180,6 +239,17 @@
   --color-sucesso-borda: var(--sucesso-borda);
   --color-alerta-hover: var(--alerta-hover);
   --color-lateral-hover: var(--lateral-hover);
+
+  /* Tons de apoio [v4.4] */
+  --color-dourado-claro: var(--dourado-claro);
+  --color-dourado-medio: var(--dourado-medio);
+  --color-areia-clara: var(--areia-clara);
+  --color-salvia-clara: var(--salvia-clara);
+  --color-salvia-media: var(--salvia-media);
+  --color-lavanda-clara: var(--lavanda-clara);
+  --color-lavanda-media: var(--lavanda-media);
+  --color-argila-clara: var(--argila-clara);
+  --color-argila-media: var(--argila-media);
 
   --color-fundo: var(--fundo);
   --color-superficie: var(--superficie);
@@ -228,6 +298,12 @@
   --text-dado--line-height: 1.4;
   --text-dado-lg: 1.125rem; /* 18px: campo numérico */
   --text-dado-lg--line-height: 1.3;
+  --text-numero: 2.75rem; /* 44px: número do cartão-resumo, Jost [v4.4] */
+  --text-numero--line-height: 1;
+  --text-numero--letter-spacing: -0.02em;
+  --text-numero-sm: 1.5rem; /* 24px: número no anel e na coluna, Jost */
+  --text-numero-sm--line-height: 1;
+  --text-numero-sm--letter-spacing: -0.01em;
   --text-marca: 1.125rem; /* 18px: nome do sistema ao lado do símbolo, Jost */
   --text-marca--line-height: 1.2;
   --text-marca--letter-spacing: 0.01em;
@@ -235,6 +311,7 @@
   /* Toque e leitura */
   --spacing-toque: 44px; /* mínimo absoluto (CLAUDE.md) */
   --spacing-toque-campo: 52px; /* linha de resposta da enfermeira */
+  --spacing-toque-grande: 56px; /* resposta do checklist em cartão [v4.4] */
   --spacing-margem-tela: 16px;
   --container-conteudo: 1240px;
   --container-leitura: 68ch;
@@ -242,11 +319,16 @@
   --container-portal: 720px; /* portal da enfermeira no computador (telas.md) */
   --container-acesso: 400px; /* coluna das telas de entrar e MFA (entrar.html) */
 
-  /* Raio: quatro degraus, comprometidos (nada fora daqui). */
-  --radius-1: 4px; /* caixa de seleção, marca pequena */
-  --radius-2: 12px; /* campo, faixa, bloco da régua */
-  --radius-3: 20px; /* cartão, folha inferior */
-  --radius-pilula: 999px; /* botão, selo, seletor sim ou não, aba */
+  /* Raio: quatro degraus, comprometidos (nada fora daqui). Direção
+     "Colo" [v4.4]: cantos generosos. */
+  --radius-1: 6px; /* caixa de seleção, marca pequena */
+  --radius-2: 16px; /* campo, faixa, item de lista, bloco da régua */
+  --radius-3: 28px; /* cartão, bloco, folha inferior, painel */
+  --radius-pilula: 999px; /* botão, selo, seletor, aba, navegação */
+  /* Forma "colo": os cantos de cima em raio-3 e a base inteira em arco
+     raso, como a curva do símbolo da marca (DESIGN.md, 2.4). Um por tela,
+     no bloco de abertura. Pede 40 px de respiro embaixo. */
+  --radius-colo: 28px 28px 50% 50% / 28px 28px 40px 40px;
 
   /* Sombra: duas, tingidas de marinho, mais o anel de foco do dia de hoje
      (régua de dias) como uma terceira, para não ficar solto em arbitrário. */
@@ -271,6 +353,32 @@
   /* Curvas de movimento (duração fica no utilitário: duration-140/220). */
   --ease-saida: var(--curva-saida);
   --ease-estado: var(--curva-estado);
+
+  /* Movimento da comemoração do checklist completo [v4.4]: o traço se
+     desenha uma vez e o check aparece por último. Nada repete, nada pulsa.
+     Com prefers-reduced-motion, a regra no fim do arquivo zera a duração e
+     a ilustração aparece pronta. */
+  --animate-desenhar: desenhar var(--dur-desenho) var(--curva-saida) both;
+  --animate-surgir: surgir var(--dur-media) var(--curva-saida) both;
+
+  @keyframes desenhar {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes surgir {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
 }
 
 @layer base {

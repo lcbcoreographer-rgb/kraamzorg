@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { CalendarDays, Clock, WifiOff } from "lucide-react";
+import { CalendarDays, ClipboardPen, WifiOff } from "lucide-react";
+import { JanelaManha, NuvemSemSinal } from "@/components/ilustracoes";
 import { Botao } from "@/components/ui/botao";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
+import { ItemBloco, ListaBlocos } from "@/components/ui/lista-blocos";
+import { TileIcone } from "@/components/ui/tile-icone";
 import { horaEmBrasilia, somarDias } from "@/lib/agenda/datas";
 import type {
   FamiliaPortal,
@@ -157,13 +160,12 @@ export function HojeCliente({
       <div className="flex flex-col gap-4 pt-6">
         {!online ? <FaixaSemSinal /> : null}
         {carregouDoAparelho ? (
-          <FaixaAlerta
-            variante="info"
+          <EstadoVazio
+            nivelTitulo="h2"
+            ilustracao={<NuvemSemSinal tamanho={112} />}
             titulo="Ainda não há visitas salvas neste aparelho"
-          >
-            Abra o Hoje uma vez com sinal. As visitas do dia ficam guardadas
-            aqui por 24 horas e abrem mesmo sem conexão.
-          </FaixaAlerta>
+            texto="Abra o Hoje uma vez com sinal. As visitas do dia ficam guardadas aqui por 24 horas e abrem mesmo sem conexão."
+          />
         ) : (
           <p className="text-corpo text-texto-2" role="status">
             Carregando as visitas de hoje.
@@ -190,29 +192,41 @@ export function HojeCliente({
         </FaixaAlerta>
       ) : null}
 
-      {pendencias.map((f) => (
-        <FaixaAlerta
-          key={f.visitaId}
-          variante="info"
-          titulo={`Ficha pendente: ${diaDeTotal(f.diaNumero, f.diasContratados)} da ${f.nomeExibicao}`}
+      {pendencias.length > 0 ? (
+        <section
+          aria-labelledby="fichas-pendentes"
+          className="flex flex-col gap-3"
         >
-          <span className="inline-flex items-center gap-2">
-            <Clock className="size-4" aria-hidden="true" />
-            Falta o registro da visita.
-          </span>
-        </FaixaAlerta>
-      ))}
+          <h2 id="fichas-pendentes" className="font-titulo text-2 text-texto">
+            {pendencias.length === 1 ? "Ficha pendente" : "Fichas pendentes"}
+          </h2>
+          <ListaBlocos>
+            {pendencias.map((f) => (
+              <ItemBloco
+                key={f.visitaId}
+                fundo="tom"
+                tom="areia"
+                icone={<ClipboardPen />}
+                titulo={`${diaDeTotal(f.diaNumero, f.diasContratados)} da ${f.nomeExibicao}`}
+                apoio="Falta o registro da visita."
+                href={inicial ? `/visita/${f.visitaId}` : undefined}
+              />
+            ))}
+          </ListaBlocos>
+        </section>
+      ) : null}
 
       <section
         aria-labelledby="visitas-de-hoje"
-        className="flex flex-col gap-4"
+        className="flex scroll-mt-4 flex-col gap-3"
       >
-        <h2 id="visitas-de-hoje" className="sr-only">
+        <h2 id="visitas-de-hoje" className="font-titulo text-2 text-texto">
           Visitas de hoje
         </h2>
         {dados.visitas.length === 0 ? (
           <EstadoVazio
             nivelTitulo="h3"
+            ilustracao={<JanelaManha tamanho={112} />}
             titulo="Nenhuma visita marcada para hoje"
             texto="Quando a coordenação marcar uma visita, ela aparece aqui com o endereço e o horário."
             acao={
@@ -241,19 +255,49 @@ export function HojeCliente({
       </section>
 
       {doDiaSeguinte.length > 0 && amanha ? (
-        <p className="text-corpo text-texto">
-          <span className="font-semibold">Amanhã, {diaEmFrase(amanha)}:</span>{" "}
-          {doDiaSeguinte
-            .map(
-              (v) =>
-                `${v.nomeExibicao}${v.horaPrevista ? ` às ${v.horaPrevista}` : ""} (${"D" + v.diaNumero})`,
-            )
-            .join(" e ")}
-          .
-        </p>
-      ) : null}
-
-      {inicial ? (
+        <section
+          aria-labelledby="visitas-de-amanha"
+          className="rounded-3 bg-lavanda-clara flex flex-col gap-3 p-5"
+        >
+          <div className="flex items-center gap-3">
+            <TileIcone tom="lavanda" forma="quadrado">
+              <CalendarDays />
+            </TileIcone>
+            <h2
+              id="visitas-de-amanha"
+              className="font-titulo text-2 text-texto"
+            >
+              Amanhã, {diaEmFrase(amanha)}
+            </h2>
+          </div>
+          <ul className="flex flex-col gap-2">
+            {doDiaSeguinte.map((v) => (
+              <li
+                key={`${v.familiaId}-${v.diaNumero}`}
+                className="rounded-2 bg-superficie min-h-toque flex items-center gap-3 px-4 py-2"
+              >
+                <span className="text-corpo text-texto min-w-0 flex-1 font-semibold">
+                  {v.nomeExibicao}
+                </span>
+                <span className="text-apoio text-texto-2 font-mono">
+                  {v.horaPrevista ? `${v.horaPrevista}, ` : ""}D{v.diaNumero}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {inicial ? (
+            <Botao
+              asChild
+              variante="fantasma"
+              tamanho="compacto"
+              className="self-start"
+              iconeEsquerda={<CalendarDays aria-hidden="true" />}
+            >
+              <Link href="/perfil">Ver minha semana</Link>
+            </Botao>
+          ) : null}
+        </section>
+      ) : inicial ? (
         <Botao
           asChild
           variante="fantasma"

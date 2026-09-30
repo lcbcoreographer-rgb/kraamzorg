@@ -3,18 +3,22 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * Abas inferiores (DESIGN.md, seção 6; PRD 20.4). Navegação do celular e do
- * tablet, 4 ou 5 itens, 56 px, ícone 24 e rótulo 13. Ativa em marinho 600
- * com marca dourada de 3 px em cima. Contador em alerta só para alerta
- * clínico ou transferência vencendo.
+ * Navegação inferior em pílula (DESIGN.md, 2.9; PRD 20.4; referência: a
+ * barra escura em pílula do app de estudos). Pílula marinho flutuante de
+ * 64 px, a 8 px das laterais e a 12 px do fundo, com sombra leve. Com
+ * cinco abas em 390 px, cada uma tem 71 px: cabe "Conversas" e
+ * "Financeiro" em 13 px sem cortar. Todas as abas
+ * mostram ícone (22 px) e rótulo (13 px); a ativa vira uma pílula creme
+ * com ícone e rótulo em marinho. Contador em alerta só para alerta clínico
+ * ou transferência vencendo.
  *
  * Este componente é estático (sem papel): os itens vêm sempre por
- * propriedade. A navegação por papel (quais abas cada papel vê) é da casca
- * do app, depois do P07.
+ * propriedade. A navegação por papel é da casca do app. A visibilidade por
+ * tamanho de tela mora na casca (`visivelEm`), para a vitrine do design
+ * system poder mostrar a navegação em qualquer largura.
  *
- * A visibilidade por tamanho de tela (`lg:hidden`) não mora mais aqui: a
- * casca decide isso (`visivelEm`), pelo mesmo motivo de `BarraLateral`
- * (achado da auditoria da P10 parcial: caixa vazia em 1280 na vitrine).
+ * A altura ocupada (pílula mais a folga) é `--altura-abas`: o conteúdo e a
+ * barra de ação do checklist sobem essa altura.
  */
 export interface ItemAbaInferior {
   rotulo: string;
@@ -33,6 +37,8 @@ export interface AbasInferioresProps {
   rotulo: string;
   /** Quando mostrar as abas: "sempre" (padrão) ou só até o tablet. */
   visivelEm?: "sempre" | "celular";
+  /** "fixa" (padrão) no rodapé da tela; "solta" dentro do fluxo (vitrine). */
+  posicao?: "fixa" | "solta";
   className?: string;
 }
 
@@ -40,17 +46,24 @@ export function AbasInferiores({
   itens,
   rotulo,
   visivelEm = "sempre",
+  posicao = "fixa",
   className,
 }: AbasInferioresProps) {
   return (
     <nav
       aria-label={rotulo}
       className={cn(
-        "border-linha bg-superficie fixed inset-x-0 bottom-0 z-20 grid auto-cols-fr grid-flow-col border-t px-2 py-1",
+        "rounded-pilula bg-marinho shadow-2 grid auto-cols-fr grid-flow-col gap-0.5 p-1",
+        posicao === "fixa" &&
+          "fixed inset-x-2 z-[var(--z-barra)] mx-auto max-w-[480px]",
         visivelEm === "celular" && "lg:hidden",
         className,
       )}
-      style={{ paddingBottom: "calc(4px + env(safe-area-inset-bottom))" }}
+      style={
+        posicao === "fixa"
+          ? { bottom: "calc(12px + env(safe-area-inset-bottom))" }
+          : undefined
+      }
     >
       {itens.map((item) => (
         <Link
@@ -58,22 +71,18 @@ export function AbasInferiores({
           href={item.href}
           aria-current={item.ativo ? "page" : undefined}
           className={cn(
-            "rounded-2 text-mini text-texto-2 relative flex min-h-14 flex-col items-center justify-center gap-0.5 font-medium no-underline",
-            item.ativo && "text-texto font-semibold",
+            "rounded-pilula text-mini ease-estado relative flex min-h-[56px] min-w-0 flex-col items-center justify-center gap-0.5 px-0 font-medium tracking-[-0.01em] no-underline transition-[background-color,color] duration-140",
+            item.ativo
+              ? "bg-creme text-marinho font-semibold"
+              : "text-texto-inverso-2 hover:bg-lateral-hover hover:text-texto-inverso",
           )}
         >
-          {item.ativo ? (
-            <span
-              aria-hidden="true"
-              className="rounded-b-1 bg-destaque absolute top-0 left-1/2 h-[3px] w-7 -translate-x-1/2"
-            />
-          ) : null}
-          <span className="[&>svg]:size-6">{item.icone}</span>
-          <span>{item.rotulo}</span>
+          <span className="[&>svg]:size-[22px]">{item.icone}</span>
+          <span className="max-w-full truncate">{item.rotulo}</span>
           {item.contador ? (
             <span
               aria-hidden="true"
-              className="rounded-pilula bg-alerta text-texto-inverso text-mini absolute top-1 left-[calc(50%+6px)] flex h-5 min-w-5 items-center justify-center px-1.5 font-mono leading-5"
+              className="rounded-pilula bg-alerta text-texto-inverso text-mini ring-marinho absolute top-0.5 left-[calc(50%+4px)] flex h-5 min-w-5 items-center justify-center px-1.5 font-mono leading-5 ring-2"
             >
               {item.contador}
             </span>

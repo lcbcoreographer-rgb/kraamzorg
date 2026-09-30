@@ -3,12 +3,31 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * Cartão (DESIGN.md, seção 6). Branco, raio 20, sombra-1, padding 20.
+ * Cartão (DESIGN.md, 2.4, 2.5 e seção 6). Raio 28, padding 20.
+ *
+ * - `padrao`: branco com sombra leve, o trabalho que ainda falta.
+ * - `plano`: branco com contorno fino, sem sombra.
+ * - `areia`: areia cheia (lugar da família, como o cabeçalho da família).
+ * - Tons de apoio [v4.4] (`dourado`, `areia-clara`, `salvia`, `lavanda`,
+ *   `argila`): bloco no tom claro do assunto, sem sombra. A cor diz o que o
+ *   bloco é, nunca o estado, e nunca aparece em família em estado sensível
+ *   (PRD 20.2).
+ *
+ * `forma="colo"`: a base em arco raso (um por tela, no bloco de abertura).
  * Cartão tocável inteiro é link (ou botão, quando a ação não navega).
- * Nunca cartão dentro de cartão.
+ * Nunca cartão branco dentro de cartão branco.
  */
 export interface CartaoProps extends React.HTMLAttributes<HTMLDivElement> {
-  variante?: "padrao" | "plano" | "areia";
+  variante?:
+    | "padrao"
+    | "plano"
+    | "areia"
+    | "dourado"
+    | "areia-clara"
+    | "salvia"
+    | "lavanda"
+    | "argila";
+  forma?: "padrao" | "colo";
   /** Torna o cartão inteiro um alvo tocável (link ou botão). */
   tocavel?: boolean;
   /** Presente + `tocavel`: renderiza `<a href=...>` em vez de `<button>`. */
@@ -19,12 +38,18 @@ const classesVariante: Record<NonNullable<CartaoProps["variante"]>, string> = {
   padrao: "bg-superficie shadow-1",
   plano: "bg-superficie border border-linha",
   areia: "bg-superficie-2",
+  dourado: "bg-dourado-claro",
+  "areia-clara": "bg-areia-clara",
+  salvia: "bg-salvia-clara",
+  lavanda: "bg-lavanda-clara",
+  argila: "bg-argila-clara",
 };
 
 export const Cartao = React.forwardRef<HTMLDivElement, CartaoProps>(
   (
     {
       variante = "padrao",
+      forma = "padrao",
       tocavel,
       href,
       className,
@@ -36,6 +61,7 @@ export const Cartao = React.forwardRef<HTMLDivElement, CartaoProps>(
   ) => {
     const classes = cn(
       "rounded-3 p-5 text-left",
+      forma === "colo" && "rounded-colo pb-12",
       classesVariante[variante],
       tocavel &&
         "block w-full text-inherit no-underline transition-[box-shadow,transform] duration-140 ease-estado hover:shadow-2 active:scale-[0.99]",
