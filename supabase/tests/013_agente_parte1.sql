@@ -122,7 +122,10 @@ select set_eq(
             ('verificar_cobertura'), ('verificar_disponibilidade'), ('atualizar_lead'), ('registrar_marco'),
             ('registrar_handoff'), ('registrar_notificacao_handoff'), ('marcar_nao_lead'), ('followups_devidos'),
             ('registrar_followup'), ('base_para_indexar'), ('promover_lote'), ('descartar_lote'),
-            ('registrar_ingestao') $$,
+            ('registrar_ingestao'),
+            -- 0025 (P18b): janela de 24 horas do follow-up; o Apêndice A do PRD
+            -- ganha esta linha na próxima revisão do PRD
+            ('janela_followup') $$,
   'n8n_agente executa exatamente as funções do Apêndice A');
 select is_empty(
   $$ select p.oid::regprocedure::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace

@@ -325,7 +325,13 @@ insert into matriz values
   -- funções do formulário
   ('privado.formulario_tentativa',   '{}', 'nega'),
   ('privado.fato_operacao',          '{}', 'nega'),
-  ('privado.sync_item',              '{}', 'nega');
+  ('privado.sync_item',              '{}', 'nega'),
+  -- 0025 (P11, P14, P18b): modelos da Cloud API, estado de entrega, inscrição
+  -- de push e saúde dos webhooks, lidos e escritos só por funções
+  ('privado.modelo_whatsapp',        '{}', 'nega'),
+  ('privado.mensagem_status',        '{}', 'nega'),
+  ('privado.inscricao_push',         '{}', 'nega'),
+  ('privado.saude_webhook',          '{}', 'nega');
 
 create temp table esperado on commit drop as
   select m.tabela, p.papel, a.aal,
@@ -982,7 +988,11 @@ select set_eq(
             ('api.registrar_alerta_clinico'), ('api.alertas_clinicos'),
             ('api.registrar_acionamento_alerta'), ('api.fechar_alerta_clinico'),
             ('api.registrar_anexo_audio'), ('api.audio_da_visita_para_ouvir'),
-            ('api.contato_medico_situacao'), ('api.supervisao_medica_telefone') $$,
+            ('api.contato_medico_situacao'), ('api.supervisao_medica_telefone'),
+            ('api.status_entrega_conversa'), ('api.modelos_whatsapp'), ('api.modelo_whatsapp_aprovado'),
+            ('api.whatsapp_janela_horas'), ('api.salvar_modelo_whatsapp'),
+            ('api.atualizar_status_modelo_whatsapp'), ('api.registrar_inscricao_push'),
+            ('api.remover_inscricao_push') $$,
   'authenticated executa exatamente a lista do ADR 0002 seção 6');
 
 select is_empty(

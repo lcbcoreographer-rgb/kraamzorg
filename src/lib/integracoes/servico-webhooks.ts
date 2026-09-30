@@ -186,3 +186,46 @@ export async function baixarCobranca(
   );
   return r.mudou === true;
 }
+
+// --- Cloud API do WhatsApp e saúde dos webhooks (P18b e P14) ------------------------------
+
+/** Devolve se o estado foi gravado (falso para repetição, mensagem que não é nossa ou estado que não é de entrega). */
+export async function registrarStatusEntrega(
+  cliente: ClienteRpc,
+  item: {
+    waMessageId: string;
+    status: string;
+    ocorridoEm: string | null;
+    codigoErro: string | null;
+  },
+): Promise<boolean> {
+  const r = objeto(
+    await chamar(cliente, "mensagem_registrar_status", {
+      p_wa_message_id: item.waMessageId,
+      p_status: item.status,
+      p_ocorrido_em: item.ocorridoEm,
+      p_codigo_erro: item.codigoErro,
+    }),
+  );
+  return r.registrado === true;
+}
+
+/**
+ * Diz ao banco que um webhook chegou e deu certo ou falhou (só data, nenhum
+ * corpo), para `/api/saude` apontar webhook parado. Nunca derruba o webhook:
+ * a saúde é observação, não parte do trabalho.
+ */
+export async function registrarSaudeWebhook(
+  cliente: ClienteRpc,
+  origem: "autentique" | "infinitepay" | "whatsapp",
+  ok: boolean,
+): Promise<void> {
+  try {
+    await chamar(cliente, "saude_registrar_webhook", {
+      p_origem: origem,
+      p_ok: ok,
+    });
+  } catch {
+    // observação não pode quebrar o webhook
+  }
+}

@@ -6,6 +6,10 @@
  * em repouso vive apenas no IndexedDB do aparelho, por 24 horas e apagado no
  * logout (src/lib/sync/cache.ts). Sem sinal, uma navegação para o portal vira
  * um redirecionamento para /portal-offline, que lê o IndexedDB.
+ *
+ * Web Push (P11): o aviso chega genérico, sem nome de família nem conteúdo
+ * (src/modules/mensageria/push/servidor.ts). Aqui ele só vira notificação, e
+ * o toque abre o app na raiz, onde o proxy leva cada papel para o seu início.
  */
 const VERSAO = "v1";
 const CASCO = `kz-casco-${VERSAO}`;
@@ -154,4 +158,61 @@ self.addEventListener("message", (evento) => {
         ),
     );
   }
+});
+
+/* Web Push: mostra o aviso genérico. Nunca monta texto com dado de gente. */
+self.addEventListener("push", (evento) => {
+  let dados = {};
+  try {
+    dados = evento.data ? evento.data.json() : {};
+  } catch {
+    dados = {};
+  }
+  const titulo =
+    typeof dados.titulo === "string" && dados.titulo
+      ? dados.titulo
+      : "Kraamzorg";
+  const corpo =
+    typeof dados.corpo === "string" && dados.corpo
+      ? dados.corpo
+      : "Há um aviso novo para você. Abra o aplicativo para ver.";
+  // Só caminho do próprio app: endereço de outro site nunca abre por aqui.
+  const url =
+    typeof dados.url === "string" &&
+    dados.url.startsWith("/") &&
+    !dados.url.startsWith("//")
+      ? dados.url
+      : "/";
+  evento.waitUntil(
+    self.registration.showNotification(titulo, {
+      body: corpo,
+      icon: "/icones/icone-192.png",
+      badge: "/icones/icone-192.png",
+      tag: "kz-aviso",
+      data: { url },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (evento) => {
+  evento.notification.close();
+  const url = (evento.notification.data && evento.notification.data.url) || "/";
+  evento.waitUntil(
+    (async () => {
+      const janelas = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      for (const janela of janelas) {
+        if ("focus" in janela) {
+          await janela.focus();
+          if ("navigate" in janela) {
+            await janela.navigate(url).catch(() => undefined);
+          }
+          return;
+        }
+      }
+      await self.clients.openWindow(url);
+    })(),
+  );
 });

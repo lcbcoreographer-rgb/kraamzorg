@@ -23,6 +23,12 @@ const AUTORIZADOS = new Set([
   // Armazenamento privado do PDF do contrato e do comprovante (P31 e P32,
   // motivo armazenamento_privado).
   "src/lib/armazenamento/supabase.ts",
+  // Cloud API do WhatsApp (P18b, motivo webhook_whatsapp), saúde do sistema
+  // (P14, motivo saude_sistema) e envio de Web Push (P11, motivo
+  // push_servidor): rotas do servidor sem sessão de usuário.
+  "src/app/api/webhooks/whatsapp/route.ts",
+  "src/app/api/saude/route.ts",
+  "src/modules/mensageria/push/servidor.ts",
 ]);
 
 function arquivos(pasta: string): string[] {

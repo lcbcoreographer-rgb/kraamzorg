@@ -5,6 +5,8 @@ playwright-report/
 playwright-report-offline/
 test-results/
 test-results-offline/
+playwright-report-infra/
+test-results-infra/
 coverage/
 n8n/dist/
 supabase/.temp/

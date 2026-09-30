@@ -21,6 +21,8 @@ import {
   type BancoOffline,
   type EnviarLote,
 } from "@/lib/sync";
+import { pedirArmazenamentoPersistente } from "@/lib/pwa/armazenamento";
+import { desligarPush, renovarInscricaoPush } from "@/lib/push/cliente";
 import {
   guardarUsuarioDoAparelho,
   lerUsuarioDoAparelho,
@@ -144,7 +146,12 @@ export function ProvedorPortal({
     window.addEventListener("online", atualizarOnline);
     window.addEventListener("offline", atualizarOnline);
 
-    if (usuarioDoServidor) guardarUsuarioDoAparelho(usuarioDoServidor);
+    if (usuarioDoServidor) {
+      guardarUsuarioDoAparelho(usuarioDoServidor);
+      // P11 item 3: depois do login, pede ao navegador que não apague o banco
+      // do aparelho (o registro sem sinal mora nele até subir).
+      void pedirArmazenamentoPersistente();
+    }
 
     const inicio = window.setTimeout(() => {
       definirDb(banco);
@@ -167,9 +174,11 @@ export function ProvedorPortal({
       navigator.serviceWorker
         .register("/sw.js", { scope: "/", updateViaCache: "none" })
         .then(() => navigator.serviceWorker.ready)
-        .then((registro) =>
-          registro.active?.postMessage({ tipo: "precarregar" }),
-        )
+        .then((registro) => {
+          registro.active?.postMessage({ tipo: "precarregar" });
+          // P11: o aviso no celular acompanha quem está com o aparelho agora.
+          return renovarInscricaoPush();
+        })
         .catch(() => undefined);
     }
 
@@ -203,6 +212,9 @@ export function ProvedorPortal({
       );
     }
     esquecerUsuarioDoAparelho();
+    // O aviso do celular é da pessoa que saiu: o próximo a usar o aparelho não
+    // pode recebê-lo (P11 item 4).
+    await desligarPush().catch(() => undefined);
     try {
       const registro = await navigator.serviceWorker?.getRegistration();
       registro?.active?.postMessage({ tipo: "limpar" });

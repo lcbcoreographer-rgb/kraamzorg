@@ -62,12 +62,23 @@
     "uazapi": {
       "id": "EXEMPLO-CRED-0004-UAZAPI-KRAAMZORG",
       "name": "UAZAPI Kraamzorg"
+    },
+    "cloudApi": {
+      "id": "EXEMPLO-CRED-0005-CLOUD-API-KRAAMZORG",
+      "name": "WhatsApp Cloud API Kraamzorg"
     }
   },
 
   "uazapi": {
     "urlBase": "https://exemplo-nao-real.uazapi.com",
     "instancia": "kraamzorg-exemplo"
+  },
+
+  "_comentario_cloudApi": "P18b: envio do primeiro retorno (follow-up) por modelo aprovado pela Meta, fora da janela de 24 horas (isadora-followup.md). Credencial Header Auth 'WhatsApp Cloud API Kraamzorg' com o cabeçalho Authorization: Bearer <token permanente do usuário do sistema>; o token fica só no cofre e no n8n. phoneNumberId é o id do número na Meta (só dígitos), versao é a versão da Graph API. Com homologacao.envioSimulado ligado, este bloco não é usado.",
+  "cloudApi": {
+    "urlBase": "https://graph.exemplo-nao-real.invalid",
+    "versao": "v0.0",
+    "phoneNumberId": "000000000000000"
   },
 
   "webhooks": {
@@ -136,6 +147,8 @@
   "homologacao": {
     "envioSimulado": true,
     "transcricaoSimulada": true,
-    "urlCaptura": "https://exemplo-nao-real.kraamzorg.invalid/api/teste/uazapi"
+    "urlCaptura": "https://exemplo-nao-real.kraamzorg.invalid/api/teste/uazapi",
+    "_comentario_urlCapturaCloudApi": "P18b: para onde vai o envio por modelo aprovado (POST /messages) com envioSimulado ligado; a rota /api/teste/cloud-api do app guarda o corpo e devolve um wamid de teste.",
+    "urlCapturaCloudApi": "https://exemplo-nao-real.kraamzorg.invalid/api/teste/cloud-api"
   }
 }

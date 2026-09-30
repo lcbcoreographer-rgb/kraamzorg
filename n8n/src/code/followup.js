@@ -55,6 +55,51 @@ export function separarFollowups(resposta) {
     );
 }
 
+// Nó "Ler Janela do Follow-up", depois de `agente.janela_followup(execucao_id)`
+// (P18b, PRD 4.1 D-08 e T-01). A Cloud API só aceita texto livre dentro da
+// janela de `whatsapp_janela_horas` desde a última mensagem da família:
+// - dentro: `dentro_janela` verdadeiro, segue o caminho de sempre (o modelo
+//   de linguagem gera o texto, o validador confere);
+// - fora, com modelo aprovado pela Meta: o texto é o do modelo, fixo, sem
+//   modelo de linguagem e sem validador (já foi aprovado pela equipe e pela
+//   Meta), e o envio vai pela Cloud API (`via_modelo`);
+// - fora, sem modelo aprovado (ou qualquer falha ao perguntar ao banco):
+//   nada sai. O follow-up fecha como "não saiu" e segue a regra do banco
+//   (volta uma vez, depois vira tarefa do comercial). Texto livre nunca sai
+//   fora da janela, nem como plano B.
+export function lerJanelaFollowup(estado, resposta) {
+  const resultado = resultadoDoBanco(resposta);
+  const semEnvio = (motivo) =>
+    comMarca({ ...estado, dentro_janela: false, via_modelo: false, followup_aprovado: false, followup_motivo: motivo });
+
+  if (!resultado || resultado.ok !== true) return semEnvio('janela_indisponivel');
+  if (resultado.dentro_janela === true) return comMarca({ ...estado, dentro_janela: true, via_modelo: false });
+
+  const modelo = resultado.modelo && typeof resultado.modelo === 'object' ? resultado.modelo : null;
+  const nome = textoLimpo(modelo?.nome);
+  const idioma = textoLimpo(modelo?.idioma);
+  const texto = textoLimpo(modelo?.texto);
+  const parametros = Array.isArray(modelo?.parametros) ? modelo.parametros.map((p) => textoLimpo(p)) : null;
+  if (!modelo || !nome || !idioma || !texto || !parametros) return semEnvio(textoLimpo(resultado.motivo) || 'sem_modelo_aprovado');
+  if (parametros.some((p) => p === '')) return semEnvio('parametro_sem_valor');
+  const telefone = textoLimpo(resultado.telefone).replace(/\D/g, '');
+  if (telefone.length < 10) return semEnvio('sem_telefone');
+
+  const template = { name: nome, language: { code: idioma } };
+  if (parametros.length > 0) {
+    template.components = [{ type: 'body', parameters: parametros.map((p) => ({ type: 'text', text: p })) }];
+  }
+  return comMarca({
+    ...estado,
+    dentro_janela: false,
+    via_modelo: true,
+    followup_aprovado: true,
+    texto_followup: texto,
+    modelo_nome: nome,
+    corpo_cloud_api: { messaging_product: 'whatsapp', recipient_type: 'individual', to: telefone, type: 'template', template },
+  });
+}
+
 // Nó "Fechar Follow-up": ponto único antes do nó 41, venha o item do envio,
 // da reprovação ou da recusa do `pode_enviar`.
 export function fecharFollowup(estado) {

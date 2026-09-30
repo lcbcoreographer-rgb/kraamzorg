@@ -204,7 +204,16 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const funcoes = () => estado.chamadas.map((c) => c.funcao);
+// A saúde do webhook (P14) é observação, não parte do trabalho: fica fora da
+// lista do que o webhook faz no banco e tem asserção própria.
+const funcoes = () =>
+  estado.chamadas
+    .map((c) => c.funcao)
+    .filter((f) => f !== "saude_registrar_webhook");
+const saude = () =>
+  estado.chamadas
+    .filter((c) => c.funcao === "saude_registrar_webhook")
+    .map((c) => c.args);
 
 describe("webhook da Autentique", () => {
   it("segredo errado: 404, nada consultado, nada gravado", async () => {
@@ -250,6 +259,8 @@ describe("webhook da Autentique", () => {
       p_documento_id: DOC,
       p_pdf_path: `contratos/${CONTRATO}-assinado.pdf`,
     });
+    // só a chamada processada de verdade conta como acerto na saúde (P14)
+    expect(saude()).toEqual([{ p_origem: "autentique", p_ok: true }]);
 
     // O token da API não vai junto no download do PDF assinado.
     const download = requisicoes.find((x) =>
@@ -311,7 +322,11 @@ describe("webhook da Autentique", () => {
     expect(requisicoes.some((x) => x.url.endsWith("/links"))).toBe(false);
     expect(funcoes()).toContain("cobranca_avisar_falha_link");
     expect(funcoes()).not.toContain("cobranca_registrar_link");
-    expect(estado.chamadas.at(-1)?.args).toEqual({
+    expect(
+      estado.chamadas
+        .filter((c) => c.funcao !== "saude_registrar_webhook")
+        .at(-1)?.args,
+    ).toEqual({
       p_cobranca_id: COBRANCA,
       p_motivo: "acima_do_limite",
     });
@@ -328,7 +343,11 @@ describe("webhook da Autentique", () => {
     const r = await POST(...pedido("segredo-de-teste", corpo()));
     expect(r.status).toBe(200);
     expect(funcoes()).not.toContain("cobranca_registrar_link");
-    expect(estado.chamadas.at(-1)?.args).toEqual({
+    expect(
+      estado.chamadas
+        .filter((c) => c.funcao !== "saude_registrar_webhook")
+        .at(-1)?.args,
+    ).toEqual({
       p_cobranca_id: COBRANCA,
       p_motivo: "falha_integracao",
     });

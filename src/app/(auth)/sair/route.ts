@@ -8,20 +8,24 @@ import { obterAutenticacao } from "@/lib/auth/sessao";
  */
 const AVISOS = new Set(["sem-acesso", "sessao-encerrada"]);
 
-async function sair(request: NextRequest, aviso: string) {
+async function sair(aviso: string) {
   await obterAutenticacao().sair();
-  // 303: depois de um POST, o navegador segue com GET.
-  return NextResponse.redirect(
-    new URL(`/entrar?aviso=${aviso}`, request.url),
-    303,
-  );
+  // 303: depois de um POST, o navegador segue com GET. O Location é relativo
+  // de propósito: com `form-action 'self'` na CSP (P14), o navegador recusa
+  // redirecionar o formulário para outro host, e o host que o Next monta em
+  // `request.url` pode não ser o que a pessoa digitou (localhost no lugar de
+  // 127.0.0.1, ou o nome interno atrás de um proxy).
+  return new NextResponse(null, {
+    status: 303,
+    headers: { Location: `/entrar?aviso=${aviso}` },
+  });
 }
 
-export async function POST(request: NextRequest) {
-  return sair(request, "saiu");
+export async function POST() {
+  return sair("saiu");
 }
 
 export async function GET(request: NextRequest) {
   const motivo = request.nextUrl.searchParams.get("motivo") ?? "";
-  return sair(request, AVISOS.has(motivo) ? motivo : "sessao-encerrada");
+  return sair(AVISOS.has(motivo) ? motivo : "sessao-encerrada");
 }

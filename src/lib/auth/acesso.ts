@@ -30,6 +30,9 @@ const PUBLICAS = [
   // Casco do portal da enfermeira sem sinal (P38): página sem dado nenhum,
   // que o service worker guarda para abrir quando não há conexão.
   "/portal-offline",
+  // Instalação guiada do aplicativo (P11): quem recebe o link do guia ainda
+  // não entrou. Sem dado nenhum.
+  "/instalar",
 ];
 
 /** Exigem sessão, mas não o AAL2 nem papel (o caminho até o MFA). */

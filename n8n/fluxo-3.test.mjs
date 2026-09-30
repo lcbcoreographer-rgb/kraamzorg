@@ -51,7 +51,9 @@ import { validarResposta, encontrarValores, planosCitados, temValorPorExtenso } 
 import { prepararEnvio, montarBlocos, apresentacaoPorValorSai } from './src/code/preparar-envio.js';
 import { lerSaidaAgente, consolidarEnvio } from './src/code/saida-agente.js';
 import { lerReescrita, validarRespostaDoAgente } from './src/code/resposta-agente.js';
-import { separarFollowups, fecharFollowup } from './src/code/followup.js';
+import { separarFollowups, fecharFollowup, lerJanelaFollowup } from './src/code/followup.js';
+import { conferirEnvio } from './src/code/envio-sistema.js';
+import { destinoCloudApi } from './src/lib/cloud-api.mjs';
 import { validarFollowup, hashDoTexto, semelhanca } from './src/code/validar-followup.js';
 import { prepararEntradaAgente, VARIAVEIS_PROMPT_ISADORA, resolverUrlPdf } from './src/code/contexto-agente.js';
 
@@ -154,7 +156,7 @@ function corpo({
 
 function criarAmbiente(opcoes = {}) {
   const falhas = new Set(opcoes.falhas ?? []);
-  const estado = { banco: [], envios: [], openai: [], redis: new Map(), fluxo2: [], agente: [], transcricoes: [] };
+  const estado = { banco: [], envios: [], enviosCloudApi: [], openai: [], redis: new Map(), fluxo2: [], agente: [], transcricoes: [] };
   if (opcoes.redisInicial) for (const [chave, valor] of Object.entries(opcoes.redisInicial)) estado.redis.set(chave, { ...valor });
 
   const funcoesBanco = {
@@ -194,6 +196,7 @@ function criarAmbiente(opcoes = {}) {
     ficha_para_agente: () => opcoes.ficha ?? FICHA,
     registrar_marco: () => ({ ok: true }),
     followups_devidos: () => opcoes.followups ?? { ok: true, itens: [] },
+    janela_followup: (execucaoId) => opcoes.janela?.(execucaoId) ?? { ok: true, dentro_janela: true, modelo: null },
     registrar_followup: () => ({ ok: true }),
   };
 
@@ -209,6 +212,13 @@ function criarAmbiente(opcoes = {}) {
     estado.envios.push({ no: nomeNo, url: parametros.url, ...parametros.jsonBody });
     if (falhas.has('uazapi') || falhas.has(nomeNo)) throw new Error('UAZAPI 503');
     return { messageid: `wa-${estado.envios.length}` };
+  };
+
+  const cloudApi = (nomeNo) => (parametros) => {
+    estado.enviosCloudApi.push({ no: nomeNo, url: parametros.url, corpo: parametros.jsonBody });
+    if (falhas.has('cloud_api') || falhas.has(nomeNo)) throw new Error('Cloud API 500');
+    if (opcoes.respostaCloudApi) return opcoes.respostaCloudApi;
+    return { messaging_product: 'whatsapp', messages: [{ id: `wamid.T${estado.enviosCloudApi.length}` }] };
   };
 
   const openai = (tipo) => (parametros) => {
@@ -280,6 +290,7 @@ function criarAmbiente(opcoes = {}) {
         else if (no.type === 'n8n-nodes-base.httpRequest') {
           const url = no.parameters.url;
           if (url.includes('/send/')) servicos[no.name] = uazapi(no.name);
+          else if (url.endsWith('/messages')) servicos[no.name] = cloudApi(no.name);
           else if (url.includes('/message/download')) {
             servicos[no.name] = (parametros) => {
               estado.transcricoes.push({ url: parametros.url, corpo: parametros.jsonBody });
@@ -854,6 +865,58 @@ describe('fluxo 3 · follow-up (funções puras)', () => {
   });
 });
 
+
+describe('fluxo 3 · janela do follow-up (P18b, função pura)', () => {
+  const base = { execucao_id: 'e1', conversa_id: 'c1' };
+  const modelo = { nome: 'kz_x', idioma: 'pt_BR', parametros: ['Ana'], texto: 'Oi, Ana!' };
+
+  test('dentro: segue o caminho do texto livre', () => {
+    const r = lerJanelaFollowup(base, { resultado: { ok: true, dentro_janela: true, modelo: null } });
+    assert.deepEqual([r.dentro_janela, r.via_modelo], [true, false]);
+    assert.equal(r.followup_aprovado, undefined);
+  });
+
+  test('fora com modelo: corpo da Cloud API com parâmetros em ordem e só dígitos no telefone', () => {
+    const r = lerJanelaFollowup(base, { resultado: { ok: true, dentro_janela: false, telefone: '+55 (11) 90000-0001', modelo: { ...modelo, parametros: ['Ana', 'quinta'] } } });
+    assert.equal(r.via_modelo, true);
+    assert.equal(r.followup_aprovado, true);
+    assert.equal(r.corpo_cloud_api.to, '5511900000001');
+    assert.deepEqual(r.corpo_cloud_api.template.components[0].parameters, [{ type: 'text', text: 'Ana' }, { type: 'text', text: 'quinta' }]);
+    assert.equal(r.texto_followup, 'Oi, Ana!');
+  });
+
+  test('modelo sem parâmetros não leva components', () => {
+    const r = lerJanelaFollowup(base, { resultado: { ok: true, dentro_janela: false, telefone: '5511900000001', modelo: { ...modelo, parametros: [] } } });
+    assert.equal(r.corpo_cloud_api.template.components, undefined);
+  });
+
+  test('sem modelo, parâmetro vazio, sem telefone ou banco fora do ar: nada sai', () => {
+    const casos = [
+      [{ resultado: { ok: true, dentro_janela: false, modelo: null, motivo: 'sem_modelo_aprovado' } }, 'sem_modelo_aprovado'],
+      [{ resultado: { ok: true, dentro_janela: false, telefone: '5511900000001', modelo: { ...modelo, parametros: [''] } } }, 'parametro_sem_valor'],
+      [{ resultado: { ok: true, dentro_janela: false, telefone: '', modelo } }, 'sem_telefone'],
+      [{ resultado: { ok: false, erro: 'execucao_invalida' } }, 'janela_indisponivel'],
+      [{ error: 'connect ECONNREFUSED' }, 'janela_indisponivel'],
+      [{ ...base, _kz_estado: true }, 'janela_indisponivel'],
+    ];
+    for (const [resposta, motivo] of casos) {
+      const r = lerJanelaFollowup(base, resposta);
+      assert.equal(r.followup_aprovado, false, motivo);
+      assert.equal(r.via_modelo, false, motivo);
+      assert.equal(r.followup_motivo, motivo);
+      assert.equal(r.corpo_cloud_api, undefined);
+    }
+  });
+
+  test('conferirEnvio lê o wamid da Cloud API e não aceita resposta sem id', () => {
+    assert.equal(conferirEnvio({}, { messages: [{ id: 'wamid.A' }] }).envio_message_id, 'wamid.A');
+    assert.equal(conferirEnvio({}, { messages: [{ id: 'wamid.A' }] }).envio_saiu, true);
+    assert.equal(conferirEnvio({}, { messages: [] }).envio_saiu, false);
+    assert.equal(conferirEnvio({}, { messageid: 'x1' }).envio_message_id, 'x1');
+    assert.equal(conferirEnvio({}, { error: 'HTTP 400' }).envio_saiu, false);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // 2. Cenários do P25 no simulador
 // ---------------------------------------------------------------------------
@@ -1354,7 +1417,7 @@ describe('fluxo 3 · entrada B (follow-up) no simulador', () => {
     await agendado(ambiente);
     assert.deepEqual(ambiente.chamadas('pode_enviar')[0].argumentos, ['c1', 'conteudo', null]);
     assert.deepEqual(ambiente.enviosDe(NOS.enviarFollowup).map((e) => [e.number, e.track_source]), [['000000000001@s.whatsapp.net', 'kraamzorg-agente']]);
-    assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e1', 'Oi, Ana! Conseguiu ver a apresentação com calma?', true]);
+    assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e1', 'Oi, Ana! Conseguiu ver a apresentação com calma?', true, null]);
     assert.deepEqual(ambiente.chamadas('sincronizar_memoria')[0].argumentos.slice(0, 2), ['c1', 'followup']);
     assert.ok(ambiente.estado.openai[0].corpo.messages[0].content.includes('mais de 2 dias'));
   });
@@ -1370,9 +1433,107 @@ describe('fluxo 3 · entrada B (follow-up) no simulador', () => {
       const ambiente = criarAmbiente({ followups: followups([item(1)]), followup, podeEnviar });
       await agendado(ambiente);
       assert.equal(ambiente.estado.envios.length, 0, JSON.stringify(followup));
-      assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e1', null, false], JSON.stringify(followup));
+      assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e1', null, false, null], JSON.stringify(followup));
       assert.equal(ambiente.chamadas('sincronizar_memoria').length, 0);
     }
+  });
+
+
+  // --- P18b: janela de 24 horas -------------------------------------------------
+  const MODELO = {
+    nome: 'kz_retorno_apresentacao',
+    idioma: 'pt_BR',
+    categoria: 'utilidade',
+    parametros: ['Ana'],
+    texto: 'Oi, Ana 😊 Conseguiu ver a apresentação com calma? Se ficou alguma dúvida sobre os formatos, me conta por aqui.',
+  };
+  const foraDaJanela = (extra = {}) => () => ({ ok: true, dentro_janela: false, telefone: '5500000000001', modelo: MODELO, ...extra });
+
+  test('dentro da janela: consulta a janela, gera o texto livre e envia pela UAZAPI', async () => {
+    const ambiente = criarAmbiente({ followups: followups([item(1)]), followup: { texto: 'Oi, Ana! Como está a gestação?' } });
+    await agendado(ambiente);
+    assert.deepEqual(ambiente.chamadas('janela_followup')[0].argumentos, ['e1']);
+    assert.equal(ambiente.estado.enviosCloudApi.length, 0);
+    assert.equal(ambiente.enviosDe(NOS.enviarFollowup).length, 1);
+  });
+
+  test('fora da janela: envia o modelo aprovado pela Cloud API, sem gerar texto e sem tocar a UAZAPI', async () => {
+    const ambiente = criarAmbiente({ followups: followups([item(1)]), janela: foraDaJanela() });
+    const execucao = await agendado(ambiente);
+    assert.equal(ambiente.estado.openai.length, 0, 'o modelo de linguagem não roda fora da janela');
+    assert.ok(!execucao.rodou(NOS.gerarMensagem));
+    assert.ok(!execucao.rodou(NOS.validarFollowup));
+    assert.equal(ambiente.estado.envios.length, 0, 'nada pela UAZAPI');
+    assert.equal(ambiente.estado.enviosCloudApi.length, 1);
+    const { corpo, url } = ambiente.estado.enviosCloudApi[0];
+    assert.match(url, /\/messages$/);
+    assert.deepEqual(corpo, {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: '5500000000001',
+      type: 'template',
+      template: {
+        name: 'kz_retorno_apresentacao',
+        language: { code: 'pt_BR' },
+        components: [{ type: 'body', parameters: [{ type: 'text', text: 'Ana' }] }],
+      },
+    });
+    assert.equal(corpo.text, undefined, 'nenhum texto livre');
+    // pode_enviar antes do envio, e o registro leva o texto do modelo e o wamid
+    assert.deepEqual(ambiente.chamadas('pode_enviar')[0].argumentos, ['c1', 'conteudo', null]);
+    assert.ok(execucao.ordem.indexOf(NOS.reconsultarEEnviar) < execucao.ordem.indexOf(NOS.enviarModeloFollowup));
+    assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e1', MODELO.texto, true, 'wamid.T1']);
+    assert.deepEqual(ambiente.chamadas('sincronizar_memoria')[0].argumentos.slice(0, 2), ['c1', 'followup']);
+  });
+
+  test('fora da janela sem modelo aprovado: nada sai (nem texto livre) e a execução fecha como não saiu', async () => {
+    for (const resposta of [
+      { ok: true, dentro_janela: false, modelo: null, motivo: 'sem_modelo_aprovado' },
+      { ok: true, dentro_janela: false, modelo: null, motivo: 'parametro_sem_valor' },
+      { ok: false, erro: 'execucao_invalida' },
+    ]) {
+      const ambiente = criarAmbiente({ followups: followups([item(1)]), janela: () => resposta, followup: { texto: 'Oi, Ana! Texto livre proibido.' } });
+      const execucao = await agendado(ambiente);
+      assert.equal(ambiente.estado.envios.length, 0, JSON.stringify(resposta));
+      assert.equal(ambiente.estado.enviosCloudApi.length, 0, JSON.stringify(resposta));
+      assert.equal(ambiente.estado.openai.length, 0, JSON.stringify(resposta));
+      assert.ok(!execucao.rodou(NOS.gerarMensagem));
+      assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e1', null, false, null], JSON.stringify(resposta));
+    }
+  });
+
+  test('falha ao consultar a janela: nada sai', async () => {
+    const ambiente = criarAmbiente({ followups: followups([item(1)]), falhas: ['janela_followup'], followup: { texto: 'Oi, Ana! Texto livre proibido.' } });
+    await agendado(ambiente);
+    assert.equal(ambiente.estado.envios.length + ambiente.estado.enviosCloudApi.length, 0);
+    assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e1', null, false, null]);
+  });
+
+  test('fora da janela, pode_enviar recusado: o modelo não sai', async () => {
+    const ambiente = criarAmbiente({ followups: followups([item(1)]), janela: foraDaJanela(), podeEnviar: () => ({ pode: false }) });
+    await agendado(ambiente);
+    assert.equal(ambiente.estado.enviosCloudApi.length, 0);
+    assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e1', null, false, null]);
+  });
+
+  test('a Cloud API recusa ou responde sem wamid: não conta como enviado', async () => {
+    for (const opcoes of [{ falhas: ['cloud_api'] }, { respostaCloudApi: { messaging_product: 'whatsapp', messages: [] } }]) {
+      const ambiente = criarAmbiente({ followups: followups([item(1)]), janela: foraDaJanela(), ...opcoes });
+      await agendado(ambiente);
+      assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e1', null, false, null], JSON.stringify(opcoes));
+      assert.equal(ambiente.chamadas('sincronizar_memoria').length, 0);
+    }
+  });
+
+  test('na mesma rodada, um follow-up dentro e outro fora da janela seguem cada um o seu caminho', async () => {
+    const ambiente = criarAmbiente({
+      followups: followups([item(1), item(2)]),
+      janela: (execucaoId) => (execucaoId === 'e1' ? { ok: true, dentro_janela: true, modelo: null } : foraDaJanela()()),
+      followup: { texto: 'Oi, Ana! Como está a gestação?' },
+    });
+    await agendado(ambiente);
+    assert.equal(ambiente.enviosDe(NOS.enviarFollowup).length, 1);
+    assert.equal(ambiente.estado.enviosCloudApi.length, 1);
   });
 
   test('vários follow-ups na mesma rodada, cada um com a sua conversa', async () => {
@@ -1470,7 +1631,7 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
       .map((no) => no.name);
     assert.deepEqual(podeEnviar.sort(), [NOS.podeEnviarSistema, NOS.reconsultar, NOS.reconsultarEEnviar].sort());
     const semPodeEnviar = alcancaveis(fluxo3, [NOS.webhook, NOS.aCada30Min], new Set(podeEnviar));
-    for (const envio of [NOS.enviarTexto, NOS.enviarApresentacao, NOS.enviarTextoSistema, NOS.enviarFollowup]) {
+    for (const envio of [NOS.enviarTexto, NOS.enviarApresentacao, NOS.enviarTextoSistema, NOS.enviarFollowup, NOS.enviarModeloFollowup]) {
       assert.ok(!semPodeEnviar.has(envio), `"${envio}" alcançável sem pode_enviar`);
     }
     assert.ok(semPodeEnviar.has(NOS.enviarTextoAudio), 'o texto de áudio sai nos modos do alerta, sem pode_enviar');
@@ -1640,22 +1801,59 @@ describe('fluxo 3 · estrutura do JSON gerado', () => {
 
   test('envio simulado vai para a rota de captura sem credencial; envio real usa a credencial da UAZAPI', async () => {
     const config = structuredClone(await configExemplo());
-    const urls = (fluxo) =>
-      fluxo.nodes.filter((no) => no.type === 'n8n-nodes-base.httpRequest' && !no.parameters.url.includes('openai')).map((no) => [no.name, no.parameters.url, no.credentials]);
+    const urls = (fluxo, cloudApi = false) =>
+      fluxo.nodes
+        .filter((no) => no.type === 'n8n-nodes-base.httpRequest' && !no.parameters.url.includes('openai') && (no.name === NOS.enviarModeloFollowup) === cloudApi)
+        .map((no) => [no.name, no.parameters.url, no.credentials]);
     for (const [nome, url, credenciais] of urls(montarFluxo(config))) {
       assert.ok(url.startsWith(config.homologacao.urlCaptura), nome);
       assert.equal(credenciais, undefined, nome);
     }
+    // P18b: o envio por modelo aprovado tem destino e credencial próprios
+    assert.deepEqual(urls(montarFluxo(config), true).map(([nome, url, credenciais]) => [nome, url, credenciais]), [
+      [NOS.enviarModeloFollowup, `${config.homologacao.urlCapturaCloudApi}/messages`, undefined],
+    ]);
     config.homologacao.envioSimulado = false;
     config.homologacao.transcricaoSimulada = false;
     for (const [nome, url, credenciais] of urls(montarFluxo(config))) {
       assert.ok(url.startsWith(config.uazapi.urlBase), nome);
       assert.deepEqual(credenciais, { httpHeaderAuth: config.credenciais.uazapi }, nome);
     }
+    assert.deepEqual(urls(montarFluxo(config), true), [
+      [
+        NOS.enviarModeloFollowup,
+        `${config.cloudApi.urlBase}/${config.cloudApi.versao}/${config.cloudApi.phoneNumberId}/messages`,
+        { httpHeaderAuth: config.credenciais.cloudApi },
+      ],
+    ]);
     config.homologacao.transcricaoSimulada = true;
     const transcrever = montarFluxo(config).nodes.find((no) => no.name === NOS.transcreverAudio);
     assert.equal(transcrever.parameters.url, `${config.homologacao.urlCaptura}/message/download`);
     assert.equal(montarFluxo(config).nodes.find((no) => no.name === NOS.enviarTexto).parameters.url, `${config.uazapi.urlBase}/send/text`);
+  });
+
+  test('destino da Cloud API: exige https, versão, número e credencial, e nunca usa o token no config', async () => {
+    const base = structuredClone(await configExemplo());
+    base.homologacao.envioSimulado = false;
+    assert.doesNotThrow(() => destinoCloudApi(base));
+    const sem = (caminho, valor) => {
+      const c = structuredClone(base);
+      const partes = caminho.split('.');
+      const ultimo = partes.pop();
+      const alvo = partes.reduce((o, k) => o[k], c);
+      if (valor === undefined) delete alvo[ultimo];
+      else alvo[ultimo] = valor;
+      return c;
+    };
+    assert.throws(() => destinoCloudApi(sem('cloudApi.urlBase', 'http://inseguro.invalid')), /https/);
+    assert.throws(() => destinoCloudApi(sem('cloudApi.versao', 'ultima')), /versao/);
+    assert.throws(() => destinoCloudApi(sem('cloudApi.phoneNumberId', '12ab')), /phoneNumberId/);
+    assert.throws(() => destinoCloudApi(sem('credenciais.cloudApi', undefined)), /credenciais\.cloudApi/);
+    const simulado = structuredClone(base);
+    simulado.homologacao.envioSimulado = true;
+    delete simulado.homologacao.urlCapturaCloudApi;
+    assert.throws(() => destinoCloudApi(simulado), /urlCapturaCloudApi/);
+    assert.ok(!JSON.stringify(destinoCloudApi(base)).toLowerCase().includes('bearer'));
   });
 
   test('o build recusa produção com envio ou transcrição simulada', async () => {

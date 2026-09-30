@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { CSP_API, cabecalhosFixos } from "./src/lib/seguranca/cabecalhos";
 
 const nextConfig: NextConfig = {
   // O resumo da sessão de venda (P29) lê o prompt de um arquivo .md do
@@ -9,6 +10,24 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      {
+        // Cabeçalhos de segurança fixos em tudo (P14 item 4): HSTS, nosniff,
+        // sem moldura, política de referrer e de permissões. Vem primeiro
+        // para as regras mais específicas abaixo (por exemplo, o
+        // `no-referrer` do formulário do contrato) valerem por cima. A CSP
+        // das páginas, com nonce novo por requisição, é do `src/proxy.ts`.
+        source: "/:path*",
+        headers: cabecalhosFixos(),
+      },
+      {
+        // Rotas de API respondem JSON: o proxy não passa por elas, então a
+        // CSP que fecha tudo sai daqui.
+        source: "/api/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: CSP_API },
+          { key: "Cache-Control", value: "no-store, max-age=0" },
+        ],
+      },
       {
         // Service worker do app instalável da enfermeira (P38): nunca fica
         // em cache do navegador, para a versão nova valer na próxima abertura.

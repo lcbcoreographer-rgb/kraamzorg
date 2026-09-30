@@ -12,7 +12,13 @@ fundação (`src/lib/dados`).
 - `notificacoes/`: central interna (PRD 6.7 e 23.3): `central.ts` lê e marca como lida a
   tabela `notificacao`; `despachar.ts` manda WhatsApp interno, e-mail e push (pendente),
   respeitando as preferências da pessoa (`preferencias.ts`) quando a notificação é de uma
-  pessoa só.
+  pessoa só. O push (P11) manda sempre um aviso genérico, sem nome nem conteúdo.
+- `push/` (P11): inscrição de Web Push da pessoa logada (`repositorio.ts`, pelas funções
+  `api.registrar_inscricao_push` e `api.remover_inscricao_push`) e envio pelo servidor com VAPID
+  (`servidor.ts`, `web-push`, `service_role` só para ler as inscrições).
+- `cloud-api/` (P18b): monta o adaptador `cloud_api` de `src/lib/messaging` para o app, com a janela
+  de `parametro.whatsapp_janela_horas` e o catálogo dos modelos aprovados pela Meta
+  (`api.modelo_whatsapp_aprovado`).
 
 Onde falta uma função `api.*` que ainda não existe (0012 a 0014 são de outra trilha, em
 andamento), este módulo segue o mesmo padrão já usado por `src/modules/crm/pipeline`: em

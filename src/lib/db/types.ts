@@ -75,6 +75,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      atualizar_status_modelo_whatsapp: {
+        Args: { p_id: string; p_motivo?: string; p_status: string };
+        Returns: undefined;
+      };
       audio_da_visita_para_ouvir: {
         Args: { audio_id: string };
         Returns: Json;
@@ -265,6 +269,14 @@ export type Database = {
         Args: never;
         Returns: Json;
       };
+      modelo_whatsapp_aprovado: {
+        Args: { p_idioma?: string; p_mensagem_chave: string };
+        Returns: Json;
+      };
+      modelos_whatsapp: {
+        Args: never;
+        Returns: Json;
+      };
       oferecer_designacao: {
         Args: {
           familia_id: string;
@@ -449,6 +461,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      registrar_inscricao_push: {
+        Args: { p_chaves: Json; p_endpoint: string };
+        Returns: undefined;
+      };
       registrar_link_pagamento: {
         Args: { cobranca_id: string; slug?: string; url: string };
         Returns: Json;
@@ -486,6 +502,10 @@ export type Database = {
       remover_bloqueio_agenda: {
         Args: { id: string };
         Returns: Json;
+      };
+      remover_inscricao_push: {
+        Args: { p_endpoint: string };
+        Returns: undefined;
       };
       reservar_envio_contrato: {
         Args: { contrato_id: string };
@@ -538,6 +558,19 @@ export type Database = {
           validade: string;
         };
         Returns: Json;
+      };
+      salvar_modelo_whatsapp: {
+        Args: {
+          p_categoria: string;
+          p_id: string;
+          p_idioma: string;
+          p_mensagem_chave: string;
+          p_nome_meta: string;
+          p_texto: string;
+          p_valores_padrao?: Json;
+          p_variaveis: string[];
+        };
+        Returns: string;
       };
       salvar_profissional: {
         Args: {
@@ -635,6 +668,10 @@ export type Database = {
           vencimento: string;
         }[];
       };
+      status_entrega_conversa: {
+        Args: { p_conversa_id: string };
+        Returns: Json;
+      };
       status_equipe: {
         Args: { regiao_id?: string; semana?: string };
         Returns: {
@@ -674,6 +711,10 @@ export type Database = {
       vincular_nova_gestacao: {
         Args: { familia_anterior_id: string; familia_id: string };
         Returns: Json;
+      };
+      whatsapp_janela_horas: {
+        Args: never;
+        Returns: number;
       };
     };
     Enums: {
@@ -3889,6 +3930,31 @@ export type Database = {
       ig: {
         Args: { data: string; dpp: string };
         Returns: { dias: number; semanas: number; texto: string };
+      };
+      inscricao_push_expirada: {
+        Args: { p_endpoint: string };
+        Returns: undefined;
+      };
+      inscricoes_push: {
+        Args: { p_usuario_ids: string[] };
+        Returns: Json;
+      };
+      mensagem_registrar_status: {
+        Args: {
+          p_codigo_erro: string;
+          p_ocorrido_em: string;
+          p_status: string;
+          p_wa_message_id: string;
+        };
+        Returns: Json;
+      };
+      saude_registrar_webhook: {
+        Args: { p_ok: boolean; p_origem: string };
+        Returns: undefined;
+      };
+      saude_sistema: {
+        Args: never;
+        Returns: Json;
       };
     };
     Enums: {

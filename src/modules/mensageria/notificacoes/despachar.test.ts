@@ -25,7 +25,7 @@ afterEach(() => {
 });
 
 describe("despacharNotificacao", () => {
-  it("push aparece como pendente, sem tentar a rede", async () => {
+  it("push sem pessoa de destino não tenta a rede e diz o que falta", async () => {
     const resultados = await despacharNotificacao({
       titulo: "Título",
       canais: ["push"],
@@ -35,9 +35,21 @@ describe("despacharNotificacao", () => {
         canal: "push",
         destino: "-",
         ok: false,
-        motivo: expect.stringMatching(/P11/),
+        motivo: "O aviso no celular precisa de uma pessoa como destino.",
       },
     ]);
+  });
+
+  it("push com pessoa mas sem chaves VAPID configuradas: não envia e diz o motivo", async () => {
+    vi.stubEnv("VAPID_PRIVATE_KEY", "");
+    const resultados = await despacharNotificacao({
+      titulo: "Título com o nome Helena",
+      canais: ["push"],
+      usuarioId: "u1",
+    });
+    expect(resultados[0]).toMatchObject({ canal: "push", ok: false });
+    expect(resultados[0]?.motivo).toMatch(/VAPID/);
+    vi.unstubAllEnvs();
   });
 
   it("whatsapp_interno envia para cada destino, sem checar o freio (categoria interna)", async () => {
