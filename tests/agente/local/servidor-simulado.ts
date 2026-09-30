@@ -10,10 +10,11 @@
  *   O caso e o turno saem do `messageid` que o roteiro monta (`kz-p28-<caso>-<turno>-...`).
  * - `GET/DELETE /api/teste/uazapi` e `POST /api/teste/uazapi/transcricoes`: a
  *   rota de captura do app, com o mesmo segredo no cabeçalho.
- * - um relógio que roda a entrada B do fluxo 3 (follow-up) a cada poucos
- *   segundos, no lugar do gatilho de 30 minutos do n8n.
+ * - `POST /api/teste/uazapi/agendador`: roda a entrada B do fluxo 3 e do fluxo 4
+ *   (follow-up, lembrete, falta, devolutiva) na hora, no lugar do gatilho de
+ *   30 minutos do n8n. O executor o chama quando o caso tem uma ação do agendador.
  *
- * Só escuta em 127.0.0.1. Nunca é o alvo de um aceite: o aceite de 24 de 24
+ * Só escuta em 127.0.0.1. Nunca é o alvo de um aceite: o aceite de 28 de 28
  * só vale no ambiente real.
  */
 import { randomUUID } from "node:crypto";
@@ -21,13 +22,21 @@ import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { CASOS } from "../lib/casos";
 import { aplicarPreparo } from "../lib/preparo";
-import { gravarParametro, lerParametro, lerReferencia } from "../lib/sql";
+import {
+  gravarParametro,
+  lerParametro,
+  lerReferencia,
+  sqlAgendarFollowup,
+} from "../lib/sql";
 import type { Caso, Objeto, Preparo } from "../lib/tipos";
-import { SessaoLocal } from "./execucao-local";
+import { calendarioLocal, SessaoLocal } from "./execucao-local";
+import { carregarN8n } from "./n8n";
+import type { CalendarioSimuladoN8n } from "./n8n";
 import type { Transcricao } from "./execucao-local";
 import { consultaLocal } from "./ponte-psql";
 import type { ConexaoLocal } from "./ponte-psql";
 import { interlocutora } from "../lib/payloads";
+import { CALENDARIO_DE_TESTE } from "../lib/agenda";
 
 export interface ServidorSimulado {
   /** Base da URL (http://127.0.0.1:porta). */
@@ -83,6 +92,9 @@ export async function iniciarServidorSimulado(
   opcoes: { segredo: string; porta?: number; instancia?: string },
 ): Promise<ServidorSimulado> {
   const consulta = consultaLocal(conexao);
+  const n8n = await carregarN8n();
+  // [v4.3] O calendário de teste do app (`/api/teste/uazapi/agenda`): um só, limpo a cada caso.
+  let calendarioSimulado: CalendarioSimuladoN8n = n8n.criarCalendarioSimulado();
   const capturas: Captura[] = [];
   const transcricoes = new Map<string, Transcricao>();
   const sessoes = new Map<string, { sessao: SessaoLocal; caso: Caso }>();
@@ -127,6 +139,7 @@ export async function iniciarServidorSimulado(
         conexao,
         planos: referencia.planos,
         horariosDaEdilaine: referencia.horariosDaEdilaine,
+        calendario: calendarioSimulado,
         aoEnviar: (corpo, tipo) =>
           capturas.push({
             id: randomUUID(),
@@ -157,6 +170,88 @@ export async function iniciarServidorSimulado(
             capturas.length = 0;
             sessoes.clear();
             transcricoes.clear();
+            return responder(resposta, 200, { ok: true });
+          }
+        }
+        if (
+          url.pathname === "/api/teste/uazapi/agendador" &&
+          requisicao.method === "POST"
+        ) {
+          // O gatilho de 30 minutos do n8n (entrada B do fluxo 3 e do fluxo 4), disparado pelo
+          // executor no lugar de esperar o relógio: o motor agenda a cadência e o que é devido sai.
+          if (!segredoCerto(requisicao))
+            return responder(resposta, 401, { erro: "segredo" });
+          const corpo = await lerCorpo(requisicao);
+          await consulta.linhas(sqlAgendarFollowup());
+          for (const { sessao } of sessoes.values()) {
+            // O roteiro do modelo é por turno: o agendador roda no turno em que o executor está.
+            if (typeof corpo["turno"] === "number")
+              sessao.turnoAtual = corpo["turno"];
+            sessao.followup();
+            sessao.sincronizarAgenda();
+          }
+          return responder(resposta, 200, { ok: true });
+        }
+        if (url.pathname === "/api/teste/uazapi/agenda") {
+          if (!segredoCerto(requisicao))
+            return responder(resposta, 401, { erro: "segredo" });
+          if (requisicao.method === "DELETE") {
+            calendarioSimulado = n8n.criarCalendarioSimulado();
+            return responder(resposta, 200, { ok: true });
+          }
+          if (requisicao.method === "GET") {
+            const calendario = calendarioLocal(calendarioSimulado);
+            return responder(resposta, 200, {
+              chamadas: await calendario.chamadas(),
+              eventos: calendarioSimulado.eventos(CALENDARIO_DE_TESTE),
+            });
+          }
+          if (requisicao.method === "POST") {
+            const corpo = await lerCorpo(requisicao);
+            const calendario = calendarioLocal(calendarioSimulado);
+            switch (corpo["comando"]) {
+              case "ocupar":
+                await calendario.ocupar(
+                  String(corpo["inicio"]),
+                  String(corpo["fim"]),
+                );
+                break;
+              case "liberar_tudo":
+                await calendario.liberarTudo();
+                break;
+              case "criar_evento_alheio":
+                return responder(resposta, 200, {
+                  ok: true,
+                  id: await calendario.criarEventoAlheio(
+                    String(corpo["inicio"]),
+                    String(corpo["fim"]),
+                  ),
+                });
+              case "mover":
+                await calendario.moverEvento(
+                  String(corpo["eventoId"]),
+                  String(corpo["inicio"]),
+                  String(corpo["fim"]),
+                );
+                break;
+              case "apagar":
+                await calendario.apagarEvento(String(corpo["eventoId"]));
+                break;
+              case "fora_do_ar":
+                await calendario.foraDoAr(corpo["valor"] !== false);
+                break;
+              case "falhar_proxima":
+                await calendario.falharProxima(
+                  String(corpo["operacao"] ?? "*"),
+                  String(corpo["mensagem"] ?? "falha"),
+                  Number(corpo["codigo"] ?? 502),
+                );
+                break;
+              default:
+                return responder(resposta, 400, {
+                  erro: "comando desconhecido",
+                });
+            }
             return responder(resposta, 200, { ok: true });
           }
         }
@@ -197,24 +292,6 @@ export async function iniciarServidorSimulado(
     })();
   });
 
-  // O gatilho de 30 minutos do n8n (entrada B), em versão de poucos segundos, só para a
-  // sessão do caso que espera o follow-up.
-  const relogio = setInterval(() => {
-    for (const { sessao, caso } of sessoes.values()) {
-      const indice = caso.turnos.findIndex(
-        (t) => "acao" in t && t.acao === "executarFollowup",
-      );
-      if (indice < 0 || sessao.envios.some((e) => e.turno === indice + 1))
-        continue;
-      try {
-        sessao.turnoAtual = indice + 1;
-        sessao.followup();
-      } catch (erro) {
-        console.error("[servidor simulado] follow-up falhou:", erro);
-      }
-    }
-  }, 3000);
-
   await new Promise<void>((pronto) =>
     servidor.listen(opcoes.porta ?? 0, "127.0.0.1", pronto),
   );
@@ -227,7 +304,6 @@ export async function iniciarServidorSimulado(
     url: base,
     webhookUrl: `${base}/webhook/isadora-simulado`,
     async fechar() {
-      clearInterval(relogio);
       await new Promise<void>((fim) => servidor.close(() => fim()));
       for (const f of restauracoes.reverse()) await f();
     },

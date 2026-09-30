@@ -31,6 +31,7 @@ vi.mock("@/lib/auth/sessao", () => {
 });
 
 import type { SessaoUsuario } from "@/lib/auth/tipos";
+import { FEITO_SESSAO } from "./mensagens";
 import { familiaPorNome, USUARIOS } from "@/lib/dados/demonstracao/fixtures";
 import { obterLoja, reiniciarLoja } from "@/lib/dados/demonstracao/loja";
 import { reiniciarLojaVenda } from "@/lib/dados/demonstracao/venda";
@@ -42,6 +43,7 @@ import {
 import {
   acaoAgendarSessao,
   acaoGerarResumo,
+  acaoRegistrarDesfecho,
   acaoRegistrarGravacao,
   acaoSalvarResumo,
 } from "./acoes";
@@ -191,5 +193,107 @@ describe("gravação e resumo (P29 itens 3 e 4)", () => {
       formulario,
     );
     expect(resultado.sucesso).toMatch(/Nada da conversa fica guardado/);
+  });
+});
+
+describe("acaoRegistrarDesfecho (P25b, D-20)", () => {
+  function formularioDesfecho(sessaoId: string, extra: Record<string, string>) {
+    const formulario = new FormData();
+    formulario.set("sessaoId", sessaoId);
+    formulario.set("parceiroPresente", "");
+    formulario.set("resultado", "");
+    for (const [chave, valor] of Object.entries(extra)) {
+      formulario.set(chave, valor);
+    }
+    return formulario;
+  }
+
+  async function sessaoDaIsadora() {
+    const sessao = await obterSessaoTela(
+      "00000000-0000-4000-8013-000000000003",
+    );
+    expect(sessao?.agendadaPor).toBe("isadora");
+    return sessao!;
+  }
+
+  it("o comercial não registra que a reunião da Isadora aconteceu: a frase diz quem registra", async () => {
+    const sessao = await sessaoDaIsadora();
+    const estado = await acaoRegistrarDesfecho(
+      estadoInicialSessao,
+      formularioDesfecho(sessao.id, { desfecho: "realizada" }),
+    );
+    expect(estado.sucesso).toBeUndefined();
+    expect(estado.erro).toMatch(/Só a Edilaine, a coordenação e a diretoria/);
+  });
+
+  it("a Edilaine registra realizada com o resultado: a conversa passa ao Leonardo e a frase diz isso", async () => {
+    await entrar("Perfil Teste Coordenacao", "aal2");
+    const sessao = await sessaoDaIsadora();
+    await expect(
+      acaoRegistrarDesfecho(
+        estadoInicialSessao,
+        formularioDesfecho(sessao.id, {
+          desfecho: "realizada",
+          parceiroPresente: "sim",
+          resultado: "Interesse no Essencial.",
+        }),
+      ),
+    ).rejects.toThrow(
+      `NEXT_REDIRECT /sessoes-venda/${sessao.id}?feito=desfecho_leonardo`,
+    );
+    expect(FEITO_SESSAO["desfecho_leonardo"]).toMatch(
+      /A conversa agora é do Leonardo/,
+    );
+    const conversa = obterLoja().conversas.find(
+      (c) => c.familiaId === sessao.familiaId,
+    );
+    expect(conversa?.agenteEncerradoMotivo).toBe("reuniao_realizada");
+    const depois = await obterSessaoTela(sessao.id);
+    expect(depois).toMatchObject({
+      status: "realizada",
+      resultado: "Interesse no Essencial.",
+      parceiroPresente: true,
+      conversaCom: "leonardo",
+    });
+  });
+
+  it("a falta a uma reunião da Isadora devolve a remarcação a ela, sem tarefa humana", async () => {
+    await entrar("Perfil Teste Coordenacao", "aal2");
+    const sessao = await sessaoDaIsadora();
+    const tarefas = obterLoja().tarefas.length;
+    await expect(
+      acaoRegistrarDesfecho(
+        estadoInicialSessao,
+        formularioDesfecho(sessao.id, { desfecho: "nao_compareceu" }),
+      ),
+    ).rejects.toThrow(
+      `NEXT_REDIRECT /sessoes-venda/${sessao.id}?feito=desfecho_isadora_remarca`,
+    );
+    expect(FEITO_SESSAO["desfecho_isadora_remarca"]).toMatch(
+      /A Isadora vai oferecer outro horário/,
+    );
+    expect(obterLoja().tarefas.length).toBe(tarefas);
+  });
+
+  it("cancelar a reunião da Isadora pelo CRM é recusado, com a razão em palavras", async () => {
+    const sessao = await sessaoDaIsadora();
+    const estado = await acaoRegistrarDesfecho(
+      estadoInicialSessao,
+      formularioDesfecho(sessao.id, { desfecho: "cancelada" }),
+    );
+    expect(estado.erro).toMatch(/vive no Google Calendar/);
+  });
+
+  it("resultado com mais de 300 caracteres volta como erro de tela", async () => {
+    await entrar("Perfil Teste Coordenacao", "aal2");
+    const sessao = await sessaoDaIsadora();
+    const estado = await acaoRegistrarDesfecho(
+      estadoInicialSessao,
+      formularioDesfecho(sessao.id, {
+        desfecho: "realizada",
+        resultado: "x".repeat(301),
+      }),
+    );
+    expect(estado.erro).toMatch(/300 caracteres/);
   });
 });

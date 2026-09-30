@@ -51,6 +51,8 @@ export interface EventoTela {
 
 export interface ConversaResumoTela {
   conversaId: string;
+  /** [v4.3] Quem responde à família hoje; null fora de lead e cliente. */
+  quemConduz: "isadora" | "leonardo" | "equipe" | null;
   nomeContato: string | null;
   telefoneE164: string | null;
   mensagens: Mensagem[];

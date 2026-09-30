@@ -10,6 +10,12 @@
  * fora da tabela ou uma promessa, o caso que provocou reprovaria.
  */
 import {
+  naoCitaHorario,
+  naoConfirmaSemEvento,
+  naoPedeOEmail,
+  nenhumEventoDaIsadora,
+} from "../lib/regras-agenda";
+import {
   apenasOTextoFixoNoTurno,
   avisoAoGrupo,
   contem,
@@ -24,7 +30,7 @@ import {
   textoFixoNoTurno,
   transferePara,
 } from "../lib/regras";
-import type { Caso } from "../lib/tipos";
+import type { Caso, GrupoCaso } from "../lib/tipos";
 import type { OpcoesDeCaso } from "./execucao-local";
 import type { RoteiroDoTurno } from "./modelo-roteirizado";
 import { CLASSIFICACAO_PADRAO } from "./modelo-roteirizado";
@@ -35,7 +41,10 @@ export interface CasoSoSimulador {
 }
 
 function caso(
-  base: Omit<Caso, "grupo" | "ambientes" | "rotulo"> & { rotulo?: string },
+  base: Omit<Caso, "grupo" | "ambientes" | "rotulo"> & {
+    rotulo?: string;
+    grupo?: GrupoCaso;
+  },
 ): Caso {
   return {
     grupo: "extra_v42",
@@ -369,6 +378,100 @@ export const CASOS_SO_SIMULADOR: CasoSoSimulador[] = [
           },
         },
       },
+    },
+  },
+  // --- [v4.3] A agenda: o modelo erra e o validador (11.11 itens 9 e 10) segura -----------------
+  {
+    caso: caso({
+      id: "S12",
+      grupo: "extra_v43",
+      rotulo: "horário sem consulta",
+      titulo:
+        "O modelo cita um horário da Edilaine que nenhuma ferramenta devolveu: reprovado, e a reescrita não traz horário",
+      preparo: [{ preparo: "agendaDeTeste" }],
+      turnos: [{ tipo: "texto", texto: "Quero marcar com a Edilaine." }],
+      regras: [
+        respondeNoTurno(1, "sistema"),
+        naoCitaHorario(1),
+        naoContem(
+          "S12-horario-inventado-nao-sai",
+          "O horário que o modelo inventou não chega à família.",
+          1,
+          [/quarta/, /20h/],
+          "bloqueante",
+        ),
+        naoConfirmaSemEvento(1),
+        nenhumEventoDaIsadora(1),
+      ],
+    }),
+    opcoes: {
+      roteiros: agente(
+        "Que bom! Ontem ela tinha quarta às 20h, serve para você?",
+        {
+          reescrita: {
+            texto:
+              "Que bom! Deixa eu olhar a agenda da Edilaine agora para te passar horários certinhos, tá?",
+            transferir: null,
+          },
+        },
+      ),
+    },
+  },
+  {
+    caso: caso({
+      id: "S13",
+      grupo: "extra_v43",
+      rotulo: "confirmação sem agendar_reuniao",
+      titulo:
+        'O modelo diz "pronto, está marcado" sem `agendar_reuniao` bem-sucedido: reprovado, nenhum evento, nenhuma reunião gravada',
+      preparo: [{ preparo: "agendaDeTeste" }],
+      turnos: [{ tipo: "texto", texto: "Pode ser amanhã de manhã." }],
+      regras: [
+        respondeNoTurno(1, "sistema"),
+        naoConfirmaSemEvento(1),
+        naoCitaHorario(1),
+        nenhumEventoDaIsadora(1),
+      ],
+    }),
+    opcoes: {
+      roteiros: agente(
+        "Pronto, sua reunião com a Edilaine está marcada para amanhã de manhã!",
+        {
+          reescrita: {
+            texto:
+              "Deixa eu conferir a agenda da Edilaine para esse horário e já te respondo, tá?",
+            transferir: null,
+          },
+        },
+      ),
+    },
+  },
+  {
+    caso: caso({
+      id: "S14",
+      grupo: "extra_v43",
+      rotulo: "e-mail antes do horário conferido",
+      titulo:
+        "O modelo pede o e-mail antes de o horário estar escolhido, conferido e livre: reprovado",
+      preparo: [{ preparo: "agendaDeTeste" }],
+      turnos: [{ tipo: "texto", texto: "Quero marcar com a Edilaine." }],
+      regras: [
+        respondeNoTurno(1, "sistema"),
+        naoPedeOEmail(1),
+        nenhumEventoDaIsadora(1),
+      ],
+    }),
+    opcoes: {
+      roteiros: agente(
+        "Que bom! Me passa o seu e-mail para eu enviar o convite da reunião?",
+        {
+          reescrita: {
+            texto:
+              "Que bom! Deixa eu olhar a agenda da Edilaine para te passar os horários certinhos, tá?",
+            transferir: null,
+          },
+        },
+      ),
     },
   },
 ];

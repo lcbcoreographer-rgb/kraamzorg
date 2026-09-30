@@ -66,6 +66,12 @@ export function CartaoSessao({
           {sessao.conduzidaPorNome ? (
             <span>com {sessao.conduzidaPorNome}</span>
           ) : null}
+          {sessao.agendadaPor === "isadora" ? (
+            <span>marcada pela Isadora</span>
+          ) : null}
+          {sessao.conversaCom === "leonardo" && !sensivel ? (
+            <span>conversa com o Leonardo</span>
+          ) : null}
         </span>
       </span>
       <span className="flex items-center gap-2">

@@ -131,6 +131,8 @@ export const ROTULO_TIPO_TAREFA: Record<TipoTarefa, string> = {
   nutricao_contato: "Contato da régua de nutrição",
   followup_comercial: "Follow-up comercial",
   agendar_sessao: "Agendar sessão com a Edilaine",
+  registrar_desfecho_sessao: "Registrar como foi a reunião",
+  responder_consulta_isadora: "Responder à Isadora",
   enviar_formulario_contrato: "Formulário do contrato",
   checkin_dpp: "Check-in da data prevista",
   agendar_prenatal: "Agendar o pré-natal online",

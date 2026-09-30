@@ -265,6 +265,17 @@ function criarAmbiente(opcoes = {}) {
     };
   };
 
+  // [v4.3] Fluxo 4 (Agenda da Isadora) chamado pelo fluxo 3: o teste diz o que
+  // ele devolve; o registro guarda as entradas para conferir o `conversa_id`.
+  const fluxo4 = (nomeNo) => (parametros) => {
+    const entrada = parametros.workflowInputs.value;
+    estado.fluxo4 ??= [];
+    estado.fluxo4.push({ no: nomeNo, entrada });
+    if (falhas.has('fluxo4') || falhas.has(nomeNo)) throw new Error('sub-fluxo da agenda falhou');
+    const resposta = typeof opcoes.fluxo4 === 'function' ? opcoes.fluxo4(entrada) : opcoes.fluxo4;
+    return resposta ?? { origem: 'agenda_isadora', estado: 'indisponivel' };
+  };
+
   const agente = (parametros, item, ctx) => {
     estado.agente.push({ entrada: parametros.text, sistema: parametros.options.systemMessage });
     if (falhas.has('agente')) throw new Error('OpenAI timeout');
@@ -279,7 +290,10 @@ function criarAmbiente(opcoes = {}) {
       for (const no of fluxo.nodes) {
         if (no.type === 'n8n-nodes-base.postgres') servicos[no.name] = postgres;
         else if (no.type === 'n8n-nodes-base.redis') servicos[no.name] = redis;
-        else if (no.type === 'n8n-nodes-base.executeWorkflow') servicos[no.name] = fluxo2(no.name);
+        else if (no.type === 'n8n-nodes-base.executeWorkflow') {
+          const ehFluxo4 = [NOS.consultarAgendaFollowup, NOS.conferirAgenda, NOS.abrirConsultaDeHorario].includes(no.name);
+          servicos[no.name] = ehFluxo4 ? fluxo4(no.name) : fluxo2(no.name);
+        }
         else if (no.type === '@n8n/n8n-nodes-langchain.agent') servicos[no.name] = agente;
         else if (no.type === 'n8n-nodes-base.httpRequest') {
           const url = no.parameters.url;
@@ -292,7 +306,7 @@ function criarAmbiente(opcoes = {}) {
             };
           } else if (no.name === NOS.classificarMensagem) servicos[no.name] = openai('classificacao');
           else if (no.name === NOS.reescrever) servicos[no.name] = openai('reescrita');
-          else if (no.name === NOS.gerarMensagem) servicos[no.name] = openai('followup');
+          else if (no.name === NOS.gerarMensagem || no.name === NOS.gerarMensagemAgenda) servicos[no.name] = openai('followup');
         }
       }
       return servicos;
@@ -1403,6 +1417,207 @@ describe('fluxo 3 · entrada B (follow-up) no simulador', () => {
     await agendado(ambiente);
     assert.deepEqual(ambiente.chamadas('registrar_followup').map((c) => c.argumentos[0]).sort(), ['e1', 'e2']);
     assert.deepEqual(ambiente.enviosDe(NOS.enviarFollowup).map((e) => e.number).sort(), ['000000000001@s.whatsapp.net', '000000000002@s.whatsapp.net']);
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// [v4.3] Entrada B da agenda (nós 42 a 47): lembrete da véspera, remarcação
+// depois de falta, devolutiva de consulta, horário liberado, e a retomada das
+// opções vencidas dentro da cadência de follow-up (nós 36 a 41)
+// ---------------------------------------------------------------------------
+
+describe('fluxo 3 · entrada B da agenda no simulador', () => {
+  const LISTAS_AGENDA = {
+    ...LISTAS,
+    agenda_contexto: ['reunião', 'reuniao', 'edilaine', 'agenda', 'horário', 'horario', 'convite', 'link', 'meet'],
+    agenda_confirmacao: ['agendada', 'agendado', 'marcada', 'marcado', 'confirmada', 'confirmado', 'prontinho', 'combinado'],
+    agenda_reserva: ['vaga reservada', 'vaga garantida'],
+    agenda_leonardo_verbos: ['vai te chamar', 'vai entrar em contato'],
+    agenda_depois: ['depois da reunião'],
+    agenda_anotacao_termos: ['condição', 'pagamento', 'contrato', 'desconto'],
+  };
+  const LINK = 'https://meet.google.com/aaa-bbbb-ccc';
+  const proativos = (itens) => ({ ok: true, itens, validador: { listas: LISTAS_AGENDA } });
+  const base = { conversa_id: 'c1', wa_jid: JID, nome: 'Ana' };
+  const rodarAgendado = async (ambiente) => {
+    const { fluxo3 } = await fluxos();
+    return simularFluxo(fluxo3, { gatilho: NOS.aCada30Min, entrada: {}, servicos: ambiente.montarServicos(fluxo3) });
+  };
+  const lembrete = {
+    ...base,
+    tipo: 'lembrete',
+    sessao_id: 's1',
+    hora: '10h',
+    link: LINK,
+    texto_horario: 'sábado, 03/10, às 10h',
+    texto_modelo: 'Oi, {nome}! Passando para lembrar da sua reunião com a Edilaine amanhã, às {hora} 😊 O link é este: {link}',
+    texto_base: `Oi, Ana! Passando para lembrar da sua reunião com a Edilaine amanhã, às 10h 😊 O link é este: ${LINK}`,
+  };
+  const eventoOk = { origem: 'agenda_isadora', estado: 'evento_ok', texto: 'sábado, 03/10, às 10h', link: LINK };
+
+  test('lembrete: confere o evento no calendário, passa por pode_enviar (operacional) e só então envia; registra o lembrete e a memória', async () => {
+    const texto = `Oi, Ana! Amanhã, às 10h, temos a reunião com a Edilaine 😊 O link é este: ${LINK}`;
+    const ambiente = criarAmbiente({ proativosAgenda: proativos([lembrete]), fluxo4: eventoOk, followup: { texto } });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.fluxo4[0].entrada.operacao, 'conferir_evento');
+    assert.equal(ambiente.estado.fluxo4[0].entrada.conversa_id, 'c1', 'a chave é o conversa_id do banco');
+    assert.deepEqual(ambiente.chamadas('pode_enviar')[0].argumentos, ['c1', 'operacional', null]);
+    assert.deepEqual(ambiente.enviosDe(NOS.enviarAgenda).map((e) => [e.number, e.text]), [[JID, texto]]);
+    assert.deepEqual(ambiente.chamadas('registrar_lembrete')[0].argumentos, ['s1', true, texto]);
+    assert.deepEqual(ambiente.chamadas('sincronizar_memoria')[0].argumentos.slice(0, 2), ['c1', 'followup']);
+  });
+
+  test('lembrete com horário diferente do que o calendário devolveu: o validador reprova, nada sai e o lembrete volta', async () => {
+    const texto = `Oi, Ana! Amanhã, às 11h, temos a reunião com a Edilaine 😊 O link é este: ${LINK}`;
+    const ambiente = criarAmbiente({ proativosAgenda: proativos([lembrete]), fluxo4: eventoOk, followup: { texto } });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.envios.length, 0);
+    assert.deepEqual(ambiente.chamadas('registrar_lembrete')[0].argumentos, ['s1', false, null]);
+  });
+
+  test('lembrete com link que não é o do Meet do evento: reprovado (link só o do convite)', async () => {
+    const texto = 'Oi, Ana! Amanhã, às 10h, temos a reunião com a Edilaine 😊 O link é este: https://exemplo.invalid/outro';
+    const ambiente = criarAmbiente({ proativosAgenda: proativos([lembrete]), fluxo4: eventoOk, followup: { texto } });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.envios.length, 0);
+  });
+
+  test('freio, janela ou pausa (pode_enviar recusado): nada sai e o lembrete é fechado sem ok', async () => {
+    const texto = `Oi, Ana! Amanhã, às 10h, temos a reunião com a Edilaine 😊 O link é este: ${LINK}`;
+    const ambiente = criarAmbiente({ proativosAgenda: proativos([lembrete]), fluxo4: eventoOk, followup: { texto }, podeEnviar: () => ({ pode: false, motivo: 'freio' }) });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.envios.length, 0);
+    assert.deepEqual(ambiente.chamadas('registrar_lembrete')[0].argumentos, ['s1', false, null]);
+  });
+
+  test('evento apagado pela Edilaine: o lembrete não sai (e não consome o freio nem o modelo)', async () => {
+    const ambiente = criarAmbiente({ proativosAgenda: proativos([lembrete]), fluxo4: { origem: 'agenda_isadora', estado: 'evento_apagado' }, followup: { texto: 'não deveria gerar' } });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.envios.length, 0);
+    assert.equal(ambiente.estado.openai.length, 0);
+    assert.equal(ambiente.chamadas('pode_enviar').length, 0);
+    assert.equal(ambiente.chamadas('registrar_lembrete').length, 0);
+  });
+
+  test('evento movido para outro dia que não é amanhã: o lembrete é adiado, sem enviar o horário velho', async () => {
+    const ambiente = criarAmbiente({
+      proativosAgenda: proativos([lembrete]),
+      fluxo4: { origem: 'agenda_isadora', estado: 'evento_movido', texto: 'terça, 06/10, às 16h', hora: '16h', inicio: '2026-10-06T19:00:00.000Z', link: LINK },
+      followup: { texto: 'não deveria gerar' },
+    });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.envios.length, 0);
+  });
+
+  test('Google fora do ar na véspera: o lembrete não sai com dado velho e volta na próxima rodada', async () => {
+    const ambiente = criarAmbiente({ proativosAgenda: proativos([lembrete]), fluxo4: { origem: 'agenda_isadora', estado: 'indisponivel' }, followup: { texto: 'x' } });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.envios.length, 0);
+    assert.deepEqual(ambiente.chamadas('registrar_lembrete')[0].argumentos, ['s1', false, null]);
+  });
+
+  test('falta: remarcação sem constranger, conteúdo com pode_enviar, e o registro fecha a execução do motor', async () => {
+    const falta = { ...base, tipo: 'falta', execucao_id: 'e9', texto_base: 'Imagino que tenha surgido algum imprevisto, acontece! Quer que eu veja um novo horário com a Edilaine?' };
+    const texto = 'Oi, Ana! Imagino que tenha surgido algum imprevisto, acontece. Quer que eu veja um novo horário com a Edilaine?';
+    const ambiente = criarAmbiente({ proativosAgenda: proativos([falta]), followup: { texto } });
+    await rodarAgendado(ambiente);
+    assert.equal((ambiente.estado.fluxo4 ?? []).length, 0, 'falta não consulta o calendário');
+    assert.deepEqual(ambiente.chamadas('pode_enviar')[0].argumentos, ['c1', 'conteudo', null]);
+    assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e9', texto, true]);
+  });
+
+  test('falta: texto que confirma reunião ou cita horário sem consulta é reprovado', async () => {
+    const falta = { ...base, tipo: 'falta', execucao_id: 'e9', texto_base: 'Quer que eu veja um novo horário com a Edilaine?' };
+    for (const texto of ['Oi, Ana! Já remarquei a reunião para quinta, 08/10, às 19h.', 'Oi, Ana! A reunião com a Edilaine está confirmada.']) {
+      const ambiente = criarAmbiente({ proativosAgenda: proativos([falta]), followup: { texto } });
+      await rodarAgendado(ambiente);
+      assert.equal(ambiente.estado.envios.length, 0, texto);
+      assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e9', null, false]);
+    }
+  });
+
+  test('devolutiva de consulta: entrega a resposta da equipe ao modelo e fecha a consulta como devolvida só depois de enviar', async () => {
+    const devolutiva = { ...base, tipo: 'devolutiva', consulta_id: 'q1', pergunta: 'Santo André', resposta: 'Atendemos Santo André, sem taxa.', texto_base: 'Voltei com a resposta da equipe.' };
+    const texto = 'Oi, Ana! Boa notícia: atendemos Santo André, sem taxa 🤍';
+    const ambiente = criarAmbiente({ proativosAgenda: proativos([devolutiva]), followup: { texto } });
+    await rodarAgendado(ambiente);
+    assert.match(ambiente.estado.openai[0].corpo.messages[0].content, /Atendemos Santo André, sem taxa\./);
+    assert.deepEqual(ambiente.chamadas('fechar_consulta')[0].argumentos, ['q1', 'devolvida', texto]);
+    // não enviou: a consulta continua aberta para outra tentativa
+    const recusado = criarAmbiente({ proativosAgenda: proativos([devolutiva]), followup: { texto }, podeEnviar: () => ({ pode: false }) });
+    await rodarAgendado(recusado);
+    assert.equal(recusado.chamadas('fechar_consulta').length, 0);
+  });
+
+  test('horário liberado pela Edilaine: consulta a agenda agora (1 opção) e só oferece o que o calendário devolveu', async () => {
+    const horario = { ...base, tipo: 'horario', consulta_id: 'q2', preferencia: { dias: 'sábado', periodos: 'manhã' }, texto_base: 'A Edilaine abriu um horário: {opcao_1}. Serve para vocês?' };
+    const ambiente = criarAmbiente({
+      proativosAgenda: proativos([horario]),
+      fluxo4: { origem: 'agenda_isadora', estado: 'opcoes', opcoes: [{ id_opcao: 'x', texto: 'sábado, 03/10, às 9h' }] },
+      followup: { texto: 'Oi, Ana! A Edilaine abriu um horário: sábado, 03/10, às 9h. Serve para vocês?' },
+    });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.fluxo4[0].entrada.operacao, 'consultar');
+    assert.equal(ambiente.estado.fluxo4[0].entrada.maximo, 1);
+    assert.match(ambiente.estado.fluxo4[0].entrada.preferencia, /sábado/);
+    assert.equal(ambiente.enviosDe(NOS.enviarAgenda).length, 1);
+    assert.equal(ambiente.chamadas('fechar_consulta')[0].argumentos[1], 'devolvida');
+
+    const ocupado = criarAmbiente({
+      proativosAgenda: proativos([horario]),
+      fluxo4: { origem: 'agenda_isadora', estado: 'sem_horario', opcoes: [] },
+      followup: { texto: 'Oi, Ana! A Edilaine abriu um horário: sábado, 03/10, às 9h.' },
+    });
+    await rodarAgendado(ocupado);
+    assert.equal(ocupado.estado.envios.length, 0, 'sem opção consultada agora, nada é oferecido');
+  });
+
+  test('cadência (1, 3 e 14 dias): follow-up que retoma opções vencidas consulta a agenda de novo e usa só as opções novas', async () => {
+    const item = {
+      execucao_id: 'e5',
+      conversa_id: 'c5',
+      wa_jid: '000000000005@s.whatsapp.net',
+      nome: 'Ana',
+      texto_base: 'Oi, {nome}! Conferi a agenda da Edilaine agora e os horários de ontem já não valem. Hoje ela tem {opcao_1} ou {opcao_2}. Algum fica bom?',
+      tempo_sem_resposta: '1 dia',
+      ultimas_mensagens: [],
+      etapa: 1,
+      motivo: 'opcoes_vencidas',
+      precisa_agenda: true,
+    };
+    const novas = { origem: 'agenda_isadora', estado: 'opcoes', opcoes: [{ texto: 'sexta, 02/10, às 14h' }, { texto: 'sábado, 03/10, às 9h' }] };
+    const texto = 'Oi, Ana! Conferi a agenda da Edilaine agora: ela tem sexta, 02/10, às 14h ou sábado, 03/10, às 9h. Algum fica bom?';
+    const ambiente = criarAmbiente({
+      followups: { ok: true, itens: [item], validador: { listas: LISTAS_AGENDA }, enviados_hoje: [], limite_similaridade: 0.8 },
+      fluxo4: novas,
+      followup: { texto },
+    });
+    await rodarAgendado(ambiente);
+    assert.equal(ambiente.estado.fluxo4[0].entrada.conversa_id, 'c5');
+    assert.equal(ambiente.estado.fluxo4[0].entrada.operacao, 'consultar');
+    assert.match(ambiente.estado.openai[0].corpo.messages[0].content, /sexta, 02\/10, às 14h/);
+    assert.deepEqual(ambiente.chamadas('pode_enviar')[0].argumentos, ['c5', 'conteudo', null]);
+    assert.deepEqual(ambiente.chamadas('registrar_followup')[0].argumentos, ['e5', texto, true]);
+
+    // horário de ontem no texto do modelo: reprovado
+    const velho = criarAmbiente({
+      followups: { ok: true, itens: [item], validador: { listas: LISTAS_AGENDA }, enviados_hoje: [], limite_similaridade: 0.8 },
+      fluxo4: novas,
+      followup: { texto: 'Oi, Ana! Ontem a Edilaine tinha quarta, 30/09, às 20h. Ainda serve?' },
+    });
+    await rodarAgendado(velho);
+    assert.equal(velho.estado.envios.length, 0);
+
+    // agenda sem horário: o retorno não sai
+    const semAgenda = criarAmbiente({
+      followups: { ok: true, itens: [item], validador: { listas: LISTAS_AGENDA }, enviados_hoje: [], limite_similaridade: 0.8 },
+      fluxo4: { origem: 'agenda_isadora', estado: 'sem_horario', opcoes: [] },
+      followup: { texto },
+    });
+    await rodarAgendado(semAgenda);
+    assert.equal(semAgenda.estado.envios.length, 0);
+    assert.deepEqual(semAgenda.chamadas('registrar_followup')[0].argumentos, ['e5', null, false]);
   });
 });
 

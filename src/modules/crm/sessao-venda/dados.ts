@@ -32,6 +32,26 @@ export function podeConduzirAgenda(sessao: SessaoUsuario): boolean {
   return temPapel(sessao, "comercial", "diretoria");
 }
 
+/**
+ * [v4.3, D-20] Quem registra que a reunião aconteceu ou que a família não
+ * veio: a Edilaine (coordenação) e a diretoria. O registro passa a conversa
+ * ao Leonardo (humano_comercial).
+ */
+export function podeRegistrarReuniao(sessao: SessaoUsuario): boolean {
+  return temPapel(sessao, "coordenacao", "diretoria");
+}
+
+/** Cancelar vale só para reunião marcada pela equipe (a da Isadora vive no calendário). */
+export function podeCancelarReuniao(
+  sessao: SessaoUsuario,
+  reuniao: Pick<SessaoVenda, "agendadaPor">,
+): boolean {
+  return (
+    reuniao.agendadaPor === "humano" &&
+    temPapel(sessao, "comercial", "coordenacao", "diretoria")
+  );
+}
+
 export async function listarSessoesTela(): Promise<SessaoVenda[]> {
   const { venda } = await obterRepositorios();
   return venda.listarSessoes();

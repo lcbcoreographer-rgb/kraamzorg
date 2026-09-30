@@ -148,6 +148,44 @@ export const ROTULO_SITUACAO: Record<SituacaoConversa, string> = {
   freio: "Freio: Isadora desligada",
 };
 
+/**
+ * [v4.3, D-20] Quem conduz a conversa, em palavra: a conversa encerrada para
+ * a Isadora é do Leonardo (humano_comercial, aberto pelo registro de "reunião
+ * realizada"); as demais situações mantêm o rótulo de sempre.
+ */
+export const ROTULO_LEONARDO_CONDUZ = "Leonardo conduzindo";
+
+export function rotuloDaSituacao(
+  situacao: SituacaoConversa,
+  motivoEncerramento?: string | null,
+): string {
+  if (situacao === "equipe" && motivoEncerramento === "reuniao_realizada") {
+    return ROTULO_LEONARDO_CONDUZ;
+  }
+  return ROTULO_SITUACAO[situacao];
+}
+
+export type QuemConduz = "isadora" | "leonardo" | "equipe";
+
+/**
+ * Selo da ficha: quem responde à família hoje. Só faz sentido para conversa
+ * de lead ou cliente; `null` para o resto (candidata, fornecedor, número
+ * solto).
+ */
+export function quemConduzAConversa(
+  conversa: Pick<
+    ResumoConversa,
+    "classificacao" | "agenteEncerradoEm" | "agentePausadoAte"
+  >,
+  agora: Date = new Date(),
+): QuemConduz | null {
+  const situacao = situacaoDaConversa(conversa, agora);
+  if (situacao === "isadora") return "isadora";
+  if (situacao === "equipe") return "leonardo";
+  if (situacao === "pausada") return "equipe";
+  return null;
+}
+
 export const TITULO_FILTRO: Record<"todas" | SituacaoConversa, string> = {
   todas: "Todas",
   isadora: "Isadora conduzindo",

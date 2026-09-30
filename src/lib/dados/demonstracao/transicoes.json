@@ -17,7 +17,7 @@
     "maquina": "p1",
     "de": "qualificado",
     "para": "sessao_venda_agendada",
-    "automatica": false,
+    "automatica": true,
     "papel_minimo": "comercial"
   },
   {
@@ -25,7 +25,7 @@
     "de": "sessao_venda_agendada",
     "para": "sessao_venda_realizada",
     "automatica": false,
-    "papel_minimo": "comercial"
+    "papel_minimo": null
   },
   {
     "maquina": "p1",
@@ -108,8 +108,8 @@
     "maquina": "p1",
     "de": "sessao_venda_agendada",
     "para": "qualificado",
-    "automatica": false,
-    "papel_minimo": "comercial"
+    "automatica": true,
+    "papel_minimo": null
   },
   {
     "maquina": "p1",
@@ -129,7 +129,7 @@
     "maquina": "p1",
     "de": "nutricao",
     "para": "sessao_venda_agendada",
-    "automatica": false,
+    "automatica": true,
     "papel_minimo": "comercial"
   },
   {

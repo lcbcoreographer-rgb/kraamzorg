@@ -30,16 +30,35 @@ export interface ContextoDoModelo {
   mensagem: string;
   /** Retorno de cada ferramenta chamada antes do texto, na ordem. */
   observacoes: Objeto[];
+  /** O último retorno de uma ferramenta, mesmo de um turno anterior (o id da opção que ela gravou, por exemplo). */
+  ultimo(ferramenta: string): Objeto | undefined;
+  /** As opções de horário da última lista que a agenda devolveu, com o `id_opcao` de cada uma. */
+  opcoes(): { id_opcao: string; texto: string }[];
+  /** As entradas de todas as chamadas anteriores de uma ferramenta, da mais antiga para a mais nova. */
+  entradas(ferramenta: string): Objeto[];
   horariosDaEdilaine: string[];
   aVista(filtro: string | { dias: number; gemelar?: boolean }): string;
   parcela(filtro: string | { dias: number; gemelar?: boolean }): string;
 }
 
+/** O que uma chamada de ferramenta pode ler antes de ser montada. */
+export type ContextoDeChamada = Pick<
+  ContextoDoModelo,
+  "mensagem" | "observacoes" | "ultimo" | "opcoes" | "entradas"
+>;
+
+/**
+ * Uma chamada, ou uma função que a monta na hora com o que as anteriores
+ * devolveram (é assim que o modelo escolhe o `id_opcao` que a ferramenta de
+ * agenda acabou de gravar). `null` pula a chamada.
+ */
+export type ItemDeFerramenta =
+  ChamadaDeFerramenta | ((c: ContextoDeChamada) => ChamadaDeFerramenta | null);
+
 export interface RespostaDoAgente {
   /** Chamadas de ferramenta antes do texto. Pode depender do que a família escreveu. */
   ferramentas?:
-    | ChamadaDeFerramenta[]
-    | ((c: Pick<ContextoDoModelo, "mensagem">) => ChamadaDeFerramenta[]);
+    ItemDeFerramenta[] | ((c: ContextoDeChamada) => ItemDeFerramenta[]);
   texto: string | ((c: ContextoDoModelo) => string);
 }
 
@@ -60,7 +79,13 @@ export interface RoteiroDoTurno {
    * mensagem proativa para duas famílias no mesmo dia, então repetir o teste no mesmo dia
    * pede um texto que não se repete.
    */
-  followup?: Objeto | ((c: { digitos: string }) => Objeto);
+  followup?:
+    | Objeto
+    | ((c: {
+        digitos: string;
+        /** O texto aprovado que o sistema entregou ao gerador (`{{texto_base}}`), com os dados da agenda já no lugar. */
+        textoBase: string;
+      }) => Objeto);
 }
 
 export const CLASSIFICACAO_PADRAO: Objeto = {
@@ -73,13 +98,10 @@ export const CLASSIFICACAO_PADRAO: Objeto = {
   porque: "roteiro de homologação",
 };
 
-const SAUDACAO =
+export const SAUDACAO =
   "Oi, boa tarde! Que bom receber a sua mensagem. Eu sou a Isadora, assistente virtual da Kraamzorg Brasil, e vou te acompanhar por aqui 🤍\n\nPra começar, como posso te chamar?";
 
-const CONDICAO =
-  "Essa condição quem confirma é o Leonardo, tá? Vou pedir para ele falar com você por aqui.";
-
-function transferir(
+export function transferir(
   motivo: string,
   resumo: string,
   solicitacao: string,
@@ -91,11 +113,11 @@ function transferir(
   };
 }
 
-function ficha(dados: Objeto): ChamadaDeFerramenta {
+export function ficha(dados: Objeto): ChamadaDeFerramenta {
   return { ferramenta: "atualizar_ficha", entrada: { dados } };
 }
 
-export const ROTEIROS: Record<string, Record<number, RoteiroDoTurno>> = {
+export const ROTEIROS_BASE: Record<string, Record<number, RoteiroDoTurno>> = {
   C01: { 1: { agente: { texto: SAUDACAO } } },
 
   C02: {
@@ -122,56 +144,6 @@ export const ROTEIROS: Record<string, Record<number, RoteiroDoTurno>> = {
             "[ENVIAR_APRESENTACAO]",
             `O Continuado é ${c.aVista({ dias: 12 })}, ou ${c.parcela({ dias: 12 })}.`,
           ].join("\n\n"),
-      },
-    },
-  },
-
-  C04: {
-    1: {
-      agente: {
-        ferramentas: [
-          transferir(
-            "condicao_comercial",
-            "Perguntou se existe desconto no Pix.",
-            "Tem desconto no Pix?",
-          ),
-        ],
-        texto: CONDICAO,
-      },
-    },
-  },
-
-  C05: {
-    1: {
-      agente: {
-        ferramentas: [
-          transferir(
-            "condicao_comercial",
-            "Perguntou se dá para parcelar em mais vezes.",
-            "Dá para parcelar em 7x?",
-          ),
-        ],
-        texto: CONDICAO,
-      },
-    },
-  },
-
-  C06: {
-    1: {
-      agente: {
-        ferramentas: [
-          {
-            ferramenta: "verificar_cobertura",
-            entrada: { cidade: "Santo André", bairro: "", uf: "SP" },
-          },
-          transferir(
-            "cobertura_taxa",
-            "Mora em Santo André e quer saber se é atendida.",
-            "Moro em Santo André.",
-          ),
-        ],
-        texto:
-          "Deixa eu confirmar essa região com a equipe para te responder certinho, tá? A resposta vem por aqui.",
       },
     },
   },
@@ -244,91 +216,7 @@ export const ROTEIROS: Record<string, Record<number, RoteiroDoTurno>> = {
     },
   },
 
-  C12: {
-    1: {
-      agente: {
-        texto:
-          "Claro, conversem com calma. Se quiserem, vocês dois podem falar com a Edilaine, nossa cofundadora e enfermeira, numa conversa de uns 15 minutos, sem compromisso, para ela entender a rotina do casal e tirar as dúvidas.",
-      },
-    },
-  },
-
-  C13: {
-    1: {
-      agente: {
-        texto:
-          "Que ótimo! Me passa duas opções de dia e horário que ficam boas para vocês? Aí eu confiro com a agenda da Edilaine.",
-      },
-    },
-    2: {
-      agente: {
-        ferramentas: [
-          transferir(
-            "reuniao",
-            "Quer a conversa com a Edilaine e passou as opções.",
-            "Quinta ou sexta às 10h.",
-            { opcoes: "quinta ou sexta às 10h" },
-          ),
-        ],
-        texto:
-          "Combinado! Vou conferir a agenda da Edilaine com a equipe, e a resposta vem por aqui 😊",
-      },
-    },
-  },
-
-  C14: {
-    1: {
-      agente: {
-        texto: (c) =>
-          `Que bom! A Edilaine tem estes horários: ${c.horariosDaEdilaine.join(" ou ")}. Se algum ficar bom para vocês, me conta qual, sem compromisso.`,
-      },
-    },
-    2: {
-      agente: {
-        ferramentas: [
-          transferir(
-            "reuniao",
-            "Nenhum dos horários sugeridos serve.",
-            "Nenhum desses horários dá.",
-            { periodo: "a definir com a família" },
-          ),
-        ],
-        texto:
-          "Sem problema. Costuma ser melhor para vocês de manhã, à tarde ou à noite? Vou passar isso para a equipe buscar outro horário.",
-      },
-    },
-  },
-
-  C15: {
-    1: {
-      agente: {
-        ferramentas: [ficha({ quer_contratar: true })],
-        texto:
-          "Que alegria! Fico muito feliz com a decisão de vocês 🤍 Para o Leonardo seguir com tudo certo, me confirma qual plano vocês escolheram, qual é a DPP e se preferem pagar no cartão ou no Pix?",
-      },
-    },
-    2: {
-      agente: {
-        ferramentas: (c) => [
-          ficha({
-            plano_interesse: "Continuado",
-            dpp: /\d{2}\/\d{2}\/\d{4}/.exec(c.mensagem)?.[0] ?? "",
-            pagamento_preferido: "pix",
-          }),
-          transferir(
-            "contratar",
-            "A família confirmou plano, DPP e pagamento e quer contratar.",
-            "Quero o de 12 dias e prefiro pagar no Pix.",
-            { plano: "Continuado", pagamento: "pix" },
-          ),
-        ],
-        texto:
-          "Perfeito, ficou tudo anotado! O Leonardo continua com vocês daqui, começando por um formulário seguro para os dados do contrato.",
-      },
-    },
-  },
-
-  C16: {
+  C20: {
     1: {
       agente: {
         texto:
@@ -337,7 +225,7 @@ export const ROTEIROS: Record<string, Record<number, RoteiroDoTurno>> = {
     },
   },
 
-  C17: {
+  C21: {
     1: {
       agente: {
         ferramentas: [
@@ -353,7 +241,7 @@ export const ROTEIROS: Record<string, Record<number, RoteiroDoTurno>> = {
     },
   },
 
-  C18: {
+  C22: {
     1: {
       agente: {
         texto:
@@ -362,7 +250,7 @@ export const ROTEIROS: Record<string, Record<number, RoteiroDoTurno>> = {
     },
   },
 
-  C19: {
+  C23: {
     1: {
       agente: {
         texto:
@@ -371,7 +259,7 @@ export const ROTEIROS: Record<string, Record<number, RoteiroDoTurno>> = {
     },
   },
 
-  C20: {
+  C24: {
     1: {
       agente: {
         ferramentas: [
@@ -387,32 +275,7 @@ export const ROTEIROS: Record<string, Record<number, RoteiroDoTurno>> = {
     },
   },
 
-  C22: {
-    1: {
-      agente: {
-        ferramentas: [
-          transferir(
-            "duvida_sem_resposta",
-            "Perguntou se o contrato terá tudo o que está na apresentação.",
-            "O contrato vai ter tudo que está na apresentação?",
-          ),
-        ],
-        texto:
-          "Que bom que você está olhando isso com atenção 🤍 O que está na apresentação é o que a Kraamzorg entrega, e o Leonardo vai tratar dos pontos do contrato com você.",
-      },
-    },
-  },
-
-  C23: {
-    1: { agente: { ferramentas: [ficha({ nome: "Ana" })], texto: SAUDACAO } },
-    3: {
-      followup: (c) => ({
-        texto: `Oi! Passei por aqui para saber se ficou alguma dúvida sobre o cuidado no pós-parto. Quando fizer sentido, é só me contar de quantas semanas você está. (teste ${c.digitos.slice(-5)})`,
-      }),
-    },
-  },
-
-  C24: {
+  C28: {
     1: {
       agente: {
         ferramentas: [ficha({ sem_interesse: true })],
@@ -477,30 +340,20 @@ export const ROTEIROS: Record<string, Record<number, RoteiroDoTurno>> = {
 
   V09: { 1: { agente: { texto: SAUDACAO } } },
 
-  V10: {
+  X10: {
     1: {
       agente: {
-        texto:
-          "Que ótimo! Me passa duas opções de dia e horário que ficam boas para vocês? Aí eu confiro com a agenda da Edilaine.",
-      },
-    },
-    2: {
-      agente: {
         ferramentas: [
-          transferir(
-            "reuniao",
-            "Quer a conversa com a Edilaine e passou as opções.",
-            "Quinta ou sexta às 10h.",
-            { opcoes: "quinta ou sexta às 10h" },
-          ),
+          ficha({ quer_contratar: true }),
+          {
+            ferramenta: "anotar_para_leonardo",
+            entrada: {
+              anotacao: "Disse que a conversa foi ótima e quer contratar",
+            },
+          },
         ],
         texto:
-          "Combinado! Vou conferir a agenda da Edilaine com a equipe, e a resposta vem por aqui 😊",
-      },
-    },
-    6: {
-      agente: {
-        texto: "Oi, tudo bem por aqui! Me conta, qual é a sua dúvida?",
+          "Que alegria! Fico muito feliz com a decisão de vocês 🤍 O próximo passo é uma reunião online de 30 minutos com a Edilaine, sem compromisso. O Leonardo cuida do contrato e do pagamento depois da reunião com a Edilaine, e já deixei anotado que vocês querem seguir. Posso ver os horários da Edilaine para vocês?",
       },
     },
   },

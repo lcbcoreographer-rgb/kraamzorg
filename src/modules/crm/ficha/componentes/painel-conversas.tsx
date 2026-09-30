@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Bot, MessageCircle, User } from "lucide-react";
+import { Bot, MessageCircle, User, UserCheck } from "lucide-react";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
+import { Selo } from "@/components/ui/selo";
 import { formatarDataHora } from "@/lib/formatacao";
 import { cn } from "@/lib/utils";
 import type { ConversaResumoTela } from "../tipos";
@@ -26,6 +27,7 @@ export function PainelConversas({
 
   return (
     <div className="flex flex-col gap-4">
+      {conversa.quemConduz ? <QuemConduz quem={conversa.quemConduz} /> : null}
       <div className="flex flex-col gap-3">
         {conversa.mensagens.map((mensagem) => {
           const daFamilia = mensagem.direcao === "entrada";
@@ -67,6 +69,46 @@ export function PainelConversas({
         <MessageCircle aria-hidden="true" className="size-4" />
         Abrir em Conversas
       </Link>
+    </div>
+  );
+}
+
+const TEXTO_QUEM_CONDUZ: Record<
+  NonNullable<ConversaResumoTela["quemConduz"]>,
+  { selo: string; frase: string }
+> = {
+  isadora: {
+    selo: "Isadora conduz a conversa",
+    frase:
+      "Ela responde à família e cuida da agenda da reunião com a Edilaine.",
+  },
+  leonardo: {
+    selo: "Leonardo conduz a conversa",
+    frase:
+      "A reunião com a Edilaine aconteceu. A Isadora só volta se a equipe devolver a conversa.",
+  },
+  equipe: {
+    selo: "Equipe conduz a conversa",
+    frase: "A Isadora volta quando a pausa acabar.",
+  },
+};
+
+/** Selo de quem responde à família hoje (D-20), no alto da aba Conversas. */
+function QuemConduz({
+  quem,
+}: {
+  quem: NonNullable<ConversaResumoTela["quemConduz"]>;
+}) {
+  const texto = TEXTO_QUEM_CONDUZ[quem];
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <Selo
+        variante={quem === "isadora" ? "neutro" : "marinho"}
+        icone={quem === "isadora" ? <Bot /> : <UserCheck />}
+      >
+        {texto.selo}
+      </Selo>
+      <span className="text-apoio text-texto-2">{texto.frase}</span>
     </div>
   );
 }

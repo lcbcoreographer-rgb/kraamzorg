@@ -403,6 +403,12 @@ export function lerCriacaoDoEvento(estado, resposta, { recuperando = false } = {
     return comMarca({ ...estado, evento_confirmado: { evento_id: conferido.evento_id, link: conferido.link }, proximo: 'registrar' });
   }
   const criado = typeof resposta?.id === 'string' && resposta.id === pedido.evento_id && resposta.status !== 'cancelled';
+  // O Google cria o Meet de forma assíncrona: o evento pode voltar do insert
+  // sem o link ainda. Uma leitura pelo id (ramo "recuperar") pega o link
+  // pronto; se depois dela o link continuar faltando, o evento sai (compensar).
+  if (criado && !recuperando && conferido.motivo === 'sem_link_meet') {
+    return comMarca({ ...estado, proximo: 'recuperar', erro_google: 'sem_link_meet' });
+  }
   return comMarca({
     ...indisponivel(estado, conferido.motivo),
     proximo: criado ? 'compensar' : 'concluir',
@@ -429,6 +435,7 @@ export function lerReuniaoRegistrada(estado, resposta) {
       dia_semana: registro.dia_semana,
       data: registro.data,
       hora: registro.hora,
+      link: textoLimpo(registro.link) || estado.evento_confirmado?.link || '',
     },
   });
 }
@@ -492,7 +499,7 @@ export function lerRemarcacaoRegistrada(estado, resposta) {
     ...estado,
     proximo: 'concluir',
     rota: 'concluir',
-    resultado: { estado: 'remarcada', texto: registro.texto, dia_semana: registro.dia_semana, data: registro.data, hora: registro.hora },
+    resultado: { estado: 'remarcada', texto: registro.texto, dia_semana: registro.dia_semana, data: registro.data, hora: registro.hora, link: textoLimpo(registro.link) || estado.evento_confirmado?.link || '' },
   });
 }
 

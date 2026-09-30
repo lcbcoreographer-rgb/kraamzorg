@@ -667,7 +667,14 @@ begin
   if v_o.valida_ate <= pg_catalog.now() then
     return pg_catalog.jsonb_build_object('ok', false, 'erro', 'expirada');
   end if;
-  if v_o.inicio < pg_catalog.now() + privado.agenda_antecedencia() then
+  -- a antecedência mínima vale para o momento em que a Isadora ofereceu o horário
+  -- (registrar_opcoes_horario já a exige): a opção mais cedo da lista fica no limite
+  -- da antecedência e, medida contra o relógio da escolha, venceria minutos depois
+  -- de oferecida. Horário que já passou nunca vale.
+  if v_o.inicio <= pg_catalog.now() then
+    return pg_catalog.jsonb_build_object('ok', false, 'erro', 'expirada');
+  end if;
+  if v_o.inicio < v_o.consultada_em + privado.agenda_antecedencia() then
     return pg_catalog.jsonb_build_object('ok', false, 'erro', 'antecedencia');
   end if;
   if agenda_opcao.exigir_conferida and v_o.conferida_em is null then
@@ -682,7 +689,7 @@ begin
       'consultada_em', v_o.consultada_em, 'conferida_em', v_o.conferida_em));
 end;
 $$;
-comment on function privado.agenda_opcao(uuid, uuid, boolean) is '[v4.3] Confere uma opção de horário: da conversa, não usada, não descartada, oferecida hoje (valida_ate) e fora da antecedência mínima; com exigir_conferida, também conferida na escolha. Devolve {ok, opcao} ou {ok: false, erro}. Sem grant.';
+comment on function privado.agenda_opcao(uuid, uuid, boolean) is '[v4.3] Confere uma opção de horário: da conversa, não usada, não descartada, oferecida hoje (valida_ate), ainda no futuro e que respeitava a antecedência mínima quando foi oferecida (consultada_em); com exigir_conferida, também conferida na escolha. Devolve {ok, opcao} ou {ok: false, erro}. Sem grant.';
 
 -- --- 6.2 Aviso ao grupo interno (texto do banco) -------------------------------------------
 -- Texto de mensagem_modelo (destinatário equipe; rascunho sai marcado, como
@@ -938,7 +945,7 @@ exception
     return privado.agente_erro(sqlstate, sqlerrm);
 end;
 $$;
-comment on function agente.registrar_conferencia_horario(uuid, uuid, boolean) is '[v4.3] Registra a segunda consulta à agenda, feita na escolha da família (PRD 11.14). Livre: conferida_em e a ficha passa a aguardando_email. Ocupada: a opção é descartada. Recusa opção de outro dia, já usada ou dentro da antecedência. registrar_reuniao só aceita opção conferida.';
+comment on function agente.registrar_conferencia_horario(uuid, uuid, boolean) is '[v4.3] Registra a segunda consulta à agenda, feita na escolha da família (PRD 11.14). Livre: conferida_em e a ficha passa a aguardando_email. Ocupada: a opção é descartada. Recusa opção de outro dia, já usada, que já passou ou que não respeitava a antecedência quando foi oferecida. registrar_reuniao só aceita opção conferida.';
 
 -- --- 7.5 agente.reuniao_da_conversa ------------------------------------------------------------------
 -- Única fonte do id do evento para as ferramentas de agenda (PRD 11.9). Só a

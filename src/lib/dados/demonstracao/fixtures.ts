@@ -676,7 +676,7 @@ export const CONVERSAS: ConversaDemonstracao[] = [
     telefoneE164: "+5511900000310",
     classificacao: "lead",
     pausaMinutos: null,
-    encerradoMotivo: "contratar",
+    encerradoMotivo: "reuniao_realizada",
   },
 ];
 

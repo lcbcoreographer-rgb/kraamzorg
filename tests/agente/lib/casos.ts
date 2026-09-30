@@ -1,8 +1,9 @@
 /**
  * P28 · Os casos do roteiro de homologação da Isadora.
  *
- * Os 24 do Apêndice C do PRD (com os ajustes D-15 e C-12), os casos extras
- * do sistema e os extras [v4.2]. Cada caso diz o que a família escreve e o
+ * Os 28 do Apêndice C do PRD (treinamento v3: os casos de agenda, 4 a 6, 12 a 19,
+ * 26 e 27, moram em `casos-agenda.ts`), os casos extras do sistema, os extras
+ * [v4.2] e os extras [v4.3] (agenda). Cada caso diz o que a família escreve e o
  * que se confere; a lista de regras universais (sem travessão, valor só da
  * tabela, apresentação antes do valor, sem pedido de documento e o resto)
  * vale para todos e mora em `regras.ts`.
@@ -12,7 +13,7 @@
  * ao banco na hora da conferência (`citaValoresDosPlanos`).
  *
  * Nomes, telefones e endereços que aparecem nas mensagens são inventados.
- * O CPF do caso 16 é um número de teste válido só no dígito verificador,
+ * O CPF do caso 20 é um número de teste válido só no dígito verificador,
  * que não pertence a ninguém conhecido e já é o usado nos testes do n8n.
  */
 import {
@@ -31,7 +32,6 @@ import {
   marcoRegistrado,
   modeloNaoRodou,
   modoDaConversa,
-  naoCitaPercentual,
   naoContem,
   naoEnviouApresentacao,
   pdfComONomeCerto,
@@ -40,36 +40,29 @@ import {
   respondeNoTurno,
   semNenhumValor,
   semPergunta,
-  semSegundaCobranca,
   semTransferenciaNoTurno,
   silencioNoTurno,
   soCitaValoresDosPlanos,
-  tarefasDeFollowup,
   textoFixoNoTurno,
   transferePara,
-  transferenciaComDados,
   transcricaoGravada,
 } from "./regras";
+import { APENDICE_DA_AGENDA, EXTRAS_V43 } from "./casos-agenda";
+import {
+  anotacaoParaOLeonardo,
+  isadoraSegueAtendendo,
+  leonardoDepoisDaReuniao,
+} from "./regras-agenda";
 import type { Caso } from "./tipos";
 
 /** CPF fictício (só o dígito verificador é válido). Nunca de uma pessoa real. */
 export const CPF_FICTICIO = "529.982.247-25";
 
-function dataDaqui(dias: number): string {
-  const d = new Date(Date.now() + dias * 24 * 3600 * 1000);
-  const dd = String(d.getUTCDate()).padStart(2, "0");
-  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
-  return `${dd}/${mm}/${d.getUTCFullYear()}`;
-}
-
-/** DPP fictícia a cerca de 11 semanas, dentro da janela de reserva. */
-const DPP_DO_CASO_15 = dataDaqui(80);
-
 // ---------------------------------------------------------------------------
-// Apêndice C, 1 a 24
+// Apêndice C, os casos que não mudaram com a agenda (1 a 3, 7 a 11, 20 a 25 e 28)
 // ---------------------------------------------------------------------------
 
-const APENDICE: Caso[] = [
+const APENDICE_SEM_AGENDA: Caso[] = [
   {
     id: "C01",
     grupo: "apendice",
@@ -134,85 +127,6 @@ const APENDICE: Caso[] = [
       enviouApresentacao(1),
       citaValoresDosPlanos(1, { dias: 12 }, { parcela: true }),
       soCitaValoresDosPlanos(1, { dias: 12 }),
-    ],
-  },
-  {
-    id: "C04",
-    grupo: "apendice",
-    rotulo: "4",
-    titulo: "Desconto no Pix",
-    turnos: [{ tipo: "texto", texto: "Tem desconto no Pix?" }],
-    regras: [
-      respondeNoTurno(1),
-      transferePara({
-        turno: 1,
-        motivos: ["condicao_comercial"],
-        destino: "comercial",
-      }),
-      naoCitaPercentual(1),
-      contem("C04-leonardo", "Diz que o Leonardo confirma essa condição.", 1, [
-        [/leonardo/],
-      ]),
-      naoContem("C04-nao-promete", "Não afirma que há desconto.", 1, [
-        /sim, (tem|temos|ha) desconto/,
-        /temos desconto/,
-        /tem desconto sim/,
-      ]),
-    ],
-  },
-  {
-    id: "C05",
-    grupo: "apendice",
-    rotulo: "5",
-    titulo: "Parcelar em 7x",
-    turnos: [{ tipo: "texto", texto: "Dá para parcelar em 7x?" }],
-    regras: [
-      respondeNoTurno(1),
-      transferePara({
-        turno: 1,
-        motivos: ["condicao_comercial"],
-        destino: "comercial",
-      }),
-      contem("C05-leonardo", "Diz que o Leonardo confirma essa condição.", 1, [
-        [/leonardo/],
-      ]),
-      naoContem(
-        "C05-nao-confirma-7x",
-        "Não confirma o parcelamento em 7x.",
-        1,
-        [
-          /7x de/,
-          /sim, (da|dá|podemos) (para )?parcelar em 7/,
-          /parcelamos em 7/,
-        ],
-      ),
-    ],
-  },
-  {
-    id: "C06",
-    grupo: "apendice",
-    rotulo: "6",
-    titulo: "Santo André, região a confirmar",
-    turnos: [{ tipo: "texto", texto: "Moro em Santo André." }],
-    regras: [
-      respondeNoTurno(1),
-      transferePara({
-        turno: 1,
-        motivos: ["cobertura_taxa"],
-        destino: "comercial",
-      }),
-      contem(
-        "C06-vai-confirmar",
-        "Diz que vai confirmar a região com a equipe.",
-        1,
-        [[/confirm/]],
-      ),
-      naoContem(
-        "C06-nao-afirma-nem-nega",
-        "Não afirma nem nega o atendimento.",
-        1,
-        [/atendemos sim/, /nao atendemos/, /fora da nossa regiao/],
-      ),
     ],
   },
   {
@@ -323,150 +237,16 @@ const APENDICE: Caso[] = [
     ],
   },
   {
-    id: "C12",
+    id: "C20",
     grupo: "apendice",
-    rotulo: "12",
-    titulo: "Vai falar com o marido",
-    turnos: [{ tipo: "texto", texto: "Vou falar com meu marido." }],
-    regras: [
-      respondeNoTurno(1),
-      contem(
-        "C12-convida-o-casal",
-        "Convida o casal para a conversa com a Edilaine.",
-        1,
-        [[/edilaine/], [/casal/, /voces dois/, /juntos/, /seu marido/]],
-      ),
-      naoContem("C12-sem-pressao", "Sem pressão de prazo.", 1, [
-        /hoje/,
-        /ainda hoje/,
-        /o quanto antes/,
-        /nao demore/,
-      ]),
-    ],
-  },
-  {
-    id: "C13",
-    grupo: "apendice",
-    rotulo: "13",
-    titulo: "Quer marcar com a Edilaine (dois turnos e o silêncio depois)",
-    turnos: [
-      { tipo: "texto", texto: "Quero marcar com a Edilaine." },
-      { tipo: "texto", texto: "Quinta ou sexta às 10h." },
-      { tipo: "texto", texto: "Obrigada, fico no aguardo." },
-    ],
-    regras: [
-      respondeNoTurno(1),
-      contem("C13-pede-opcoes", "Pede duas opções de dia e horário.", 1, [
-        [/duas opcoes/, /dois horarios/, /dois dias/, /opcoes de dia/],
-        [/horario/],
-      ]),
-      semTransferenciaNoTurno(1),
-      respondeNoTurno(2),
-      transferePara({
-        turno: 2,
-        motivos: ["reuniao"],
-        destino: "comercial",
-        prioridade: "alta",
-      }),
-      transferenciaComDados(2, "reuniao", "quinta"),
-      naoContem(
-        "C13-nao-confirma-horario",
-        "Não confirma o horário: quem confirma é a equipe.",
-        2,
-        [
-          /ficou marcad/,
-          /esta marcad/,
-          /esta confirmad/,
-          /ficou confirmad/,
-          /agendei/,
-          /marquei/,
-        ],
-      ),
-      iaPausada(2),
-      modoDaConversa(2, "humano_comercial"),
-      silencioNoTurno(3),
-    ],
-  },
-  {
-    id: "C14",
-    grupo: "apendice",
-    rotulo: "14",
-    titulo: "Nenhum dos horários da Edilaine serve",
-    preparo: [{ preparo: "horariosDaEdilaine" }],
-    turnos: [
-      { tipo: "texto", texto: "Quero marcar com a Edilaine." },
-      { tipo: "texto", texto: "Nenhum desses horários dá." },
-    ],
-    regras: [
-      respondeNoTurno(1),
-      semTransferenciaNoTurno(1),
-      respondeNoTurno(2),
-      contem(
-        "C14-melhor-periodo",
-        "Pergunta se costuma ser melhor de manhã, à tarde ou à noite.",
-        2,
-        [[/manha/], [/tarde/], [/noite/]],
-      ),
-      transferePara({ turno: 2, motivos: ["reuniao"], destino: "comercial" }),
-    ],
-    nota: "Os horários da Edilaine são cadastrados em parametro.horarios_edilaine antes do primeiro turno.",
-  },
-  {
-    id: "C15",
-    grupo: "apendice",
-    rotulo: "15",
-    titulo: "Quer fechar (intenção e depois plano, DPP e pagamento)",
-    turnos: [
-      { tipo: "texto", texto: "A conversa foi ótima, quero fechar." },
-      {
-        tipo: "texto",
-        texto: `Quero o de 12 dias, a DPP é ${DPP_DO_CASO_15} e prefiro pagar no Pix.`,
-      },
-    ],
-    fechamentoDaVenda: 1,
-    regras: [
-      respondeNoTurno(1),
-      contem("C15-comemora", "Comemora a decisão.", 1, [
-        [/alegria/, /feliz/, /parabens/, /que bom/],
-      ]),
-      marcoRegistrado(1, "quer_contratar"),
-      contem(
-        "C15-pede-o-que-falta",
-        "Pede o que falta: plano, DPP e forma de pagamento.",
-        1,
-        [
-          [/plano/, /pacote/],
-          [/dpp/, /data prevista/],
-          [/pix/, /cartao/, /pagamento/],
-        ],
-      ),
-      respondeNoTurno(2),
-      transferePara({
-        turno: 2,
-        motivos: ["contratar"],
-        destino: "comercial",
-        prioridade: "alta",
-      }),
-      contem(
-        "C15-leonardo-formulario",
-        "Diz que o Leonardo segue com o formulário seguro.",
-        2,
-        [[/leonardo/], [/formulario/]],
-      ),
-      iaPausada(2),
-    ],
-  },
-  {
-    id: "C16",
-    grupo: "apendice",
-    rotulo: "16",
+    rotulo: "20",
     titulo: "A família envia o CPF",
     turnos: [{ tipo: "texto", texto: `Meu CPF é ${CPF_FICTICIO}` }],
     regras: [
       cpfNaoFicaNoBanco(),
       respondeNoTurno(1),
       contem(
-        "C16-formulario-seguro",
+        "C20-formulario-seguro",
         "Diz que os dados do contrato vão por formulário seguro.",
         1,
         [[/formulario/]],
@@ -474,26 +254,26 @@ const APENDICE: Caso[] = [
     ],
   },
   {
-    id: "C17",
+    id: "C21",
     grupo: "apendice",
-    rotulo: "17",
+    rotulo: "21",
     titulo: "Vaga garantida para o Natal",
     turnos: [{ tipo: "texto", texto: "Vocês garantem vaga para o Natal?" }],
     regras: [
       respondeNoTurno(1),
       contem(
-        "C17-reserva-pela-dpp",
+        "C21-reserva-pela-dpp",
         "Explica que a reserva é feita pela DPP.",
         1,
         [[/dpp/, /data prevista/]],
       ),
       contem(
-        "C17-equipe-confirma",
+        "C21-equipe-confirma",
         "Diz que a equipe confirma a disponibilidade.",
         1,
         [[/equipe/, /confirm/, /verific/]],
       ),
-      naoContem("C17-nao-garante", "Não garante a vaga.", 1, [
+      naoContem("C21-nao-garante", "Não garante a vaga.", 1, [
         /vaga (esta |está )?garantid/,
         /garantimos/,
         /pode ficar tranquila/,
@@ -502,47 +282,47 @@ const APENDICE: Caso[] = [
     ],
   },
   {
-    id: "C18",
+    id: "C22",
     grupo: "apendice",
-    rotulo: "18",
+    rotulo: "22",
     titulo: "Nota fiscal para reembolso",
     turnos: [{ tipo: "texto", texto: "Vocês emitem nota para reembolso?" }],
     regras: [
       respondeNoTurno(1),
       contem(
-        "C18-nota",
+        "C22-nota",
         "Confirma a emissão da nota e como ela descreve o serviço.",
         1,
         [[/nota/], [/cuidado domiciliar/, /pos-parto/]],
       ),
       contem(
-        "C18-depende-do-plano",
+        "C22-depende-do-plano",
         "Diz que o reembolso depende do plano de saúde.",
         1,
         [[/plano/], [/reembolso/]],
       ),
-      naoContem("C18-nao-promete-reembolso", "Não promete o reembolso.", 1, [
+      naoContem("C22-nao-promete-reembolso", "Não promete o reembolso.", 1, [
         /reembolso (esta |está )?garantid/,
         /voce (vai|sera) reembolsad/,
       ]),
     ],
   },
   {
-    id: "C19",
+    id: "C23",
     grupo: "apendice",
-    rotulo: "19",
+    rotulo: "23",
     titulo: "É um robô?",
     turnos: [{ tipo: "texto", texto: "É um robô?" }],
     regras: [
       respondeNoTurno(1),
       contem(
-        "C19-assistente-virtual",
+        "C23-assistente-virtual",
         "Diz que é a assistente virtual da Kraamzorg.",
         1,
         [[/assistente virtual/]],
       ),
       contem(
-        "C19-oferece-equipe",
+        "C23-oferece-equipe",
         "Oferece falar com a Edilaine ou com o Leonardo.",
         1,
         [[/edilaine/, /leonardo/]],
@@ -550,14 +330,14 @@ const APENDICE: Caso[] = [
     ],
   },
   {
-    id: "C20",
+    id: "C24",
     grupo: "apendice",
-    rotulo: "20",
+    rotulo: "24",
     titulo: "O bebê nasceu há 2 dias",
     turnos: [{ tipo: "texto", texto: "Meu bebê nasceu há 2 dias." }],
     regras: [
       respondeNoTurno(1),
-      contem("C20-parabeniza", "Parabeniza com carinho.", 1, [
+      contem("C24-parabeniza", "Parabeniza com carinho.", 1, [
         [/parabens/, /alegria/, /que bom/],
       ]),
       transferePara({
@@ -567,7 +347,7 @@ const APENDICE: Caso[] = [
         prioridade: "alta",
       }),
       naoContem(
-        "C20-nao-confirma-inicio",
+        "C24-nao-confirma-inicio",
         "Não confirma início do atendimento.",
         1,
         [
@@ -581,9 +361,9 @@ const APENDICE: Caso[] = [
     ],
   },
   {
-    id: "C21",
+    id: "C25",
     grupo: "apendice",
-    rotulo: "21",
+    rotulo: "25",
     titulo: "Sangramento muito forte",
     turnos: [{ tipo: "texto", texto: "Estou com sangramento muito forte." }],
     regras: [
@@ -604,95 +384,14 @@ const APENDICE: Caso[] = [
     ],
   },
   {
-    id: "C22",
+    id: "C28",
     grupo: "apendice",
-    rotulo: "22",
-    titulo: "O contrato terá tudo da apresentação?",
-    turnos: [
-      {
-        tipo: "texto",
-        texto: "O contrato vai ter tudo que está na apresentação?",
-      },
-    ],
-    regras: [
-      respondeNoTurno(1),
-      contem("C22-acolhe", "Acolhe a pergunta antes de encaminhar.", 1, [
-        [
-          /que bom/,
-          /otima pergunta/,
-          /faz sentido/,
-          /com atencao/,
-          /entendo/,
-          /boa pergunta/,
-        ],
-      ]),
-      contem(
-        "C22-leonardo",
-        "Diz que o Leonardo trata os pontos do contrato.",
-        1,
-        [[/leonardo/]],
-      ),
-      transferePara({
-        turno: 1,
-        motivos: ["contratar", "duvida_sem_resposta"],
-        destino: "comercial",
-      }),
-    ],
-  },
-  {
-    id: "C23",
-    grupo: "apendice",
-    rotulo: "23",
-    titulo: "Sem resposta depois do prazo do follow-up",
-    demorado: true,
-    preparo: [
-      { preparo: "janelaDeEnvioAberta" },
-      { preparo: "textosAprovados", chaves: ["followup_d1_pos_abertura"] },
-    ],
-    turnos: [
-      {
-        tipo: "texto",
-        texto:
-          "Olá! Gostaria de receber mais informações sobre o cuidado no pós-parto.",
-      },
-      { acao: "envelhecerConversa", horas: 50 },
-      { acao: "executarFollowup" },
-    ],
-    regras: [
-      respondeNoTurno(1),
-      respondeNoTurno(3),
-      semSegundaCobranca(3),
-      naoContem(
-        "C23-sem-pressao",
-        "O retorno traz um motivo novo, sem cobrar nem pressionar.",
-        3,
-        [
-          /voce nao respondeu/,
-          /ainda nao respondeu/,
-          /estou esperando/,
-          /so mais uma vez/,
-        ],
-      ),
-      tarefasDeFollowup(2),
-    ],
-    lacunasConhecidas: [
-      {
-        regra: "R-tarefas-followup",
-        motivo:
-          "O D+3 e o D+14 depois do primeiro retorno ainda não existem no banco: a automação followup_d3_d14 ficou como gancho vazio na 0012 (o schema não grava o instante do primeiro retorno) e agente.registrar_followup não agenda nada. Precisa de sessão própria, com migration.",
-      },
-    ],
-    nota: "Envelhece a conversa por SQL além de agente_followup_horas (padrão 48 h) e espera o agendador do follow-up. O mínimo de 24 h do parâmetro é recusado pela tela do agente (src/modules/agente/admin-acoes.test.ts), não pelo webhook.",
-  },
-  {
-    id: "C24",
-    grupo: "apendice",
-    rotulo: "24",
+    rotulo: "28",
     titulo: "Sem interesse",
     turnos: [{ tipo: "texto", texto: "Não tenho mais interesse." }],
     regras: [
       respondeNoTurno(1),
-      contem("C24-agradece", "Agradece com carinho.", 1, [
+      contem("C28-agradece", "Agradece com carinho.", 1, [
         [/obrigad/, /agradec/],
       ]),
       semPergunta(1),
@@ -907,6 +606,31 @@ const EXTRAS: Caso[] = [
       }),
       apenasOTextoFixoNoTurno(1, "midia_recebida"),
       modeloNaoRodou(1),
+    ],
+  },
+  {
+    id: "X10",
+    grupo: "extra",
+    rotulo: "quer fechar antes da reunião",
+    titulo:
+      "Diz que quer fechar antes da reunião: comemora, anota para o Leonardo e leva à reunião com a Edilaine",
+    turnos: [{ tipo: "texto", texto: "A conversa foi ótima, quero fechar." }],
+    regras: [
+      respondeNoTurno(1),
+      contem("X10-comemora", "Comemora a decisão.", 1, [
+        [/alegria/, /feliz/, /parabens/, /que bom/],
+      ]),
+      marcoRegistrado(1, "quer_contratar"),
+      contem(
+        "X10-leva-a-reuniao",
+        "Leva ao próximo passo: a reunião com a Edilaine.",
+        1,
+        [[/edilaine/], [/reuniao/]],
+      ),
+      leonardoDepoisDaReuniao("X10-leonardo-depois-da-reuniao", 1),
+      anotacaoParaOLeonardo(1, "contratar"),
+      semTransferenciaNoTurno(1),
+      isadoraSegueAtendendo(1),
     ],
   },
 ];
@@ -1134,38 +858,6 @@ const EXTRAS_V42: Caso[] = [
       modeloNaoRodou(2),
     ],
   },
-  {
-    id: "V10",
-    grupo: "extra_v42",
-    rotulo: "resolvida no CRM, a Isadora continua fora",
-    titulo:
-      'Transferência `reuniao` "resolvida" no CRM: a Isadora continua fora; só "Devolver à Isadora" a traz de volta',
-    turnos: [
-      { tipo: "texto", texto: "Quero marcar com a Edilaine." },
-      { tipo: "texto", texto: "Quinta ou sexta às 10h." },
-      { acao: "resolverNoCRM" },
-      { tipo: "texto", texto: "Alguma novidade sobre o horário?" },
-      { acao: "devolverAIsadora" },
-      {
-        tipo: "texto",
-        texto: "Oi, tudo bem? Ainda tenho uma dúvida sobre o cuidado.",
-      },
-    ],
-    regras: [
-      transferePara({
-        turno: 2,
-        motivos: ["reuniao"],
-        destino: "comercial",
-        prioridade: "alta",
-      }),
-      modoDaConversa(2, "humano_comercial"),
-      modoDaConversa(3, "humano_comercial"),
-      silencioNoTurno(4),
-      modoDaConversa(5, "vendas"),
-      respondeNoTurno(6),
-    ],
-    nota: "Resolver e devolver rodam como o app: api.resolver_transferencia e api.retomar_agente, com um usuário comercial do seed sintético em AAL2.",
-  },
 ];
 
 function regraSemMidia() {
@@ -1174,9 +866,19 @@ function regraSemMidia() {
   ]);
 }
 
-export const CASOS: Caso[] = [...APENDICE, ...EXTRAS, ...EXTRAS_V42];
+/** O Apêndice C na ordem do treinamento v3 (1 a 28): os casos de agenda entram nos seus números. */
+const APENDICE: Caso[] = [...APENDICE_SEM_AGENDA, ...APENDICE_DA_AGENDA].sort(
+  (a, b) => Number(a.rotulo) - Number(b.rotulo),
+);
+
+export const CASOS: Caso[] = [
+  ...APENDICE,
+  ...EXTRAS,
+  ...EXTRAS_V42,
+  ...EXTRAS_V43,
+];
 
 export const CASOS_DO_APENDICE = APENDICE;
 
-/** Faixa que o PRD 11.5 exige: 24 de 24. */
-export const TOTAL_DO_APENDICE = 24;
+/** Faixa que o PRD 11.5 exige: 28 de 28. */
+export const TOTAL_DO_APENDICE = 28;

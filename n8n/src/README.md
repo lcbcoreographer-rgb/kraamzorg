@@ -1,4 +1,4 @@
-Definição dos três fluxos (nós e conexões) e código puro dos nós Code, em .mjs.
+Definição dos quatro fluxos (nós e conexões) e código puro dos nós Code, em .mjs.
 Mesmas funções puras são testadas por n8n/build.test.mjs, sem depender do n8n.
 Preenchido pelo P23 (build), P24 (fluxo 2), P25 (fluxo 3) e P26 (fluxo 1).
 
@@ -39,3 +39,16 @@ insert como chamada externa comum (lib/simulador.mjs). Nenhum texto para famíli
 equipe entra aqui: o fluxo só indexa o que `agente.base_para_indexar()` aprovou.
 fluxo-1.test.mjs roda os três cenários do 19.2 (documento aprovado, nada a indexar,
 falha no meio) no simulador, mais o PGVector falhando inteiro e a promoção falhando.
+
+Fluxo 4 (P25b, [v4.3]): fluxo-4-agenda-isadora.mjs monta a Agenda da Isadora (PRD 19.6),
+o único fluxo com o nó do Google Calendar e com a credencial do Google. A entrada A é
+chamada pelo fluxo 3 (as ferramentas consultar_horarios_edilaine, agendar_reuniao,
+remarcar_reuniao, cancelar_reuniao e consultar_equipe são toolWorkflow para ele; a entrada
+B do fluxo 3 o chama para conferir o evento antes do lembrete e para retomar horários); a
+entrada B roda a cada 30 minutos e sincroniza as reuniões da Isadora com o calendário.
+Regras em code/: agenda.js (fuso, preferência, opções, conferência do evento),
+agenda-fluxo4.js (os nós do fluxo 4), agenda-validador.js (itens 9 e 10 do validador) e
+agenda-proativos.js (lembrete, falta, devolutiva e horário liberado, nós 42 a 47 do fluxo 3).
+lib/calendario-simulado.mjs é o Google Calendar de mentira dos testes e do roteiro do P28.
+Com homologacao.agendaSimulada os nós do Google viram chamadas HTTP à rota
+/api/teste/uazapi/agenda/... do app.

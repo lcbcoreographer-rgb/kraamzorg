@@ -1296,3 +1296,12 @@ import './fluxo-3.test.mjs';
 // conferirIndexacao), os três cenários do 19.2 no simulador (documento
 // aprovado, nada a indexar, falha no meio) e estrutura do JSON.
 import './fluxo-1.test.mjs';
+
+// [v4.3] Fluxo 4 (Agenda da Isadora): as regras da agenda do Treinamento v3
+// (seção 3) no simulador, com o Google Calendar e o banco de mentira, e a
+// estrutura do JSON.
+import './fluxo-4.test.mjs';
+
+// [v4.3] O e-mail do convite é o único dado que o validador deixa pedir, e só
+// no passo certo.
+import './validar-email-convite.test.mjs';

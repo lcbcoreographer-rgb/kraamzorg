@@ -27,7 +27,7 @@
 
 begin;
 
-select plan(191);
+select plan(193);
 
 -- -----------------------------------------------------------------------------
 -- 0. Preparação
@@ -173,6 +173,18 @@ insert into sessao_venda_opcao (id, conversa_id, inicio, fim, consultada_em, val
 values ('e2800000-0000-4000-8000-000000000002', testes.p25b_conv(2), now() + interval '2 hours', now() + interval '150 minutes', now(), now() + interval '1 day');
 select is(agente.validar_opcao_horario(testes.p25b_conv(2), 'e2800000-0000-4000-8000-000000000002') ->> 'erro', 'antecedencia',
   'validar_opcao_horario: antecedência mínima respeitada');
+-- a opção mais cedo fica no limite da antecedência: horas depois da oferta, no mesmo dia, ela continua valendo
+insert into sessao_venda_opcao (id, conversa_id, inicio, fim, consultada_em, valida_ate)
+values ('e2800000-0000-4000-8000-000000000003', testes.p25b_conv(4), now() + interval '21 hours', now() + interval '21 hours 30 minutes',
+        now() - interval '3 hours', now() + interval '1 hour');
+select is((agente.validar_opcao_horario(testes.p25b_conv(4), 'e2800000-0000-4000-8000-000000000003') ->> 'ok')::boolean, true,
+  'antecedência medida na oferta: a opção do limite não vence horas depois de oferecida');
+insert into sessao_venda_opcao (id, conversa_id, inicio, fim, consultada_em, valida_ate)
+values ('e2800000-0000-4000-8000-000000000004', testes.p25b_conv(4), now() - interval '1 minute', now() + interval '29 minutes',
+        now() - interval '1 day', now() + interval '1 hour');
+select is(agente.validar_opcao_horario(testes.p25b_conv(4), 'e2800000-0000-4000-8000-000000000004') ->> 'erro', 'expirada',
+  'horário que já começou nunca vale');
+delete from sessao_venda_opcao where id in ('e2800000-0000-4000-8000-000000000003', 'e2800000-0000-4000-8000-000000000004');
 select is(agente.validar_opcao_horario(testes.p25b_conv(3), 'e2800000-0000-4000-8000-000000000002') ->> 'erro', 'inexistente',
   'opção de outra conversa: inexistente (a chave é o conversa_id)');
 

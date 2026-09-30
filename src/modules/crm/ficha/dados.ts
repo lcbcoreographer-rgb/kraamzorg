@@ -3,6 +3,7 @@ import { exigirSessao, obterSessao } from "@/lib/auth/sessao";
 import { criarClienteServidor } from "@/lib/db/cliente-servidor";
 import { ErroRepositorio, traduzirErroBanco } from "@/lib/dados/erros";
 import { obterRepositorios } from "@/lib/dados/fabrica";
+import { quemConduzAConversa } from "@/modules/agente/formatacao";
 import { modoDados } from "@/lib/dados/modo";
 import type { Ficha } from "@/lib/dados/tipos";
 import {
@@ -194,6 +195,7 @@ export async function obterConversaDaFamilia(
   const mensagens = await agente.mensagensDaConversa(conversa.id);
   return {
     conversaId: conversa.id,
+    quemConduz: quemConduzAConversa(conversa),
     nomeContato: conversa.nomeContato,
     telefoneE164: conversa.telefoneE164,
     mensagens: mensagens.slice(-20),

@@ -500,6 +500,32 @@
       },
       "observacoes": "defaultVersion assumido 1.4 (maior do array). Ao rodar pela primeira vez, o nó executa 'CREATE TABLE IF NOT EXISTS agente_n8n.chat_memoria (id SERIAL PRIMARY KEY, session_id VARCHAR(255) NOT NULL, message JSONB NOT NULL);' (string literal de @langchain/community/stores/message/postgres.cjs, método ensureTable; sem CREATE EXTENSION, essa tabela não usa pgvector). ARMADILHA de nome de parâmetro: sessionIdType='fromInput' e sessionIdType='customKey' compartilham o MESMO nome de parâmetro de valor ('sessionKey') só que declarado duas vezes na definição do nó com displayOptions diferentes; o capítulo 19 usa customKey, então sessionKey é uma expressão editável (aqui, o id da conversa), não o campo somente leitura que aparece em modo fromInput. contextWindowLength tem default 5 no nó; a 19.4/11.9 pedem janela de 30 mensagens, então precisa ser declarado explicitamente, senão a memória fica curta demais."
     },
+    "googleCalendar": {
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "versoes": [1, 1.1, 1.2, 1.3],
+      "parametros": {
+        "resource": "event",
+        "operation": "create",
+        "calendar": { "__rl": true, "mode": "id", "value": "ID_DO_CALENDARIO_DA_REUNIAO" },
+        "start": "={{ $json.evento.inicio_local }}",
+        "end": "={{ $json.evento.fim_local }}",
+        "useDefaultReminders": true,
+        "additionalFields": {
+          "id": "={{ $json.evento.evento_id }}",
+          "summary": "={{ $json.evento.titulo }}",
+          "description": "={{ $json.evento.descricao }}",
+          "attendees": "={{ $json.evento.convidados }}",
+          "sendUpdates": "all",
+          "conferenceDataUi": { "conferenceDataValues": { "conferenceSolution": "hangoutsMeet" } }
+        }
+      },
+      "conexoes": {
+        "inputs": ["main"],
+        "outputs": ["main"]
+      },
+      "observacoes": "[v4.3] Lido do código de n8n-nodes-base 2.15.1 (Google/Calendar/GoogleCalendar.node.js e EventDescription.js), sem instância. Só o fluxo 4 usa este nó. Credencial: googleCalendarOAuth2Api (ou conta de serviço, T-11). Recurso calendar, operação availability (freeBusy) com options.outputFormat bookedSlots devolve a lista de intervalos ocupados e, com a agenda livre, lista vazia: sem alwaysOutputData o nó seguinte nunca roda. Recurso event: create (additionalFields.id fixa o id do evento e é a marca de origem da Isadora; só letras a-v e dígitos, 5 a 1024 caracteres; attendees é lista de textos; conferenceDataUi com hangoutsMeet faz o nó pedir conferenceDataVersion=1; sendUpdates all manda o convite pelo Google), get, update (updateFields.start, end e sendUpdates; é um PATCH, mantém o Meet e os convidados) e delete (o nó não repassa sendUpdates ao Google no DELETE: quem foi convidado pode não receber o aviso de cancelamento). O horário vai como data e hora local com deslocamento; o nó converte pelo fuso do fluxo (settings.timezone = America/Sao_Paulo). O Meet pode voltar do create ainda sem link (criação assíncrona no Google): o fluxo 4 lê o evento de novo antes de desistir. Erros 404 e 410 na leitura contam como evento apagado; evento apagado na interface do Google volta como status cancelled. O calendarId no modo id é validado como e-mail (o id de um calendário do Google tem esse formato)."
+    },
     "stickyNote": {
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,

@@ -179,7 +179,7 @@ export function montarFluxo(config) {
           options: { timeout: 15000 },
         },
         posicao,
-        { onError: 'continueRegularOutput' },
+        { onError: 'continueRegularOutput', ...(operacao === 'livre-ocupado' ? { alwaysOutputData: true } : {}) },
       );
     }
     return c.no('googleCalendar', nome, googleParametros, posicao, {

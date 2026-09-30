@@ -3,15 +3,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
+  Bot,
   ExternalLink,
   LockKeyhole,
   OctagonPause,
+  UserCheck,
 } from "lucide-react";
 import { z } from "zod";
 import { Botao } from "@/components/ui/botao";
 import { FaixaAlerta } from "@/components/ui/faixa-alerta";
 import { Selo } from "@/components/ui/selo";
 import { exigirSessao } from "@/lib/auth/sessao";
+import { formatarDataHora } from "@/lib/formatacao";
 import {
   hojeBrasilia,
   textoIdadeGestacional,
@@ -25,12 +28,15 @@ import { EditorResumo } from "@/modules/crm/sessao-venda/componentes/editor-resu
 import { FormularioAgendar } from "@/modules/crm/sessao-venda/componentes/formulario-agendar";
 import { PainelDesfecho } from "@/modules/crm/sessao-venda/componentes/painel-desfecho";
 import { PainelGravacao } from "@/modules/crm/sessao-venda/componentes/painel-gravacao";
+import { FEITO_SESSAO } from "@/modules/crm/sessao-venda/mensagens";
 import {
   lerGravacaoTela,
   listarCondutoresTela,
   obterSessaoTela,
   obterTermoGravacao,
+  podeCancelarReuniao,
   podeConduzirAgenda,
+  podeRegistrarReuniao,
   resumoIaLigado,
 } from "@/modules/crm/sessao-venda/dados";
 
@@ -40,13 +46,6 @@ export const metadata: Metadata = {
 };
 
 type Pesquisa = Record<string, string | string[] | undefined>;
-
-const FEITO: Record<string, string> = {
-  marcada:
-    "Conversa marcada. A família passou para Sessão agendada no pipeline e o lembrete da véspera já está nas tarefas.",
-  remarcada:
-    "Conversa remarcada. O lembrete antigo saiu das tarefas e o novo entrou com a data certa.",
-};
 
 /**
  * Uma conversa de orientação (P29): quando, com quem, o link, como foi e,
@@ -65,12 +64,21 @@ export default async function PaginaSessaoVenda({
   const usuario = await exigirSessao("/sessoes-venda");
   const pesquisa = await searchParams;
   const feito =
-    typeof pesquisa.feito === "string" ? FEITO[pesquisa.feito] : null;
+    typeof pesquisa.feito === "string"
+      ? (FEITO_SESSAO[pesquisa.feito] ?? null)
+      : null;
 
   const sessao = await obterSessaoTela(id);
   if (!sessao) notFound();
 
   const podeMexer = podeConduzirAgenda(usuario);
+  const daIsadora = sessao.agendadaPor === "isadora";
+  const podeRegistrar = podeRegistrarReuniao(usuario);
+  const podeCancelar = podeCancelarReuniao(usuario, sessao);
+  const linhasDoResumo = (sessao.resumoIsadora ?? "")
+    .split(" / ")
+    .map((linha) => linha.trim())
+    .filter(Boolean);
   const sensivel =
     sessao.estadoSensivel === "bloqueio_total" ||
     sessao.estadoSensivel === "encerrado_sensivel";
@@ -86,7 +94,7 @@ export default async function PaginaSessaoVenda({
     gravavel
       ? lerGravacaoTela(sessao, usuario).catch(() => null)
       : Promise.resolve(null),
-    podeMexer && sessao.status === "agendada" && !sensivel
+    podeMexer && sessao.status === "agendada" && !sensivel && !daIsadora
       ? listarCondutoresTela().catch(() => [])
       : Promise.resolve([]),
     obterTermoGravacao(),
@@ -124,6 +132,29 @@ export default async function PaginaSessaoVenda({
                 {ROTULO_STATUS[sessao.status]}
               </Selo>
             )}
+            {daIsadora ? (
+              <Selo variante="neutro" icone={<Bot strokeWidth={1.75} />}>
+                Marcada pela Isadora
+              </Selo>
+            ) : null}
+            {!sensivel ? (
+              <Selo
+                variante={
+                  sessao.conversaCom === "leonardo" ? "marinho" : "neutro"
+                }
+                icone={
+                  sessao.conversaCom === "leonardo" ? (
+                    <UserCheck strokeWidth={1.75} />
+                  ) : (
+                    <Bot strokeWidth={1.75} />
+                  )
+                }
+              >
+                {sessao.conversaCom === "leonardo"
+                  ? "Leonardo conduz a conversa"
+                  : "Isadora conduz a conversa"}
+              </Selo>
+            ) : null}
           </div>
           <p className="text-3 text-texto">
             Conversa de orientação
@@ -177,8 +208,87 @@ export default async function PaginaSessaoVenda({
           </FaixaAlerta>
         ) : null}
 
+        {!sensivel && (daIsadora || sessao.resultado) ? (
+          <section
+            aria-labelledby="detalhes-reuniao"
+            className="rounded-3 bg-superficie shadow-1 flex flex-col gap-4 p-5"
+          >
+            <h2
+              id="detalhes-reuniao"
+              className="font-titulo text-2 text-texto font-medium"
+            >
+              A reunião
+            </h2>
+            <dl className="text-corpo grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
+              <div className="flex flex-col gap-0.5">
+                <dt className="text-apoio text-texto-2">Quem marcou</dt>
+                <dd className="text-texto">
+                  {daIsadora
+                    ? "A Isadora, pela agenda da Edilaine no Google Calendar"
+                    : "A equipe"}
+                </dd>
+              </div>
+              {daIsadora ? (
+                <div className="flex flex-col gap-0.5">
+                  <dt className="text-apoio text-texto-2">
+                    Lembrete da véspera
+                  </dt>
+                  <dd className="text-texto">
+                    {sessao.lembreteEnviadoEm
+                      ? `Enviado pela Isadora em ${formatarDataHora(sessao.lembreteEnviadoEm)}`
+                      : "Ainda não enviado"}
+                  </dd>
+                </div>
+              ) : null}
+              {sessao.resultado ? (
+                <div className="flex flex-col gap-0.5 sm:col-span-2">
+                  <dt className="text-apoio text-texto-2">
+                    Como foi, segundo quem registrou
+                  </dt>
+                  <dd className="text-texto max-w-leitura">
+                    {sessao.resultado}
+                  </dd>
+                </div>
+              ) : null}
+            </dl>
+            {daIsadora && sessao.status === "agendada" ? (
+              <p className="text-apoio text-texto-2 max-w-leitura">
+                Para mudar o horário ou apagar esta reunião, use o evento no
+                Google Calendar: o CRM se atualiza sozinho em até 30 minutos. Se
+                a família pedir, a Isadora remarca.
+              </p>
+            ) : null}
+          </section>
+        ) : null}
+
+        {!sensivel && daIsadora && linhasDoResumo.length > 0 ? (
+          <section
+            aria-labelledby="resumo-isadora"
+            className="rounded-3 bg-superficie-2 flex flex-col gap-3 p-5"
+          >
+            <h2
+              id="resumo-isadora"
+              className="font-titulo text-2 text-texto font-medium"
+            >
+              Resumo da Isadora para o Leonardo
+            </h2>
+            <p className="text-apoio text-texto-2">
+              Interno, nunca vai para a família. Traz as anotações de pedido de
+              condição e de dúvida de contrato que ela deixou para depois da
+              reunião.
+            </p>
+            <ul className="text-corpo text-texto max-w-leitura flex flex-col gap-1.5">
+              {linhasDoResumo.map((linha) => (
+                <li key={linha}>{linha}</li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-          {podeMexer && sessao.status === "agendada" && !sensivel ? (
+          {sessao.status === "agendada" &&
+          !sensivel &&
+          (podeRegistrar || podeCancelar || daIsadora) ? (
             <section
               aria-labelledby="como-foi"
               className="flex min-w-0 flex-col gap-6"
@@ -190,23 +300,31 @@ export default async function PaginaSessaoVenda({
                 >
                   {jaPassou ? "Como foi" : "Antes da conversa"}
                 </h2>
-                <PainelDesfecho sessaoId={sessao.id} jaPassou={jaPassou} />
+                <PainelDesfecho
+                  sessaoId={sessao.id}
+                  jaPassou={jaPassou}
+                  podeRegistrar={podeRegistrar}
+                  podeCancelar={podeCancelar}
+                  daIsadora={daIsadora}
+                />
               </div>
-              <details className="rounded-3 bg-superficie shadow-1 group p-5">
-                <summary className="font-titulo text-2 text-texto min-h-toque flex cursor-pointer items-center font-medium">
-                  Remarcar
-                </summary>
-                <div className="pt-4">
-                  <FormularioAgendar
-                    modo="remarcar"
-                    sessaoId={sessao.id}
-                    condutores={condutores}
-                    condutorAtual={sessao.conduzidaPor}
-                    linkAtual={null}
-                    hoje={hoje}
-                  />
-                </div>
-              </details>
+              {podeMexer && !daIsadora ? (
+                <details className="rounded-3 bg-superficie shadow-1 group p-5">
+                  <summary className="font-titulo text-2 text-texto min-h-toque flex cursor-pointer items-center font-medium">
+                    Remarcar
+                  </summary>
+                  <div className="pt-4">
+                    <FormularioAgendar
+                      modo="remarcar"
+                      sessaoId={sessao.id}
+                      condutores={condutores}
+                      condutorAtual={sessao.conduzidaPor}
+                      linkAtual={null}
+                      hoje={hoje}
+                    />
+                  </div>
+                </details>
+              ) : null}
             </section>
           ) : null}
 

@@ -1,8 +1,8 @@
 # Importar os fluxos do n8n em homologação
 
-Passo a passo para colocar os três fluxos da Isadora na instância de homologação (PRD 19.5). Os JSON são gerados por `n8n/build.mjs` e nunca editados à mão nem montados pela interface. Nada aqui vale para produção: produção só depois do aceite em homologação e com o adaptador `cloud_api` (PRD 4.1, T-01).
+Passo a passo para colocar os quatro fluxos da Isadora na instância de homologação (PRD 19.5; [v4.3] o fluxo 4 é a Agenda da Isadora). Os JSON são gerados por `n8n/build.mjs` e nunca editados à mão nem montados pela interface. Nada aqui vale para produção: produção só depois do aceite em homologação e com o adaptador `cloud_api` (PRD 4.1, T-01).
 
-Resumo da ordem: banco pronto, credenciais criadas, config do ambiente preenchido, build, **fluxo 2**, anotar o id, **rebuild do fluxo 3** com esse id, **fluxo 3**, **fluxo 1**, webhook da UAZAPI de teste, `agente_modo = teste`, ativação.
+Resumo da ordem: banco pronto, credenciais criadas (com a do Google), config do ambiente preenchido, build, **fluxo 2** e **fluxo 4**, anotar os dois ids, **rebuild do fluxo 3** com esses ids, **fluxo 3**, **fluxo 1**, webhook da UAZAPI de teste, `agente_modo = teste`, ativação do fluxo 4 e do fluxo 3.
 
 ## 0. O que precisa existir antes
 
@@ -12,7 +12,7 @@ Resumo da ordem: banco pronto, credenciais criadas, config do ambiente preenchid
 
 **Serviços.** Redis acessível pelo n8n, conta da OpenAI em nome da Kraamzorg (contrato 2.6.1) com `gpt-5.1`, `gpt-4.1-mini` e `text-embedding-3-small` liberados, e uma instância **de teste** da UAZAPI (nunca o número real enquanto a conta estiver restrita, T-01).
 
-## 1. Criar as quatro credenciais no n8n
+## 1. Criar as cinco credenciais no n8n
 
 Crie pela interface do n8n (Credentials, Add credential), com exatamente estes nomes. Os fluxos referenciam a credencial pelo id e pelo nome que estão no config; token e senha nunca entram no JSON.
 
@@ -22,6 +22,7 @@ Crie pela interface do n8n (Credentials, Add credential), com exatamente estes n
 | `Redis Drop` | Redis | Host, porta, senha e banco do Redis de homologação. As chaves usam o prefixo `kz:` |
 | `OpenAI Kraamzorg` | OpenAI API | Chave da conta da Kraamzorg |
 | `UAZAPI Kraamzorg` | Header Auth | Nome do cabeçalho `token`, valor o token da instância de teste |
+| `Google Calendar Kraamzorg` | Google Calendar OAuth2 API | [v4.3] Conta Google da Kraamzorg com acesso de edição **só** ao calendário da reunião inicial (`agenda.calendarId`) e de leitura de ocupado e livre aos calendários pessoais da Edilaine listados em `agenda.calendarIdsOcupacao`. Ative no projeto do Google as APIs Calendar e (para o Meet) o escopo padrão `calendar` ou `calendar.events`. Fica só no n8n, e só o fluxo 4 a usa (T-11). Pendente de conta e de permissão da Edilaine: sem ela o fluxo 4 importa e o build passa, mas a Isadora responde "vou conferir com a equipe" a qualquer pedido de horário |
 
 Depois de salvar cada uma, anote o id (é o trecho final da URL da credencial na interface, `.../credentials/<id>`). Importar sem erro não prova que a credencial existe ou funciona: só o teste de fumaça do P25 prova (seção 8).
 
@@ -36,8 +37,11 @@ Depois de salvar cada uma, anote o id (é o trecho final da URL da credencial na
    - `grupoFallbackJid`: o jid do grupo da coordenação, usado só quando `registrar_handoff` falha em saúde ou perda (PRD 19.1, ADR 0003).
    - `storage.urlPublicaMarketing`: URL pública (sem barra final) do bucket de marketing, só para quando `parametro.pdf_apresentacao` do banco ainda não tem `url` própria (só `path`, como no seed). O nó "Enviar Apresentação" usa a `url` que `agente.ficha_para_agente` devolve quando ela já é uma URL completa; senão monta `urlPublicaMarketing + "/" + path` (ADR 0003, divergência 4). Sem essa chave e sem `url` no banco, a apresentação simplesmente não sai (nunca um link quebrado): confirme com a Kraamzorg se o bucket de marketing já é público antes de preencher.
    - `modelos.*`: confirme os modelos na conta. `aceitaTemperatura` diz se `options.temperature` vai no nó (armadilha 11 de `n8n/referencia/README.md`); o teste de fumaça confirma.
+   - `fluxo.idFluxo4`: id do fluxo 4 (seção 4). `credenciais.googleCalendar`: id e nome da credencial do Google. `agenda.calendarId`: o id do calendário onde a Isadora cria, move e apaga os eventos da reunião inicial (ela nunca mexe em evento que não tenha criado; o id do evento é o `kraam` mais o id da opção, escolhido por ela). `agenda.calendarIdsOcupacao`: outros calendários da Edilaine lidos só para ocupado e livre (a Isadora nunca lê título, descrição nem participantes). Faixas de dia e hora, bloco de 30 minutos, antecedência, intervalo, título e descrição do evento e se o Leonardo é convidado **não** ficam aqui: moram em `parametro` (`agenda_*`, PRD 6.8), e a Edilaine e o Leonardo as confirmam (C-20 a C-28).
+   - `textosSistema.agenda`: os dois textos internos que o fluxo 4 usa quando a família não deu palavras próprias (`perguntaHorario`, `perguntaReuniaoDaEquipe`) e o rótulo da linha que entrega ao modelo o fato confirmado pela equipe (`rotuloFatoDaEquipe`). Não vão à família.
+   - `homologacao.agendaSimulada`: com `true`, os nós do Google Calendar do fluxo 4 viram chamadas à rota `agenda` do mesmo `homologacao.urlCaptura` (o calendário de teste do roteiro do P28, sem credencial). O build recusa `--env prod` com ele ligado, e a rota só responde em homologação.
    - `homologacao.envioSimulado` e `homologacao.transcricaoSimulada`: com `true`, todo envio e toda transcrição vão para `homologacao.urlCaptura` (a rota `/api/teste/uazapi` do app, em `src/app/api/teste/uazapi`, com `send/text`, `send/media` e `message/download`). A rota só responde com `NEXT_PUBLIC_APP_ENV=homologacao` e fora de `VERCEL_ENV=production`; em qualquer outro ambiente ela recusa com 403 e nada é capturado. Sem o app de homologação no ar, use `false` nos dois e a instância de teste da UAZAPI de verdade.
-3. Deixe `fluxo.idFluxo2` como está por enquanto; ele é conferido na seção 4.
+3. Deixe `fluxo.idFluxo2` e `fluxo.idFluxo4` como estão por enquanto; eles são conferidos na seção 4.
 
 ## 3. Build
 
@@ -45,9 +49,9 @@ Depois de salvar cada uma, anote o id (é o trecho final da URL da credencial na
 node n8n/build.mjs --env hml --config /caminho/do/config.hml.json --saida /pasta/temporaria/n8n-hml
 ```
 
-Sai com três arquivos com "(HML)" no nome e no nome do fluxo. Antes de importar, rode a suíte (`node --test n8n/build.test.mjs`); ela confere, entre outras coisas, a ordem de segurança do fluxo 3, as consultas literais e a ausência de segredo nos JSON gerados com o config de exemplo.
+Sai com quatro arquivos com "(HML)" no nome e no nome do fluxo. Antes de importar, rode a suíte (`node --test n8n/build.test.mjs`); ela confere, entre outras coisas, a ordem de segurança do fluxo 3, as consultas literais e a ausência de segredo nos JSON gerados com o config de exemplo.
 
-## 4. Fluxo 2, depois o id
+## 4. Fluxo 2 e fluxo 4, depois os ids
 
 1. Importe `kraamzorg-pausar-ia-notificar-equipe (HML).json`:
    - pela linha de comando do servidor: `n8n import:workflow --input="kraamzorg-pausar-ia-notificar-equipe (HML).json"`; ou
@@ -58,17 +62,22 @@ Sai com três arquivos com "(HML)" no nome e no nome do fluxo. Antes de importar
 
 O fluxo 2 não tem gatilho próprio: é chamado pelo fluxo 3 e pelas ferramentas do agente, e não precisa ser ativado.
 
+**[v4.3] Fluxo 4 (Agenda da Isadora).** Faça o mesmo com `kraamzorg-agenda-isadora (HML).json` (id estável `d3d6e6c8-0d73-4968-89c5-1616f912ce63`; troque `fluxo.idFluxo4` se a importação mudar o id). Depois de importar, abra o fluxo e vincule a credencial do Google aos nós do Google Calendar se a interface pedir. Ele tem duas entradas:
+   - chamado pelo fluxo 3 (as ferramentas `consultar_horarios_edilaine`, `agendar_reuniao`, `remarcar_reuniao`, `cancelar_reuniao` e `consultar_equipe`, e a conferência do evento antes do lembrete): não precisa ser ativado;
+   - a cada 30 minutos, compara as reuniões da Isadora dos próximos dias com o calendário (evento movido pela Edilaine atualiza a sessão; evento apagado cancela a sessão e abre uma tarefa para ela). **Esta entrada só roda com o fluxo 4 ativo**: ative-o junto com o fluxo 3 (seção 7).
+   Como o fluxo 2, o fluxo 4 aceita só chamadas do mesmo dono: importe com o mesmo usuário do fluxo 3.
+
 ## 5. Rebuild e fluxo 3
 
-1. Rode o build de novo (mesmo comando da seção 3) se o `idFluxo2` mudou. Os nós "Caminho de Alerta", "Mídia Recebida", `transferir_para_equipe`, `acionar_equipe_saude` e os demais que chamam o fluxo 2 passam a apontar para o id novo.
-2. Importe `kraamzorg-agente-isadora (HML).json`, com o mesmo usuário do fluxo 2.
+1. Rode o build de novo (mesmo comando da seção 3) se o `idFluxo2` ou o `idFluxo4` mudou. Os nós "Caminho de Alerta", "Mídia Recebida", `transferir_para_equipe`, `acionar_equipe_saude` e os demais que chamam o fluxo 2 passam a apontar para o id novo.
+2. Importe `kraamzorg-agente-isadora (HML).json`, com o mesmo usuário do fluxo 2 e do fluxo 4.
 3. **Ainda não ative.** A ativação é a seção 7.
 
 ## 6. Fluxo 1
 
 Importe `kraamzorg-ingestao-rag (HML).json`. Ele tem três gatilhos: manual, a cada 6 horas e o webhook de reindexação (`POST /webhook/<webhooks.fluxo1Reindexar>`). Só indexa itens com `status = 'aprovado'` em `agente.base_conhecimento`; a base inicial do P26 (`supabase/dados/base_conhecimento_seed.sql`) entra toda em rascunho e precisa da aprovação do Leonardo e da Edilaine antes da primeira ingestão.
 
-Depois de importar os três, **apague os JSON gerados** da máquina: eles carregam os segredos dos caminhos de webhook e não ficam como anexo em lugar nenhum (PRD 19.5).
+Depois de importar os quatro, **apague os JSON gerados** da máquina: eles carregam os segredos dos caminhos de webhook e não ficam como anexo em lugar nenhum (PRD 19.5).
 
 ## 7. Webhook da UAZAPI de teste, `agente_modo = teste` e ativação
 
@@ -78,7 +87,7 @@ Depois de importar os três, **apague os JSON gerados** da máquina: eles carreg
    update public.parametro set valor = '["+55DDDNUMERO1", "+55DDDNUMERO2"]'::jsonb where chave = 'agente_whitelist';
    ```
    (os números ficam só no banco, nunca no repositório). Em `teste`, número fora da lista não recebe resposta, mas o filtro de saúde continua valendo e gera o aviso interno (PRD 11.7).
-2. Ative o fluxo 3 no n8n. A URL de produção do webhook é `https://<host do n8n de homologação>/webhook/<webhooks.fluxo3Entrada>` (a `/webhook-test/...` só vale com o editor aberto).
+2. Ative o fluxo 3 no n8n e, [v4.3] o fluxo 4 (a sincronização com o calendário a cada 30 minutos só roda ativa; as ferramentas de agenda funcionam ativas ou não). A URL de produção do webhook é `https://<host do n8n de homologação>/webhook/<webhooks.fluxo3Entrada>` (a `/webhook-test/...` só vale com o editor aberto).
 3. Na instância de teste da UAZAPI, aponte o webhook para essa URL, com o evento de mensagens. Mantenha as mensagens enviadas pelo próprio número (`fromMe`): é por elas que o fluxo percebe quando alguém da equipe digitou no celular e pausa a Isadora. O eco das mensagens da própria Isadora é reconhecido por `wasSentByApi` e `track_source: "kraamzorg-agente"`.
 4. Ative o fluxo 1 só depois de haver itens aprovados na base (ou rode manualmente uma vez para conferir o caminho "Nada a Indexar").
 
@@ -87,12 +96,13 @@ Depois de importar os três, **apague os JSON gerados** da máquina: eles carreg
 - Teste de fumaça do P25: uma chamada do modelo de conversa e uma do classificador, com os parâmetros do config; se a conta recusar `temperature`, ajuste `aceitaTemperatura` e refaça o build.
 - Duas conversas concorrentes (dois jids da lista) que chamem pelo menos um `postgresTool` cada; confira no banco que cada chamada usou o `conversa_id` da própria conversa. Falha aqui bloqueia a ativação (PRD 19.1, 11.10).
 - Fluxo 2 com payloads de teste: a mensagem chega ao grupo de teste e a pausa aparece no Redis (`kz:pausa:<conversa_id>`) e no banco.
-- Roteiro do Apêndice C do PRD, uma conversa nova por teste, incluindo os casos extras [v4.2].
+- Roteiro do Apêndice C do PRD, uma conversa nova por teste, incluindo os casos extras [v4.2]. [v4.3] Os 28 casos do treinamento v3 incluem a agenda: rode com um **calendário de teste** da Edilaine (ou com `homologacao.agendaSimulada`) e confira no calendário que o evento existe com Meet e convidados antes de a Isadora confirmar, que a agenda foi consultada na sugestão, na escolha e antes de criar, e que evento de outra pessoa nunca é tocado.
+- [v4.3] Credencial do Google: crie um evento de teste pela ferramenta `agendar_reuniao` num calendário de teste, confirme que o convite chega ao e-mail de teste com o link do Meet, mova e apague o evento pelo Google e veja a sessão se atualizar em até 30 minutos.
 - Fluxo 1: com itens aprovados, a ingestão cria o lote, promove e a ferramenta `base_conhecimento` devolve o item certo para cinco perguntas; uma falha no meio mantém a base anterior.
 
 ## 9. O que ainda depende do banco estar no ar
 
-Os três JSON importam hoje (validado num n8n 2.40.6 local), mas nenhum fluxo roda de ponta a ponta sem o que segue, que é do P21 e do P22:
+Os JSON dos fluxos 1 a 3 importam (validado num n8n 2.40.6 local; o fluxo 4 e o nó do Google Calendar foram conferidos pelo código do n8n-nodes-base 2.15.1 em `n8n/referencia/versoes-nos.json`, sem instância: a importação real do fluxo 4 é o primeiro passo da seção 4 e precisa de Node.js 24), mas nenhum fluxo roda de ponta a ponta sem o que segue, que é do P21 e do P22:
 
 - O papel `n8n_agente` com senha (definida à mão a partir do cofre), `search_path` `agente_n8n, extensions`, os grants e as políticas RLS das duas tabelas de `agente_n8n` (PRD 11.10).
 - Todas as funções do Apêndice A no schema `agente`, com os contratos que os nós Code esperam (descritos no topo de `n8n/src/code/estado-handoff.js`, `entrada-mensagem.js`, `modo-agente.js`, `contexto-agente.js` e `followup.js`). Os pontos que vão além do texto do Apêndice A e o P21 e o P22 precisam cobrir:
@@ -107,4 +117,5 @@ Os três JSON importam hoje (validado num n8n 2.40.6 local), mas nenhum fluxo ro
   - `promover_lote`, `descartar_lote` e `registrar_ingestao` devolvem `jsonb` com `ok` (o fluxo 1 descarta o lote quando `promover_lote` não confirma).
 - Os parâmetros do agente em `parametro` (PRD 5.2): `agente_modo`, `agente_whitelist`, `agente_debounce_segundos`, `agente_pausa_humano_horas`, `grupo_whatsapp_por_destino`, `plantao_telefones`, `pdf_apresentacao`, `validador_listas` e os de ativação dos textos clínicos.
 - Os textos de `mensagem_modelo` do capítulo 23 aprovados, os termos de `termo_alerta` e a matriz `parametro.handoff_matriz`.
-- A rota de captura `/api/teste/uazapi` do app, se for usar `envioSimulado` ou `transcricaoSimulada`.
+- A rota de captura `/api/teste/uazapi` do app, se for usar `envioSimulado`, `transcricaoSimulada` ou [v4.3] `agendaSimulada` (a agenda de teste fica em `/api/teste/uazapi/agenda/...`).
+- [v4.3] As funções de agenda do schema `agente` (migration 0028: `parametros_agenda`, `registrar_opcoes_horario`, `validar_opcao_horario`, `registrar_conferencia_horario`, `reuniao_da_conversa`, `registrar_reuniao`, `registrar_remarcacao`, `registrar_cancelamento`, `registrar_consulta_equipe`, `proativos_agenda_devidos`, `registrar_lembrete`, `fechar_consulta`, `sessoes_para_sincronizar`, `sincronizar_reuniao`) e os parâmetros `agenda_*` (faixas, bloco, antecedência, intervalo, janela, título e descrição do evento), que entram em rascunho e precisam da confirmação da Edilaine e do Leonardo.
