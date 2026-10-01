@@ -11,7 +11,7 @@ O n8n roda fora do perímetro de autenticação do app e conversa com famílias 
 
 ### 1. Papel `n8n_agente`
 
-- Criado na migration de forma idempotente, `login noinherit nobypassrls`, sem senha. O `alter role` seguinte reafirma `nosuperuser nocreatedb nocreaterole noinherit nobypassrls noreplication` a cada aplicação, para um papel criado à mão com outro atributo não passar despercebido.
+- Criado na migration de forma idempotente, `login noinherit nobypassrls`, sem senha. Uma conferência seguinte, a cada aplicação, recusa o papel que tenha `superuser`, `createdb`, `createrole`, `bypassrls`, `replication` ou `inherit`, para um papel criado à mão com outro atributo não passar despercebido. Não é um `alter role ... nosuperuser`: no Supabase gerenciado o dono das migrations não é superuser e o Postgres recusa qualquer `alter role` que mencione SUPERUSER (42501), mesmo com `no`.
 - `search_path = agente_n8n, extensions`: os nós PGVector e Postgres Chat Memory usam `tableName` sem schema e os operadores do pgvector moram em `extensions`.
 - **Senha (runbook):** definida à mão por quem tem acesso ao cofre da Kraamzorg, direto no SQL Editor do projeto, com `alter role n8n_agente password '<do cofre>';`. Nunca em migration, arquivo, variável de ambiente do app ou issue. Troca de senha segue o mesmo caminho e depois a credencial "Postgres Kraamzorg Agente" do n8n é atualizada.
 - **Conexão:** pelo pooler do Supabase em modo sessão (porta 5432 do pooler, não 6543), usuário `n8n_agente.<ref do projeto>`, SSL obrigatório. Modo sessão porque os nós LangChain rodam `create table if not exists` e dependem do estado da sessão (o `search_path` do papel, instruções preparadas); o modo transação do pooler não garante esse estado entre uma instrução e outra.

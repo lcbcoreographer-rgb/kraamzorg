@@ -73,9 +73,16 @@
 -- =============================================================================
 -- 1. Papel n8n_agente (PRD 11.10 [v4.2])
 --
--- Criado sem senha e de forma idempotente. O alter role logo abaixo reafirma
--- os atributos a cada aplicação, para um papel criado à mão com outro
--- atributo (superuser, bypassrls) nunca passar despercebido.
+-- Criado sem senha e de forma idempotente. A conferência logo abaixo roda a
+-- cada aplicação e recusa o papel criado à mão com outro atributo (superuser,
+-- bypassrls etc.), para isso nunca passar despercebido.
+--
+-- Por que conferir em vez de "alter role ... nosuperuser nobypassrls ...":
+-- no Supabase gerenciado o dono das migrations (postgres) não é superuser, e
+-- o Postgres recusa qualquer alter role que mencione SUPERUSER, mesmo
+-- "nosuperuser" (42501, "Only roles with the SUPERUSER attribute may alter
+-- roles with the SUPERUSER attribute"). O create role já nasce sem esses
+-- atributos; aqui só se prova que continuam assim.
 -- =============================================================================
 
 do $$
@@ -85,7 +92,24 @@ begin
   end if;
 end $$;
 
-alter role n8n_agente nosuperuser nocreatedb nocreaterole noinherit nobypassrls noreplication;
+do $$
+declare
+  v_ruim text;
+begin
+  select pg_catalog.concat_ws(', ',
+           case when r.rolsuper       then 'superuser' end,
+           case when r.rolcreatedb    then 'createdb' end,
+           case when r.rolcreaterole  then 'createrole' end,
+           case when r.rolbypassrls   then 'bypassrls' end,
+           case when r.rolreplication then 'replication' end,
+           case when r.rolinherit     then 'inherit' end)
+    into v_ruim
+    from pg_catalog.pg_roles r
+   where r.rolname = 'n8n_agente';
+  if v_ruim is not null and v_ruim <> '' then
+    raise exception 'o papel n8n_agente tem atributo que não pode ter (PRD 11.10): %. Corrija à mão com um superuser (alter role n8n_agente nosuperuser nocreatedb nocreaterole noinherit nobypassrls noreplication) e rode de novo.', v_ruim;
+  end if;
+end $$;
 alter role n8n_agente set search_path = agente_n8n, extensions;
 
 comment on role n8n_agente is 'Papel do n8n (PRD 11.10, D-14): executa só as funções do Apêndice A no schema agente e lê/grava só agente_n8n.documentos e agente_n8n.chat_memoria. Sem senha na migration (definida à mão a partir do cofre, ADR 0003). Conexão pelo pooler em modo sessão, usuário n8n_agente.<ref>.';
